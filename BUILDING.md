@@ -45,6 +45,22 @@ cmake -G "Visual Studio [Version Number]" ..\..
 Open the build\win32\OPENXR.sln in the Visual Studio to build the samples.
 
 ## Linux
+
+The following set of packages provides all required libs for building for xlib or xcb with OpenGL and Vulkan support.
+ - build-essential
+ - cmake (of _somewhat_ recent vintage, 3.10+ known working)
+ - libgl1-mesa-dev
+ - libvulkan-dev
+ - libx11-xcb-dev
+ - libxcb-dri2-0-dev
+ - libxcb-glx0-dev
+ - libxcb-icccm4-dev
+ - libxcb-keysyms1-dev
+ - libxcb-randr0-dev
+ - libxrandr-dev
+ - libxxf86vm-dev
+ - mesa-common-dev
+
 ### Linux Debug
 
 ```
