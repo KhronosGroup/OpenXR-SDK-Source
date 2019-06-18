@@ -532,6 +532,10 @@ struct OpenXrProgram : IOpenXrProgram {
             XrSessionCreateInfo createInfo{XR_TYPE_SESSION_CREATE_INFO};
             createInfo.next = m_graphicsPlugin->GetGraphicsBinding();
             createInfo.systemId = m_systemId;
+
+            // The hardware may need time to initialize.
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+
             CHECK_XRCMD(xrCreateSession(m_instance, &createInfo, &m_session));
         }
 
