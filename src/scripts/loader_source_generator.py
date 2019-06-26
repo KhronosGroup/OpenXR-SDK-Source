@@ -81,7 +81,7 @@ def generateErrorMessage(indent_level, vuid, cur_cmd, message, object_info):
     lines.append('    "{}",'.format(cur_cmd.name))
     lines.append('    {},'.format(message))
 
-    object_info_constructors = ['XrLoaderLogObjectInfo{%s, %s}' % p for p in object_info]
+    object_info_constructors = ['XrSdkLogObjectInfo{%s, %s}' % p for p in object_info]
     if len(object_info_constructors) <= 1:
         lines.append('    {%s});' % (', '.join(object_info_constructors)))
     else:

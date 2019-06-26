@@ -71,6 +71,8 @@ add_library(${LOADER_NAME} ${LIBRARY_TYPE}
     ${CMAKE_SOURCE_DIR}/src/common/filesystem_utils.hpp
     ${CMAKE_SOURCE_DIR}/src/common/hex_and_handles.cpp
     ${CMAKE_SOURCE_DIR}/src/common/hex_and_handles.h
+    ${CMAKE_SOURCE_DIR}/src/common/object_info.cpp
+    ${CMAKE_SOURCE_DIR}/src/common/object_info.h
     ${CMAKE_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_reader.cpp
     ${CMAKE_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_value.cpp
     ${CMAKE_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_writer.cpp
