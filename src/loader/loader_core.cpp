@@ -521,7 +521,7 @@ XRAPI_ATTR XrResult XRAPI_CALL LoaderXrTermCreateDebugUtilsMessengerEXT(XrInstan
                                                     "xrCreateDebugUtilsMessengerEXT", "invalid messenger pointer");
             return XR_ERROR_VALIDATION_FAILURE;
         }
-        const XrGeneratedDispatchTable *dispatch_table = RuntimeInterface::GetRuntime().GetDispatchTable(instance);
+        const auto *dispatch_table = RuntimeInterface::GetDispatchTable(instance);
         XrResult result = XR_SUCCESS;
         // This extension is supported entirely by the loader which means the runtime may or may not support it.
         if (nullptr != dispatch_table->CreateDebugUtilsMessengerEXT) {
@@ -549,8 +549,7 @@ XRAPI_ATTR XrResult XRAPI_CALL LoaderXrTermCreateDebugUtilsMessengerEXT(XrInstan
 XRAPI_ATTR XrResult XRAPI_CALL LoaderXrTermDestroyDebugUtilsMessengerEXT(XrDebugUtilsMessengerEXT messenger) {
     try {
         LoaderLogger::LogVerboseMessage("xrDestroyDebugUtilsMessengerEXT", "Entering loader terminator");
-        const XrGeneratedDispatchTable *dispatch_table =
-            RuntimeInterface::GetRuntime().GetDebugUtilsMessengerDispatchTable(messenger);
+        const auto *dispatch_table = RuntimeInterface::GetDebugUtilsMessengerDispatchTable(messenger);
         XrResult result = XR_SUCCESS;
         // This extension is supported entirely by the loader which means the runtime may or may not support it.
         if (nullptr != dispatch_table->DestroyDebugUtilsMessengerEXT) {
@@ -577,7 +576,7 @@ XRAPI_ATTR XrResult XRAPI_CALL LoaderXrTermSubmitDebugUtilsMessageEXT(XrInstance
                                                                       const XrDebugUtilsMessengerCallbackDataEXT *callbackData) {
     try {
         LoaderLogger::LogVerboseMessage("xrSubmitDebugUtilsMessageEXT", "Entering loader terminator");
-        const XrGeneratedDispatchTable *dispatch_table = RuntimeInterface::GetRuntime().GetDispatchTable(instance);
+        const auto *dispatch_table = RuntimeInterface::GetDispatchTable(instance);
         XrResult result = XR_SUCCESS;
         if (nullptr != dispatch_table->SubmitDebugUtilsMessageEXT) {
             result = dispatch_table->SubmitDebugUtilsMessageEXT(instance, messageSeverity, messageTypes, callbackData);
@@ -600,7 +599,7 @@ XRAPI_ATTR XrResult XRAPI_CALL LoaderXrTermSetDebugUtilsObjectNameEXT(XrInstance
                                                                       const XrDebugUtilsObjectNameInfoEXT *nameInfo) {
     try {
         LoaderLogger::LogVerboseMessage("xrSetDebugUtilsObjectNameEXT", "Entering loader terminator");
-        const XrGeneratedDispatchTable *dispatch_table = RuntimeInterface::GetRuntime().GetDispatchTable(instance);
+        const auto *dispatch_table = RuntimeInterface::GetDispatchTable(instance);
         XrResult result = XR_SUCCESS;
         if (nullptr != dispatch_table->SetDebugUtilsObjectNameEXT) {
             result = dispatch_table->SetDebugUtilsObjectNameEXT(instance, nameInfo);
