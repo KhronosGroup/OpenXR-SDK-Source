@@ -557,19 +557,20 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         return write_string
 
     # Output a single parameter/member.
-    #   self                The ApiDumpOutputGenerator object
-    #   base_type           The base type of the parameter
-    #   is_pointer          Boolean indicating whether or not the contents of the arrays are pointers
-    #   pointer_count       The number of pointers per variable (void*[] would be one, void**[] would be two)
-    #   member_param        The structure from automatic_source_generator for the member or parameter.
-    #   member_param_prefix The prefix to place in front of the member/param items
-    #   member_param_name   The prefixed name of this member/param
-    #   has_prefix          Boolean indicates that there's an incoming C++ prefix that needs to be added to the variable.
-    #   prefix_string1      The first prefix string to add prior to writing out the variable information
-    #   prefix_string1      The second prefix string to add prior to writing out the variable information
-    #   expand              Boolean indicates whether or not to try to expand/derefernce the contents of this parameter
-    #   indent              the number of "tabs" to space in for the resulting C+ code.
-    def writeExpandedMember(self, base_type, is_pointer, pointer_count, member_param, member_param_prefix, member_param_name, has_prefix, prefix_string1, prefix_string2, expand, indent):
+    #   self                 The ApiDumpOutputGenerator object
+    #   base_type            The base type of the parameter
+    #   is_pointer           Boolean indicating whether or not the contents of the arrays are pointers
+    #   pointer_count        The number of pointers per variable (void*[] would be one, void**[] would be two)
+    #   member_param         The structure from automatic_source_generator for the member or parameter.
+    #   member_param_prefix  The prefix to place in front of the member/param items
+    #   member_param_name    The prefixed name of this member/param
+    #   has_prefix           Boolean indicates that there's an incoming C++ prefix that needs to be added to the variable.
+    #   prefix_string1       The first prefix string to add prior to writing out the variable information
+    #   prefix_string1       The second prefix string to add prior to writing out the variable information
+    #   expand               Boolean indicates whether or not to try to expand/derefernce the contents of this parameter
+    #   indent               the number of "tabs" to space in for the resulting C+ code.
+    #...function_return_bool.Boolean indicate whether top level function return bool or XrResult
+    def writeExpandedMember(self, base_type, is_pointer, pointer_count, member_param, member_param_prefix, member_param_name, has_prefix, prefix_string1, prefix_string2, expand, indent, function_return_bool):
         member_string = ''
         derefernce_str = ''
         if not is_pointer:
@@ -605,7 +606,10 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                                                                                                            member_param_name,
                                                                                                            member_param_prefix)
             member_string += self.writeIndent(indent + 1)
-            member_string += 'throw std::invalid_argument("Invalid Operation");\n'
+            if function_return_bool:
+                member_string += 'return false;\n'
+            else:
+                member_string += 'return XR_ERROR_VALIDATION_FAILURE;\n'
             member_string += self.writeIndent(indent)
             member_string += '}\n'
         elif is_struct_union and expand:
@@ -634,7 +638,10 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                                                                      full_type,
                                                                      pointer_string)
             member_string += self.writeIndent(indent + 1)
-            member_string += 'throw std::invalid_argument("Invalid Operation");\n'
+            if function_return_bool:
+                member_string += 'return false;\n'
+            else:
+                member_string += 'return XR_ERROR_VALIDATION_FAILURE;\n'
             member_string += self.writeIndent(indent)
             member_string += '}\n'
         else:
@@ -690,19 +697,20 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         return member_string
 
     # Output an array of parameters/members.
-    #   self                The ApiDumpOutputGenerator object
-    #   base_type           The base type of the parameter
-    #   is_pointer          Boolean indicating whether or not the contents of the arrays are pointers
-    #   pointer_count       The number of pointers per variable (void*[] would be one, void**[] would be two)
-    #   member_param        The structure from automatic_source_generator for the member or parameter.
-    #   array_param         The member/parameter used to indicate the size of the array (or None)
-    #   member_param_prefix The prefix to place in front of the member/param items
-    #   member_param_name   The prefixed name of this member/param
-    #   has_prefix          Boolean indicates that there's an incoming C++ prefix that needs to be added to the variable.
-    #   prefix_string1      The first prefix string to add prior to writing out the variable information
-    #   prefix_string1      The second prefix string to add prior to writing out the variable information
-    #   indent              the number of "tabs" to space in for the resulting C+ code.
-    def writeExpandedArray(self, base_type, is_pointer, pointer_count, member_param, array_param, member_param_prefix, member_param_name, has_prefix, prefix_string1, prefix_string2, indent):
+    #   self                 The ApiDumpOutputGenerator object
+    #   base_type            The base type of the parameter
+    #   is_pointer           Boolean indicating whether or not the contents of the arrays are pointers
+    #   pointer_count        The number of pointers per variable (void*[] would be one, void**[] would be two)
+    #   member_param         The structure from automatic_source_generator for the member or parameter.
+    #   array_param          The member/parameter used to indicate the size of the array (or None)
+    #   member_param_prefix  The prefix to place in front of the member/param items
+    #   member_param_name    The prefixed name of this member/param
+    #   has_prefix           Boolean indicates that there's an incoming C++ prefix that needs to be added to the variable.
+    #   prefix_string1       The first prefix string to add prior to writing out the variable information
+    #   prefix_string1       The second prefix string to add prior to writing out the variable information
+    #   indent               the number of "tabs" to space in for the resulting C+ code.
+    #...function_return_bool.Boolean indicate whether top level function return bool or XrResult
+    def writeExpandedArray(self, base_type, is_pointer, pointer_count, member_param, array_param, member_param_prefix, member_param_name, has_prefix, prefix_string1, prefix_string2, indent, function_return_bool):
         member_array_string = ''
         loop_count_name = ''
         loop_param_name = ''
@@ -788,19 +796,20 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                                               values=member_param.values)
 
         member_array_string += self.writeExpandedMember(base_type, is_pointer, pointer_count, tmp_member_param,
-                                                        member_param_prefix, member_param_name, True, prefix_string1, prefix_string2, True, indent)
+                                                        member_param_prefix, member_param_name, True, prefix_string1, prefix_string2, True, indent, function_return_bool)
         indent = indent - 1
         member_array_string += self.writeIndent(indent)
         member_array_string += '}\n'
         return member_array_string
 
     # Output a single parameter or member based on whether it is an array or not
-    #   self            the ApiDumpOutputGenerator object
-    #   member_param    the structure from automatic_source_generator for the member or parameter.
-    #   has_prefix      Boolean indicates that there's an incoming C++ prefix that needs to be added to the variable.
-    #   expand_parent   Boolean indicating that the parent could or could not be expanded.
-    #   indent          the number of "tabs" to space in for the resulting C+ code.
-    def writeParamMember(self, member_param, has_prefix, expand_parent, indent):
+    #   self                 the ApiDumpOutputGenerator object
+    #   member_param         the structure from automatic_source_generator for the member or parameter.
+    #   has_prefix           Boolean indicates that there's an incoming C++ prefix that needs to be added to the variable.
+    #   expand_parent        Boolean indicating that the parent could or could not be expanded.
+    #   indent               the number of "tabs" to space in for the resulting C+ code.
+    #...function_return_bool.Boolean indicate whether top level function return bool or XrResult
+    def writeParamMember(self, member_param, has_prefix, expand_parent, indent, function_return_bool):
         member_param_string = ''
         # Can only expand non-pointers or constant pointer values and only if we can
         # expand the parent
@@ -883,7 +892,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                     member_param_string += 'if (%s[0].type == %s) {\n' % (
                         member_param_name, self.genXrStructureType(child))
                     member_param_string += self.writeExpandedArray(base_type, is_pointer, pointer_count, member_param, array_param,
-                                                                   member_param_prefix, member_param_name, has_prefix, prefix_string1, prefix_string2, indent + 1)
+                                                                   member_param_prefix, member_param_name, has_prefix, prefix_string1, prefix_string2, indent + 1, function_return_bool)
                     member_param_string += self.writeIndent(indent + 1)
                     member_param_string += '%s = true;\n' % decoded_var
                     member_param_string += self.writeIndent(indent)
@@ -894,25 +903,26 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 member_param_string += 'if (!%s) {\n' % decoded_var
                 indent += 1
             member_param_string += self.writeExpandedArray(base_type, is_pointer, pointer_count, member_param,
-                                                           array_param, member_param_prefix, member_param_name, has_prefix, prefix_string1, prefix_string2, indent)
+                                                           array_param, member_param_prefix, member_param_name, has_prefix, prefix_string1, prefix_string2, indent, function_return_bool)
             if is_relation_group:
                 indent -= 1
                 member_param_string += self.writeIndent(indent)
                 member_param_string += '}\n'
         else:
             member_param_string += self.writeExpandedMember(base_type, is_pointer, pointer_count, member_param,
-                                                            member_param_prefix, member_param_name, has_prefix, prefix_string1, prefix_string2, can_expand, indent)
+                                                            member_param_prefix, member_param_name, has_prefix, prefix_string1, prefix_string2, can_expand, indent, function_return_bool)
         return member_param_string
 
     # Generate the C++ output code for each member of a union or structure.
-    #   self            the ApiDumpOutputGenerator object
-    #   union_struct    the structure from automatic_source_generator for the XR union or structure.
-    #   indent          the number of "tabs" to space in for the resulting C+ code.
-    def writeUnionStructMembers(self, union_struct, indent):
+    #   self                 the ApiDumpOutputGenerator object
+    #   union_struct         the structure from automatic_source_generator for the XR union or structure.
+    #   indent               the number of "tabs" to space in for the resulting C+ code.
+    #...function_return_bool.Boolean indicate whether top level function return bool or XrResult
+    def writeUnionStructMembers(self, union_struct, indent, function_return_bool):
         struct_union_member = ''
         for member in union_struct.members:
             struct_union_member += self.writeParamMember(
-                member, True, True, indent)
+                member, True, True, indent, function_return_bool)
         return struct_union_member
 
     # Write the C++ Api Dump function for every union and structure we know about.
@@ -926,32 +936,24 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             struct_union_check += '                          std::string prefix, std::string type_string, bool is_pointer,\n'
             struct_union_check += '                          std::vector<std::tuple<std::string, std::string, std::string>> &contents) {\n'
             struct_union_check += self.writeIndent(1)
-            struct_union_check += 'try {\n'
-            struct_union_check += self.writeIndent(2)
             struct_union_check += 'std::ostringstream oss_union;\n'
-            struct_union_check += self.writeIndent(2)
+            struct_union_check += self.writeIndent(1)
             struct_union_check += 'oss_union << std::hex << reinterpret_cast<const void*>(value);\n'
-            struct_union_check += self.writeIndent(2)
+            struct_union_check += self.writeIndent(1)
             struct_union_check += 'contents.push_back(std::make_tuple(type_string, prefix, oss_union.str()));\n'
-            struct_union_check += self.writeIndent(2)
+            struct_union_check += self.writeIndent(1)
             struct_union_check += 'if (is_pointer) {\n'
-            struct_union_check += self.writeIndent(3)
+            struct_union_check += self.writeIndent(2)
             struct_union_check += 'prefix += "->";\n'
-            struct_union_check += self.writeIndent(2)
+            struct_union_check += self.writeIndent(1)
             struct_union_check += '} else {\n'
-            struct_union_check += self.writeIndent(3)
+            struct_union_check += self.writeIndent(2)
             struct_union_check += 'prefix += ".";\n'
-            struct_union_check += self.writeIndent(2)
+            struct_union_check += self.writeIndent(1)
             struct_union_check += '}\n'
-            struct_union_check += self.writeUnionStructMembers(xr_union, 2)
-            struct_union_check += self.writeIndent(2)
+            struct_union_check += self.writeUnionStructMembers(xr_union, 1, True)
+            struct_union_check += self.writeIndent(1)
             struct_union_check += 'return true;\n'
-            struct_union_check += self.writeIndent(1)
-            struct_union_check += '} catch(...) {\n'
-            struct_union_check += self.writeIndent(1)
-            struct_union_check += '}\n'
-            struct_union_check += self.writeIndent(1)
-            struct_union_check += 'return false;\n'
             struct_union_check += '}\n\n'
             if xr_union.protect_value:
                 struct_union_check += '#endif // %s\n' % xr_union.protect_string
@@ -962,9 +964,6 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             struct_union_check += '                           std::string prefix, std::string type_string, bool is_pointer,\n'
             struct_union_check += '                           std::vector<std::tuple<std::string, std::string, std::string>> &contents) {\n'
             indent = 1
-            struct_union_check += self.writeIndent(indent)
-            struct_union_check += 'try {\n'
-            indent = indent + 1
             is_relation_group = False
             relation_group = None
             # Check to see if this struct is the base of a relation group
@@ -1011,33 +1010,25 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             struct_union_check += self.writeIndent(indent)
             struct_union_check += '}\n'
             struct_union_check += self.writeUnionStructMembers(
-                xr_struct, indent)
+                xr_struct, indent, True)
             struct_union_check += self.writeIndent(indent)
             struct_union_check += 'return true;\n'
-            indent = indent - 1
-            struct_union_check += self.writeIndent(indent)
-            struct_union_check += '} catch(...) {\n'
-            struct_union_check += self.writeIndent(indent)
-            struct_union_check += '}\n'
-            struct_union_check += self.writeIndent(indent)
-            struct_union_check += 'return false;\n'
             struct_union_check += '}\n'
             if xr_struct.protect_value:
                 struct_union_check += '#endif // %s\n' % xr_struct.protect_string
             struct_union_check += '\n'
         struct_union_check += 'bool ApiDumpDecodeNextChain(XrGeneratedDispatchTable* gen_dispatch_table, const void* value, std::string prefix,\n'
         struct_union_check += '                            std::vector<std::tuple<std::string, std::string, std::string>> &contents) {\n'
-        struct_union_check += '    try {\n'
-        struct_union_check += '        std::ostringstream oss_next;\n'
-        struct_union_check += '        oss_next << std::hex << reinterpret_cast<const void*>(value);\n'
-        struct_union_check += '        contents.push_back(std::make_tuple("const void *", prefix, oss_next.str()));\n'
-        struct_union_check += '        if (nullptr == value) {\n'
-        struct_union_check += '            return true;\n'
-        struct_union_check += '        }\n'
-        struct_union_check += self.writeIndent(2)
+        struct_union_check += '    std::ostringstream oss_next;\n'
+        struct_union_check += '    oss_next << std::hex << reinterpret_cast<const void*>(value);\n'
+        struct_union_check += '    contents.push_back(std::make_tuple("const void *", prefix, oss_next.str()));\n'
+        struct_union_check += '    if (nullptr == value) {\n'
+        struct_union_check += '        return true;\n'
+        struct_union_check += '    }\n'
+        struct_union_check += self.writeIndent(1)
         struct_union_check += 'const XrBaseInStructure* next_header = reinterpret_cast<const XrBaseInStructure*>(value);\n'
         # Validate the rest of this struct
-        struct_union_check += self.writeIndent(2)
+        struct_union_check += self.writeIndent(1)
         struct_union_check += 'switch (next_header->type) {\n'
         for enum_tuple in self.api_enums:
             if enum_tuple.name == 'XrStructureType':
@@ -1050,29 +1041,27 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                         cur_struct = self.getStruct(struct_define_name)
                         if cur_struct.protect_value:
                             struct_union_check += '#if %s\n' % cur_struct.protect_string
-                        struct_union_check += self.writeIndent(3)
+                        struct_union_check += self.writeIndent(2)
                         struct_union_check += 'case %s:\n' % cur_value.name
-                        struct_union_check += self.writeIndent(4)
+                        struct_union_check += self.writeIndent(3)
                         struct_union_check += 'if (!ApiDumpOutputXrStruct(gen_dispatch_table, reinterpret_cast<const %s*>(value), prefix, "const %s*", true, contents)) {\n' % (
                             struct_define_name, struct_define_name)
-                        struct_union_check += self.writeIndent(5)
+                        struct_union_check += self.writeIndent(4)
                         struct_union_check += 'return false;\n'
-                        struct_union_check += self.writeIndent(4)
+                        struct_union_check += self.writeIndent(3)
                         struct_union_check += '}\n'
-                        struct_union_check += self.writeIndent(4)
+                        struct_union_check += self.writeIndent(3)
                         struct_union_check += 'return true;\n'
                         if cur_struct.protect_value:
                             struct_union_check += '#endif // %s\n' % cur_struct.protect_string
                 if enum_tuple.protect_value:
                     struct_union_check += '#endif // %s\n' % enum_tuple.protect_string
-        struct_union_check += self.writeIndent(3)
-        struct_union_check += 'default:\n'
-        struct_union_check += self.writeIndent(4)
-        struct_union_check += 'return false;\n'
         struct_union_check += self.writeIndent(2)
+        struct_union_check += 'default:\n'
+        struct_union_check += self.writeIndent(3)
+        struct_union_check += 'return false;\n'
+        struct_union_check += self.writeIndent(1)
         struct_union_check += '}\n'
-        struct_union_check += '    } catch(...) {\n'
-        struct_union_check += '    }\n'
         struct_union_check += '    return false;\n'
         struct_union_check += '}\n\n'
         return struct_union_check
@@ -1138,9 +1127,8 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                         return_prefix += ';\n'
                     generated_commands += return_prefix
 
-                generated_commands += '    try {\n'
-                generated_commands += '        // Generate output for this command\n'
-                generated_commands += '        std::vector<std::tuple<std::string, std::string, std::string>> contents;\n'
+                generated_commands += '    // Generate output for this command\n'
+                generated_commands += '    std::vector<std::tuple<std::string, std::string, std::string>> contents;\n'
 
                 # Next, we have to call down to the next implementation of this command in the call chain.
                 # Before we can do that, we have to figure out what the dispatch table is
@@ -1148,21 +1136,21 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                     handle_param = cur_cmd.params[0]
                     base_handle_name = undecorate(handle_param.type)
                     first_handle_name = self.getFirstHandleName(handle_param)
-                    generated_commands += '        std::unique_lock<std::mutex> mlock(g_%s_dispatch_mutex);\n' % base_handle_name
-                    generated_commands += '        auto map_iter = g_%s_dispatch_map.find(%s);\n' % (base_handle_name, first_handle_name)
-                    generated_commands += '        mlock.unlock();\n\n'
-                    generated_commands += '        if (map_iter == g_%s_dispatch_map.end()) return XR_ERROR_VALIDATION_FAILURE;\n' % base_handle_name
-                    generated_commands += '        XrGeneratedDispatchTable *gen_dispatch_table = map_iter->second;\n'
+                    generated_commands += '    std::unique_lock<std::mutex> mlock(g_%s_dispatch_mutex);\n' % base_handle_name
+                    generated_commands += '    auto map_iter = g_%s_dispatch_map.find(%s);\n' % (base_handle_name, first_handle_name)
+                    generated_commands += '    mlock.unlock();\n\n'
+                    generated_commands += '    if (map_iter == g_%s_dispatch_map.end()) return XR_ERROR_VALIDATION_FAILURE;\n' % base_handle_name
+                    generated_commands += '    XrGeneratedDispatchTable *gen_dispatch_table = map_iter->second;\n'
                 else:
                     generated_commands += self.printCodeGenErrorMessage(
                         'Command %s does not have an OpenXR Object handle as the first parameter.' % cur_cmd.name)
 
                 # Print out a tuple for the header
                 if has_return:
-                    generated_commands += '        contents.push_back(std::make_tuple("%s", "%s", ""));\n' % (
+                    generated_commands += '    contents.push_back(std::make_tuple("%s", "%s", ""));\n' % (
                         cur_cmd.return_type.text, cur_cmd.name)
                 else:
-                    generated_commands += '        contents.push_back(std::make_tuple("void", "%s", ""));\n' % cur_cmd.name
+                    generated_commands += '    contents.push_back(std::make_tuple("void", "%s", ""));\n' % cur_cmd.name
                 # Print out information for each parameter
                 for param in cur_cmd.params:
                     can_expand = False
@@ -1171,13 +1159,13 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                             (param.is_const or param.pointer_count == 0)):
                         can_expand = True
                     generated_commands += self.writeParamMember(
-                        param, False, can_expand, 2)
+                        param, False, can_expand, 1, False)
 
                 # Now record the information
-                generated_commands += '        ApiDumpLayerRecordContent(contents);\n\n'
+                generated_commands += '    ApiDumpLayerRecordContent(contents);\n\n'
 
                 # Call down, looking for the returned result if required.
-                generated_commands += '        '
+                generated_commands += '    '
                 if has_return:
                     generated_commands += 'result = '
                 generated_commands += 'gen_dispatch_table->%s(' % base_name
@@ -1198,30 +1186,23 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 if cur_cmd.params[-1].is_handle and (is_create or is_destroy):
                     second_base_handle_name = undecorate(cur_cmd.params[-1].type)
                     if is_create:
-                        generated_commands += '        if (XR_SUCCESS == result && nullptr != %s) {\n' % cur_cmd.params[-1].name
-                        generated_commands += '            auto exists = g_%s_dispatch_map.find(*%s);\n' % (
+                        generated_commands += '    if (XR_SUCCESS == result && nullptr != %s) {\n' % cur_cmd.params[-1].name
+                        generated_commands += '       auto exists = g_%s_dispatch_map.find(*%s);\n' % (
                             second_base_handle_name, cur_cmd.params[-1].name)
-                        generated_commands += '            if (exists == g_%s_dispatch_map.end()) {\n' % second_base_handle_name
-                        generated_commands += '                std::unique_lock<std::mutex> lock(g_%s_dispatch_mutex);\n' % second_base_handle_name
-                        generated_commands += '                g_%s_dispatch_map[*%s] = gen_dispatch_table;\n' % (
-                            second_base_handle_name, cur_cmd.params[-1].name)
-                        generated_commands += '            }\n'
-                        generated_commands += '        }\n'
-                    elif is_destroy:
-                        generated_commands += '        auto exists = g_%s_dispatch_map.find(%s);\n' % (
-                            second_base_handle_name, cur_cmd.params[-1].name)
-                        generated_commands += '        if (exists != g_%s_dispatch_map.end()) {\n' % second_base_handle_name
+                        generated_commands += '        if (exists == g_%s_dispatch_map.end()) {\n' % second_base_handle_name
                         generated_commands += '            std::unique_lock<std::mutex> lock(g_%s_dispatch_mutex);\n' % second_base_handle_name
-                        generated_commands += '            g_%s_dispatch_map.erase(%s);\n' % (
+                        generated_commands += '            g_%s_dispatch_map[*%s] = gen_dispatch_table;\n' % (
                             second_base_handle_name, cur_cmd.params[-1].name)
                         generated_commands += '        }\n'
-
-                # Catch any exceptions that may have occurred.  If any occurred between any of the
-                # valid mutex lock/unlock statements, perform the unlock now.
-                generated_commands += '    } catch (...) {\n'
-                if has_return:
-                    generated_commands += '        return XR_ERROR_VALIDATION_FAILURE;\n'
-                generated_commands += '    }\n'
+                        generated_commands += '    }\n'
+                    elif is_destroy:
+                        generated_commands += '    auto exists = g_%s_dispatch_map.find(%s);\n' % (
+                            second_base_handle_name, cur_cmd.params[-1].name)
+                        generated_commands += '    if (exists != g_%s_dispatch_map.end()) {\n' % second_base_handle_name
+                        generated_commands += '        std::unique_lock<std::mutex> lock(g_%s_dispatch_mutex);\n' % second_base_handle_name
+                        generated_commands += '        g_%s_dispatch_map.erase(%s);\n' % (
+                            second_base_handle_name, cur_cmd.params[-1].name)
+                        generated_commands += '    }\n'
 
                 if has_return:
                     generated_commands += '    return result;\n'
@@ -1236,19 +1217,18 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         generated_commands += '    XrInstance                                  instance,\n'
         generated_commands += '    const char*                                 name,\n'
         generated_commands += '    PFN_xrVoidFunction*                         function) {\n'
-        generated_commands += '    try {\n'
-        generated_commands += '        std::string func_name = name;\n\n'
-        generated_commands += '        // Generate output for this command\n'
-        generated_commands += '        std::vector<std::tuple<std::string, std::string, std::string>> contents;\n'
-        generated_commands += '        contents.push_back(std::make_tuple("XrResult", "xrGetInstanceProcAddr", ""));\n'
-        generated_commands += '        std::ostringstream oss_instance;\n'
-        generated_commands += '        oss_instance << std::hex << reinterpret_cast<const void*>(instance);\n'
-        generated_commands += '        contents.push_back(std::make_tuple("XrInstance", "instance", oss_instance.str()));\n'
-        generated_commands += '        contents.push_back(std::make_tuple("const char*", "name", name));\n'
-        generated_commands += '        std::ostringstream oss_function;\n'
-        generated_commands += '        oss_function << std::hex << reinterpret_cast<const void*>(function);\n'
-        generated_commands += '        contents.push_back(std::make_tuple("PFN_xrVoidFunction*", "function", oss_function.str()));\n'
-        generated_commands += '        ApiDumpLayerRecordContent(contents);\n'
+        generated_commands += '    std::string func_name = name;\n\n'
+        generated_commands += '    // Generate output for this command\n'
+        generated_commands += '    std::vector<std::tuple<std::string, std::string, std::string>> contents;\n'
+        generated_commands += '    contents.push_back(std::make_tuple("XrResult", "xrGetInstanceProcAddr", ""));\n'
+        generated_commands += '    std::ostringstream oss_instance;\n'
+        generated_commands += '    oss_instance << std::hex << reinterpret_cast<const void*>(instance);\n'
+        generated_commands += '    contents.push_back(std::make_tuple("XrInstance", "instance", oss_instance.str()));\n'
+        generated_commands += '    contents.push_back(std::make_tuple("const char*", "name", name));\n'
+        generated_commands += '    std::ostringstream oss_function;\n'
+        generated_commands += '    oss_function << std::hex << reinterpret_cast<const void*>(function);\n'
+        generated_commands += '    contents.push_back(std::make_tuple("PFN_xrVoidFunction*", "function", oss_function.str()));\n'
+        generated_commands += '    ApiDumpLayerRecordContent(contents);\n'
 
         count = 0
         for x in range(0, 2):
@@ -1260,10 +1240,10 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             for cur_cmd in commands:
                 if cur_cmd.ext_name != cur_extension_name:
                     if self.isCoreExtensionName(cur_cmd.ext_name):
-                        generated_commands += '\n        // ---- Core %s commands\n' % cur_cmd.ext_name[11:].replace(
+                        generated_commands += '\n    // ---- Core %s commands\n' % cur_cmd.ext_name[11:].replace(
                             "_", ".")
                     else:
-                        generated_commands += '\n        // ---- %s extension commands\n' % cur_cmd.ext_name
+                        generated_commands += '\n    // ---- %s extension commands\n' % cur_cmd.ext_name
                     cur_extension_name = cur_cmd.ext_name
 
                 if cur_cmd.name in DONT_GEN_IN_LAYER:
@@ -1281,34 +1261,31 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                     generated_commands += '#if %s\n' % cur_cmd.protect_string
 
                 if count == 0:
-                    generated_commands += '        if (func_name == "%s") {\n' % cur_cmd.name
+                    generated_commands += '    if (func_name == "%s") {\n' % cur_cmd.name
                 else:
-                    generated_commands += '        } else if (func_name == "%s") {\n' % cur_cmd.name
+                    generated_commands += '    } else if (func_name == "%s") {\n' % cur_cmd.name
                 count = count + 1
 
-                generated_commands += '            *function = reinterpret_cast<PFN_xrVoidFunction>(%s);\n' % layer_command_name
+                generated_commands += '        *function = reinterpret_cast<PFN_xrVoidFunction>(%s);\n' % layer_command_name
                 if cur_cmd.protect_value:
                     generated_commands += '#endif // %s\n' % cur_cmd.protect_string
 
-        generated_commands += '        }\n'
-        generated_commands += '        // If we setup the function, just return\n'
-        generated_commands += '        if (*function != nullptr) {\n'
-        generated_commands += '            return XR_SUCCESS;\n'
-        generated_commands += '        }\n\n'
-        generated_commands += '        // We have not found it, so pass it down to the next layer/runtime\n'
-        generated_commands += '        std::unique_lock<std::mutex> mlock(g_instance_dispatch_mutex);\n'
-        generated_commands += '        auto map_iter = g_instance_dispatch_map.find(instance);\n'
-        generated_commands += '        mlock.unlock();\n\n'
-        generated_commands += '        if (map_iter == g_instance_dispatch_map.end()) {\n'
-        generated_commands += '            return XR_ERROR_HANDLE_INVALID;\n'
-        generated_commands += '        }\n\n'
-        generated_commands += '        XrGeneratedDispatchTable *gen_dispatch_table = map_iter->second;\n'
-        generated_commands += '        if (nullptr == gen_dispatch_table) {\n'
-        generated_commands += '            return XR_ERROR_HANDLE_INVALID;\n'
-        generated_commands += '        }\n\n'
-        generated_commands += '        return gen_dispatch_table->GetInstanceProcAddr(instance, name, function);\n'
-        generated_commands += '    } catch (...) {\n'
-        generated_commands += '        return XR_ERROR_VALIDATION_FAILURE;\n'
         generated_commands += '    }\n'
+        generated_commands += '    // If we setup the function, just return\n'
+        generated_commands += '    if (*function != nullptr) {\n'
+        generated_commands += '        return XR_SUCCESS;\n'
+        generated_commands += '    }\n\n'
+        generated_commands += '    // We have not found it, so pass it down to the next layer/runtime\n'
+        generated_commands += '    std::unique_lock<std::mutex> mlock(g_instance_dispatch_mutex);\n'
+        generated_commands += '    auto map_iter = g_instance_dispatch_map.find(instance);\n'
+        generated_commands += '    mlock.unlock();\n\n'
+        generated_commands += '    if (map_iter == g_instance_dispatch_map.end()) {\n'
+        generated_commands += '        return XR_ERROR_HANDLE_INVALID;\n'
+        generated_commands += '    }\n\n'
+        generated_commands += '    XrGeneratedDispatchTable *gen_dispatch_table = map_iter->second;\n'
+        generated_commands += '    if (nullptr == gen_dispatch_table) {\n'
+        generated_commands += '        return XR_ERROR_HANDLE_INVALID;\n'
+        generated_commands += '    }\n\n'
+        generated_commands += '    return gen_dispatch_table->GetInstanceProcAddr(instance, name, function);\n'
         generated_commands += '}\n'
         return generated_commands

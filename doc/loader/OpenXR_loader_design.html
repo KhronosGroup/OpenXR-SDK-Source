@@ -3856,12 +3856,6 @@ std::experimental::filesystem::path search_path;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<div class="title">Exceptions</div>
-<p>The OpenXR loader relies on throwing and catching C++ exceptions.  Adding code
-should take this into account and properly wrap executing code with a "try"/"catch"
-block.</p>
-</div>
-<div class="paragraph">
 <div class="title">Experimental Filesystem Usage</div>
 <p>In order to simplify the file management, especially with regards to loading JSON
 manifest files or finding dynamic library files, the experimental/filesystem is used.
@@ -3885,14 +3879,11 @@ find elements of this functionality with the prefix
 <pre class="highlight"><code class="language-cpp" data-lang="cpp">#include &lt;experimental/filesystem&gt;
 
 static void checkAllFilesInThePath(const std::string &amp;search_path) {
-    try {
-        // If the file exists, try to add it
-        if (std::experimental::filesystem::is_regular_file(search_path)) {
-            std::experimental::filesystem::path absolute_path =
-                std::experimental::filesystem::absolute(search_path);
-        }
-    } catch (...) {
-    }
+      // If the file exists, try to add it
+      if (std::experimental::filesystem::is_regular_file(search_path)) {
+          std::experimental::filesystem::path absolute_path =
+              std::experimental::filesystem::absolute(search_path);
+      }
 }</code></pre>
 </div>
 </div>
@@ -5092,55 +5083,35 @@ same <code>LoaderInstance*</code>.</p>
     XrSession*                                  session) {
     bool primary_locked = false;
     bool secondary_locked = false;
-    try {
-        g_instance_mutex.lock();
-        secondary_locked = true;
-        LoaderInstance *loader_instance = g_instance_map[instance];
-        g_instance_mutex.unlock();
-        secondary_locked = false;
-        if (nullptr == loader_instance) {
-            XrLoaderLogObjectInfo bad_object = {};
-            bad_object.type = XR_OBJECT_TYPE_INSTANCE;
-            bad_object.handle = reinterpret_cast&lt;uint64_t&amp;&gt;(instance);
-            std::vector&lt;XrLoaderLogObjectInfo&gt; loader_objects;
-            loader_objects.push_back(bad_object);
-            LoaderLogger::LogValidationErrorMessage("VUID-xrCreateSession-instance-parameter", "xrCreateSession",
-                                                    "instance is not a valid XrInstance", loader_objects);
-            return XR_ERROR_HANDLE_INVALID;
-        }
-        const std::unique_ptr&lt;XrGeneratedDispatchTable&gt;&amp; dispatch_table = loader_instance-&gt;DispatchTable();
-        XrResult result = XR_SUCCESS;
-        result = dispatch_table-&gt;CreateSession(instance, createInfo, session);
-        if (XR_SUCCESS == result &amp;&amp; nullptr != session) {
-            auto exists = g_session_map.find(*session);
-            if (exists == g_session_map.end()) {
-                g_session_mutex.lock();
-                primary_locked = true;
-                g_session_map[*session] = loader_instance;
-                g_session_mutex.unlock();
-                primary_locked = false;
-            }
-        }
-        return result;
-    } catch (std::bad_alloc &amp;) {
-        if (primary_locked) {
-            g_session_mutex.unlock();
-        }
-        if (secondary_locked) {
-            g_instance_mutex.unlock();
-        }
-        LoaderLogger::LogErrorMessage("xrCreateSession", "xrCreateSession trampoline failed allocating memory");
-        return XR_ERROR_OUT_OF_MEMORY;
-    } catch (...) {
-        if (primary_locked) {
-            g_session_mutex.unlock();
-        }
-        if (secondary_locked) {
-            g_instance_mutex.unlock();
-        }
-        LoaderLogger::LogErrorMessage("xrCreateSession", "xrCreateSession trampoline encountered an unknown error");
-        return XR_ERROR_INITIALIZATION_FAILED;
+    g_instance_mutex.lock();
+    secondary_locked = true;
+    LoaderInstance *loader_instance = g_instance_map[instance];
+    g_instance_mutex.unlock();
+    secondary_locked = false;
+    if (nullptr == loader_instance) {
+        XrLoaderLogObjectInfo bad_object = {};
+        bad_object.type = XR_OBJECT_TYPE_INSTANCE;
+        bad_object.handle = reinterpret_cast&lt;uint64_t&amp;&gt;(instance);
+        std::vector&lt;XrLoaderLogObjectInfo&gt; loader_objects;
+        loader_objects.push_back(bad_object);
+        LoaderLogger::LogValidationErrorMessage("VUID-xrCreateSession-instance-parameter", "xrCreateSession",
+                                                "instance is not a valid XrInstance", loader_objects);
+        return XR_ERROR_HANDLE_INVALID;
     }
+    const std::unique_ptr&lt;XrGeneratedDispatchTable&gt;&amp; dispatch_table = loader_instance-&gt;DispatchTable();
+    XrResult result = XR_SUCCESS;
+    result = dispatch_table-&gt;CreateSession(instance, createInfo, session);
+    if (XR_SUCCESS == result &amp;&amp; nullptr != session) {
+        auto exists = g_session_map.find(*session);
+        if (exists == g_session_map.end()) {
+            g_session_mutex.lock();
+            primary_locked = true;
+            g_session_map[*session] = loader_instance;
+            g_session_mutex.unlock();
+            primary_locked = false;
+        }
+    }
+    return result;
 }</code></pre>
 </div>
 </div>
@@ -5158,45 +5129,33 @@ is called.</p>
     XrSession                                   session) {
     bool primary_locked = false;
     bool secondary_locked = false;
-    try {
-        g_session_mutex.lock();
-        secondary_locked = true;
-        LoaderInstance *loader_instance = g_session_map[session];
-        g_session_mutex.unlock();
-        secondary_locked = false;
-        if (nullptr == loader_instance) {
-            XrLoaderLogObjectInfo bad_object = {};
-            bad_object.type = XR_OBJECT_TYPE_SESSION;
-            bad_object.handle = reinterpret_cast&lt;uint64_t&amp;&gt;(session);
-            std::vector&lt;XrLoaderLogObjectInfo&gt; loader_objects;
-            loader_objects.push_back(bad_object);
-            LoaderLogger::LogValidationErrorMessage("VUID-xrDestroySession-session-parameter", "xrDestroySession",
-                                                    "session is not a valid XrSession", loader_objects);
-            return XR_ERROR_HANDLE_INVALID;
-        }
-        const std::unique_ptr&lt;XrGeneratedDispatchTable&gt;&amp; dispatch_table = loader_instance-&gt;DispatchTable();
-        XrResult result = XR_SUCCESS;
-        result = dispatch_table-&gt;DestroySession(session);
-        auto exists = g_session_map.find(session);
-        if (exists != g_session_map.end()) {
-            g_session_mutex.lock();
-            primary_locked = true;
-            g_session_map.erase(session);
-            g_session_mutex.unlock();
-            primary_locked = false;
-        }
-        return result;
-    } catch (...) {
-        if (primary_locked) {
-            g_session_mutex.unlock();
-        }
-        if (secondary_locked) {
-            g_session_mutex.unlock();
-        }
-        LoaderLogger::LogErrorMessage("xrDestroySession", "xrDestroySession trampoline encountered an unknown error");
-        // NOTE: Most calls only allow XR_SUCCESS as a return code
-        return XR_SUCCESS;
+    g_session_mutex.lock();
+    secondary_locked = true;
+    LoaderInstance *loader_instance = g_session_map[session];
+    g_session_mutex.unlock();
+    secondary_locked = false;
+    if (nullptr == loader_instance) {
+        XrLoaderLogObjectInfo bad_object = {};
+        bad_object.type = XR_OBJECT_TYPE_SESSION;
+        bad_object.handle = reinterpret_cast&lt;uint64_t&amp;&gt;(session);
+        std::vector&lt;XrLoaderLogObjectInfo&gt; loader_objects;
+        loader_objects.push_back(bad_object);
+        LoaderLogger::LogValidationErrorMessage("VUID-xrDestroySession-session-parameter", "xrDestroySession",
+                                                "session is not a valid XrSession", loader_objects);
+        return XR_ERROR_HANDLE_INVALID;
     }
+    const std::unique_ptr&lt;XrGeneratedDispatchTable&gt;&amp; dispatch_table = loader_instance-&gt;DispatchTable();
+    XrResult result = XR_SUCCESS;
+    result = dispatch_table-&gt;DestroySession(session);
+    auto exists = g_session_map.find(session);
+    if (exists != g_session_map.end()) {
+        g_session_mutex.lock();
+        primary_locked = true;
+        g_session_map.erase(session);
+        g_session_mutex.unlock();
+        primary_locked = false;
+    }
+    return result;
 }</code></pre>
 </div>
 </div>

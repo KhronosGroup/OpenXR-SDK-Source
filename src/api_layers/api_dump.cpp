@@ -59,133 +59,125 @@ static std::mutex g_record_mutex = {};
 
 // HTML utilities
 bool ApiDumpLayerWriteHtmlHeader(void) {
-    try {
-        std::unique_lock<std::mutex> mlock(g_record_mutex);
-        std::ofstream html_file;
-        html_file.open(g_record_info.file_name, std::ios::out);
-        html_file << "<!doctype html>\n"
-                     "<html>\n"
-                     "    <head>\n"
-                     "        <title>OpenXR API Dump</title>\n"
-                     "        <style type='text/css'>\n"
-                     "        html {\n"
-                     "            background-color: #0b1e48;\n"
-                     "            background-image: url('https://vulkan.lunarg.com/img/bg-starfield.jpg');\n"
-                     "            background-position: center;\n"
-                     "            -webkit-background-size: cover;\n"
-                     "            -moz-background-size: cover;\n"
-                     "            -o-background-size: cover;\n"
-                     "            background-size: cover;\n"
-                     "            background-attachment: fixed;\n"
-                     "            background-repeat: no-repeat;\n"
-                     "            height: 100%;\n"
-                     "        }\n"
-                     "        #header {\n"
-                     "            z-index: -1;\n"
-                     "        }\n"
-                     "        #header>img {\n"
-                     "            position: absolute;\n"
-                     "            width: 160px;\n"
-                     "            margin-left: -280px;\n"
-                     "            top: -10px;\n"
-                     "            left: 50%;\n"
-                     "        }\n"
-                     "        #header>h1 {\n"
-                     "            font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;\n"
-                     "            font-size: 44px;\n"
-                     "            font-weight: 200;\n"
-                     "            text-shadow: 4px 4px 5px #000;\n"
-                     "            color: #eee;\n"
-                     "            position: absolute;\n"
-                     "            width: 400px;\n"
-                     "            margin-left: -80px;\n"
-                     "            top: 8px;\n"
-                     "            left: 50%;\n"
-                     "        }\n"
-                     "        body {\n"
-                     "            font-family: Consolas, monaco, monospace;\n"
-                     "            font-size: 14px;\n"
-                     "            line-height: 20px;\n"
-                     "            color: #eee;\n"
-                     "            height: 100%;\n"
-                     "            margin: 0;\n"
-                     "            overflow: hidden;\n"
-                     "        }\n"
-                     "        #wrapper {\n"
-                     "            background-color: rgba(0, 0, 0, 0.7);\n"
-                     "            border: 1px solid #446;\n"
-                     "            box-shadow: 0px 0px 10px #000;\n"
-                     "            padding: 8px 12px;\n"
-                     "            display: inline-block;\n"
-                     "            position: absolute;\n"
-                     "            top: 80px;\n"
-                     "            bottom: 25px;\n"
-                     "            left: 50px;\n"
-                     "            right: 50px;\n"
-                     "            overflow: auto;\n"
-                     "        }\n"
-                     "        details>*:not(summary) {\n"
-                     "            margin-left: 22px;\n"
-                     "        }\n"
-                     "        summary:only-child {\n"
-                     "            display: block;\n"
-                     "            padding-left: 15px;\n"
-                     "        }\n"
-                     "        details>summary:only-child::-webkit-details-marker {\n"
-                     "            display: none;\n"
-                     "            padding-left: 15px;\n"
-                     "        }\n"
-                     "        .headervar, .headertype, .headerval {\n"
-                     "            display: inline;\n"
-                     "            margin: 0 9px;\n"
-                     "        }\n"
-                     "        .var, .type, .val {\n"
-                     "            display: inline;\n"
-                     "            margin: 0 6px;\n"
-                     "        }\n"
-                     "        .headertype, .type {\n"
-                     "            color: #acf;\n"
-                     "        }\n"
-                     "        .headerval, .val {\n"
-                     "            color: #afa;\n"
-                     "            text-align: right;\n"
-                     "        }\n"
-                     "        .thd {\n"
-                     "            color: #888;\n"
-                     "        }\n"
-                     "        </style>\n"
-                     "    </head>\n"
-                     "    <body>\n"
-                     "        <div id='header'>\n"
-                     "            <img src='https://lunarg.com/wp-content/uploads/2016/02/LunarG-wReg-150.png' />\n"
-                     "            <h1>OpenXR API Dump</h1>\n"
-                     "        </div>\n"
-                     "        <div id='wrapper'>\n";
-        return true;
-    } catch (...) {
-        return false;
-    }
+    std::unique_lock<std::mutex> mlock(g_record_mutex);
+    std::ofstream html_file;
+    html_file.open(g_record_info.file_name, std::ios::out);
+    html_file << "<!doctype html>\n"
+                 "<html>\n"
+                 "    <head>\n"
+                 "        <title>OpenXR API Dump</title>\n"
+                 "        <style type='text/css'>\n"
+                 "        html {\n"
+                 "            background-color: #0b1e48;\n"
+                 "            background-image: url('https://vulkan.lunarg.com/img/bg-starfield.jpg');\n"
+                 "            background-position: center;\n"
+                 "            -webkit-background-size: cover;\n"
+                 "            -moz-background-size: cover;\n"
+                 "            -o-background-size: cover;\n"
+                 "            background-size: cover;\n"
+                 "            background-attachment: fixed;\n"
+                 "            background-repeat: no-repeat;\n"
+                 "            height: 100%;\n"
+                 "        }\n"
+                 "        #header {\n"
+                 "            z-index: -1;\n"
+                 "        }\n"
+                 "        #header>img {\n"
+                 "            position: absolute;\n"
+                 "            width: 160px;\n"
+                 "            margin-left: -280px;\n"
+                 "            top: -10px;\n"
+                 "            left: 50%;\n"
+                 "        }\n"
+                 "        #header>h1 {\n"
+                 "            font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;\n"
+                 "            font-size: 44px;\n"
+                 "            font-weight: 200;\n"
+                 "            text-shadow: 4px 4px 5px #000;\n"
+                 "            color: #eee;\n"
+                 "            position: absolute;\n"
+                 "            width: 400px;\n"
+                 "            margin-left: -80px;\n"
+                 "            top: 8px;\n"
+                 "            left: 50%;\n"
+                 "        }\n"
+                 "        body {\n"
+                 "            font-family: Consolas, monaco, monospace;\n"
+                 "            font-size: 14px;\n"
+                 "            line-height: 20px;\n"
+                 "            color: #eee;\n"
+                 "            height: 100%;\n"
+                 "            margin: 0;\n"
+                 "            overflow: hidden;\n"
+                 "        }\n"
+                 "        #wrapper {\n"
+                 "            background-color: rgba(0, 0, 0, 0.7);\n"
+                 "            border: 1px solid #446;\n"
+                 "            box-shadow: 0px 0px 10px #000;\n"
+                 "            padding: 8px 12px;\n"
+                 "            display: inline-block;\n"
+                 "            position: absolute;\n"
+                 "            top: 80px;\n"
+                 "            bottom: 25px;\n"
+                 "            left: 50px;\n"
+                 "            right: 50px;\n"
+                 "            overflow: auto;\n"
+                 "        }\n"
+                 "        details>*:not(summary) {\n"
+                 "            margin-left: 22px;\n"
+                 "        }\n"
+                 "        summary:only-child {\n"
+                 "            display: block;\n"
+                 "            padding-left: 15px;\n"
+                 "        }\n"
+                 "        details>summary:only-child::-webkit-details-marker {\n"
+                 "            display: none;\n"
+                 "            padding-left: 15px;\n"
+                 "        }\n"
+                 "        .headervar, .headertype, .headerval {\n"
+                 "            display: inline;\n"
+                 "            margin: 0 9px;\n"
+                 "        }\n"
+                 "        .var, .type, .val {\n"
+                 "            display: inline;\n"
+                 "            margin: 0 6px;\n"
+                 "        }\n"
+                 "        .headertype, .type {\n"
+                 "            color: #acf;\n"
+                 "        }\n"
+                 "        .headerval, .val {\n"
+                 "            color: #afa;\n"
+                 "            text-align: right;\n"
+                 "        }\n"
+                 "        .thd {\n"
+                 "            color: #888;\n"
+                 "        }\n"
+                 "        </style>\n"
+                 "    </head>\n"
+                 "    <body>\n"
+                 "        <div id='header'>\n"
+                 "            <img src='https://lunarg.com/wp-content/uploads/2016/02/LunarG-wReg-150.png' />\n"
+                 "            <h1>OpenXR API Dump</h1>\n"
+                 "        </div>\n"
+                 "        <div id='wrapper'>\n";
+    return true;
 }
 
 bool ApiDumpLayerWriteHtmlFooter(void) {
-    try {
-        std::unique_lock<std::mutex> mlock(g_record_mutex);
-        std::ofstream html_file;
-        html_file.open(g_record_info.file_name, std::ios::out | std::ios::app);
-        html_file << "        </div>\n"
-                     "    </body>\n"
-                     "</html>";
+    std::unique_lock<std::mutex> mlock(g_record_mutex);
+    std::ofstream html_file;
+    html_file.open(g_record_info.file_name, std::ios::out | std::ios::app);
+    html_file << "        </div>\n"
+                 "    </body>\n"
+                 "</html>";
 
-        // Writing the footer means we're done.
-        if (g_record_info.initialized) {
-            g_record_info.initialized = false;
-            g_record_info.type = RECORD_NONE;
-        }
-
-        return true;
-    } catch (...) {
-        return false;
+    // Writing the footer means we're done.
+    if (g_record_info.initialized) {
+        g_record_info.initialized = false;
+        g_record_info.type = RECORD_NONE;
     }
+
+    return true;
 }
 
 // Api Dump Utility function to return an instance based on the generated dispatch table
@@ -402,163 +394,159 @@ XrResult ApiDumpLayerXrCreateInstance(const XrInstanceCreateInfo *info, XrInstan
 
 XrResult ApiDumpLayerXrCreateApiLayerInstance(const XrInstanceCreateInfo *info, const struct XrApiLayerCreateInfo *apiLayerInfo,
                                               XrInstance *instance) {
-    try {
-        PFN_xrGetInstanceProcAddr next_get_instance_proc_addr = nullptr;
-        PFN_xrCreateApiLayerInstance next_create_api_layer_instance = nullptr;
-        XrApiLayerCreateInfo new_api_layer_info = {};
-        bool first_time = !g_record_info.initialized;
+    PFN_xrGetInstanceProcAddr next_get_instance_proc_addr = nullptr;
+    PFN_xrCreateApiLayerInstance next_create_api_layer_instance = nullptr;
+    XrApiLayerCreateInfo new_api_layer_info = {};
+    bool first_time = !g_record_info.initialized;
 
-        if (!g_record_info.initialized) {
-            g_record_info.initialized = true;
-            g_record_info.type = RECORD_TEXT_COUT;
-        }
+    if (!g_record_info.initialized) {
+        g_record_info.initialized = true;
+        g_record_info.type = RECORD_TEXT_COUT;
+    }
 
-        char *export_type = PlatformUtilsGetEnv("XR_API_DUMP_EXPORT_TYPE");
-        char *file_name = PlatformUtilsGetEnv("XR_API_DUMP_FILE_NAME");
-        if (nullptr != file_name) {
-            g_record_info.file_name = file_name;
-            g_record_info.type = RECORD_TEXT_FILE;
-            PlatformUtilsFreeEnv(file_name);
-        }
+    char *export_type = PlatformUtilsGetEnv("XR_API_DUMP_EXPORT_TYPE");
+    char *file_name = PlatformUtilsGetEnv("XR_API_DUMP_FILE_NAME");
+    if (nullptr != file_name) {
+        g_record_info.file_name = file_name;
+        g_record_info.type = RECORD_TEXT_FILE;
+        PlatformUtilsFreeEnv(file_name);
+    }
 
-        if (nullptr != export_type) {
-            std::string string_export_type = export_type;
-            PlatformUtilsFreeEnv(export_type);
-            std::transform(string_export_type.begin(), string_export_type.end(), string_export_type.begin(),
-                           [](unsigned char c) { return std::tolower(c); });
+    if (nullptr != export_type) {
+        std::string string_export_type = export_type;
+        PlatformUtilsFreeEnv(export_type);
+        std::transform(string_export_type.begin(), string_export_type.end(), string_export_type.begin(),
+                       [](unsigned char c) { return std::tolower(c); });
 
-            if (string_export_type == "text") {
-                if (g_record_info.file_name.size() > 0) {
-                    g_record_info.type = RECORD_TEXT_FILE;
-                } else {
-                    g_record_info.type = RECORD_TEXT_COUT;
-                }
-            } else if (string_export_type == "html" && first_time) {
-                g_record_info.type = RECORD_HTML_FILE;
-                if (!ApiDumpLayerWriteHtmlHeader()) {
-                    return XR_ERROR_INITIALIZATION_FAILED;
-                }
-            } else if (string_export_type == "code") {
-                g_record_info.type = RECORD_CODE_FILE;
+        if (string_export_type == "text") {
+            if (g_record_info.file_name.size() > 0) {
+                g_record_info.type = RECORD_TEXT_FILE;
+            } else {
+                g_record_info.type = RECORD_TEXT_COUT;
             }
+        } else if (string_export_type == "html" && first_time) {
+            g_record_info.type = RECORD_HTML_FILE;
+            if (!ApiDumpLayerWriteHtmlHeader()) {
+                return XR_ERROR_INITIALIZATION_FAILED;
+            }
+        } else if (string_export_type == "code") {
+            g_record_info.type = RECORD_CODE_FILE;
         }
+    }
 
-        // Validate the API layer info and next API layer info structures before we try to use them
-        if (nullptr == apiLayerInfo || XR_LOADER_INTERFACE_STRUCT_API_LAYER_CREATE_INFO != apiLayerInfo->structType ||
-            XR_API_LAYER_CREATE_INFO_STRUCT_VERSION > apiLayerInfo->structVersion ||
-            sizeof(XrApiLayerCreateInfo) > apiLayerInfo->structSize || nullptr == apiLayerInfo->loaderInstance ||
-            nullptr == apiLayerInfo->nextInfo ||
-            XR_LOADER_INTERFACE_STRUCT_API_LAYER_NEXT_INFO != apiLayerInfo->nextInfo->structType ||
-            XR_API_LAYER_NEXT_INFO_STRUCT_VERSION > apiLayerInfo->nextInfo->structVersion ||
-            sizeof(XrApiLayerNextInfo) > apiLayerInfo->nextInfo->structSize ||
-            0 != strcmp("XR_APILAYER_LUNARG_api_dump", apiLayerInfo->nextInfo->layerName) ||
-            nullptr == apiLayerInfo->nextInfo->nextGetInstanceProcAddr ||
-            nullptr == apiLayerInfo->nextInfo->nextCreateApiLayerInstance) {
-            return XR_ERROR_INITIALIZATION_FAILED;
-        }
-
-        // Generate output for this command as if it were the standard xrCreateInstance
-        std::vector<std::tuple<std::string, std::string, std::string>> contents;
-        contents.push_back(std::make_tuple("XrResult", "xrCreateInstance", ""));
-        std::ostringstream oss_info;
-        oss_info << std::hex << reinterpret_cast<const void *>(info);
-        contents.push_back(std::make_tuple("const XrInstanceCreateInfo*", "info", oss_info.str()));
-        if (nullptr != info) {
-            std::string prefix = "info->";
-            contents.push_back(std::make_tuple("XrStructureType", "info->type", std::to_string(info->type)));
-            std::string next_prefix = prefix;
-            next_prefix += "next";
-            // Decode the next chain if it exists
-            if (!ApiDumpDecodeNextChain(nullptr, info->next, next_prefix, contents)) {
-                throw std::invalid_argument("Invalid Operation");
-            }
-            std::string flags_prefix = prefix;
-            flags_prefix += "createFlags";
-            contents.push_back(std::make_tuple("XrInstanceCreateFlags", flags_prefix, std::to_string(info->createFlags)));
-            std::string applicationinfo_prefix = prefix;
-            applicationinfo_prefix += "applicationInfo";
-            if (!ApiDumpOutputXrStruct(nullptr, &info->applicationInfo, applicationinfo_prefix, "XrApplicationInfo", true,
-                                       contents)) {
-                throw std::invalid_argument("Invalid Operation");
-            }
-            std::string enabledapilayercount_prefix = prefix;
-            enabledapilayercount_prefix += "enabledApiLayerCount";
-            std::ostringstream oss_enabledApiLayerCount;
-            oss_enabledApiLayerCount << "0x" << std::hex << (info->enabledApiLayerCount);
-            contents.push_back(std::make_tuple("uint32_t", enabledapilayercount_prefix, oss_enabledApiLayerCount.str()));
-            std::string enabledapilayernames_prefix = prefix;
-            enabledapilayernames_prefix += "enabledApiLayerNames";
-            std::ostringstream oss_enabledApiLayerNames_array;
-            oss_enabledApiLayerNames_array << "0x" << std::hex << (info->enabledApiLayerNames);
-            contents.push_back(
-                std::make_tuple("const char* const*", enabledapilayernames_prefix, oss_enabledApiLayerNames_array.str()));
-            for (uint32_t info_enabledapilayernames_inc = 0; info_enabledapilayernames_inc < info->enabledApiLayerCount;
-                 ++info_enabledapilayernames_inc) {
-                std::string enabledapilayernames_array_prefix = enabledapilayernames_prefix;
-                enabledapilayernames_array_prefix += "[";
-                enabledapilayernames_array_prefix += std::to_string(info_enabledapilayernames_inc);
-                enabledapilayernames_array_prefix += "]";
-                std::ostringstream oss_enabledApiLayerNames;
-                oss_enabledApiLayerNames << "0x" << std::hex << (*info->enabledApiLayerNames[info_enabledapilayernames_inc]);
-                contents.push_back(
-                    std::make_tuple("const char* const*", enabledapilayernames_array_prefix, oss_enabledApiLayerNames.str()));
-            }
-            std::string enabledextensioncount_prefix = prefix;
-            enabledextensioncount_prefix += "enabledExtensionCount";
-            std::ostringstream oss_enabledExtensionCount;
-            oss_enabledExtensionCount << "0x" << std::hex << (info->enabledExtensionCount);
-            contents.push_back(std::make_tuple("uint32_t", enabledextensioncount_prefix, oss_enabledExtensionCount.str()));
-            std::string enabledextensionnames_prefix = prefix;
-            enabledextensionnames_prefix += "enabledExtensionNames";
-            std::ostringstream oss_enabledExtensionNames_array;
-            oss_enabledExtensionNames_array << "0x" << std::hex << (info->enabledExtensionNames);
-            contents.push_back(
-                std::make_tuple("const char* const*", enabledextensionnames_prefix, oss_enabledExtensionNames_array.str()));
-            for (uint32_t info_enabledextensionnames_inc = 0; info_enabledextensionnames_inc < info->enabledExtensionCount;
-                 ++info_enabledextensionnames_inc) {
-                std::string enabledextensionnames_array_prefix = enabledextensionnames_prefix;
-                enabledextensionnames_array_prefix += "[";
-                enabledextensionnames_array_prefix += std::to_string(info_enabledextensionnames_inc);
-                enabledextensionnames_array_prefix += "]";
-                std::ostringstream oss_enabledExtensionNames;
-                oss_enabledExtensionNames << "0x" << std::hex << (*info->enabledExtensionNames[info_enabledextensionnames_inc]);
-                contents.push_back(
-                    std::make_tuple("const char* const*", enabledextensionnames_array_prefix, oss_enabledExtensionNames.str()));
-            }
-        }
-
-        std::ostringstream oss_instance;
-        oss_instance << std::hex << reinterpret_cast<uintptr_t>(instance);
-        std::string hex_instance = "0x";
-        hex_instance += oss_instance.str();
-        contents.push_back(std::make_tuple("XrInstance*", "instance", hex_instance));
-        ApiDumpLayerRecordContent(contents);
-
-        // Copy the contents of the layer info struct, but then move the next info up by
-        // one slot so that the next layer gets information.
-        memcpy(&new_api_layer_info, apiLayerInfo, sizeof(XrApiLayerCreateInfo));
-        new_api_layer_info.nextInfo = apiLayerInfo->nextInfo->next;
-
-        // Get the function pointers we need
-        next_get_instance_proc_addr = apiLayerInfo->nextInfo->nextGetInstanceProcAddr;
-        next_create_api_layer_instance = apiLayerInfo->nextInfo->nextCreateApiLayerInstance;
-
-        // Create the instance
-        XrInstance returned_instance = *instance;
-        XrResult result = next_create_api_layer_instance(info, &new_api_layer_info, &returned_instance);
-        *instance = returned_instance;
-
-        // Create the dispatch table to the next levels
-        XrGeneratedDispatchTable *next_dispatch = new XrGeneratedDispatchTable();
-        GeneratedXrPopulateDispatchTable(next_dispatch, returned_instance, next_get_instance_proc_addr);
-
-        std::unique_lock<std::mutex> mlock(g_instance_dispatch_mutex);
-        g_instance_dispatch_map[returned_instance] = next_dispatch;
-
-        return result;
-    } catch (...) {
+    // Validate the API layer info and next API layer info structures before we try to use them
+    if (nullptr == apiLayerInfo || XR_LOADER_INTERFACE_STRUCT_API_LAYER_CREATE_INFO != apiLayerInfo->structType ||
+        XR_API_LAYER_CREATE_INFO_STRUCT_VERSION > apiLayerInfo->structVersion ||
+        sizeof(XrApiLayerCreateInfo) > apiLayerInfo->structSize || nullptr == apiLayerInfo->loaderInstance ||
+        nullptr == apiLayerInfo->nextInfo ||
+        XR_LOADER_INTERFACE_STRUCT_API_LAYER_NEXT_INFO != apiLayerInfo->nextInfo->structType ||
+        XR_API_LAYER_NEXT_INFO_STRUCT_VERSION > apiLayerInfo->nextInfo->structVersion ||
+        sizeof(XrApiLayerNextInfo) > apiLayerInfo->nextInfo->structSize ||
+        0 != strcmp("XR_APILAYER_LUNARG_api_dump", apiLayerInfo->nextInfo->layerName) ||
+        nullptr == apiLayerInfo->nextInfo->nextGetInstanceProcAddr ||
+        nullptr == apiLayerInfo->nextInfo->nextCreateApiLayerInstance) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
+
+    // Generate output for this command as if it were the standard xrCreateInstance
+    std::vector<std::tuple<std::string, std::string, std::string>> contents;
+    contents.push_back(std::make_tuple("XrResult", "xrCreateInstance", ""));
+    std::ostringstream oss_info;
+    oss_info << std::hex << reinterpret_cast<const void *>(info);
+    contents.push_back(std::make_tuple("const XrInstanceCreateInfo*", "info", oss_info.str()));
+    if (nullptr != info) {
+        std::string prefix = "info->";
+        contents.push_back(std::make_tuple("XrStructureType", "info->type", std::to_string(info->type)));
+        std::string next_prefix = prefix;
+        next_prefix += "next";
+        // Decode the next chain if it exists
+        if (!ApiDumpDecodeNextChain(nullptr, info->next, next_prefix, contents)) {
+            return XR_ERROR_INITIALIZATION_FAILED;
+        }
+        std::string flags_prefix = prefix;
+        flags_prefix += "createFlags";
+        contents.push_back(std::make_tuple("XrInstanceCreateFlags", flags_prefix, std::to_string(info->createFlags)));
+        std::string applicationinfo_prefix = prefix;
+        applicationinfo_prefix += "applicationInfo";
+        if (!ApiDumpOutputXrStruct(nullptr, &info->applicationInfo, applicationinfo_prefix, "XrApplicationInfo", true,
+                                   contents)) {
+            return XR_ERROR_INITIALIZATION_FAILED;
+        }
+        std::string enabledapilayercount_prefix = prefix;
+        enabledapilayercount_prefix += "enabledApiLayerCount";
+        std::ostringstream oss_enabledApiLayerCount;
+        oss_enabledApiLayerCount << "0x" << std::hex << (info->enabledApiLayerCount);
+        contents.push_back(std::make_tuple("uint32_t", enabledapilayercount_prefix, oss_enabledApiLayerCount.str()));
+        std::string enabledapilayernames_prefix = prefix;
+        enabledapilayernames_prefix += "enabledApiLayerNames";
+        std::ostringstream oss_enabledApiLayerNames_array;
+        oss_enabledApiLayerNames_array << "0x" << std::hex << (info->enabledApiLayerNames);
+        contents.push_back(
+            std::make_tuple("const char* const*", enabledapilayernames_prefix, oss_enabledApiLayerNames_array.str()));
+        for (uint32_t info_enabledapilayernames_inc = 0; info_enabledapilayernames_inc < info->enabledApiLayerCount;
+             ++info_enabledapilayernames_inc) {
+            std::string enabledapilayernames_array_prefix = enabledapilayernames_prefix;
+            enabledapilayernames_array_prefix += "[";
+            enabledapilayernames_array_prefix += std::to_string(info_enabledapilayernames_inc);
+            enabledapilayernames_array_prefix += "]";
+            std::ostringstream oss_enabledApiLayerNames;
+            oss_enabledApiLayerNames << "0x" << std::hex << (*info->enabledApiLayerNames[info_enabledapilayernames_inc]);
+            contents.push_back(
+                std::make_tuple("const char* const*", enabledapilayernames_array_prefix, oss_enabledApiLayerNames.str()));
+        }
+        std::string enabledextensioncount_prefix = prefix;
+        enabledextensioncount_prefix += "enabledExtensionCount";
+        std::ostringstream oss_enabledExtensionCount;
+        oss_enabledExtensionCount << "0x" << std::hex << (info->enabledExtensionCount);
+        contents.push_back(std::make_tuple("uint32_t", enabledextensioncount_prefix, oss_enabledExtensionCount.str()));
+        std::string enabledextensionnames_prefix = prefix;
+        enabledextensionnames_prefix += "enabledExtensionNames";
+        std::ostringstream oss_enabledExtensionNames_array;
+        oss_enabledExtensionNames_array << "0x" << std::hex << (info->enabledExtensionNames);
+        contents.push_back(
+            std::make_tuple("const char* const*", enabledextensionnames_prefix, oss_enabledExtensionNames_array.str()));
+        for (uint32_t info_enabledextensionnames_inc = 0; info_enabledextensionnames_inc < info->enabledExtensionCount;
+             ++info_enabledextensionnames_inc) {
+            std::string enabledextensionnames_array_prefix = enabledextensionnames_prefix;
+            enabledextensionnames_array_prefix += "[";
+            enabledextensionnames_array_prefix += std::to_string(info_enabledextensionnames_inc);
+            enabledextensionnames_array_prefix += "]";
+            std::ostringstream oss_enabledExtensionNames;
+            oss_enabledExtensionNames << "0x" << std::hex << (*info->enabledExtensionNames[info_enabledextensionnames_inc]);
+            contents.push_back(
+                std::make_tuple("const char* const*", enabledextensionnames_array_prefix, oss_enabledExtensionNames.str()));
+        }
+    }
+
+    std::ostringstream oss_instance;
+    oss_instance << std::hex << reinterpret_cast<uintptr_t>(instance);
+    std::string hex_instance = "0x";
+    hex_instance += oss_instance.str();
+    contents.push_back(std::make_tuple("XrInstance*", "instance", hex_instance));
+    ApiDumpLayerRecordContent(contents);
+
+    // Copy the contents of the layer info struct, but then move the next info up by
+    // one slot so that the next layer gets information.
+    memcpy(&new_api_layer_info, apiLayerInfo, sizeof(XrApiLayerCreateInfo));
+    new_api_layer_info.nextInfo = apiLayerInfo->nextInfo->next;
+
+    // Get the function pointers we need
+    next_get_instance_proc_addr = apiLayerInfo->nextInfo->nextGetInstanceProcAddr;
+    next_create_api_layer_instance = apiLayerInfo->nextInfo->nextCreateApiLayerInstance;
+
+    // Create the instance
+    XrInstance returned_instance = *instance;
+    XrResult result = next_create_api_layer_instance(info, &new_api_layer_info, &returned_instance);
+    *instance = returned_instance;
+
+    // Create the dispatch table to the next levels
+    XrGeneratedDispatchTable *next_dispatch = new XrGeneratedDispatchTable();
+    GeneratedXrPopulateDispatchTable(next_dispatch, returned_instance, next_get_instance_proc_addr);
+
+    std::unique_lock<std::mutex> mlock(g_instance_dispatch_mutex);
+    g_instance_dispatch_map[returned_instance] = next_dispatch;
+
+    return result;
 }
 
 XrResult ApiDumpLayerXrDestroyInstance(XrInstance instance) {
@@ -573,17 +561,8 @@ XrResult ApiDumpLayerXrDestroyInstance(XrInstance instance) {
     ApiDumpLayerRecordContent(contents);
 
     std::unique_lock<std::mutex> mlock(g_instance_dispatch_mutex);
-    XrGeneratedDispatchTable *next_dispatch = nullptr;
-    auto map_iter = g_instance_dispatch_map.find(instance);
-    if (map_iter != g_instance_dispatch_map.end()) {
-        next_dispatch = map_iter->second;
-    }
+    XrGeneratedDispatchTable *next_dispatch = g_instance_dispatch_map[instance];
     mlock.unlock();
-
-    if (nullptr == next_dispatch) {
-        return XR_ERROR_HANDLE_INVALID;
-    }
-
     next_dispatch->DestroyInstance(instance);
     ApiDumpCleanUpMapsForTable(next_dispatch);
 
