@@ -216,8 +216,6 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
 
         // Debug Utils items (in case we need them)
         XrDebugUtilsMessageSeverityFlagsEXT debug_utils_severity = 0;
-        std::vector<XrDebugUtilsObjectNameInfoEXT> debug_utils_objects;
-        std::vector<XrDebugUtilsLabelEXT> session_labels;
 
         std::string severity_string;
         switch (message_severity) {
@@ -241,56 +239,25 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
                 severity_string = "VALID_UNKNOWN";
                 break;
         }
-
+        NamesAndLabels names_and_labels;
         // If we have instance information, see if we need to log this information out to a debug messenger
         // callback.
         if (nullptr != instance_info) {
-            if (!objects_info.empty()) {
-                for (auto &obj : objects_info) {
-                    XrDebugUtilsObjectNameInfoEXT obj_name_info = {};
-                    obj_name_info.next = nullptr;
-                    obj_name_info.objectType = obj.type;
-                    obj_name_info.objectHandle = obj.handle;
-                    // If there's a session in the list, see if it has labels
-                    if (XR_OBJECT_TYPE_SESSION == obj.type) {
-                        XrSession session = TreatIntegerAsHandle<XrSession>(obj.handle);
-                        auto session_label_iterator = g_xr_session_labels.find(session);
-                        if (session_label_iterator != g_xr_session_labels.end()) {
-                            auto rev_iter = session_label_iterator->second->rbegin();
-                            for (; rev_iter != session_label_iterator->second->rend(); ++rev_iter) {
-                                session_labels.push_back((*rev_iter)->debug_utils_label);
-                            }
-                        }
-                    }
-                    // Loop through all object names and see if any match
-                    for (auto &object_name : instance_info->object_names) {
-                        if (object_name->objectType == obj.type && object_name->objectHandle == obj.handle) {
-                            obj_name_info.objectName = object_name->objectName;
-                            break;
-                        }
-                    }
-                    debug_utils_objects.push_back(obj_name_info);
-                }
-            }
-            if (!instance_info->debug_messengers.empty()) {
+            if (!instance_info->debug_data.Empty() && !instance_info->debug_messengers.empty()) {
+                std::vector<XrSdkLogObjectInfo> objects;
+                objects.reserve(objects_info.size());
+                std::transform(objects_info.begin(), objects_info.end(), std::back_inserter(objects),
+                               [](GenValidUsageXrObjectInfo const &info) {
+                                   return XrSdkLogObjectInfo{info.handle, info.type};
+                               });
+                names_and_labels = instance_info->debug_data.PopulateNamesAndLabels(std::move(objects));
                 // Setup our callback data once
                 XrDebugUtilsMessengerCallbackDataEXT callback_data = {};
                 callback_data.type = XR_TYPE_DEBUG_UTILS_MESSENGER_CALLBACK_DATA_EXT;
                 callback_data.messageId = message_id.c_str();
                 callback_data.functionName = command_name.c_str();
                 callback_data.message = message.c_str();
-                callback_data.objectCount = static_cast<uint8_t>(debug_utils_objects.size());
-                if (debug_utils_objects.empty()) {
-                    callback_data.objects = nullptr;
-                } else {
-                    callback_data.objects = debug_utils_objects.data();
-                }
-                callback_data.sessionLabelCount = static_cast<uint8_t>(session_labels.size());
-                if (session_labels.empty()) {
-                    callback_data.sessionLabels = nullptr;
-                } else {
-                    callback_data.sessionLabels = session_labels.data();
-                }
+                names_and_labels.PopulateCallbackData(callback_data);
 
                 // Loop through all active messengers and give each a chance to output information
                 for (auto &debug_messenger : instance_info->debug_messengers) {
@@ -323,10 +290,10 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
                         std::cout << std::endl;
                     }
                 }
-                if (!session_labels.empty()) {
+                if (!names_and_labels.labels.empty()) {
                     std::cout << "  Session Labels:" << std::endl;
                     uint32_t count = 0;
-                    for (auto session_label : session_labels) {
+                    for (const auto &session_label : names_and_labels.labels) {
                         std::cout << "   [" << std::to_string(count++) << "] - " << session_label.labelName << std::endl;
                     }
                 }
@@ -348,10 +315,10 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
                         text_file << std::endl;
                     }
                 }
-                if (!session_labels.empty()) {
+                if (!names_and_labels.labels.empty()) {
                     text_file << "  Session Labels:" << std::endl;
                     uint32_t count = 0;
-                    for (auto session_label : session_labels) {
+                    for (const auto &session_label : names_and_labels.labels) {
                         text_file << "   [" << std::to_string(count++) << "] - " << session_label.labelName << std::endl;
                     }
                 }
@@ -408,13 +375,13 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
                     text_file << "      </details>\n";
                     text_file << std::flush;
                 }
-                if (!session_labels.empty()) {
+                if (!names_and_labels.labels.empty()) {
                     text_file << "      <details class='data'>\n";
                     text_file << "         <summary>\n";
                     text_file << "            <div class='type'>Relevant Session Labels</div>\n";
                     text_file << "         </summary>\n";
                     uint32_t count = 0;
-                    for (auto session_label : session_labels) {
+                    for (const auto &session_label : names_and_labels.labels) {
                         text_file << "         <div class='data'>\n";
                         text_file << "             <div class='var'>[" << count++ << "]</div>\n";
                         text_file << "             <div class='type'>" << session_label.labelName << "</div>\n";
@@ -599,7 +566,6 @@ XrResult CoreValidationXrDestroyInstance(XrInstance instance) {
         auto info_with_lock = g_instance_info.getWithLock(instance);
         GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second;
         if (nullptr != gen_instance_info) {
-            gen_instance_info->object_names.clear();
             gen_instance_info->debug_messengers.clear();
         }
     }
@@ -608,7 +574,6 @@ XrResult CoreValidationXrDestroyInstance(XrInstance instance) {
         CoreValidationWriteHtmlFooter();
     }
     return result;
-    return XR_SUCCESS;
 }
 
 XrResult CoreValidationXrCreateSession(XrInstance instance, const XrSessionCreateInfo *createInfo, XrSession *session) {
@@ -701,25 +666,7 @@ XrResult CoreValidationXrSetDebugUtilsObjectNameEXT(XrInstance instance, const X
         auto info_with_lock = g_instance_info.getWithLock(instance);
         GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second;
         if (nullptr != gen_instance_info) {
-            // Create a copy of the base object name info (no next items)
-            auto len = strlen(nameInfo->objectName);
-            char *name_string = new char[len + 1];
-            strncpy(name_string, nameInfo->objectName, len);
-            bool found = false;
-            for (auto &object_name : gen_instance_info->object_names) {
-                if (object_name->objectHandle == nameInfo->objectHandle && object_name->objectType == nameInfo->objectType) {
-                    delete[] object_name->objectName;
-                    object_name->objectName = name_string;
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                UniqueXrDebugUtilsObjectNameInfoEXT new_object_name(new XrDebugUtilsObjectNameInfoEXT(*nameInfo));
-                new_object_name->next = nullptr;
-                new_object_name->objectName = name_string;
-                gen_instance_info->object_names.push_back(std::move(new_object_name));
-            }
+            gen_instance_info->debug_data.AddObjectName(nameInfo->objectHandle, nameInfo->objectType, nameInfo->objectName);
         }
         return result;
     } catch (...) {
@@ -780,103 +727,16 @@ XrResult CoreValidationXrDestroyDebugUtilsMessengerEXT(XrDebugUtilsMessengerEXT 
     }
 }
 
-// We always want to remove the old individual label before we do anything else.
-// So, do that in it's own method
-void CoreValidationRemoveIndividualLabel(std::vector<GenValidUsageXrInternalSessionLabel *> *label_vec) {
-    if (!label_vec->empty()) {
-        GenValidUsageXrInternalSessionLabel *cur_label = label_vec->back();
-        if (cur_label->is_individual_label) {
-            label_vec->pop_back();
-            delete cur_label;
-        }
-    }
-}
-
-void CoreValidationBeginLabelRegion(XrSession session, const XrDebugUtilsLabelEXT *label_info) {
-    std::vector<GenValidUsageXrInternalSessionLabel *> *vec_ptr = nullptr;
-    auto session_label_iterator = g_xr_session_labels.find(session);
-    if (session_label_iterator == g_xr_session_labels.end()) {
-        vec_ptr = new std::vector<GenValidUsageXrInternalSessionLabel *>;
-        g_xr_session_labels[session] = vec_ptr;
-    } else {
-        vec_ptr = session_label_iterator->second;
-    }
-
-    // Individual labels do not stay around in the transition into a new label region
-    CoreValidationRemoveIndividualLabel(vec_ptr);
-
-    // Start the new label region
-    auto *new_session_label = new GenValidUsageXrInternalSessionLabel;
-    new_session_label->label_name = label_info->labelName;
-    new_session_label->debug_utils_label = *label_info;
-    new_session_label->debug_utils_label.labelName = new_session_label->label_name.c_str();
-    new_session_label->is_individual_label = false;
-    vec_ptr->push_back(new_session_label);
-}
-
-void CoreValidationEndLabelRegion(XrSession session) {
-    auto session_label_iterator = g_xr_session_labels.find(session);
-    if (session_label_iterator == g_xr_session_labels.end()) {
-        return;
-    }
-
-    std::vector<GenValidUsageXrInternalSessionLabel *> *vec_ptr = session_label_iterator->second;
-
-    // Individual labels do not stay around in the transition out of label region
-    CoreValidationRemoveIndividualLabel(vec_ptr);
-
-    // Remove the last label region
-    if (!vec_ptr->empty()) {
-        GenValidUsageXrInternalSessionLabel *cur_label = vec_ptr->back();
-        vec_ptr->pop_back();
-        delete cur_label;
-    }
-}
-
-void CoreValidationInsertLabel(XrSession session, const XrDebugUtilsLabelEXT *label_info) {
-    std::vector<GenValidUsageXrInternalSessionLabel *> *vec_ptr = nullptr;
-    auto session_label_iterator = g_xr_session_labels.find(session);
-    if (session_label_iterator == g_xr_session_labels.end()) {
-        vec_ptr = new std::vector<GenValidUsageXrInternalSessionLabel *>;
-        g_xr_session_labels[session] = vec_ptr;
-    } else {
-        vec_ptr = session_label_iterator->second;
-    }
-
-    // Remove any individual layer that might already be there
-    CoreValidationRemoveIndividualLabel(vec_ptr);
-
-    // Insert a new individual label
-    auto *new_session_label = new GenValidUsageXrInternalSessionLabel;
-    new_session_label->label_name = label_info->labelName;
-    new_session_label->debug_utils_label = *label_info;
-    new_session_label->debug_utils_label.labelName = new_session_label->label_name.c_str();
-    new_session_label->is_individual_label = true;
-    vec_ptr->push_back(new_session_label);
-}
-
-// Called during xrDestroySession.  We need to delete all session related labels.
-void CoreValidationDeleteSessionLabels(XrSession session) {
-    std::vector<GenValidUsageXrInternalSessionLabel *> *vec_ptr = nullptr;
-    auto session_label_iterator = g_xr_session_labels.find(session);
-    if (session_label_iterator == g_xr_session_labels.end()) {
-        return;
-    }
-    vec_ptr = session_label_iterator->second;
-    while (!vec_ptr->empty()) {
-        delete vec_ptr->back();
-        vec_ptr->pop_back();
-    }
-    delete vec_ptr;
-    g_xr_session_labels.erase(session);
-}
-
 XrResult CoreValidationXrSessionBeginDebugUtilsLabelRegionEXT(XrSession session, const XrDebugUtilsLabelEXT *labelInfo) {
     XrResult test_result = GenValidUsageInputsXrSessionBeginDebugUtilsLabelRegionEXT(session, labelInfo);
     if (XR_SUCCESS != test_result) {
         return test_result;
     }
-    CoreValidationBeginLabelRegion(session, labelInfo);
+    auto info_with_lock = g_session_info.getWithLock(session);
+    GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
+    if (nullptr != gen_instance_info) {
+        gen_instance_info->debug_data.BeginLabelRegion(session, *labelInfo);
+    }
     return GenValidUsageNextXrSessionBeginDebugUtilsLabelRegionEXT(session, labelInfo);
 }
 
@@ -885,7 +745,11 @@ XrResult CoreValidationXrSessionEndDebugUtilsLabelRegionEXT(XrSession session) {
     if (XR_SUCCESS != test_result) {
         return test_result;
     }
-    CoreValidationEndLabelRegion(session);
+    auto info_with_lock = g_session_info.getWithLock(session);
+    GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
+    if (nullptr != gen_instance_info) {
+        gen_instance_info->debug_data.EndLabelRegion(session);
+    }
     return GenValidUsageNextXrSessionEndDebugUtilsLabelRegionEXT(session);
 }
 
@@ -894,7 +758,11 @@ XrResult CoreValidationXrSessionInsertDebugUtilsLabelEXT(XrSession session, cons
     if (XR_SUCCESS != test_result) {
         return test_result;
     }
-    CoreValidationInsertLabel(session, labelInfo);
+    auto info_with_lock = g_session_info.getWithLock(session);
+    GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
+    if (nullptr != gen_instance_info) {
+        gen_instance_info->debug_data.InsertLabel(session, *labelInfo);
+    }
     return GenValidUsageNextXrSessionInsertDebugUtilsLabelEXT(session, labelInfo);
 }
 

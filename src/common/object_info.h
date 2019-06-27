@@ -34,6 +34,34 @@
 #include <unordered_map>
 #include <vector>
 
+struct XrSdkGenericObject {
+    //! Type-erased handle value
+    uint64_t handle;
+
+    //! Kind of object this handle refers to
+    XrObjectType type;
+    /// Un-erase the type of the handle and get it properly typed again.
+    ///
+    /// Note: Does not check the type before doing it!
+    template <typename HandleType>
+    HandleType& GetTypedHandle() {
+        return TreatIntegerAsHandle<HandleType&>(handle);
+    }
+
+    //! @overload
+    template <typename HandleType>
+    HandleType const& GetTypedHandle() const {
+        return TreatIntegerAsHandle<HandleType&>(handle);
+    }
+
+    //! Create from a typed handle and object type
+    template <typename T>
+    XrSdkGenericObject(T h, XrObjectType t) : handle(MakeHandleGeneric(h)), type(t) {}
+
+    //! Create from an untyped handle value (integer) and object type
+    XrSdkGenericObject(uint64_t h, XrObjectType t) : handle(h), type(t) {}
+};
+
 struct XrSdkLogObjectInfo {
     //! Type-erased handle value
     uint64_t handle;
@@ -139,6 +167,7 @@ struct XrSdkSessionLabel {
 
 /// The metadata for a collection of objects. Must persist unmodified during the entire debug messenger call!
 struct NamesAndLabels {
+    NamesAndLabels() = default;
     NamesAndLabels(std::vector<XrSdkLogObjectInfo> obj, std::vector<XrDebugUtilsLabelEXT> lab);
     /// C++ structure owning the data (strings) backing the objects vector.
     std::vector<XrSdkLogObjectInfo> sdk_objects;
