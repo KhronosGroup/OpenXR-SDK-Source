@@ -25,6 +25,7 @@
 #include "api_layer_platform_defines.h"
 #include "hex_and_handles.h"
 #include "extra_algorithms.h"
+#include "object_info.h"
 
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
@@ -79,7 +80,7 @@ struct GenValidUsageXrInstanceInfo {
     XrGeneratedDispatchTable *dispatch_table;
     std::vector<std::string> enabled_extensions;
     std::vector<UniqueCoreValidationMessengerInfo> debug_messengers;
-    std::vector<UniqueXrDebugUtilsObjectNameInfoEXT> object_names;
+    DebugUtilsData debug_data;
 };
 
 // Structure used for storing information for other handles
