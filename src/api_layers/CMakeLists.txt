@@ -89,6 +89,8 @@ add_library(XrApiLayer_core_validation SHARED
     core_validation.cpp
     ${CMAKE_SOURCE_DIR}/src/common/hex_and_handles.cpp
     ${CMAKE_SOURCE_DIR}/src/common/hex_and_handles.h
+    ${CMAKE_SOURCE_DIR}/src/common/object_info.cpp
+    ${CMAKE_SOURCE_DIR}/src/common/object_info.h
     ${CMAKE_BINARY_DIR}/src/xr_generated_dispatch_table.c 
     ${CMAKE_CURRENT_BINARY_DIR}/xr_generated_core_validation.cpp
     ${CMAKE_CURRENT_BINARY_DIR}/xr_generated_core_validation.hpp
