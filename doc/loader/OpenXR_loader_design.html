@@ -3856,12 +3856,6 @@ std::experimental::filesystem::path search_path;</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<div class="title">Exceptions</div>
-<p>The OpenXR loader relies on throwing and catching C++ exceptions.  Adding code
-should take this into account and properly wrap executing code with a "try"/"catch"
-block.</p>
-</div>
-<div class="paragraph">
 <div class="title">Experimental Filesystem Usage</div>
 <p>In order to simplify the file management, especially with regards to loading JSON
 manifest files or finding dynamic library files, the experimental/filesystem is used.
@@ -3885,13 +3879,10 @@ find elements of this functionality with the prefix
 <pre class="highlight"><code class="language-cpp" data-lang="cpp">#include &lt;experimental/filesystem&gt;
 
 static void checkAllFilesInThePath(const std::string &amp;search_path) {
-    try {
     // If the file exists, try to add it
     if (std::experimental::filesystem::is_regular_file(search_path)) {
         std::experimental::filesystem::path absolute_path =
             std::experimental::filesystem::absolute(search_path);
-    }
-    } catch (...) {
     }
 }</code></pre>
 </div>
@@ -5092,7 +5083,6 @@ same <code>LoaderInstance*</code>.</p>
     XrSession*                                  session) {
     bool primary_locked = false;
     bool secondary_locked = false;
-    try {
     g_instance_mutex.lock();
     secondary_locked = true;
     LoaderInstance *loader_instance = g_instance_map[instance];
@@ -5122,25 +5112,6 @@ same <code>LoaderInstance*</code>.</p>
         }
     }
     return result;
-} catch (std::bad_alloc &amp;) {
-    if (primary_locked) {
-        g_session_mutex.unlock();
-    }
-    if (secondary_locked) {
-        g_instance_mutex.unlock();
-    }
-    LoaderLogger::LogErrorMessage("xrCreateSession", "xrCreateSession trampoline failed allocating memory");
-    return XR_ERROR_OUT_OF_MEMORY;
-    } catch (...) {
-        if (primary_locked) {
-            g_session_mutex.unlock();
-        }
-        if (secondary_locked) {
-            g_instance_mutex.unlock();
-        }
-        LoaderLogger::LogErrorMessage("xrCreateSession", "xrCreateSession trampoline encountered an unknown error");
-        return XR_ERROR_INITIALIZATION_FAILED;
-    }
 }</code></pre>
 </div>
 </div>
@@ -5158,7 +5129,6 @@ is called.</p>
     XrSession                                   session) {
     bool primary_locked = false;
     bool secondary_locked = false;
-    try {
     g_session_mutex.lock();
     secondary_locked = true;
     LoaderInstance *loader_instance = g_session_map[session];
@@ -5186,17 +5156,6 @@ is called.</p>
         primary_locked = false;
     }
     return result;
-    } catch (...) {
-        if (primary_locked) {
-            g_session_mutex.unlock();
-        }
-        if (secondary_locked) {
-            g_session_mutex.unlock();
-        }
-        LoaderLogger::LogErrorMessage("xrDestroySession", "xrDestroySession trampoline encountered an unknown error");
-        // NOTE: Most calls only allow XR_SUCCESS as a return code
-        return XR_SUCCESS;
-    }
 }</code></pre>
 </div>
 </div>
