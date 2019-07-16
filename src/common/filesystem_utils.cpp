@@ -334,11 +334,13 @@ bool FileSysUtilsParsePathList(std::string& path_list, std::vector<std::string>&
 }
 
 bool FileSysUtilsFindFilesInPath(const std::string& path, std::vector<std::string>& files) {
-    DIR* dir;
+    DIR* dir = opendir(path.c_str());
+    if (dir == nullptr) {
+        return false;
+    }
     struct dirent* entry;
-    dir = opendir(path.c_str());
-    while (dir && (entry = readdir(dir))) {
-        files.push_back(entry->d_name);
+    while ((entry = readdir(dir)) != nullptr) {
+        files.emplace_back(entry->d_name);
     }
     closedir(dir);
     return true;
