@@ -410,7 +410,7 @@ static void ReadRuntimeDataFilesInRegistry(ManifestFileType type, const std::str
             warning_message += default_runtime_value_name;
             LoaderLogger::LogWarningMessage("", warning_message);
         } else {
-            AddFilesInPath(type, wide_to_utf8(value_w), false, manifest_files);
+            AddFilesInPath(wide_to_utf8(value_w), false, manifest_files);
         }
     } catch (...) {
         LoaderLogger::LogErrorMessage("", "ReadLayerDataFilesInRegistry - unknown error occurred");
@@ -456,7 +456,7 @@ static void ReadLayerDataFilesInRegistry(ManifestFileType type, const std::strin
                    (rtn_value = RegEnumValueW(hkey, key_index++, name_w, &name_size, NULL, NULL, (LPBYTE)&value, &value_size))) {
                 if (value_size == sizeof(value) && value == 0) {
                     const std::string filename = wide_to_utf8(name_w);
-                    AddFilesInPath(type, filename, false, manifest_files);
+                    AddFilesInPath(filename, false, manifest_files);
                 }
                 // Reset some items for the next loop
                 name_size = 1023;
