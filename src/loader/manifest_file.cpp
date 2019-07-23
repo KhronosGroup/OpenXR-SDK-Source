@@ -460,14 +460,10 @@ bool ManifestFile::IsValidJson(const Json::Value &root_node, JsonVersion &versio
     // Only version 1.0.0 is defined currently.  Eventually we may have more version, but
     // some of the versions may only be valid for layers or runtimes specifically.
     if (version.major != 1 || version.minor != 0 || version.patch != 0) {
-        std::string error_message = "ManifestFile::IsValidJson - JSON \"file_format_version\" ";
-        error_message += std::to_string(version.major);
-        error_message += ".";
-        error_message += std::to_string(version.minor);
-        error_message += ".";
-        error_message += std::to_string(version.patch);
-        error_message += " is not supported";
-        LoaderLogger::LogErrorMessage("", error_message);
+        std::ostringstream error_ss;
+        error_ss << "ManifestFile::IsValidJson - JSON \"file_format_version\" " << version.major << "." << version.minor << "."
+                 << version.patch << " is not supported";
+        LoaderLogger::LogErrorMessage("", error_ss.str());
         return false;
     }
 
@@ -566,40 +562,33 @@ void ManifestFile::ParseCommon(Json::Value const &root_node) {
 void RuntimeManifestFile::CreateIfValid(std::string const &filename,
                                         std::vector<std::unique_ptr<RuntimeManifestFile>> &manifest_files) {
     std::ifstream json_stream(filename, std::ifstream::in);
+
+    std::ostringstream error_ss("RuntimeManifestFile::CreateIfValid ");
     if (!json_stream.is_open()) {
-        std::string error_message = "RuntimeManifestFile::createIfValid failed to open ";
-        error_message += filename;
-        error_message += ".  Does it exist?";
-        LoaderLogger::LogErrorMessage("", error_message);
+        error_ss << "failed to open " << filename << ".  Does it exist?";
+        LoaderLogger::LogErrorMessage("", error_ss.str());
         return;
     }
     Json::Reader reader;
     Json::Value root_node = Json::nullValue;
-    Json::Value runtime_root_node = Json::nullValue;
-    JsonVersion file_version = {};
     if (!reader.parse(json_stream, root_node, false) || root_node.isNull()) {
-        std::string error_message = "RuntimeManifestFile::CreateIfValid failed to parse ";
-        error_message += filename;
-        error_message += ".  Is it a valid runtime manifest file? Error was:\n ";
-        error_message += reader.getFormattedErrorMessages();
-        LoaderLogger::LogErrorMessage("", error_message);
+        error_ss << "failed to parse " << filename << ".  Is it a valid runtime manifest file?";
+        LoaderLogger::LogErrorMessage("", error_ss.str());
         return;
     }
+
+    JsonVersion file_version = {};
     if (!ManifestFile::IsValidJson(root_node, file_version)) {
-        std::string error_message = "RuntimeManifestFile::CreateIfValid isValidJson indicates ";
-        error_message += filename;
-        error_message += " is not a valid manifest file.";
-        LoaderLogger::LogErrorMessage("", error_message);
+        error_ss << "isValidJson indicates " << filename << " is not a valid manifest file.";
+        LoaderLogger::LogErrorMessage("", error_ss.str());
         return;
     }
-    runtime_root_node = root_node["runtime"];
+    const Json::Value &runtime_root_node = root_node["runtime"];
     // The Runtime manifest file needs the "runtime" root as well as sub-nodes for "api_version" and
     // "library_path".  If any of those aren't there, fail.
     if (runtime_root_node.isNull() || runtime_root_node["library_path"].isNull() || !runtime_root_node["library_path"].isString()) {
-        std::string error_message = "RuntimeManifestFile::CreateIfValid ";
-        error_message += filename;
-        error_message += " is missing required fields.  Verify all proper fields exist.";
-        LoaderLogger::LogErrorMessage("", error_message);
+        error_ss << filename << " is missing required fields.  Verify all proper fields exist.";
+        LoaderLogger::LogErrorMessage("", error_ss.str());
         return;
     }
 
@@ -611,12 +600,8 @@ void RuntimeManifestFile::CreateIfValid(std::string const &filename,
         // If the library_path is an absolute path, just use that if it exists
         if (FileSysUtilsIsAbsolutePath(lib_path)) {
             if (!FileSysUtilsPathExists(lib_path)) {
-                std::string error_message = "RuntimeManifestFile::CreateIfValid ";
-                error_message += filename;
-                error_message += " library ";
-                error_message += lib_path;
-                error_message += " does not appear to exist";
-                LoaderLogger::LogErrorMessage("", error_message);
+                error_ss << filename << " library " << lib_path << " does not appear to exist";
+                LoaderLogger::LogErrorMessage("", error_ss.str());
                 return;
             }
         } else {
@@ -625,12 +610,8 @@ void RuntimeManifestFile::CreateIfValid(std::string const &filename,
             std::string file_parent;
             if (!FileSysUtilsGetParentPath(filename, file_parent) ||
                 !FileSysUtilsCombinePaths(file_parent, lib_path, combined_path) || !FileSysUtilsPathExists(combined_path)) {
-                std::string error_message = "RuntimeManifestFile::CreateIfValid ";
-                error_message += filename;
-                error_message += " library ";
-                error_message += combined_path;
-                error_message += " does not appear to exist";
-                LoaderLogger::LogErrorMessage("", error_message);
+                error_ss << filename << " library " << combined_path << " does not appear to exist";
+                LoaderLogger::LogErrorMessage("", error_ss.str());
                 return;
             }
             lib_path = combined_path;
@@ -658,9 +639,8 @@ XrResult RuntimeManifestFile::FindManifestFiles(ManifestFileType type,
     if (override_path != nullptr && *override_path != '\0') {
         filename = override_path;
         PlatformUtilsFreeEnv(override_path);
-        std::string info_message = "RuntimeManifestFile::FindManifestFiles - using environment variable override runtime file ";
-        info_message += filename;
-        LoaderLogger::LogInfoMessage("", info_message);
+        LoaderLogger::LogInfoMessage(
+            "", "RuntimeManifestFile::FindManifestFiles - using environment variable override runtime file " + filename);
     } else {
         PlatformUtilsFreeEnv(override_path);
 #ifdef XR_OS_WINDOWS
@@ -711,22 +691,25 @@ ApiLayerManifestFile::ApiLayerManifestFile(ManifestFileType type, const std::str
 void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::string &filename,
                                          std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files) {
     std::ifstream json_stream(filename, std::ifstream::in);
+
+    std::ostringstream error_ss("ApiLayerManifestFile::CreateIfValid ");
+    if (!json_stream.is_open()) {
+        error_ss << "failed to open " << filename << ".  Does it exist?";
+        LoaderLogger::LogErrorMessage("", error_ss.str());
+        return;
+    }
+
     Json::Reader reader;
     Json::Value root_node = Json::nullValue;
     if (!reader.parse(json_stream, root_node, false) || root_node.isNull()) {
-        std::string error_message = "ApiLayerManifestFile::CreateIfValid failed to parse ";
-        error_message += filename;
-        error_message += ".  Is it a valid layer manifest file? Error was:\n";
-        error_message += reader.getFormattedErrorMessages();
-        LoaderLogger::LogErrorMessage("", error_message);
+        error_ss << "failed to parse " << filename << ".  Is it a valid layer manifest file?";
+        LoaderLogger::LogErrorMessage("", error_ss.str());
         return;
     }
     JsonVersion file_version = {};
     if (!ManifestFile::IsValidJson(root_node, file_version)) {
-        std::string error_message = "ApiLayerManifestFile::CreateIfValid isValidJson indicates ";
-        error_message += filename;
-        error_message += " is not a valid manifest file.";
-        LoaderLogger::LogErrorMessage("", error_message);
+        error_ss << "isValidJson indicates " << filename << " is not a valid manifest file.";
+        LoaderLogger::LogErrorMessage("", error_ss.str());
         return;
     }
 
@@ -738,20 +721,16 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
         layer_root_node["api_version"].isNull() || !layer_root_node["api_version"].isString() ||
         layer_root_node["library_path"].isNull() || !layer_root_node["library_path"].isString() ||
         layer_root_node["implementation_version"].isNull() || !layer_root_node["implementation_version"].isString()) {
-        std::string error_message = "ApiLayerManifestFile::CreateIfValid ";
-        error_message += filename;
-        error_message += " is missing required fields.  Verify all proper fields exist.";
-        LoaderLogger::LogErrorMessage("", error_message);
+        error_ss << filename << " is missing required fields.  Verify all proper fields exist.";
+        LoaderLogger::LogErrorMessage("", error_ss.str());
         return;
     }
     if (MANIFEST_TYPE_IMPLICIT_API_LAYER == type) {
         bool enabled = true;
         // Implicit layers require the disable environment variable.
         if (layer_root_node["disable_environment"].isNull() || !layer_root_node["disable_environment"].isString()) {
-            std::string error_message = "ApiLayerManifestFile::CreateIfValid Implicit layer ";
-            error_message += filename;
-            error_message += " is missing \"disable_environment\"";
-            LoaderLogger::LogErrorMessage("", error_message);
+            error_ss << "Implicit layer " << filename << " is missing \"disable_environment\"";
+            LoaderLogger::LogErrorMessage("", error_ss.str());
             return;
         }
         // Check if there's an enable environment variable provided
@@ -773,10 +752,8 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
 
         // Not enabled, so pretend like it isn't even there.
         if (!enabled) {
-            std::string info_message = "ApiLayerManifestFile::CreateIfValid Implicit layer ";
-            info_message += filename;
-            info_message += " is disabled";
-            LoaderLogger::LogInfoMessage("", info_message);
+            error_ss << "Implicit layer " << filename << " is disabled";
+            LoaderLogger::LogInfoMessage("", error_ss.str());
             return;
         }
     }
@@ -787,10 +764,8 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
     api_version.patch = 0;
 
     if ((api_version.major == 0 && api_version.minor == 0) || api_version.major > XR_VERSION_MAJOR(XR_CURRENT_API_VERSION)) {
-        std::string warning_message = "ApiLayerManifestFile::CreateIfValid layer ";
-        warning_message += filename;
-        warning_message += " has invalid API Version.  Skipping layer.";
-        LoaderLogger::LogWarningMessage("", warning_message);
+        error_ss << "layer " << filename << " has invalid API Version.  Skipping layer.";
+        LoaderLogger::LogWarningMessage("", error_ss.str());
         return;
     }
 
@@ -803,12 +778,8 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
         // If the library_path is an absolute path, just use that if it exists
         if (FileSysUtilsIsAbsolutePath(library_path)) {
             if (!FileSysUtilsPathExists(library_path)) {
-                std::string error_message = "ApiLayerManifestFile::CreateIfValid ";
-                error_message += filename;
-                error_message += " library ";
-                error_message += library_path;
-                error_message += " does not appear to exist";
-                LoaderLogger::LogErrorMessage("", error_message);
+                error_ss << filename << " library " << library_path << " does not appear to exist";
+                LoaderLogger::LogErrorMessage("", error_ss.str());
                 return;
             }
         } else {
@@ -817,12 +788,8 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
             std::string file_parent;
             if (!FileSysUtilsGetParentPath(filename, file_parent) ||
                 !FileSysUtilsCombinePaths(file_parent, library_path, combined_path) || !FileSysUtilsPathExists(combined_path)) {
-                std::string error_message = "ApiLayerManifestFile::CreateIfValid ";
-                error_message += filename;
-                error_message += " library ";
-                error_message += combined_path;
-                error_message += " does not appear to exist";
-                LoaderLogger::LogErrorMessage("", error_message);
+                error_ss << filename << " library " << combined_path << " does not appear to exist";
+                LoaderLogger::LogErrorMessage("", error_ss.str());
                 return;
             }
             library_path = combined_path;
