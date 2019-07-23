@@ -260,7 +260,7 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
                 names_and_labels.PopulateCallbackData(callback_data);
 
                 // Loop through all active messengers and give each a chance to output information
-                for (auto &debug_messenger : instance_info->debug_messengers) {
+                for (const auto &debug_messenger : instance_info->debug_messengers) {
                     CoreValidationMessengerInfo *validation_messenger_info = debug_messenger.get();
                     XrDebugUtilsMessengerCreateInfoEXT *messenger_create_info = validation_messenger_info->create_info;
                     // If a callback exists, and the message is of a type this callback cares about, call it.
@@ -282,7 +282,7 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
                 if (!objects_info.empty()) {
                     std::cout << "  Objects:" << std::endl;
                     uint32_t count = 0;
-                    for (auto object_info : objects_info) {
+                    for (const auto &object_info : objects_info) {
                         std::string object_type = GenValidUsageXrObjectTypeToString(object_info.type);
                         std::ostringstream oss_object_handle;
                         std::cout << "   [" << std::to_string(count++) << "] - " << object_type << " ("
@@ -308,7 +308,7 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
                 if (!objects_info.empty()) {
                     text_file << "  Objects:" << std::endl;
                     uint32_t count = 0;
-                    for (auto object_info : objects_info) {
+                    for (const auto &object_info : objects_info) {
                         std::string object_type = GenValidUsageXrObjectTypeToString(object_info.type);
                         text_file << "   [" << std::to_string(count++) << "] - " << object_type << " ("
                                   << Uint64ToHexString(object_info.handle) << ")";
@@ -364,7 +364,7 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
                     text_file << "            <div class='type'>Relevant OpenXR Objects</div>\n";
                     text_file << "         </summary>\n";
                     uint32_t count = 0;
-                    for (auto object_info : objects_info) {
+                    for (const auto &object_info : objects_info) {
                         std::string object_type = GenValidUsageXrObjectTypeToString(object_info.type);
                         text_file << "         <div class='data'>\n";
                         text_file << "             <div class='var'>[" << count++ << "]</div>\n";
