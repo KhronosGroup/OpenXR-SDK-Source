@@ -318,7 +318,7 @@ static std::string GetXDGEnv(const char *name, const char *fallback_env, const c
     return result;
 }
 
-// Return the first instance of relative_path occuring in an XDG config dir according to standard
+// Return the first instance of relative_path occurring in an XDG config dir according to standard
 // precedence order.
 static bool FindXDGConfigFile(const std::string &relative_path, std::string &out) {
     out = GetXDGEnv("XDG_CONFIG_HOME", "HOME", ".config");
