@@ -426,7 +426,7 @@ static void ReadLayerDataFilesInRegistry(ManifestFileType type, const std::strin
             if (hive_index == 1 && !found[0]) {
                 std::string warning_message = "ReadLayerDataFilesInRegistry - failed to read registry location ";
                 warning_message += registry_location;
-                warning_message += " in either HKEY_LOCAL_MACHINE or KHEY_CURRENT_USER";
+                warning_message += " in either HKEY_LOCAL_MACHINE or HKEY_CURRENT_USER";
                 LoaderLogger::LogWarningMessage("", warning_message);
             }
             continue;
