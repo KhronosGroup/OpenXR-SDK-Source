@@ -385,15 +385,12 @@ static void ReadRuntimeDataFilesInRegistry(ManifestFileType type, const std::str
     LONG open_value = RegOpenKeyExW(HKEY_LOCAL_MACHINE, full_registry_location_w.c_str(), 0, access_flags, &hkey);
 
     if (ERROR_SUCCESS != open_value) {
-        std::string warning_message = "ReadLayerDataFilesInRegistry - failed to open registry key ";
-        warning_message += full_registry_location;
-        LoaderLogger::LogWarningMessage("", warning_message);
+        LoaderLogger::LogWarningMessage("", "ReadLayerDataFilesInRegistry - failed to open registry key " + full_registry_location);
     } else if (ERROR_SUCCESS != RegGetValueW(hkey, nullptr, default_runtime_value_name_w.c_str(),
                                              RRF_RT_REG_SZ | REG_EXPAND_SZ | RRF_ZEROONFAILURE, NULL,
                                              reinterpret_cast<LPBYTE>(&value_w), &value_size_w)) {
-        std::string warning_message = "ReadLayerDataFilesInRegistry - failed to read registry value ";
-        warning_message += default_runtime_value_name;
-        LoaderLogger::LogWarningMessage("", warning_message);
+        LoaderLogger::LogWarningMessage(
+            "", "ReadLayerDataFilesInRegistry - failed to read registry value " + default_runtime_value_name);
     } else {
         AddFilesInPath(wide_to_utf8(value_w), false, manifest_files);
     }
@@ -424,10 +421,9 @@ static void ReadLayerDataFilesInRegistry(ManifestFileType type, const std::strin
         LONG open_value = RegOpenKeyExW(hive[hive_index], full_registry_location_w.c_str(), 0, access_flags, &hkey);
         if (ERROR_SUCCESS != open_value) {
             if (hive_index == 1 && !found[0]) {
-                std::string warning_message = "ReadLayerDataFilesInRegistry - failed to read registry location ";
-                warning_message += registry_location;
-                warning_message += " in either HKEY_LOCAL_MACHINE or HKEY_CURRENT_USER";
-                LoaderLogger::LogWarningMessage("", warning_message);
+                std::string warning_message = ;
+                LoaderLogger::LogWarningMessage("", "ReadLayerDataFilesInRegistry - failed to read registry location " +
+                                                        registry_location + " in either HKEY_LOCAL_MACHINE or HKEY_CURRENT_USER");
             }
             continue;
         }
