@@ -68,6 +68,7 @@ class ManifestFile {
     const std::string &GetFunctionName(const std::string &func_name);
 
    protected:
+    void ParseCommon(Json::Value const &root_node);
     std::string _filename;
     ManifestFileType _type;
     std::string _library_path;
