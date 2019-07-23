@@ -517,7 +517,53 @@ const std::string &ManifestFile::GetFunctionName(const std::string &func_name) {
 RuntimeManifestFile::RuntimeManifestFile(const std::string &filename, const std::string &library_path)
     : ManifestFile(MANIFEST_TYPE_RUNTIME, filename, library_path) {}
 
-void RuntimeManifestFile::CreateIfValid(const std::string &filename,
+static void ParseExtension(Json::Value const &ext, std::vector<ExtensionListing> &extensions) {
+    Json::Value ext_name = ext["name"];
+    Json::Value ext_version = ext["extension_version"];
+    Json::Value ext_entries = ext["entrypoints"];
+    if (ext_name.isString() && ext_version.isUInt() && ext_entries.isArray()) {
+        ExtensionListing ext = {};
+        ext.name = ext_name.asString();
+        ext.extension_version = ext_version.asUInt();
+        for (const auto &entrypoint : ext_entries) {
+            if (entrypoint.isString()) {
+                ext.entrypoints.push_back(entrypoint.asString());
+            }
+        }
+        extensions.push_back(ext);
+    }
+}
+
+void ManifestFile::ParseCommon(Json::Value const &root_node) {
+    const Json::Value &dev_exts = root_node["device_extensions"];
+    if (!dev_exts.isNull() && dev_exts.isArray()) {
+        for (const auto &ext : dev_exts) {
+            ParseExtension(ext, _device_extensions);
+        }
+    }
+
+    const Json::Value &inst_exts = root_node["instance_extensions"];
+    if (!inst_exts.isNull() && inst_exts.isArray()) {
+        for (const auto &ext : inst_exts) {
+            ParseExtension(ext, _instance_extensions);
+        }
+    }
+    const Json::Value &funcs_renamed = root_node["functions"];
+    if (!funcs_renamed.isNull() && !funcs_renamed.empty()) {
+        for (Json::ValueConstIterator func_it = funcs_renamed.begin(); func_it != funcs_renamed.end(); ++func_it) {
+            if (!(*func_it).isString()) {
+                LoaderLogger::LogWarningMessage(
+                    "", "ManifestFile::ParseCommon " + _filename + " \"functions\" section contains non-string values.");
+                continue;
+            }
+            std::string original_name = func_it.key().asString();
+            std::string new_name = (*func_it).asString();
+            _functions_renamed.emplace(original_name, new_name);
+        }
+    }
+}
+
+void RuntimeManifestFile::CreateIfValid(std::string const &filename,
                                         std::vector<std::unique_ptr<RuntimeManifestFile>> &manifest_files) {
     std::ifstream json_stream(filename, std::ifstream::in);
     if (!json_stream.is_open()) {
@@ -595,59 +641,8 @@ void RuntimeManifestFile::CreateIfValid(const std::string &filename,
     manifest_files.emplace_back(new RuntimeManifestFile(filename, lib_path));
 
     // Add any extensions to it after the fact.
-    Json::Value dev_exts = runtime_root_node["device_extensions"];
-    if (!dev_exts.isNull() && dev_exts.isArray()) {
-        for (Json::ValueIterator dev_ext_it = dev_exts.begin(); dev_ext_it != dev_exts.end(); ++dev_ext_it) {
-            Json::Value dev_ext = (*dev_ext_it);
-            Json::Value dev_ext_name = dev_ext["name"];
-            Json::Value dev_ext_version = dev_ext["extension_version"];
-            Json::Value dev_ext_entries = dev_ext["entrypoints"];
-            if (!dev_ext_name.isNull() && dev_ext_name.isString() && !dev_ext_version.isNull() && dev_ext_version.isUInt() &&
-                !dev_ext_entries.isNull() && dev_ext_entries.isArray()) {
-                ExtensionListing ext = {};
-                ext.name = dev_ext_name.asString();
-                ext.extension_version = dev_ext_version.asUInt();
-                for (Json::ValueIterator entry_it = dev_ext_entries.begin(); entry_it != dev_ext_entries.end(); ++entry_it) {
-                    Json::Value entry = (*entry_it);
-                    if (!entry.isNull() && entry.isString()) {
-                        ext.entrypoints.push_back(entry.asString());
-                    }
-                }
-                manifest_files.back()->_device_extensions.push_back(ext);
-            }
-        }
-    }
-
-    Json::Value inst_exts = runtime_root_node["instance_extensions"];
-    if (!inst_exts.isNull() && inst_exts.isArray()) {
-        for (Json::ValueIterator inst_ext_it = inst_exts.begin(); inst_ext_it != inst_exts.end(); ++inst_ext_it) {
-            Json::Value inst_ext = (*inst_ext_it);
-            Json::Value inst_ext_name = inst_ext["name"];
-            Json::Value inst_ext_version = inst_ext["extension_version"];
-            if (!inst_ext_name.isNull() && inst_ext_name.isString() && !inst_ext_version.isNull() && inst_ext_version.isUInt()) {
-                ExtensionListing ext = {};
-                ext.name = inst_ext_name.asString();
-                ext.extension_version = inst_ext_version.asUInt();
-                manifest_files.back()->_instance_extensions.push_back(ext);
-            }
-        }
-    }
-
-    Json::Value funcs_renamed = runtime_root_node["functions"];
-    if (!funcs_renamed.isNull() && !funcs_renamed.empty()) {
-        for (Json::ValueIterator func_it = funcs_renamed.begin(); func_it != funcs_renamed.end(); ++func_it) {
-            if (!(*func_it).isString()) {
-                std::string warning_message = "RuntimeManifestFile::CreateIfValid ";
-                warning_message += filename;
-                warning_message += " \"functions\" section contains non-string values.";
-                LoaderLogger::LogWarningMessage("", warning_message);
-                continue;
-            }
-            std::string original_name = func_it.key().asString();
-            std::string new_name = (*func_it).asString();
-            manifest_files.back()->_functions_renamed.insert(std::make_pair(original_name, new_name));
-        }
-    }
+    // Handle any renamed functions
+    manifest_files.back()->ParseCommon(runtime_root_node);
 }
 
 // Find all manifest files in the appropriate search paths/registries for the given type.
@@ -844,59 +839,7 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
         new ApiLayerManifestFile(type, filename, layer_name, description, api_version, implementation_version, library_path));
 
     // Add any extensions to it after the fact.
-    Json::Value dev_exts = layer_root_node["device_extensions"];
-    if (!dev_exts.isNull() && dev_exts.isArray()) {
-        for (Json::ValueIterator dev_ext_it = dev_exts.begin(); dev_ext_it != dev_exts.end(); ++dev_ext_it) {
-            Json::Value dev_ext = (*dev_ext_it);
-            Json::Value dev_ext_name = dev_ext["name"];
-            Json::Value dev_ext_version = dev_ext["extension_version"];
-            Json::Value dev_ext_entries = dev_ext["entrypoints"];
-            if (!dev_ext_name.isNull() && dev_ext_name.isString() && !dev_ext_version.isNull() && dev_ext_version.isString() &&
-                !dev_ext_entries.isNull() && dev_ext_entries.isArray()) {
-                ExtensionListing ext = {};
-                ext.name = dev_ext_name.asString();
-                ext.extension_version = atoi(dev_ext_version.asString().c_str());
-                for (Json::ValueIterator entry_it = dev_ext_entries.begin(); entry_it != dev_ext_entries.end(); ++entry_it) {
-                    Json::Value entry = (*entry_it);
-                    if (!entry.isNull() && entry.isString()) {
-                        ext.entrypoints.push_back(entry.asString());
-                    }
-                }
-                manifest_files.back()->_device_extensions.push_back(ext);
-            }
-        }
-    }
-
-    Json::Value inst_exts = layer_root_node["instance_extensions"];
-    if (!inst_exts.isNull() && inst_exts.isArray()) {
-        for (Json::ValueIterator inst_ext_it = inst_exts.begin(); inst_ext_it != inst_exts.end(); ++inst_ext_it) {
-            Json::Value inst_ext = (*inst_ext_it);
-            Json::Value inst_ext_name = inst_ext["name"];
-            Json::Value inst_ext_version = inst_ext["extension_version"];
-            if (!inst_ext_name.isNull() && inst_ext_name.isString() && !inst_ext_version.isNull() && inst_ext_version.isString()) {
-                ExtensionListing ext = {};
-                ext.name = inst_ext_name.asString();
-                ext.extension_version = atoi(inst_ext_version.asString().c_str());
-                manifest_files.back()->_instance_extensions.push_back(ext);
-            }
-        }
-    }
-
-    Json::Value funcs_renamed = layer_root_node["functions"];
-    if (!funcs_renamed.isNull() && !funcs_renamed.empty()) {
-        for (Json::ValueIterator func_it = funcs_renamed.begin(); func_it != funcs_renamed.end(); ++func_it) {
-            if (!(*func_it).isString()) {
-                std::string warning_message = "ApiLayerManifestFile::CreateIfValid ";
-                warning_message += filename;
-                warning_message += " \"functions\" section contains non-string values.";
-                LoaderLogger::LogWarningMessage("", warning_message);
-                continue;
-            }
-            std::string original_name = func_it.key().asString();
-            std::string new_name = (*func_it).asString();
-            manifest_files.back()->_functions_renamed.insert(std::make_pair(original_name, new_name));
-        }
-    }
+    manifest_files.back()->ParseCommon(layer_root_node);
 }
 
 XrApiLayerProperties ApiLayerManifestFile::GetApiLayerProperties() {
