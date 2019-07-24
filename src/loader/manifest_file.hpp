@@ -56,8 +56,9 @@ class ManifestFile {
     ManifestFile(ManifestFileType type, const std::string &filename, const std::string &library_path);
     static bool IsValidJson(const Json::Value &root, JsonVersion &version);
 
-    // We don't want any copy constructors
-    ManifestFile &operator=(const ManifestFile &manifest_file) = delete;
+    // Non-copyable
+    ManifestFile(const ManifestFile &) = delete;
+    ManifestFile &operator=(const ManifestFile &) = delete;
 
     ManifestFileType Type() { return _type; }
     std::string Filename() { return _filename; }
@@ -103,7 +104,7 @@ class ApiLayerManifestFile : public ManifestFile {
     static void CreateIfValid(ManifestFileType type, const std::string &filename,
                               std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files);
 
-    std::string LayerName() { return _layer_name; }
+    const std::string &LayerName() { return _layer_name; }
     XrApiLayerProperties GetApiLayerProperties();
 
     // Non-copyable
