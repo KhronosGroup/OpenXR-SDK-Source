@@ -54,7 +54,6 @@ struct ExtensionListing {
 class ManifestFile {
    public:
     ManifestFile(ManifestFileType type, const std::string &filename, const std::string &library_path);
-    virtual ~ManifestFile();
     static bool IsValidJson(const Json::Value &root, JsonVersion &version);
 
     // We don't want any copy constructors
@@ -84,7 +83,6 @@ class RuntimeManifestFile : public ManifestFile {
     static XrResult FindManifestFiles(ManifestFileType type, std::vector<std::unique_ptr<RuntimeManifestFile>> &manifest_files);
 
     RuntimeManifestFile(const std::string &filename, const std::string &library_path);
-    ~RuntimeManifestFile() override;
     static void CreateIfValid(const std::string &filename, std::vector<std::unique_ptr<RuntimeManifestFile>> &manifest_files);
 
     // Non-copyable
@@ -102,7 +100,6 @@ class ApiLayerManifestFile : public ManifestFile {
     ApiLayerManifestFile(ManifestFileType type, const std::string &filename, const std::string &layer_name,
                          const std::string &description, const JsonVersion &api_version, const uint32_t &implementation_version,
                          const std::string &library_path);
-    ~ApiLayerManifestFile() override;
     static void CreateIfValid(ManifestFileType type, const std::string &filename,
                               std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files);
 
