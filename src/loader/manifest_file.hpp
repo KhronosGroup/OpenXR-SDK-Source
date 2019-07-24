@@ -53,22 +53,23 @@ struct ExtensionListing {
 // Base class responsible for finding and parsing manifest files.
 class ManifestFile {
    public:
-    ManifestFile(ManifestFileType type, const std::string &filename, const std::string &library_path);
-    static bool IsValidJson(const Json::Value &root, JsonVersion &version);
-
     // Non-copyable
     ManifestFile(const ManifestFile &) = delete;
     ManifestFile &operator=(const ManifestFile &) = delete;
 
     ManifestFileType Type() { return _type; }
-    std::string Filename() { return _filename; }
-    std::string LibraryPath() { return _library_path; }
+    const std::string &Filename() { return _filename; }
+    const std::string &LibraryPath() { return _library_path; }
     void GetInstanceExtensionProperties(std::vector<XrExtensionProperties> &props);
     void GetDeviceExtensionProperties(std::vector<XrExtensionProperties> &props);
     const std::string &GetFunctionName(const std::string &func_name);
 
    protected:
+    ManifestFile(ManifestFileType type, const std::string &filename, const std::string &library_path);
     void ParseCommon(Json::Value const &root_node);
+    static bool IsValidJson(const Json::Value &root, JsonVersion &version);
+
+   private:
     std::string _filename;
     ManifestFileType _type;
     std::string _library_path;
@@ -84,12 +85,9 @@ class RuntimeManifestFile : public ManifestFile {
     // Factory method
     static XrResult FindManifestFiles(ManifestFileType type, std::vector<std::unique_ptr<RuntimeManifestFile>> &manifest_files);
 
+   private:
     RuntimeManifestFile(const std::string &filename, const std::string &library_path);
     static void CreateIfValid(const std::string &filename, std::vector<std::unique_ptr<RuntimeManifestFile>> &manifest_files);
-
-    // Non-copyable
-    RuntimeManifestFile(const RuntimeManifestFile &) = delete;
-    RuntimeManifestFile &operator=(const RuntimeManifestFile &) = delete;
 };
 
 // ApiLayerManifestFile class -
@@ -99,20 +97,16 @@ class ApiLayerManifestFile : public ManifestFile {
     // Factory method
     static XrResult FindManifestFiles(ManifestFileType type, std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files);
 
+    const std::string &LayerName() { return _layer_name; }
+    XrApiLayerProperties GetApiLayerProperties();
+
+   private:
     ApiLayerManifestFile(ManifestFileType type, const std::string &filename, const std::string &layer_name,
                          const std::string &description, const JsonVersion &api_version, const uint32_t &implementation_version,
                          const std::string &library_path);
     static void CreateIfValid(ManifestFileType type, const std::string &filename,
                               std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files);
 
-    const std::string &LayerName() { return _layer_name; }
-    XrApiLayerProperties GetApiLayerProperties();
-
-    // Non-copyable
-    ApiLayerManifestFile(const ApiLayerManifestFile &) = delete;
-    ApiLayerManifestFile &operator=(const ApiLayerManifestFile &) = delete;
-
-   private:
     JsonVersion _api_version;
     std::string _layer_name;
     std::string _description;
