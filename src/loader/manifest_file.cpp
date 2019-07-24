@@ -449,8 +449,6 @@ static void ReadLayerDataFilesInRegistry(ManifestFileType type, const std::strin
 ManifestFile::ManifestFile(ManifestFileType type, const std::string &filename, const std::string &library_path)
     : _filename(filename), _type(type), _library_path(library_path) {}
 
-ManifestFile::~ManifestFile() = default;
-
 bool ManifestFile::IsValidJson(const Json::Value &root_node, JsonVersion &version) {
     if (root_node["file_format_version"].isNull() || !root_node["file_format_version"].isString()) {
         LoaderLogger::LogErrorMessage("", "ManifestFile::IsValidJson - JSON file missing \"file_format_version\"");
@@ -518,8 +516,6 @@ const std::string &ManifestFile::GetFunctionName(const std::string &func_name) {
 
 RuntimeManifestFile::RuntimeManifestFile(const std::string &filename, const std::string &library_path)
     : ManifestFile(MANIFEST_TYPE_RUNTIME, filename, library_path) {}
-
-RuntimeManifestFile::~RuntimeManifestFile() = default;
 
 void RuntimeManifestFile::CreateIfValid(const std::string &filename,
                                         std::vector<std::unique_ptr<RuntimeManifestFile>> &manifest_files) {
@@ -716,8 +712,6 @@ ApiLayerManifestFile::ApiLayerManifestFile(ManifestFileType type, const std::str
       _layer_name(layer_name),
       _description(description),
       _implementation_version(implementation_version) {}
-
-ApiLayerManifestFile::~ApiLayerManifestFile() = default;
 
 void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::string &filename,
                                          std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files) {
