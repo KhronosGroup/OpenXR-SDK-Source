@@ -63,10 +63,8 @@ VALID_FOR_NULL_INSTANCE_GIPA = set((
     'xrCreateInstance',
 ))
 
-NEEDS_TERMINATOR = set((
-    'xrResultToString',
-    'xrStructureTypeToString',
-))
+# Nothing currently needs a special-cased terminator
+NEEDS_TERMINATOR = set()
 
 # This is a list of extensions that the loader implements.  This means that
 # the runtime underneath may not support these extensions and the terminators
@@ -138,8 +136,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
             preamble += '#include "loader_logger.hpp"\n'
             preamble += '#include "loader_platform.hpp"\n'
             preamble += '#include "runtime_interface.hpp"\n'
-            preamble += '#include "xr_generated_dispatch_table.h"\n'
-            preamble += '#include "xr_generated_utilities.h"\n\n'
+            preamble += '#include "xr_generated_dispatch_table.h"\n\n'
 
             preamble += '#include "xr_dependencies.h"\n'
             preamble += '#include <openxr/openxr.h>\n'
@@ -223,8 +220,8 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
 
                     # If this is a command is implemented in the loader manually, but not only for
                     # loader, add a prototype for the terminator (unless it doesn't have a terminator)
-                    if ((cur_cmd.name in MANUAL_LOADER_INSTANCE_FUNCS or cur_cmd.name in MANUAL_LOADER_INSTANCE_TERMINATOR_FUNCS) and
-                            cur_cmd.name not in self.no_trampoline_or_terminator):
+                    if ((cur_cmd.name in MANUAL_LOADER_INSTANCE_FUNCS or cur_cmd.name in MANUAL_LOADER_INSTANCE_TERMINATOR_FUNCS)
+                            and cur_cmd.name not in self.no_trampoline_or_terminator):
                         manual_funcs += func_proto.replace(
                             "XRAPI_CALL xr", "XRAPI_CALL LoaderXrTerm")
                         manual_funcs += '\n'
@@ -255,6 +252,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                     if cur_cmd.protect_value:
                         generated_protos += '#if %s\n' % cur_cmd.protect_string
                     # Output the standard API form of the command
+                    raise RuntimeError
                     generated_protos += cur_cmd.cdecl.replace(
                         "XRAPI_CALL xr", "XRAPI_CALL LoaderGenTermXr")
                     generated_protos += '\n'
@@ -284,54 +282,6 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
         map_externs += 'void LoaderCleanUpMapsForInstance(LoaderInstance *instance);\n'
         map_externs += '\n'
         return map_externs
-
-    # A special-case handling of the "xrResultToString" command.  Since we can actually
-    # do the work in the loader, write the command to convert from a result to the
-    # appropriate string.  We need the command information from automatic_source_generator
-    # so we can use the correct names for each parameter when writing the output.
-    #   self            the LoaderSourceOutputGenerator object
-    #   cur_command     the OpenXR "xrResultToString" automatic_source_generator information
-    #   indent          the number of "tabs" to space in for the resulting C+ code.
-    def outputResultToString(self, cur_command, indent):
-        buffer_param_name = cur_command.params[2].name
-        result_to_str = ''
-        result_to_str += self.writeIndent(indent)
-        result_to_str += 'XrResult result = GeneratedXrUtilitiesResultToString(value, %s);\n' % buffer_param_name
-        result_to_str += self.writeIndent(indent)
-        result_to_str += 'if (XR_SUCCEEDED(result)) {\n'
-        result_to_str += self.writeIndent(indent + 1)
-        result_to_str += 'return result;\n'
-        result_to_str += self.writeIndent(indent)
-        result_to_str += '}\n'
-        result_to_str += self.writeIndent(indent)
-        result_to_str += '// If we did not find it in the generated code, ask the runtime.\n'
-        result_to_str += self.writeIndent(indent)
-        result_to_str += 'const XrGeneratedDispatchTable* dispatch_table = RuntimeInterface::GetDispatchTable(instance);\n'
-        return result_to_str
-
-    # A special-case handling of the "StructureTypeToString" command.  Since we can actually
-    # do the work in the loader, write the command to convert from a structure type to the
-    # appropriate string.  We need the command information from automatic_source_generator
-    # so we can use the correct names for each parameter when writing the output.
-    #   self            the LoaderSourceOutputGenerator object
-    #   cur_command     the OpenXR "StructureTypeToString" automatic_source_generator information
-    #   indent          the number of "tabs" to space in for the resulting C+ code.
-    def outputStructTypeToString(self, cur_command, indent):
-        buffer_param_name = cur_command.params[2].name
-        struct_to_str = ''
-        struct_to_str += self.writeIndent(indent)
-        struct_to_str += 'XrResult result = GeneratedXrUtilitiesStructureTypeToString(value, %s);\n' % buffer_param_name
-        struct_to_str += self.writeIndent(indent)
-        struct_to_str += 'if (XR_SUCCEEDED(result)) {\n'
-        struct_to_str += self.writeIndent(indent + 1)
-        struct_to_str += 'return result;\n'
-        struct_to_str += self.writeIndent(indent)
-        struct_to_str += '}\n'
-        struct_to_str += self.writeIndent(indent)
-        struct_to_str += '// If we did not find it in the generated code, ask the runtime.\n'
-        struct_to_str += self.writeIndent(indent)
-        struct_to_str += 'const XrGeneratedDispatchTable* dispatch_table = RuntimeInterface::GetDispatchTable(instance);\n'
-        return struct_to_str
 
     # Instantiate the unordered_maps and mutexes for each of the object types.  Also, output a utility
     # function that can be used to clean up everything for a particular instance if we get a xrDestroyInstance
@@ -447,8 +397,8 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                                     base_handle_name, first_handle_name)
                                 tramp_variable_defines += '    }\n'
                             # These should be mutually exclusive - verify it.
-                            assert((not cur_cmd.is_destroy_disconnect)
-                                   or (pointer_count == 0))
+                            assert((not cur_cmd.is_destroy_disconnect) or
+                                   (pointer_count == 0))
 
                             if pointer_count == 1:
                                 # NOTE - @ 10-June-2019 this stanza is never exercised in loader code-gen. Consider whether necessary. DJH
@@ -591,21 +541,13 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 # Only a few items need a terminator.  Usually something we want to be able to return information
                 # to the API layers and act as an interceptor prior to the runtime.
                 if cur_cmd.name in NEEDS_TERMINATOR:
+                    # Not currently used.
+                    raise NotImplementedError
                     term_decl = cur_cmd.cdecl.replace(";", " {\n")
                     term_decl = term_decl.replace(" xr", " LoaderGenTermXr")
                     generated_funcs += term_decl
 
                     loader_override_func = False
-                    if base_name == 'StructureTypeToString':
-                        generated_funcs += self.outputStructTypeToString(
-                            cur_cmd, 1)
-                        loader_override_func = True
-                        just_return_call = False
-                    elif base_name == 'ResultToString':
-                        generated_funcs += self.outputResultToString(
-                            cur_cmd, 1)
-                        loader_override_func = True
-                        just_return_call = False
 
                     if cur_cmd.ext_name in EXTENSIONS_LOADER_IMPLEMENTS or loader_override_func:
                         generated_funcs += '    if (nullptr != dispatch_table->%s) {\n' % base_name
@@ -831,8 +773,8 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 # If this is a function that needs a terminator, provide the call to it, not the runtime.
                 # Anything with an XrInstance requires a terminator so we can unwrap it properly for the
                 # runtime.
-                if ((cur_cmd.name in MANUAL_LOADER_INSTANCE_FUNCS or cur_cmd.name in MANUAL_LOADER_INSTANCE_TERMINATOR_FUNCS) and
-                        cur_cmd.name not in self.no_trampoline_or_terminator) or cur_cmd.name in NEEDS_TERMINATOR:
+                if ((cur_cmd.name in MANUAL_LOADER_INSTANCE_FUNCS or cur_cmd.name in MANUAL_LOADER_INSTANCE_TERMINATOR_FUNCS)
+                        and cur_cmd.name not in self.no_trampoline_or_terminator) or cur_cmd.name in NEEDS_TERMINATOR:
                     if cur_cmd.protect_value:
                         export_funcs += '#if %s\n' % cur_cmd.protect_string
                     if count == 0:
