@@ -75,27 +75,6 @@ EXTENSIONS_LOADER_IMPLEMENTS = [
     'XR_EXT_debug_utils'
 ]
 
-def generateErrorMessage(indent_level, vuid, cur_cmd, message, object_info):
-    lines = []
-    lines.append('LoaderLogger::LogValidationErrorMessage(')
-    lines.append('    "VUID-{}",'.format('-'.join(vuid)))
-    lines.append('    "{}",'.format(cur_cmd.name))
-    lines.append('    {},'.format(message))
-
-    object_info_constructors = ['XrLoaderLogObjectInfo{%s, %s}' % p for p in object_info]
-    if len(object_info_constructors) <= 1:
-        lines.append('    {%s});' % (', '.join(object_info_constructors)))
-    else:
-        lines.append('    {')
-        lines.append(',\n'.join('    %s' % x for x in object_info_constructors))
-        lines.append('    });')
-    if isinstance(indent_level, str):
-        base_indent = indent_level
-    else:
-        base_indent = (4 * indent_level) * ' '
-    indented_lines_with_lf = (''.join((base_indent, line, '\n')) for line in lines)
-    return ''.join(indented_lines_with_lf)
-
 
 def generateErrorMessage(indent_level, vuid, cur_cmd, message, object_info):
     lines = []
