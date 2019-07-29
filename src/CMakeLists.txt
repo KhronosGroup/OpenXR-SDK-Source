@@ -165,8 +165,6 @@ endmacro()
 set(GENERATED_OUTPUT)
 run_xr_xml_generate(utility_source_generator.py xr_generated_dispatch_table.h)
 run_xr_xml_generate(utility_source_generator.py xr_generated_dispatch_table.c)
-run_xr_xml_generate(utility_source_generator.py xr_generated_utilities.h)
-run_xr_xml_generate(utility_source_generator.py xr_generated_utilities.c)
 add_custom_target(xr_global_generated_files DEPENDS
     ${GENERATED_DEPENDS}
 )

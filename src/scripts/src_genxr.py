@@ -207,38 +207,6 @@ def makeGenOpts(args):
             emitExtensions    = emitExtensionsPat)
         ]
 
-    genOpts['xr_generated_utilities.h'] = [
-          UtilitySourceOutputGenerator,
-          AutomaticSourceGeneratorOptions(
-            conventions       = conventions,
-            filename          = 'xr_generated_utilities.h',
-            directory         = directory,
-            apiname           = 'openxr',
-            profile           = None,
-            versions          = featuresPat,
-            emitversions      = featuresPat,
-            defaultExtensions = 'openxr',
-            addExtensions     = None,
-            removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat)
-        ]
-
-    genOpts['xr_generated_utilities.c'] = [
-          UtilitySourceOutputGenerator,
-          AutomaticSourceGeneratorOptions(
-            conventions       = conventions,
-            filename          = 'xr_generated_utilities.c',
-            directory         = directory,
-            apiname           = 'openxr',
-            profile           = None,
-            versions          = featuresPat,
-            emitversions      = featuresPat,
-            defaultExtensions = 'openxr',
-            addExtensions     = None,
-            removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat)
-        ]
-
     genOpts['xr_generated_loader.hpp'] = [
           LoaderSourceOutputGenerator,
           AutomaticSourceGeneratorOptions(
