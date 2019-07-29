@@ -43,6 +43,8 @@
 #define LAYER_EXPORT __attribute__((visibility("default")))
 #elif defined(__SUNPRO_C) && (__SUNPRO_C >= 0x590)
 #define LAYER_EXPORT __attribute__((visibility("default")))
+#elif defined(_WIN32)
+#define LAYER_EXPORT __declspec(dllexport)
 #else
 #define LAYER_EXPORT
 #endif
@@ -588,12 +590,6 @@ XrResult ApiDumpLayerXrDestroyInstance(XrInstance instance) {
 }
 
 extern "C" {
-
-#if defined(_WIN32)
-#define LAYER_EXPORT __declspec(dllexport)
-#else
-#define LAYER_EXPORT
-#endif
 
 // Function used to negotiate an interface betewen the loader and an API layer.  Each library exposing one or
 // more API layers needs to expose at least this function.
