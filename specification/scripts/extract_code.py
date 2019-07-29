@@ -280,7 +280,8 @@ gen: {script}
                 makefile=makefile,
                 script=Path(__file__),
                 extra=extra_arg,
-                inputs=' '.join(str(infile) for infile in self.generated_files),
+                inputs=' '.join(str(infile)
+                                for infile in self.generated_files),
                 deps=deps_string))
             for fn, gen in self.generated_files.items():
                 f.write('{stem}: {files}\n.PHONY: {stem}\n'.format(
@@ -289,14 +290,13 @@ gen: {script}
                 width = max(len(generated.name) for generated in self.origins)
 
                 for generated, origin in self.origins.items():
-                    pad = ' ' * (width - len(generated.name))
                     origin_file, origin_line = origin
                     if generated.suffix == '.cpp':
                         compiler = '[c++] '
                     else:
                         compiler = '[cc]  '
-                    origin_str = '{} {} {} extracted from {}:{}'.format(compiler, generated.name, pad,
-                                                                    origin_file, origin_line)
+                    origin_str = '{} {} extracted from {}:{}'.format(compiler, generated.name.ljust(width),
+                                                                     origin_file, origin_line)
                     f.write('{obj}: ORIGIN := {originstr}\n'.format(
                         obj=generated.with_suffix('.o'), originstr=origin_str))
 
