@@ -422,7 +422,7 @@ endif
 $(EXAMPLES_MAKEFILE): $(EXAMPLES_SCRIPT)
 	$(QUIET)$(PYTHON) $< --makefile=$@ --line_numbers $(EXTRACT_QUIET)
 
-build-examples: $(EXAMPLES_MAKEFILE)
+build-examples: $(EXAMPLES_MAKEFILE) $(HEADER)
 	$(QUIET)$(MAKE) -f $(EXAMPLES_MAKEFILE)
 .PHONY: build-examples
 
