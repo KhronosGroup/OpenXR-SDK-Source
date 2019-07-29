@@ -37,17 +37,20 @@ def makeExtensionInclude(name):
         name,
         conventions.file_suffix)
 
-# Return True if name is an API extension name (ends with an upper-case
-# author ID). This assumes that author IDs are at least two characters.
 def isextension(name):
+    """Return True if name is an API extension name (ends with an upper-case
+    author ID).
+
+    This assumes that author IDs are at least two characters."""
     return name[-2:].isalpha() and name[-2:].isupper()
 
-# Print Khronos CC-BY copyright notice on open file fp. If comment is
-# True, print as an asciidoc comment block, which copyrights the source
-# file. Otherwise print as an asciidoc include of the copyright in markup,
-# which copyrights the outputs. Also include some asciidoc boilerplate
-# needed by all the standalone ref pages.
 def printCopyrightSourceComments(fp):
+    """Print Khronos CC-BY copyright notice on open file fp.
+
+    If comment is True, print as an asciidoc comment block, which copyrights the source
+    file. Otherwise print as an asciidoc include of the copyright in markup,
+    which copyrights the outputs. Also include some asciidoc boilerplate
+    needed by all the standalone ref pages."""
     print('// Copyright (c) 2014-2019 Khronos Group. This work is licensed under a', file=fp)
     print('// Creative Commons Attribution 4.0 International License; see', file=fp)
     print('// http://creativecommons.org/licenses/by/4.0/', file=fp)
@@ -58,35 +61,37 @@ def printFooter(fp):
     print('', file=fp)
 
 
-# Add a spec asciidoc macro prefix to an API name, depending on its type
-# (protos, structs, enums, etc.)
 def macroPrefix(name):
+    """Add a spec asciidoc macro prefix to an API name, depending on its type
+    (protos, structs, enums, etc.).
+
+    If the name is not recognized, use the generic link macro 'reflink:'."""
     if name in api.basetypes:
         return 'basetype:' + name
-    elif name in api.defines:
+    if name in api.defines:
         return 'dlink:' + name
-    elif name in api.enums:
+    if name in api.enums:
         return 'elink:' + name
-    elif name in api.flags:
+    if name in api.flags:
         return 'elink:' + name
-    elif name in api.funcpointers:
+    if name in api.funcpointers:
         return 'tlink:' + name
-    elif name in api.handles:
+    if name in api.handles:
         return 'slink:' + name
-    elif name in api.protos:
+    if name in api.protos:
         return 'flink:' + name
-    elif name in api.structs:
+    if name in api.structs:
         return 'slink:' + name
-    elif name == 'TBD':
+    if name == 'TBD':
         return 'No cross-references are available'
-    else:
-        return 'UNKNOWN:' + name
+    return 'reflink:' + name
 
-# Return an asciidoc string with a list of 'See Also' references for the
-# API entity 'name', based on the relationship mapping in the api module and
-# the additional references in explicitRefs. If no relationships are
-# available, return None.
 def seeAlsoList(apiName, explicitRefs = None):
+    """Return an asciidoc string with a list of 'See Also' references for the
+    API entity 'apiName', based on the relationship mapping in the api module.
+
+    'explicitRefs' is a list of additional cross-references.
+    If no relationships are available, return None."""
     refs = {}
 
     # Add all the implicit references to refs
@@ -105,13 +110,15 @@ def seeAlsoList(apiName, explicitRefs = None):
         return None
     return ', '.join(macroPrefix(name) for name in sorted(refs.keys())) + '\n'
 
-# Remap include directives in a list of lines so they can be extracted to a
-# different directory. Returns remapped lines.
-#
-# lines - text to remap
-# baseDir - target directory
-# specDir - source directory
 def remapIncludes(lines, baseDir, specDir):
+    """Remap include directives in a list of lines so they can be extracted to a
+    different directory.
+
+    Returns remapped lines.
+
+    - lines - text to remap
+    - baseDir - target directory
+    - specDir - source directory"""
     # This should be compiled only once
     includePat = re.compile(r'^include::(?P<path>.*)\[\]')
 
@@ -174,17 +181,23 @@ def refPageShell(pageName, pageDesc, fp, sections=None, tail_content=None, man_s
               sep='\n', file=fp)
 
 
-# Generate header of a reference page
-# pageName - string name of the page
-# pageDesc - string short description of the page
-# specText - string that goes in the "C Specification" section
-# fieldName - string heading an additional section following specText, if not None
-# fieldText - string that goes in the additional section
-# descText - string that goes in the "Description" section
-# fp - file to write to
 def refPageHead(pageName, pageDesc, specText, fieldName, fieldText, descText, fp):
+    """Generate header of a reference page.
+
+    - pageName - string name of the page
+    - pageDesc - string short description of the page
+    - specType - string containing 'spec' field from refpage open block, or None.
+      Used to determine containing spec name and URL.
+    - specText - string that goes in the "C Specification" section
+    - fieldName - string heading an additional section following specText, if not None
+    - fieldText - string that goes in the additional section
+    - descText - string that goes in the "Description" section
+    - fp - file to write to"""
     sections = OrderedDict()
-    sections['C Specification'] = specText
+
+    if specText is not None:
+        sections['C Specification'] = specText
+
     if fieldName is not None:
         sections[fieldName] = fieldText
 
@@ -196,14 +209,30 @@ def refPageHead(pageName, pageDesc, specText, fieldName, fieldText, descText, fp
 
     refPageShell(pageName, pageDesc, fp, sections=sections)
 
-def refPageTail(pageName, seeAlso, fp, auto = False):
+# specType is None or the 'spec' attribute from the refpage open block,
+#   identifying the specification name and URL this refpage links to.
+# specAnchor is None or the 'anchor' attribute from the refpage open block,
+#   identifying the anchor in the specification this refpage links to. If
+#   None, the pageName is assumed to be a valid anchor.
+def refPageTail(pageName,
+                specType = None,
+                specAnchor = None,
+                seeAlso = None,
+                fp = None,
+                auto = False):
+
+    specName = conventions.api_name(specType)
+    specURL = conventions.specURL(specType)
+    if specAnchor is None:
+        specAnchor = pageName
+
     if seeAlso is None:
         seeAlso = 'No cross-references are available\n'
 
     notes = [
-        'For more information, see the ' + apiName + ' Specification at URL',
+        'For more information, see the ' + specName + ' Specification at URL',
         '',
-        conventions.specURL + '#' + pageName,
+        '{}#{}'.format(specURL, specAnchor),
         '',
         ]
 
@@ -215,7 +244,7 @@ def refPageTail(pageName, seeAlso, fp, auto = False):
             ))
     else:
         notes.extend((
-            'This page is extracted from the ' + apiName + ' Specification. ',
+            'This page is extracted from the ' + specName + ' Specification. ',
             'Fixes and changes should be made to the Specification, '
             'not directly.',
             ))
@@ -234,12 +263,13 @@ def refPageTail(pageName, seeAlso, fp, auto = False):
 
     printFooter(fp)
 
-# Extract a single reference page into baseDir
-#   baseDir - base directory to emit page into
-#   specDir - directory extracted page source came from
-#   pi - pageInfo for this page relative to file
-#   file - list of strings making up the file, indexed by pi
 def emitPage(baseDir, specDir, pi, file):
+    """Extract a single reference page into baseDir.
+
+    - baseDir - base directory to emit page into
+    - specDir - directory extracted page source came from
+    - pi - pageInfo for this page relative to file
+    - file - list of strings making up the file, indexed by pi"""
     pageName = baseDir + '/' + pi.name + '.txt'
 
     # Add a dictionary entry for this page
@@ -251,43 +281,51 @@ def emitPage(baseDir, specDir, pi, file):
     if pi.desc is None:
         pi.desc = '(no short description available)'
 
-    # Not sure how this happens yet
-    if pi.include is None:
-        logWarn('emitPage:', pageName, 'INCLUDE is None, no page generated')
-        return
-
-    # Specification text
-    lines = remapIncludes(file[pi.begin:pi.include+1], baseDir, specDir)
-    specText = ''.join(lines)
-
-    # Member/parameter list, if there is one
+    # Member/parameter section label and text, if there is one
     field = None
     fieldText = None
-    if pi.param is not None:
-        if pi.type == 'structs':
-            field = 'Members'
-        elif pi.type in ['protos', 'funcpointers']:
-            field = 'Parameters'
-        else:
-            logWarn('emitPage: unknown field type:', pi.type,
-                'for', pi.name)
-        lines = remapIncludes(file[pi.param:pi.body], baseDir, specDir)
-        fieldText = ''.join(lines)
 
-    # Description text
-    if pi.body != pi.include:
-        lines = remapIncludes(file[pi.body:pi.end+1], baseDir, specDir)
-        descText = ''.join(lines)
+    if pi.type != 'freeform':
+        # Not sure how this happens yet
+        if pi.include is None:
+            logWarn('emitPage:', pageName, 'INCLUDE is None, no page generated')
+            return
+
+        # Specification text
+        lines = remapIncludes(file[pi.begin:pi.include+1], baseDir, specDir)
+        specText = ''.join(lines)
+
+        if pi.param is not None:
+            if pi.type == 'structs':
+                field = 'Members'
+            elif pi.type in ['protos', 'funcpointers']:
+                field = 'Parameters'
+            else:
+                logWarn('emitPage: unknown field type:', pi.type,
+                    'for', pi.name)
+            lines = remapIncludes(file[pi.param:pi.body], baseDir, specDir)
+            fieldText = ''.join(lines)
+
+        # Description text
+        if pi.body != pi.include:
+            lines = remapIncludes(file[pi.body:pi.end+1], baseDir, specDir)
+            descText = ''.join(lines)
+        else:
+            descText = None
+            logWarn('emitPage: INCLUDE == BODY, so description will be empty for', pi.name)
+            if pi.begin != pi.include:
+                logWarn('emitPage: Note: BEGIN != INCLUDE, so the description might be incorrectly located before the API include!')
     else:
-        descText = None
-        logWarn('emitPage: INCLUDE == BODY, so description will be empty for', pi.name)
-        if pi.begin != pi.include:
-            logWarn('emitPage: Note: BEGIN != INCLUDE, so the description might be incorrectly located before the API include!')
+        specText = None
+        descText = ''.join(file[pi.begin:pi.end+1])
+
+    specURL = conventions.specURL(pi.spec)
 
     # Substitute xrefs to point at the main spec
     specLinksPattern = re.compile(r'<<([^>,]+)[,]?[ \t\n]*([^>,]*)>>')
-    specLinksSubstitute = r"link:{html_spec_relative}#\1[\2]"
-    specText, _ = specLinksPattern.subn(specLinksSubstitute, specText)
+    specLinksSubstitute = r'link:{}#\1[\2]'.format(specURL)
+    if specText is not None:
+        specText, _ = specLinksPattern.subn(specLinksSubstitute, specText)
     if fieldText is not None:
         fieldText, _ = specLinksPattern.subn(specLinksSubstitute, fieldText)
     if descText is not None:
@@ -300,15 +338,22 @@ def emitPage(baseDir, specDir, pi, file):
                 field, fieldText,
                 descText,
                 fp)
-    refPageTail(pi.name, seeAlsoList(pi.name, pi.refs), fp, auto = False)
+    refPageTail(pageName=pi.name,
+                specType=pi.spec,
+                specAnchor=pi.anchor,
+                seeAlso=seeAlsoList(pi.name, pi.refs),
+                fp=fp,
+                auto=False)
     fp.close()
 
-# Autogenerate a single reference page in baseDir
-# Script only knows how to do this for /enums/ pages, at present
-#   baseDir - base directory to emit page into
-#   pi - pageInfo for this page relative to file
-#   file - list of strings making up the file, indexed by pi
 def autoGenEnumsPage(baseDir, pi, file):
+    """Autogenerate a single reference page in baseDir.
+
+    Script only knows how to do this for /enums/ pages, at present.
+
+    - baseDir - base directory to emit page into
+    - pi - pageInfo for this page relative to file
+    - file - list of strings making up the file, indexed by pi"""
     pageName = baseDir + '/' + pi.name + '.txt'
     fp = open(pageName, 'w', encoding='utf-8')
 
@@ -343,7 +388,12 @@ def autoGenEnumsPage(baseDir, pi, file):
                 None, None,
                 txt,
                 fp)
-    refPageTail(pi.name, seeAlsoList(pi.name, pi.refs), fp, auto = True)
+    refPageTail(pageName=pi.name,
+                specType=pi.spec,
+                specAnchor=pi.anchor,
+                seeAlso=seeAlsoList(pi.name, pi.refs),
+                fp=fp,
+                auto=True)
     fp.close()
 
 
@@ -352,10 +402,11 @@ def autoGenEnumsPage(baseDir, pi, file):
 flagNamePat = re.compile(r'(?P<name>\w+)Flags(?P<author>[A-Z]*)')
 
 
-# Autogenerate a single reference page in baseDir for an API *Flags type
-#   baseDir - base directory to emit page into
-#   flagName - API *Flags name
 def autoGenFlagsPage(baseDir, flagName):
+    """Autogenerate a single reference page in baseDir for an API *Flags type.
+
+    - baseDir - base directory to emit page into
+    - flagName - API *Flags name"""
     pageName = baseDir + '/' + flagName + '.txt'
     fp = open(pageName, 'w', encoding='utf-8')
 
@@ -395,15 +446,21 @@ def autoGenFlagsPage(baseDir, flagName):
                 None, None,
                 txt,
                 fp)
-    refPageTail(flagName, seeAlsoList(flagName), fp, auto = True)
+    refPageTail(pageName=flagName,
+                specType=pi.spec,
+                specAnchor=pi.anchor,
+                seeAlso=seeAlsoList(flagName, None),
+                fp=fp,
+                auto=True)
     fp.close()
 
-# Autogenerate a single handle page in baseDir for an API handle type
-#   baseDir - base directory to emit page into
-#   handleName - API handle name
-# @@ Need to determine creation function & add handles/ include for the
-# @@ interface in generator.py.
 def autoGenHandlePage(baseDir, handleName):
+    """Autogenerate a single handle page in baseDir for an API handle type.
+
+    - baseDir - base directory to emit page into
+    - handleName - API handle name"""
+    # @@ Need to determine creation function & add handles/ include for the
+    # @@ interface in generator.py.
     pageName = baseDir + '/' + handleName + '.txt'
     fp = open(pageName, 'w', encoding='utf-8')
 
@@ -428,14 +485,19 @@ def autoGenHandlePage(baseDir, handleName):
                 None, None,
                 descText,
                 fp)
-    refPageTail(handleName, seeAlsoList(handleName), fp, auto = True)
+    refPageTail(pageName=handleName,
+                specType=pi.spec,
+                specAnchor=pi.anchor,
+                seeAlso=seeAlsoList(handleName, None),
+                fp=fp,
+                auto=True)
     fp.close()
 
-# Extract reference pages from a spec asciidoc source file
-#   specFile - filename to extract from
-#   baseDir - output directory to generate page in
-#
 def genRef(specFile, baseDir):
+    """Extract reference pages from a spec asciidoc source file.
+
+    - specFile - filename to extract from
+    - baseDir - output directory to generate page in"""
     file = loadFile(specFile)
     if file is None:
         return
@@ -471,10 +533,11 @@ def genRef(specFile, baseDir):
             # Don't extract this page
             logWarn('genRef: Cannot extract or autogenerate:', pi.name)
 
-# Generate baseDir/apispec.txt, the single-page version of the ref pages.
-# This assumes there's a page for everything in the api module dictionaries.
-# Extensions (KHR, EXT, etc.) are currently skipped
 def genSinglePageRef(baseDir):
+    """Generate baseDir/apispec.txt, the single-page version of the ref pages.
+
+    This assumes there's a page for everything in the api module dictionaries.
+    Extensions (KHR, EXT, etc.) are currently skipped"""
     # Accumulate head of page
     head = io.StringIO()
 
@@ -605,7 +668,12 @@ def genExtension(baseDir, name, info):
                  fp,
                  sections=sections,
                  tail_content=makeExtensionInclude(name))
-    refPageTail(name, seeAlsoList(name, declares), fp, auto=True)
+    refPageTail(pageName=name,
+                specType=None,
+                specAnchor=name,
+                seeAlso=seeAlsoList(name, declares),
+                fp=fp,
+                auto=True)
     fp.close()
 
 
@@ -614,7 +682,7 @@ if __name__ == '__main__':
     genDict = {}
     extensions = OrderedDict()
     conventions = APIConventions()
-    apiName = conventions.api_name
+    apiName = conventions.api_name('api')
 
     parser = argparse.ArgumentParser()
 
@@ -669,7 +737,7 @@ if __name__ == '__main__':
             for prefix in conventions.extension_index_prefixes:
                 # Splits up into chunks, sorted within each chunk.
                 filtered_extensions = sorted(
-                    [name for name in ext_names
+                    [name for name in desired_extensions
                      if name.startswith(prefix) and name not in extensions])
                 for name in filtered_extensions:
                     extensions[name] = None

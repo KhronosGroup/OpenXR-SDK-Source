@@ -22,70 +22,21 @@
 #               automatic_source_generator.py class to produce the
 #               generated source code for the API Dump layer.
 
-import os
-import re
-import sys
-from automatic_source_generator import *
-from collections import namedtuple
+from automatic_source_generator import (AutomaticSourceOutputGenerator,
+                                        undecorate)
+from generator import write
 
 # The following commands should not be generated for the layer
-MANUALLY_DEFINED_IN_LAYER = [
+MANUALLY_DEFINED_IN_LAYER = set((
     'xrCreateInstance',
     'xrDestroyInstance',
-]
-
-DONT_GEN_IN_LAYER = [
-    'xrEnumerateApiLayerProperties',
-    'xrEnumerateInstanceExtensionProperties',
-]
-
-# ApiDumpGeneratorOptions - subclass of AutomaticSourceGeneratorOptions.
-
-
-class ApiDumpGeneratorOptions(AutomaticSourceGeneratorOptions):
-    def __init__(self,
-                 conventions=None,
-                 filename=None,
-                 directory='.',
-                 apiname=None,
-                 profile=None,
-                 versions='.*',
-                 emitversions='.*',
-                 defaultExtensions=None,
-                 addExtensions=None,
-                 removeExtensions=None,
-                 emitExtensions=None,
-                 sortProcedure=regSortFeatures,
-                 prefixText="",
-                 genFuncPointers=True,
-                 protectFile=True,
-                 protectFeature=True,
-                 protectProto=None,
-                 protectProtoStr=None,
-                 apicall='',
-                 apientry='',
-                 apientryp='',
-                 indentFuncProto=True,
-                 indentFuncPointer=False,
-                 alignFuncParam=0,
-                 genEnumBeginEndRange=False):
-        AutomaticSourceGeneratorOptions.__init__(self, conventions, filename, directory, apiname, profile,
-                                                 versions, emitversions, defaultExtensions,
-                                                 addExtensions, removeExtensions,
-                                                 emitExtensions, sortProcedure)
+))
 
 # ApiDumpOutputGenerator - subclass of AutomaticSourceOutputGenerator.
 
 
 class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
     """Generate API Dump layer source using XML element attributes from registry"""
-
-    def __init__(self,
-                 errFile=sys.stderr,
-                 warnFile=sys.stderr,
-                 diagFile=sys.stdout):
-        AutomaticSourceOutputGenerator.__init__(
-            self, errFile, warnFile, diagFile)
 
     # Override the base class header warning so the comment indicates this file.
     #   self            the AutomaticSourceOutputGenerator object
@@ -316,7 +267,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         is_array = member_param.is_array
 
         # If this is an array defined by a pointer, we need to drop the pointer count for it
-        if is_array and not member_param.is_static_array and len(member_param.pointer_count_var) > 0:
+        if is_array and not member_param.is_static_array and member_param.pointer_count_var:
             pointer_count = pointer_count - 1
 
         full_type = cdecl[0:cdecl.rfind(' ')].strip()
@@ -334,18 +285,18 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
 
         # We can't dereference a void, so don't even try.
         # NOTE: The 'next' chain is actually handled elsewhere.
-        if 'void' == base_type:
+        if base_type == 'void':
             can_dereference = False
 
         # Is this one of the standard types?
-        if ('char' == base_type[0:4].lower() or 'float' == base_type[0:5].lower() or
-            'double' == base_type[0:6].lower() or 'unsigned ' in base_type.lower() or
+        if (base_type[0:4].lower() == 'char' or base_type[0:5].lower() == 'float' or
+            base_type[0:6].lower() == 'double' or 'unsigned ' in base_type.lower() or
                 'uint' in base_type.lower()):
             is_standard_type = True
             # Characters are a special case because we can write them directly out.  As long as
             # they're a character array or pointer.  If they're a pointer, just drop one from it
             # since we don't want to write the pointer, but the contents of it
-            if 'char' == base_type[0:4].lower():
+            if base_type[0:4].lower() == 'char':
                 is_char = True
                 if not can_dereference or ((is_array and pointer_count > 0) or pointer_count > 1):
                     use_stream = True
@@ -554,7 +505,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                     write_string += ')'
                 write_string += ');\n'
 
-            if base_type == 'XrResult' or base_type == 'XrStructureType':
+            if base_type in ('XrResult', 'XrStructureType'):
                 indent = indent - 1
                 write_string += self.writeIndent(indent)
                 write_string += '}\n'
@@ -827,12 +778,12 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         base_type = self.getRawType(member_param.type)
         array_param = ''
         pointer_count = member_param.pointer_count
-        if len(member_param.array_count_var) != 0:
+        if member_param.array_count_var:
             array_param = member_param.array_count_var
             is_array = True
             if pointer_count > 0:
                 is_pointer = True
-        elif len(member_param.pointer_count_var) != 0:
+        elif member_param.pointer_count_var:
             array_param = member_param.pointer_count_var
             is_array = True
             pointer_count -= 1
@@ -1040,7 +991,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 for cur_value in enum_tuple.values:
                     struct_define_name = self.genXrStructureName(
                         cur_value.name)
-                    if len(struct_define_name) > 0:
+                    if struct_define_name:
                         cur_struct = self.getStruct(struct_define_name)
                         if cur_struct.protect_value:
                             struct_union_check += '#if %s\n' % cur_struct.protect_string
@@ -1091,7 +1042,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                         generated_commands += '\n// ---- %s extension commands\n' % cur_cmd.ext_name
                     cur_extension_name = cur_cmd.ext_name
 
-                if cur_cmd.name in DONT_GEN_IN_LAYER or cur_cmd.name in MANUALLY_DEFINED_IN_LAYER:
+                if cur_cmd.name in self.no_trampoline_or_terminator or cur_cmd.name in MANUALLY_DEFINED_IN_LAYER:
                     continue
 
                 # We fill in the GetInstanceProcAddr manually at the end
@@ -1117,8 +1068,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                     generated_commands += '#if %s\n' % cur_cmd.protect_string
 
                 prototype = cur_cmd.cdecl.replace(" xr", " ApiDumpLayerXr")
-                prototype = prototype.replace("XRAPI_ATTR ", "")
-                prototype = prototype.replace(" XRAPI_CALL ", " ")
+                prototype = prototype.replace(self.genOpts.apicall, "").replace(self.genOpts.apientry, "")
                 prototype = prototype.replace(";", " {\n")
                 generated_commands += prototype
 
@@ -1256,7 +1206,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                         generated_commands += '\n        // ---- %s extension commands\n' % cur_cmd.ext_name
                     cur_extension_name = cur_cmd.ext_name
 
-                if cur_cmd.name in DONT_GEN_IN_LAYER:
+                if cur_cmd.name in self.no_trampoline_or_terminator:
                     continue
 
                 has_return = False

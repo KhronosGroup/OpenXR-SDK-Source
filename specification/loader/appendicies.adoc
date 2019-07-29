@@ -1,0 +1,105 @@
+[[Appendicies]]
+== Appendicies ==
+
+=== Table of Debug Environment Variables ===
+
+The following are all the Debug Environment Variables available for use with
+the loader.  These are referenced throughout the text, but collected here for
+ease of discovery.
+
+.Debug Environment Variables
+
+[options="header",cols="10%,30%,60%"]
+|====
+| Environment Variable    | Behavior   | Example Format
+| <<overriding-the-default-runtime-usage, XR_RUNTIME_JSON>>
+    | Force the loader to use the specific runtime JSON file.  The value
+    should contain the full path to runtime JSON Manifest files.
+    *NOTE:* If you fail to use the global path to a JSON file, you may encounter issues.
+   a|
+* `export XR_RUNTIME_JSON=<folder_a>\xr_vendor_1.json`
+* `set XR_RUNTIME_JSON=<folder_a>\xr_vendor_2.json`
+
+| <<forced-loading-of-api-layers, XR_ENABLE_API_LAYERS>>
+    | Force the loader to add the given API layers to the list of Enabled API layers
+    normally passed into `xrCreateInstance`.  These API layers are added after the
+    implicit API layers, but before the standard explicit API layers normally added by
+    `enableLayerNames` in `xrCreateInstance`.  The loader will remove any
+    duplicate API layers that appear in both this list by using the first
+    occurrence of any API layer.
+   a|
+* `export XR_ENABLE_API_LAYERS=<layer_a>:<layer_b>`
+* `set XR_ENABLE_API_LAYERS=<layer_a>;<layer_b>`
+
+| <<overriding-the-default-api-layer-paths, XR_API_LAYER_PATH>>
+    | Override the loader's standard API Layer library search folders and use the
+    provided delimited folders to search for API layer Manifest files.
+   a|
+* `export XR_API_LAYER_PATH=<path_a>:<path_b>`
+* `set XR_API_LAYER_PATH=<path_a>;<pathb>`
+
+| <<loader-debugging, XR_LOADER_DEBUG>>
+   a| Enable loader debug messages.  Options are:
+* error (only errors)
+* warn (warnings and errors)
+* info (info, warning, and errors)
+* debug (debug + all before)
+* all (report out all messages)
+   a|
+* `export XR_LOADER_DEBUG=all`
+* `set XR_LOADER_DEBUG=warn`
+
+|====
+
+=== Glossary of Terms ===
+
+.Glossary of Terms
+
+[options="header",cols="25%,75%"]
+|====
+| Term    | Definition
+| <<openxr-api-layers, API Layer>>
+    | API layers are optional components that augment the OpenXR system.  They
+    can intercept, evaluate, and modify existing OpenXR functions on their
+    way from the application down to the hardware.
+| <<openxr-call-chains,Call Chain>>
+    | The sequence of calls made for a given OpenXR command.  The first
+    call in a call chain is the application.  The last call in a call chain
+    sequence is always the runtime function.  In between can be:
+    a loader _trampoline_ function, one or more API layer functions, and a
+    loader _terminator_ function.
+| Core Function
+    | A function that is defined in a version of OpenXR and not an extension.
+    For example, `xrCreateInstance` is a core function defined in the OpenXR
+    API as well as `openxr.h`.
+| Discovery
+    | The process the loader performs to determine the available list of
+    OpenXR <<runtime-discovery, runtimes>> and <<api-layer-discovery, API layers>>.
+    On Windows/Linux, the discovery process typically focuses on searching
+    for Manifest files.  While on Android, the process focuses on searching
+    for library files.
+| Extension
+    | A concept of OpenXR used to expand the core OpenXR functionality.
+    Extensions may be vendor-specific, platform-specific, or more broadly
+    available.  You should always query if an extension exists using
+    `xrEnumerateInstanceExtensionProperties`, and enable it during `xrCreateInstance`.
+| <<openxr-loader, Loader>>
+    | The Khronos-developed middle-ware program which acts as the mediator
+    between OpenXR applications, OpenXR API layers and OpenXR runtimes.
+| Manifest Files
+    | Data files in JSON format used by the desktop loader.  These files
+    contain specific information for either a
+    <<api-layer-manifest-file-format, API layer>> or
+    <<runtime-manifest-file-format, runtime>>.
+| <<openxr-runtimes, Runtime>>
+    | A complete VR/XR/MR system available on a end-user's environment
+    which supports one or more devices that may be used collectively.
+| Terminator Function
+    | The last function in the call chain before the runtime and owned by
+    the loader.  Only used it a few limited cases.  Currently
+    `xrCreateInstance`, `xrDestroyInstance` and `xrGetInstanceProcAddr` are
+    the three primary users of a terminator.
+| Trampoline Function
+    | The first function in the call chain after the runtime and owned by
+    the loader.
+|====

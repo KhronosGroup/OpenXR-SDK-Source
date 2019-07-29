@@ -1,0 +1,339 @@
+[[loader-Source]]
+== Loader Source ==
+
+The OpenXR desktop loader is primarily developed by Khronos, who also owns
+the copyright to it.  This decision was reached in order to allow quicker
+development and releasing of loader changes for all supported platforms.
+
+However, the OpenXR loader is an Open Source project that does accept
+contributions from the OpenXR community.
+
+=== Building Instructions ===
+
+The latest instructions for building the OpenXR source can always be found in
+the BUILDING.md file.  It is actively maintained
+and should be used instead of documenting the build steps in this file in
+order to reduce unnecessary duplication.
+
+
+[[cmake-usage]]
+==== CMake Usage ====
+
+All OpenXR source utilizes the CMake tool to generate platform-specific build
+files.  Currently, the loader requires CMake version 3.5.1 or newer.
+CMake may be obtained from either the https://cmake.org/[CMake web-site]
+or often using your computer's software update mechanism.
+
+The CMake
+files of interest exist in several locations:
+
+. CMake Files of interest
+
+[width="80%",options="header",cols="^.^50%e,^.^50%"]
+|====
+| CMake File | Usage
+| src/CmakeLists.txt
+    | Top-Level CMake file used to define and build items used by all source
+    in the tree, as well as build all projects under the "src" folder.
+| src/cmake/cmake_uninstall.cmake.in
+    | CMake files used to define the uninstall process required if the project
+    was installed on a Linux system.
+| src/loader/CMakeLists.txt
+    | The loader specific CMake file used to define the build process of the
+    loader source.
+| src/loader/loader_cmake_configure.h.in
+    | A special file used to generate a header which indicates
+    platform-specific items of interest, such as whether or not the platform
+    being targeted supports the secure environmental variable functions.
+|====
+
+
+=== Contributing to the Loader ===
+
+Khronos would be pleased if you decided to contribute to the loader
+source code.  
+
+[[coding-standard]]
+=== Coding Standard ===
+
+The following sections define what coding standard is in place for the
+OpenXR loader code.  Every attempt must: be made to follow these rules
+when adding new code.
+
+
+==== General Format of Code ====
+
+The loader code is formatted using clang-format with the following settings:
+
+* Google style using clang-format
+* Indents using 4 spaces in place of tabs
+* Maximum column width of 132 characters
+* Includes not sorted
+
+Clang-format is required: to be executed prior to committing new code whenever
+possible.
+
+
+==== Language Selection ====
+
+Internally, the loader is implemented using the pass:[C++] language, taking
+advantage of pass:[C++]11 standard features.  Since the OpenXR API is exposed
+using C, all exported commands must: be properly wrapped using `extern "C" {`
+and `}`.
+
+
+.types
+The loader code should: use the standard types defined by `stdint.h` in order
+to avoid using platform-specific type defines whenever possible.  Some
+commonly used types include:
+
+* int8_t/uint8_t
+* int16_t/uint16_t
+* int32_t/uint32_t
+* int64_t/uint64_t
+
+In some cases, it may not be possible to use these generic type, like when
+calling a platform-specific function.  In those cases, this requirement is
+waived.
+
+
+.Standard Template Library Usage
+Additionally, STL may: be used in any pass:[C++] source code areas.
+
+.Namespaces
+Namespaces outside of the OpenXR loader must: not be enabled by default.
+
+[example]
+.Disallowed Namespace Usage
+====
+The following is disallowed:
+
+[source,cpp]
+----
+using namespace std;
+----
+====
+
+Instead, any time you use a function, variable, type or other component coming from
+a namespace, you must list the full namespace of that item.  Some examples are
+as follows:
+
+[example]
+.Valid Namespace Usage
+====
+[source,cpp]
+----
+std::string my_string;
+std::cout << std::to_string(5);
+std::experimental::filesystem::path search_path;
+----
+====
+
+
+.Exceptions
+
+The OpenXR loader relies on throwing and catching pass:[C++] exceptions.  Adding code
+should take this into account and properly wrap executing code with a "try"/"catch"
+block.
+
+
+.Experimental Filesystem Usage
+
+In order to simplify the file management, especially with regards to loading JSON
+manifest files or finding dynamic library files, the experimental/filesystem is used.
+This is a set of features which are part of the upcoming pass:[C++]17 feature set
+designed to make file management easier.
+
+Since no compiler currently supports pass:[C++]17, most have enabled a chunk
+of functionality using the "experimental" namespace.  When used, you can
+find elements of this functionality with the prefix
+`std::experimental::filesystem`.
+
+[example]
+.Experimental Filesystem Usage
+====
+Using the experimental filesystem in the source:
+
+[source,cpp]
+----
+#include <experimental/filesystem>
+
+static void checkAllFilesInThePath(const std::string &search_path) {
+    try {
+        // If the file exists, try to add it
+        if (std::experimental::filesystem::is_regular_file(search_path)) {
+            std::experimental::filesystem::path absolute_path =
+                std::experimental::filesystem::absolute(search_path);
+        }
+    } catch (...) {
+    }
+}
+----
+====
+
+
+==== API Naming ====
+
+Identifiers in the OpenXR API (e.g. types, parameters, constants, etc.) all
+follow a set of naming rules, providing a consistent scheme for developers.
+
+
+===== General Naming Rules =====
+
+Names of all identifiers should: generally be written with full words,
+avoiding abbreviations whenever possible, as a concise description of what
+that identifier is.  Abbreviation is preferred in cases where the identifier
+name becomes excessive in length (usually when exceeding 25 characters).
+
+For example, the class containing the loader's version of OpenXR instance
+information is `LoaderInstance`.
+
+Names inside the loader not directly associated with an OpenXR identifier
+or command must: not begin with the reserved letters `xr` in any combination
+of upper or lower-case characters.  The `xr` prefix is solely reserved for
+all OpenXR API elements (both hidden and exposed) and defines the OpenXR
+namespace.  Therefore, it must: only be in cases of exposing commands for
+the OpenXR API.
+
+Also, as a general rule, Hungarian notation should: not be avoided whenever
+possible.
+
+
+===== Naming of Files and Directories =====
+
+All files and files must: be named with lower-snake-case names.  Additionally,
+any C-language files must: end with either .c or .h, while any pass:[C++]
+files must: end with either .cpp or .hpp to differentiate them.  Python
+scripts, must be named with a .py suffix.
+
+[example]
+.Filenames
+====
+[source,cpp]
+----
+loader_instance.hpp
+loader_instance.cpp
+loader_interfaces.h
+----
+====
+
+
+===== Naming of #Defines =====
+
+All #defines must: be named in all-caps upper-snake-case and must be
+defined to a specific value.
+
+[example]
+.#define Values
+====
+[source,cpp]
+----
+#define CURRENT_LOADER_API_LAYER_VERSION 1
+#define ENABLE_LOADER_DEBUG 1
+----
+====
+
+
+===== Variable Naming =====
+
+.Local Variables
+All local variables and function/method parameters must: use lower-snake-case.
+
+[example]
+.Variable Names
+====
+[source,cpp]
+----
+uint32_t number_of_actual_items;
+std::string file_path_location;
+----
+====
+
+
+.Global Variable Naming
+
+Global variables, too, are defined using lower-snake-case with an additional
+prefix of `g_` required to identify them as global variables.
+
+[example]
+.Global Variable Names
+====
+[source,cpp]
+----
+std::vector<<std::string>> g_my_global_file_list;
+----
+====
+
+
+===== Function and Parameter Naming =====
+
+Functions must: use lower-camel-case for their naming and function parameters
+must: use lower-snake-case for their naming.
+
+[example]
+.Function and Parameter Naming
+====
+[source,cpp]
+----
+void myFunction1(uint32_t my_int_val, bool my_bool) {
+}
+
+void thisOtherFunction2() {
+}
+----
+====
+
+===== Structure/Enumeration Naming =====
+
+Structures and Enumerations must: be named using upper-camel-case.
+
+Inside of an enumeration, the values must: use the first one or two whole-words
+as a prefix (the XR, if present, may be optionally used), and must: be defined
+in all-upper-snake-case with underscores ('_') being inserted between a
+lower-case and upper-case character in the enumeration name.  Additionally,
+at least the first value in the enumeration list must: be defined to an integer
+value.
+
+[example]
+.Structure/Enumeration Naming
+====
+[source,cpp]
+----
+struct JsonVersion {
+     uint32_t major;
+     uint32_t minor;
+     uint32_t patch;
+};
+enum XrLoaderInterfaceStructs {
+    XR_LOADER_INTERFACE_STRUCT_UNINTIALIZED = 0,
+    XR_LOADER_INTERFACE_STRUCT_LOADER_INFO,
+    XR_LOADER_INTERFACE_STRUCT_API_LAYER_REQUEST,
+    XR_LOADER_INTERFACE_STRUCT_RUNTIME_REQUEST,
+    XR_LOADER_INTERFACE_STRUCT_API_LAYER_CREATE_INFO,
+    XR_LOADER_INTERFACE_STRUCT_API_LAYER_NEXT_INFO,
+};
+----
+====
+
+===== Class Component Naming =====
+
+The specific components of a class must be named in the following ways:
+
+* The class name must: be upper-camel-case
+* Class methods must: be lower-camel-case and parameters must: be lower-snake-case
+  (just as functions defined above)
+* Class members must: be lower-snake-case with a preceding underscore ('_')
+
+[example]
+.Class Component Naming
+====
+[source,cpp]
+----
+class MyClass {
+    ...
+   private
+    uint32_t _my_integer_member;
+    XrInstanceCreateInfo _my_xr_instance_create_info;
+}
+----
+====

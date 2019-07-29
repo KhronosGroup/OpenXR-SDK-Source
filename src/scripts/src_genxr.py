@@ -14,21 +14,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import argparse, cProfile, os, pdb, string, sys, time
+import argparse
+import os
+import re
+import sys
+import time
 
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append(os.path.join(base_dir, 'src', 'scripts'))
 sys.path.append(os.path.join(base_dir, 'specification', 'scripts'))
 
-from reg import *
+from api_dump_generator import ApiDumpOutputGenerator
+from automatic_source_generator import AutomaticSourceGeneratorOptions
 from generator import write
-from cgenerator import CGeneratorOptions, COutputGenerator
+from loader_source_generator import LoaderSourceOutputGenerator
+from reg import Registry
+from utility_source_generator import UtilitySourceOutputGenerator
+from validation_layer_generator import ValidationSourceOutputGenerator
 from xrconventions import OpenXRConventions
-from automatic_source_generator import AutomaticSourceGeneratorOptions, AutomaticSourceOutputGenerator
-from loader_source_generator import LoaderSourceGeneratorOptions, LoaderSourceOutputGenerator
-from utility_source_generator import UtilitySourceGeneratorOptions, UtilitySourceOutputGenerator
-from api_dump_generator import ApiDumpGeneratorOptions, ApiDumpOutputGenerator
-from validation_layer_generator import ValidationSourceGeneratorOptions, ValidationSourceOutputGenerator
+
+try:
+    from conformance_generator import ConformanceGenerator
+    from conformance_layer_generator import ConformanceLayerGenerator
+    HAVE_CONFORMANCE = True
+except ImportError:
+    HAVE_CONFORMANCE = False
 
 # Simple timer functions
 startTime = None
@@ -44,12 +54,11 @@ def endTimer(timeit, msg):
         write(msg, endTime - startTime, file=sys.stderr)
         startTime = None
 
-# Turn a list of strings into a regexp string matching exactly those strings
-def makeREstring(list, default = None):
-    if len(list) > 0 or default == None:
-        return '^(' + '|'.join(list) + ')$'
-    else:
-        return default
+def makeREstring(strings, default=None):
+    """Turn a list of strings into a regexp string matching exactly those strings."""
+    if strings or default is None:
+        return '^(' + '|'.join((re.escape(s) for s in strings)) + ')$'
+    return default
 
 # Returns a directory of [ generator function, generator options ] indexed
 # by specified short names. The generator options incorporate the following
@@ -109,9 +118,66 @@ def makeGenOpts(args):
     # An API style conventions object
     conventions = OpenXRConventions()
 
+    if HAVE_CONFORMANCE:
+        genOpts['function_info.cpp'] = [
+            ConformanceGenerator,
+            AutomaticSourceGeneratorOptions(
+                conventions       = conventions,
+                filename          = 'function_info.cpp',
+                directory         = directory,
+                apiname           = 'openxr',
+                profile           = None,
+                versions          = featuresPat,
+                emitversions      = featuresPat,
+                defaultExtensions = 'openxr',
+                addExtensions     = None,
+                removeExtensions  = None,
+                emitExtensions    = emitExtensionsPat,
+                prefixText        = prefixStrings + xrPrefixStrings,
+                protectFeature    = False,
+                protectProto      = '#ifndef',
+                protectProtoStr   = 'XR_NO_PROTOTYPES',
+                apicall           = 'XRAPI_ATTR ',
+                apientry          = 'XRAPI_CALL ',
+                apientryp         = 'XRAPI_PTR *',
+                alignFuncParam    = 48)
+            ]
+
+        genOpts['xr_generated_conformance_dispatch_table.cpp'] = [
+            ConformanceLayerGenerator,
+            AutomaticSourceGeneratorOptions(
+                conventions       = conventions,
+                filename          = 'xr_generated_conformance_dispatch_table.cpp',
+                directory         = directory,
+                apiname           = 'openxr',
+                profile           = None,
+                versions          = featuresPat,
+                emitversions      = featuresPat,
+                defaultExtensions = 'openxr',
+                addExtensions     = None,
+                removeExtensions  = None,
+                emitExtensions    = emitExtensionsPat)
+            ]
+
+        genOpts['xr_generated_conformance_dispatch_table.h'] = [
+            ConformanceLayerGenerator,
+            AutomaticSourceGeneratorOptions(
+                conventions       = conventions,
+                filename          = 'xr_generated_conformance_dispatch_table.h',
+                directory         = directory,
+                apiname           = 'openxr',
+                profile           = None,
+                versions          = featuresPat,
+                emitversions      = featuresPat,
+                defaultExtensions = 'openxr',
+                addExtensions     = None,
+                removeExtensions  = None,
+                emitExtensions    = emitExtensionsPat)
+            ]
+
     genOpts['xr_generated_dispatch_table.h'] = [
           UtilitySourceOutputGenerator,
-          UtilitySourceGeneratorOptions(
+          AutomaticSourceGeneratorOptions(
             conventions       = conventions,
             filename          = 'xr_generated_dispatch_table.h',
             directory         = directory,
@@ -122,20 +188,12 @@ def makeGenOpts(args):
             defaultExtensions = 'openxr',
             addExtensions     = None,
             removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat,
-            prefixText        = prefixStrings + xrPrefixStrings,
-            protectFeature    = False,
-            protectProto      = '#ifndef',
-            protectProtoStr   = 'XR_NO_PROTOTYPES',
-            apicall           = 'XRAPI_ATTR ',
-            apientry          = 'XRAPI_CALL ',
-            apientryp         = 'XRAPI_PTR *',
-            alignFuncParam    = 48)
+            emitExtensions    = emitExtensionsPat)
         ]
 
     genOpts['xr_generated_dispatch_table.c'] = [
           UtilitySourceOutputGenerator,
-          UtilitySourceGeneratorOptions(
+          AutomaticSourceGeneratorOptions(
             conventions       = conventions,
             filename          = 'xr_generated_dispatch_table.c',
             directory         = directory,
@@ -146,20 +204,12 @@ def makeGenOpts(args):
             defaultExtensions = 'openxr',
             addExtensions     = None,
             removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat,
-            prefixText        = prefixStrings + xrPrefixStrings,
-            protectFeature    = False,
-            protectProto      = '#ifndef',
-            protectProtoStr   = 'XR_NO_PROTOTYPES',
-            apicall           = 'XRAPI_ATTR ',
-            apientry          = 'XRAPI_CALL ',
-            apientryp         = 'XRAPI_PTR *',
-            alignFuncParam    = 48)
+            emitExtensions    = emitExtensionsPat)
         ]
 
     genOpts['xr_generated_utilities.h'] = [
           UtilitySourceOutputGenerator,
-          UtilitySourceGeneratorOptions(
+          AutomaticSourceGeneratorOptions(
             conventions       = conventions,
             filename          = 'xr_generated_utilities.h',
             directory         = directory,
@@ -170,20 +220,12 @@ def makeGenOpts(args):
             defaultExtensions = 'openxr',
             addExtensions     = None,
             removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat,
-            prefixText        = prefixStrings + xrPrefixStrings,
-            protectFeature    = False,
-            protectProto      = '#ifndef',
-            protectProtoStr   = 'XR_NO_PROTOTYPES',
-            apicall           = 'XRAPI_ATTR ',
-            apientry          = 'XRAPI_CALL ',
-            apientryp         = 'XRAPI_PTR *',
-            alignFuncParam    = 48)
+            emitExtensions    = emitExtensionsPat)
         ]
 
     genOpts['xr_generated_utilities.c'] = [
           UtilitySourceOutputGenerator,
-          UtilitySourceGeneratorOptions(
+          AutomaticSourceGeneratorOptions(
             conventions       = conventions,
             filename          = 'xr_generated_utilities.c',
             directory         = directory,
@@ -194,20 +236,12 @@ def makeGenOpts(args):
             defaultExtensions = 'openxr',
             addExtensions     = None,
             removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat,
-            prefixText        = prefixStrings + xrPrefixStrings,
-            protectFeature    = False,
-            protectProto      = '#ifndef',
-            protectProtoStr   = 'XR_NO_PROTOTYPES',
-            apicall           = 'XRAPI_ATTR ',
-            apientry          = 'XRAPI_CALL ',
-            apientryp         = 'XRAPI_PTR *',
-            alignFuncParam    = 48)
+            emitExtensions    = emitExtensionsPat)
         ]
 
     genOpts['xr_generated_loader.hpp'] = [
           LoaderSourceOutputGenerator,
-          LoaderSourceGeneratorOptions(
+          AutomaticSourceGeneratorOptions(
             conventions       = conventions,
             filename          = 'xr_generated_loader.hpp',
             directory         = directory,
@@ -231,7 +265,7 @@ def makeGenOpts(args):
 
     genOpts['xr_generated_loader.cpp'] = [
           LoaderSourceOutputGenerator,
-          LoaderSourceGeneratorOptions(
+          AutomaticSourceGeneratorOptions(
             conventions       = conventions,
             filename          = 'xr_generated_loader.cpp',
             directory         = directory,
@@ -256,7 +290,7 @@ def makeGenOpts(args):
     # Source files generated for the api_dump layer
     genOpts['xr_generated_api_dump.cpp'] = [
           ApiDumpOutputGenerator,
-          ApiDumpGeneratorOptions(
+          AutomaticSourceGeneratorOptions(
             conventions       = conventions,
             filename          = 'xr_generated_api_dump.cpp',
             directory         = directory,
@@ -267,20 +301,12 @@ def makeGenOpts(args):
             defaultExtensions = 'openxr',
             addExtensions     = None,
             removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat,
-            prefixText        = prefixStrings + xrPrefixStrings,
-            protectFeature    = False,
-            protectProto      = '#ifndef',
-            protectProtoStr   = 'XR_NO_PROTOTYPES',
-            apicall           = 'XRAPI_ATTR ',
-            apientry          = 'XRAPI_CALL ',
-            apientryp         = 'XRAPI_PTR *',
-            alignFuncParam    = 48)
+            emitExtensions    = emitExtensionsPat)
         ]
 
     genOpts['xr_generated_api_dump.hpp'] = [
           ApiDumpOutputGenerator,
-          ApiDumpGeneratorOptions(
+          AutomaticSourceGeneratorOptions(
             conventions       = conventions,
             filename          = 'xr_generated_api_dump.hpp',
             directory         = directory,
@@ -291,21 +317,13 @@ def makeGenOpts(args):
             defaultExtensions = 'openxr',
             addExtensions     = None,
             removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat,
-            prefixText        = prefixStrings + xrPrefixStrings,
-            protectFeature    = False,
-            protectProto      = '#ifndef',
-            protectProtoStr   = 'XR_NO_PROTOTYPES',
-            apicall           = 'XRAPI_ATTR ',
-            apientry          = 'XRAPI_CALL ',
-            apientryp         = 'XRAPI_PTR *',
-            alignFuncParam    = 48)
+            emitExtensions    = emitExtensionsPat)
         ]
 
     # Source files generated for the core validation layer
     genOpts['xr_generated_core_validation.hpp'] = [
           ValidationSourceOutputGenerator,
-          ValidationSourceGeneratorOptions(
+          AutomaticSourceGeneratorOptions(
             conventions       = conventions,
             filename          = 'xr_generated_core_validation.hpp',
             directory         = directory,
@@ -316,20 +334,12 @@ def makeGenOpts(args):
             defaultExtensions = 'openxr',
             addExtensions     = None,
             removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat,
-            prefixText        = prefixStrings + xrPrefixStrings,
-            protectFeature    = False,
-            protectProto      = '#ifndef',
-            protectProtoStr   = 'XR_NO_PROTOTYPES',
-            apicall           = 'XRAPI_ATTR ',
-            apientry          = 'XRAPI_CALL ',
-            apientryp         = 'XRAPI_PTR *',
-            alignFuncParam    = 48)
+            emitExtensions    = emitExtensionsPat)
         ]
 
     genOpts['xr_generated_core_validation.cpp'] = [
           ValidationSourceOutputGenerator,
-          ValidationSourceGeneratorOptions(
+          AutomaticSourceGeneratorOptions(
             conventions       = conventions,
             filename          = 'xr_generated_core_validation.cpp',
             directory         = directory,
@@ -340,15 +350,7 @@ def makeGenOpts(args):
             defaultExtensions = 'openxr',
             addExtensions     = None,
             removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat,
-            prefixText        = prefixStrings + xrPrefixStrings,
-            protectFeature    = False,
-            protectProto      = '#ifndef',
-            protectProtoStr   = 'XR_NO_PROTOTYPES',
-            apicall           = 'XRAPI_ATTR ',
-            apientry          = 'XRAPI_CALL ',
-            apientryp         = 'XRAPI_PTR *',
-            alignFuncParam    = 48)
+            emitExtensions    = emitExtensionsPat)
         ]
 
 # Generate a target based on the options in the matching genOpts{} object.
@@ -452,12 +454,8 @@ if __name__ == '__main__':
     reg = Registry()
 
     startTimer(args.time)
-    tree = etree.parse(args.registry)
-    endTimer(args.time, '* Time to make ElementTree =')
-
-    startTimer(args.time)
-    reg.loadElementTree(tree)
-    endTimer(args.time, '* Time to parse ElementTree =')
+    reg.loadFile(args.registry)
+    endTimer(args.time, '* Time to make and parse ElementTree =')
 
     if args.validate:
         reg.validateGroups()
@@ -478,9 +476,11 @@ if __name__ == '__main__':
         diag = None
 
     if args.debug:
+        import pdb
         pdb.run('genTarget(args)')
     elif args.profile:
-        import cProfile, pstats
+        import cProfile
+        import pstats
         cProfile.run('genTarget(args)', 'profile.txt')
         p = pstats.Stats('profile.txt')
         p.strip_dirs().sort_stats('time').print_stats(50)

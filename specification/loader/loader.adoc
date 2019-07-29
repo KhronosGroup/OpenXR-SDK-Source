@@ -1,0 +1,55 @@
+// Copyright (c) 2017-2019 The Khronos Group Inc.
+// Copyright notice at https://www.khronos.org/registry/speccopyright.html
+
+= OpenXR^(R)^  Loader - Design and Operation [DRAFT] {apititle}
+Copyright (c) 2017-2019 The Khronos Group Inc.
+:data-uri:
+:icons: font
+:toc2:
+:toclevels: 3
+:max-width: 100
+:numbered:
+:imagewidth: 800
+:fullimagewidth: width="800"
+
+Copyright (c) 2017-2019 The Khronos Group Inc. All Rights reserved.
+
+toc::[]
+
+
+[[introduction]]
+= Introduction =
+
+This document contains the necessary information for understanding how
+to develop for, and interact with, the OpenXR loader.  Intended use of
+this document is as a detailed design document and a tool for learning 
+general OpenXR loader behavior.
+
+In the event of any discrepancies between this document and
+the (https://www.khronos.org/registry/OpenXR[OpenXR specification]), that document is authoritative.  
+
+
+[[introduction-terminology]]
+== Terminology ==
+
+The key words *must*, *may*, *can*, *cannot*, *should*, *required*,
+*recommend*, and *optional* in this document are to be interpreted as
+described in RFC 2119.
+
+include::overview.adoc[]
+
+include::application.adoc[]
+
+include::api_layer.adoc[]
+
+include::runtime.adoc[]
+
+include::source.adoc[]
+
+include::design.adoc[]
+
+include::debug.adoc[]
+
+include::appendicies.adoc[]
+
+

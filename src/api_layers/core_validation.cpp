@@ -651,8 +651,12 @@ XrResult CoreValidationXrCreateSession(XrInstance instance, const XrSessionCreat
             cur_ptr = reinterpret_cast<const XrBaseInStructure *>(cur_ptr->next);
         }
         auto const &enabled_extensions = gen_instance_info->enabled_extensions;
+#ifdef XR_KHR_headless
         bool has_headless = (enabled_extensions.end() !=
                              std::find(enabled_extensions.begin(), enabled_extensions.end(), XR_KHR_HEADLESS_EXTENSION_NAME));
+#else
+        bool has_headless = false;
+#endif  // XR_KHR_headless
         bool got_right_graphics_binding_count = (num_graphics_bindings_found == 1);
         if (!got_right_graphics_binding_count && has_headless) {
             // This permits 0 as well.
@@ -761,7 +765,7 @@ XrResult CoreValidationXrDestroyDebugUtilsMessengerEXT(XrDebugUtilsMessengerEXT 
             return result;
         }
         if (XR_NULL_HANDLE == messenger) {
-            return XR_ERROR_DEBUG_UTILS_MESSENGER_INVALID_EXT;
+            return XR_ERROR_HANDLE_INVALID;
         }
         auto info_with_lock = g_debugutilsmessengerext_info.getWithLock(messenger);
         GenValidUsageXrHandleInfo *gen_handle_info = info_with_lock.second;
@@ -912,12 +916,12 @@ LAYER_EXPORT XrResult xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoader
         loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
-        loaderInfo->maxXrVersion < XR_CORE_VALIDATION_API_VERSION || loaderInfo->minXrVersion > XR_CORE_VALIDATION_API_VERSION) {
+        loaderInfo->maxApiVersion < XR_CORE_VALIDATION_API_VERSION || loaderInfo->minApiVersion > XR_CORE_VALIDATION_API_VERSION) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
 
     apiLayerRequest->layerInterfaceVersion = XR_CURRENT_LOADER_API_LAYER_VERSION;
-    apiLayerRequest->layerXrVersion = XR_CORE_VALIDATION_API_VERSION;
+    apiLayerRequest->layerApiVersion = XR_CORE_VALIDATION_API_VERSION;
     apiLayerRequest->getInstanceProcAddr = reinterpret_cast<PFN_xrGetInstanceProcAddr>(GenValidUsageXrGetInstanceProcAddr);
     apiLayerRequest->createApiLayerInstance =
         reinterpret_cast<PFN_xrCreateApiLayerInstance>(CoreValidationXrCreateApiLayerInstance);

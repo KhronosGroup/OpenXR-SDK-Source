@@ -1,0 +1,9 @@
+"""Scripts for building the OpenXR specification and artifacts.
+
+
+See also `src.scripts` for scripts that help build the loader and layers,
+many of which build on these scripts.
+"""
+
+# This is only used during doc builds, hence the weird file extension.
+# It messes up scripts at other times.

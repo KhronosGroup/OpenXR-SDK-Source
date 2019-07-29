@@ -32,7 +32,7 @@
     }
 
 [[noreturn]] inline void ThrowXrResult(XrResult res, const char* originator = nullptr, const char* sourceLocation = nullptr) {
-    Throw(Fmt("XrResult failure [%d]", res), originator, sourceLocation);
+    Throw(Fmt("XrResult failure [%s]", to_string(res)), originator, sourceLocation);
 }
 
 inline XrResult CheckXrResult(XrResult res, const char* originator = nullptr, const char* sourceLocation = nullptr) {

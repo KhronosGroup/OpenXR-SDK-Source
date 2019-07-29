@@ -16,10 +16,6 @@ std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_OpenGL(const std::shared_p
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Vulkan(const std::shared_ptr<Options>& options,
                                                              std::shared_ptr<IPlatformPlugin> platformPlugin);
 #endif
-// #ifdef XR_USE_GRAPHICS_API_D3D10
-//     std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_D3D10(const std::shared_ptr<Options>& options,
-//                                                           std::shared_ptr<IPlatformPlugin> platformPlugin);
-// #endif
 #ifdef XR_USE_GRAPHICS_API_D3D11
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_D3D11(const std::shared_ptr<Options>& options,
                                                             std::shared_ptr<IPlatformPlugin> platformPlugin);
@@ -50,10 +46,6 @@ std::map<std::string, GraphicsPluginFactory, IgnoreCaseStringLess> graphicsPlugi
          return CreateGraphicsPlugin_Vulkan(options, platformPlugin);
      }},
 #endif
-// #ifdef XR_USE_GRAPHICS_API_D3D10
-//     { "D3D10", [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {
-//         return CreateGraphicsPlugin_D3D10(options, platformPlugin); } },
-// #endif
 #ifdef XR_USE_GRAPHICS_API_D3D11
     {"D3D11", [](const std::shared_ptr<Options>& options,
                  std::shared_ptr<IPlatformPlugin> platformPlugin) { return CreateGraphicsPlugin_D3D11(options, platformPlugin); }},

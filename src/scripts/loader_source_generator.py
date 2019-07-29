@@ -22,22 +22,13 @@
 #               automatic_source_generator.py class to produce the
 #               generated source code for the loader.
 
-import os
-import re
-import sys
-from automatic_source_generator import *
-from collections import namedtuple
-
-# The following commands should only exist in the loader, and only as a trampoline
-# (i.e. Don't add it to the dispatch table)
-NO_TRAMPOLINE_OR_TERMINATOR = [
-    'xrEnumerateApiLayerProperties',
-    'xrEnumerateInstanceExtensionProperties',
-]
+from automatic_source_generator import (AutomaticSourceOutputGenerator,
+                                        undecorate)
+from generator import write
 
 # The following commands are manually implemented in the loader as trampoline
 # and terminator calls since they take an instance handle.
-MANUAL_LOADER_INSTANCE_FUNCS = [
+MANUAL_LOADER_INSTANCE_FUNCS = set((
     'xrGetInstanceProcAddr',
     'xrEnumerateApiLayerProperties',
     'xrEnumerateInstanceExtensionProperties',
@@ -47,33 +38,35 @@ MANUAL_LOADER_INSTANCE_FUNCS = [
     #  XR_EXT_debug_utils (both trampoline and terminator are manually defined)
     'xrCreateDebugUtilsMessengerEXT',
     'xrDestroyDebugUtilsMessengerEXT',
-]
+))
 
 # The following commands are manually implemented in the loader as trampoline
 # calls since they do not take an instance handle.
-MANUAL_LOADER_NONINSTANCE_FUNCS = [
+MANUAL_LOADER_NONINSTANCE_FUNCS = set((
     'xrSessionBeginDebugUtilsLabelRegionEXT',
     'xrSessionEndDebugUtilsLabelRegionEXT',
     'xrSessionInsertDebugUtilsLabelEXT',
-]
+))
+
+MANUAL_LOADER_FUNCS = MANUAL_LOADER_INSTANCE_FUNCS.union(MANUAL_LOADER_NONINSTANCE_FUNCS)
 
 # The terminators for the following commands are manually implemented in the
 # loader.
-MANUAL_LOADER_INSTANCE_TERMINATOR_FUNCS = [
+MANUAL_LOADER_INSTANCE_TERMINATOR_FUNCS = set((
     'xrSubmitDebugUtilsMessageEXT',
     'xrSetDebugUtilsObjectNameEXT',
-]
+))
 
-VALID_FOR_NULL_INSTANCE_GIPA = [
+VALID_FOR_NULL_INSTANCE_GIPA = set((
     'xrEnumerateInstanceExtensionProperties',
     'xrEnumerateInstanceLayerProperties',
     'xrCreateInstance',
-]
+))
 
-NEEDS_TERMINATOR = [
+NEEDS_TERMINATOR = set((
     'xrResultToString',
     'xrStructureTypeToString',
-]
+))
 
 # This is a list of extensions that the loader implements.  This means that
 # the runtime underneath may not support these extensions and the terminators
@@ -82,61 +75,26 @@ EXTENSIONS_LOADER_IMPLEMENTS = [
     'XR_EXT_debug_utils'
 ]
 
-# LoaderSourceGeneratorOptions - subclass of AutomaticSourceGeneratorOptions.
-class LoaderSourceGeneratorOptions(AutomaticSourceGeneratorOptions):
-    def __init__(self,
-                 conventions=None,
-                 filename=None,
-                 directory='.',
-                 apiname=None,
-                 profile=None,
-                 versions='.*',
-                 emitversions='.*',
-                 defaultExtensions=None,
-                 addExtensions=None,
-                 removeExtensions=None,
-                 emitExtensions=None,
-                 sortProcedure=regSortFeatures,
-                 prefixText="",
-                 genFuncPointers=True,
-                 protectFile=True,
-                 protectFeature=True,
-                 protectProto=None,
-                 protectProtoStr=None,
-                 apicall='',
-                 apientry='',
-                 apientryp='',
-                 indentFuncProto=True,
-                 indentFuncPointer=False,
-                 alignFuncParam=0,
-                 genEnumBeginEndRange=False):
-        AutomaticSourceGeneratorOptions.__init__(self,
-                                                 conventions=conventions,
-                                                 filename=filename,
-                                                 directory=directory,
-                                                 apiname=apiname,
-                                                 profile=profile,
-                                                 versions=versions,
-                                                 emitversions=emitversions,
-                                                 defaultExtensions=defaultExtensions,
-                                                 addExtensions=addExtensions,
-                                                 removeExtensions=removeExtensions,
-                                                 emitExtensions=emitExtensions,
-                                                 sortProcedure=sortProcedure)
-        # Instead of using prefixText, we write our own
-        self.prefixText = None
-        self.genFuncPointers = genFuncPointers
-        self.protectFile = protectFile
-        self.protectFeature = protectFeature
-        self.protectProto = protectProto
-        self.protectProtoStr = protectProtoStr
-        self.apicall = apicall
-        self.apientry = apientry
-        self.apientryp = apientryp
-        self.indentFuncProto = indentFuncProto
-        self.indentFuncPointer = indentFuncPointer
-        self.alignFuncParam = alignFuncParam
-        self.genEnumBeginEndRange = genEnumBeginEndRange
+def generateErrorMessage(indent_level, vuid, cur_cmd, message, object_info):
+    lines = []
+    lines.append('LoaderLogger::LogValidationErrorMessage(')
+    lines.append('    "VUID-{}",'.format('-'.join(vuid)))
+    lines.append('    "{}",'.format(cur_cmd.name))
+    lines.append('    {},'.format(message))
+
+    object_info_constructors = ['XrLoaderLogObjectInfo{%s, %s}' % p for p in object_info]
+    if len(object_info_constructors) <= 1:
+        lines.append('    {%s});' % (', '.join(object_info_constructors)))
+    else:
+        lines.append('    {')
+        lines.append(',\n'.join('    %s' % x for x in object_info_constructors))
+        lines.append('    });')
+    if isinstance(indent_level, str):
+        base_indent = indent_level
+    else:
+        base_indent = (4 * indent_level) * ' '
+    indented_lines_with_lf = (''.join((base_indent, line, '\n')) for line in lines)
+    return ''.join(indented_lines_with_lf)
 
 
 def generateErrorMessage(indent_level, vuid, cur_cmd, message, object_info):
@@ -164,13 +122,6 @@ def generateErrorMessage(indent_level, vuid, cur_cmd, message, object_info):
 # LoaderSourceOutputGenerator - subclass of AutomaticSourceOutputGenerator.
 class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
     """Generate loader source using XML element attributes from registry"""
-
-    def __init__(self,
-                 errFile=sys.stderr,
-                 warnFile=sys.stderr,
-                 diagFile=sys.stdout):
-        AutomaticSourceOutputGenerator.__init__(
-            self, errFile, warnFile, diagFile)
 
     # Override the base class header warning so the comment indicates this file.
     #   self            the LoaderSourceOutputGenerator object
@@ -270,8 +221,9 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 commands = self.ext_commands
 
             for cur_cmd in commands:
-                if (cur_cmd.name in MANUAL_LOADER_INSTANCE_FUNCS or cur_cmd.name in MANUAL_LOADER_NONINSTANCE_FUNCS or
-                        cur_cmd.name in MANUAL_LOADER_INSTANCE_TERMINATOR_FUNCS or cur_cmd.has_instance):
+                if cur_cmd.name in MANUAL_LOADER_FUNCS or \
+                    cur_cmd.name in MANUAL_LOADER_INSTANCE_TERMINATOR_FUNCS or \
+                        cur_cmd.has_instance:
                     if cur_cmd.ext_name != cur_extension_name:
                         if self.isCoreExtensionName(cur_cmd.ext_name):
                             manual_funcs += '\n// ---- Core %s loader manual functions\n' % cur_cmd.ext_name[11:].replace(
@@ -293,7 +245,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                     # If this is a command is implemented in the loader manually, but not only for
                     # loader, add a prototype for the terminator (unless it doesn't have a terminator)
                     if ((cur_cmd.name in MANUAL_LOADER_INSTANCE_FUNCS or cur_cmd.name in MANUAL_LOADER_INSTANCE_TERMINATOR_FUNCS) and
-                            cur_cmd.name not in NO_TRAMPOLINE_OR_TERMINATOR):
+                            cur_cmd.name not in self.no_trampoline_or_terminator):
                         manual_funcs += func_proto.replace(
                             "XRAPI_CALL xr", "XRAPI_CALL LoaderXrTerm")
                         manual_funcs += '\n'
@@ -454,7 +406,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                         generated_funcs += '\n// ---- %s extension commands\n' % cur_cmd.ext_name
                     cur_extension_name = cur_cmd.ext_name
 
-                if cur_cmd.name in MANUAL_LOADER_INSTANCE_FUNCS or cur_cmd.name in MANUAL_LOADER_NONINSTANCE_FUNCS:
+                if cur_cmd.name in MANUAL_LOADER_FUNCS:
                     continue
 
                 # Remove 'xr' from proto name
@@ -754,7 +706,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
         export_funcs += self.writeIndent(indent)
         export_funcs += 'LoaderInstance * const loader_instance = g_instance_map.Get(instance);\n'
         export_funcs += self.writeIndent(indent)
-        export_funcs += 'if (loader_instance == nullptr) {\n'
+        export_funcs += 'if (instance == XR_NULL_HANDLE) {\n'
         indent = indent + 1
         export_funcs += self.writeIndent(indent)
         export_funcs += '// Null instance is allowed for 3 specific API entry points, otherwise return error\n'
@@ -840,7 +792,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
 
                 # Instance commands always need to start with trampoline to properly de-reference instance
                 if self.isCoreExtensionName(cur_cmd.ext_name):
-                    if cur_cmd.has_instance or cur_cmd.name in MANUAL_LOADER_INSTANCE_FUNCS or cur_cmd.name in MANUAL_LOADER_NONINSTANCE_FUNCS:
+                    if cur_cmd.has_instance or cur_cmd.name in MANUAL_LOADER_FUNCS:
                         export_funcs += self.writeIndent(indent)
                         export_funcs += '*function = reinterpret_cast<PFN_xrVoidFunction>(%s);\n' % (
                             cur_cmd.name)
@@ -853,7 +805,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                     export_funcs += 'if (loader_instance->ExtensionIsEnabled("%s")) {\n' % (
                         cur_cmd.ext_name)
                     export_funcs += self.writeIndent(indent + 1)
-                    if cur_cmd.has_instance or cur_cmd.name in MANUAL_LOADER_INSTANCE_FUNCS or cur_cmd.name in MANUAL_LOADER_NONINSTANCE_FUNCS:
+                    if cur_cmd.has_instance or cur_cmd.name in MANUAL_LOADER_FUNCS:
                         export_funcs += '*function = reinterpret_cast<PFN_xrVoidFunction>(%s);\n' % (
                             cur_cmd.name)
                     else:
@@ -901,7 +853,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 # Anything with an XrInstance requires a terminator so we can unwrap it properly for the
                 # runtime.
                 if ((cur_cmd.name in MANUAL_LOADER_INSTANCE_FUNCS or cur_cmd.name in MANUAL_LOADER_INSTANCE_TERMINATOR_FUNCS) and
-                        not cur_cmd.name in NO_TRAMPOLINE_OR_TERMINATOR) or cur_cmd.name in NEEDS_TERMINATOR:
+                        cur_cmd.name not in self.no_trampoline_or_terminator) or cur_cmd.name in NEEDS_TERMINATOR:
                     if cur_cmd.protect_value:
                         export_funcs += '#if %s\n' % cur_cmd.protect_string
                     if count == 0:
@@ -960,7 +912,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 if cur_cmd.protect_value:
                     export_funcs += '#if %s\n' % cur_cmd.protect_string
 
-                if cur_cmd.name in NO_TRAMPOLINE_OR_TERMINATOR:
+                if cur_cmd.name in self.no_trampoline_or_terminator:
                     export_funcs += '    table->%s = nullptr;\n' % base_name
                 else:
                     export_funcs += '    LoaderXrTermGetInstanceProcAddr(instance, "%s", reinterpret_cast<PFN_xrVoidFunction*>(&table->%s));\n' % (
@@ -993,7 +945,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 if cur_cmd.protect_value:
                     export_funcs += '#if %s\n' % cur_cmd.protect_string
 
-                if cur_cmd.name not in NO_TRAMPOLINE_OR_TERMINATOR:
+                if cur_cmd.name not in self.no_trampoline_or_terminator:
                     if cur_cmd.name == 'xrGetInstanceProcAddr':
                         export_funcs += '    table->GetInstanceProcAddr = _get_instant_proc_addr;\n'
                     else:

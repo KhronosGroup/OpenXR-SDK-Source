@@ -48,9 +48,9 @@ XrResult RuntimeTestXrEnumerateInstanceExtensionProperties(const char *layerName
     *propertyCountOutput = 2;
     if (0 != propertyCapacityInput) {
         strcpy(properties[0].extensionName, "XR_KHR_fake_ext1");
-        properties[0].specVersion = 57;
+        properties[0].extensionVersion = 57;
         strcpy(properties[1].extensionName, "XR_KHR_fake_ext2");
-        properties[1].specVersion = 3;
+        properties[1].extensionVersion = 3;
     }
     return XR_SUCCESS;
 }
@@ -82,12 +82,12 @@ RUNTIME_EXPORT XrResult xrNegotiateLoaderRuntimeInterface(const XrNegotiateLoade
         loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_RUNTIME_VERSION ||
         loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_RUNTIME_VERSION ||
         loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_RUNTIME_VERSION ||
-        loaderInfo->minXrVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minXrVersion >= XR_MAKE_VERSION(1, 1, 0)) {
+        loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
 
     runtimeRequest->runtimeInterfaceVersion = XR_CURRENT_LOADER_RUNTIME_VERSION;
-    runtimeRequest->runtimeXrVersion = XR_MAKE_VERSION(0, 1, 0);
+    runtimeRequest->runtimeApiVersion = XR_MAKE_VERSION(0, 1, 0);
     runtimeRequest->getInstanceProcAddr = reinterpret_cast<PFN_xrGetInstanceProcAddr>(RuntimeTestXrGetInstanceProcAddr);
 
     return XR_SUCCESS;
@@ -110,12 +110,12 @@ RUNTIME_EXPORT XrResult TestRuntimeNullGipaNegotiateLoaderRuntimeInterface(const
         loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_RUNTIME_VERSION ||
         loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_RUNTIME_VERSION ||
         loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_RUNTIME_VERSION ||
-        loaderInfo->minXrVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minXrVersion >= XR_MAKE_VERSION(1, 1, 0)) {
+        loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
 
     runtimeRequest->runtimeInterfaceVersion = XR_CURRENT_LOADER_RUNTIME_VERSION;
-    runtimeRequest->runtimeXrVersion = XR_MAKE_VERSION(0, 1, 0);
+    runtimeRequest->runtimeApiVersion = XR_MAKE_VERSION(0, 1, 0);
     runtimeRequest->getInstanceProcAddr = nullptr;
 
     return XR_SUCCESS;
@@ -132,12 +132,12 @@ RUNTIME_EXPORT XrResult TestRuntimeInvalidInterfaceNegotiateLoaderRuntimeInterfa
         loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_RUNTIME_VERSION ||
         loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_RUNTIME_VERSION ||
         loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_RUNTIME_VERSION ||
-        loaderInfo->minXrVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minXrVersion >= XR_MAKE_VERSION(1, 1, 0)) {
+        loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
 
     runtimeRequest->runtimeInterfaceVersion = 0;
-    runtimeRequest->runtimeXrVersion = XR_MAKE_VERSION(0, 1, 0);
+    runtimeRequest->runtimeApiVersion = XR_MAKE_VERSION(0, 1, 0);
     runtimeRequest->getInstanceProcAddr = reinterpret_cast<PFN_xrGetInstanceProcAddr>(RuntimeTestXrGetInstanceProcAddr);
 
     return XR_SUCCESS;
@@ -154,12 +154,12 @@ RUNTIME_EXPORT XrResult TestRuntimeInvalidApiNegotiateLoaderRuntimeInterface(con
         loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_RUNTIME_VERSION ||
         loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_RUNTIME_VERSION ||
         loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_RUNTIME_VERSION ||
-        loaderInfo->minXrVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minXrVersion >= XR_MAKE_VERSION(1, 1, 0)) {
+        loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
 
     runtimeRequest->runtimeInterfaceVersion = XR_CURRENT_LOADER_RUNTIME_VERSION;
-    runtimeRequest->runtimeXrVersion = 0;
+    runtimeRequest->runtimeApiVersion = 0;
     runtimeRequest->getInstanceProcAddr = reinterpret_cast<PFN_xrGetInstanceProcAddr>(RuntimeTestXrGetInstanceProcAddr);
 
     return XR_SUCCESS;

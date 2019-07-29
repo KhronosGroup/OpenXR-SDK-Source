@@ -109,7 +109,7 @@ int main() {
 
     printf("List instance extensions\n");
     for (XrExtensionProperties extension : extensions) {
-        printf("\t%s %d\n", extension.extensionName, extension.specVersion);
+        printf("\t%s %d\n", extension.extensionName, extension.extensionVersion);
     }
 
     // The program struct will do cleanup for us.

@@ -129,12 +129,11 @@ void TestEnumLayers(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32
                 uint16_t expected_minor = XR_VERSION_MINOR(XR_CURRENT_API_VERSION);
                 for (uint32_t iii = 0; iii < properties.size(); ++iii) {
                     std::string layer_name = properties[iii].layerName;
-                    if ("XR_APILAYER_LUNARG_test" == layer_name && 1 == properties[iii].implementationVersion &&
+                    if ("XR_APILAYER_LUNARG_test" == layer_name && 1 == properties[iii].layerVersion &&
                         XR_MAKE_VERSION(expected_major, expected_minor, 0U) == properties[iii].specVersion &&
                         0 == strcmp(properties[iii].description, "Test_description")) {
                         found_good_absolute_test = true;
-                    } else if ("XR_APILAYER_LUNARG_test_good_relative_path" == layer_name &&
-                               1 == properties[iii].implementationVersion &&
+                    } else if ("XR_APILAYER_LUNARG_test_good_relative_path" == layer_name && 1 == properties[iii].layerVersion &&
                                XR_MAKE_VERSION(expected_major, expected_minor, 0U) == properties[iii].specVersion &&
                                0 == strcmp(properties[iii].description, "Test_description")) {
                         found_good_relative_test = true;
@@ -321,15 +320,15 @@ void TestEnumInstanceExtensions(uint32_t& total, uint32_t& passed, uint32_t& ski
                             bool found_fake3 = false;
                             for (uint32_t prop = 0; prop < properties.size(); ++prop) {
                                 std::string extension_name = properties[prop].extensionName;
-                                if ("XR_KHR_fake_ext1" && properties[prop].specVersion == 57) {
+                                if ("XR_KHR_fake_ext1" && properties[prop].extensionVersion == 57) {
                                     found_fake1 = true;
                                     // NOTE: The layer, if it is present, has a newer version than this.  But,
                                     //       the spec states that the layer should always lose to the runtime.
                                     //       Therefore, the runtime version should always be returned, even with
                                     //       the layer forced on.
-                                } else if ("XR_KHR_fake_ext2" && properties[prop].specVersion == 3) {
+                                } else if ("XR_KHR_fake_ext2" && properties[prop].extensionVersion == 3) {
                                     found_fake2 = true;
-                                } else if ("XR_KHR_fake_ext3" && properties[prop].specVersion == 42) {
+                                } else if ("XR_KHR_fake_ext3" && properties[prop].extensionVersion == 42) {
                                     found_fake3 = true;
                                 }
                             }

@@ -15,8 +15,8 @@
 
 set -e
 (
-    PREFERRED_CLANG_FORMAT=clang-format-5.0
-    ACCEPTABLE_CLANG_FORMATS="${PREFERRED_CLANG_FORMAT} clang-format-6.0 clang-format-7 clang-format-8 clang-format"
+    PREFERRED_CLANG_FORMAT=clang-format-6.0
+    ACCEPTABLE_CLANG_FORMATS="${PREFERRED_CLANG_FORMAT} clang-format-7 clang-format-8 clang-format-8 clang-format"
     cd "$(dirname $0)"
     if [ ! "${CLANGFORMAT}" ]; then
         for tool in ${ACCEPTABLE_CLANG_FORMATS}; do
@@ -33,9 +33,13 @@ set -e
     fi
     echo "'Official' clang-format version recommended is ${PREFERRED_CLANG_FORMAT}. Currently using:"
     ${CLANGFORMAT} --version
+    # The "-and -not" lines exclude the Jinja2 templates which are almost but not quite C++-parseable.
+    # The trailing + means that find will pass more than one file to a clang-format call,
+    # to reduce overhead.
     find . \( -wholename ./src/\* \) \
         -and -not \( -wholename ./src/external/\* \) \
+        -and -not \( -wholename ./src/scripts/\* \) \
         -and \( -name \*.hpp -or -name \*.h -or -name \*.cpp -or -name \*.c \) \
-        -exec ${CLANGFORMAT} -i -style=file {} \;
+        -exec ${CLANGFORMAT} -i -style=file {} +
 
 )

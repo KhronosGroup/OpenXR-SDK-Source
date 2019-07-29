@@ -17,7 +17,17 @@
 # Working-group-specific style conventions,
 # used in generation.
 
+import re
+from pathlib import Path
+
 from conventions import ConventionsBase
+
+# Tokenize into "words"
+# The leading named groups are for "special cases" per spec "Implicit Valid Usage" section 2.7.7
+# Note that while Vulkan is listed as a special case,
+# it doesn't actually break the rules, so it's not treated specially
+MAIN_RE = re.compile(
+    r'(?P<d3d>D3D[0-9]*)|(?P<gl>OpenGL(ES)?)|(?P<word>([A-Z][a-z]+)|([A-Z][A-Z0-9]+))')
 
 
 class OpenXRConventions(ConventionsBase):
@@ -40,10 +50,6 @@ class OpenXRConventions(ConventionsBase):
         return 'slink:'
 
     @property
-    def external_macro(self):
-        return 'code:'
-
-    @property
     def structtype_member_name(self):
         """Return name of the structure type member"""
         return 'type'
@@ -56,9 +62,10 @@ class OpenXRConventions(ConventionsBase):
     @property
     def valid_pointer_prefix(self):
         """Return prefix to pointers which must themselves be valid.
+
            OpenXR doesn't currently do this.
         """
-        return ''
+        return None
 
     def is_structure_type_member(self, paramtype, paramname):
         """Determine if member type and name match the structure type member."""
@@ -67,6 +74,27 @@ class OpenXRConventions(ConventionsBase):
     def is_nextpointer_member(self, paramtype, paramname):
         """Determine if member type and name match the next pointer chain member."""
         return paramtype == 'void' and paramname == self.nextpointer_member_name
+
+    def generate_structure_type_from_name(self, structname):
+        """Generate a structure type name, like XR_TYPE_CREATE_INSTANCE_INFO"""
+        structure_type_parts = []
+        # Tokenize into "words"
+        for elem in MAIN_RE.finditer(structname):
+            if elem.group('d3d'):
+                # D3D ⇒ _D3D
+                structure_type_parts.append(elem.group())
+            elif elem.group('gl'):
+                # OpenGL ⇒ _OPENGL
+                # OpenGLES ⇒ _OPENGL_ES
+                structure_type_parts.append(
+                    elem.group().upper().replace('ES', '_ES'))
+            else:
+                word = elem.group('word')
+                if word == 'Xr':
+                    structure_type_parts.append('XR_TYPE')
+                else:
+                    structure_type_parts.append(word.upper())
+        return '_'.join(structure_type_parts)
 
     @property
     def warning_comment(self):
@@ -78,10 +106,17 @@ class OpenXRConventions(ConventionsBase):
         """Return suffix of generated Asciidoctor files"""
         return '.adoc'
 
-    @property
-    def api_name(self):
-        """Return API name"""
-        return 'OpenXR'
+    def api_name(self, spectype='api'):
+        """Return API or specification name for citations in ref pages.
+
+        spectype is the spec this refpage is for.
+        'api' (the default value) is the main OpenXR API Specification.
+        If an unrecognized spectype is given, returns None.
+
+        """
+        if spectype == 'api' or spectype is None:
+            return 'OpenXR'
+        return None
 
     @property
     def xml_supported_name_of_api(self):
@@ -94,42 +129,32 @@ class OpenXRConventions(ConventionsBase):
         return 'XR_'
 
     @property
-    def api_version_prefix(self):
-        """Return API core version token prefix"""
-        return 'XR_VERSION_'
-
-    @property
-    def KHR_prefix(self):
-        """Return extension name prefix for KHR extensions"""
-        return 'XR_KHR_'
-
-    @property
-    def EXT_prefix(self):
-        """Return extension name prefix for EXT extensions"""
-        return 'XR_EXT_'
-
-    @property
     def write_contacts(self):
         """Return whether contact list should be written to extension appendices"""
-        # True for Vulkan
         return False
 
     @property
     def write_refpage_include(self):
         """Return whether refpage include should be written to extension appendices"""
-        # False for Vulkan
         return True
 
     def writeFeature(self, featureExtraProtect, filename):
         """Returns True if OutputGenerator.endFeature should write this feature.
-           Used in COutputGenerator.
 
-            In OpenXR, a feature is written to the openxr_platform header
-            if and only if it has a defined "protect" attribute.
+        Used in COutputGenerator.
+
+        In OpenXR, a feature is written to the openxr_platform header
+        if and only if it has a defined "protect" attribute.
         """
+        if filename == 'openxr_reflection.h':
+            # Write all features to the reflection header
+            return True
         is_protected = featureExtraProtect is not None
-        return ((is_protected and filename == 'openxr_platform.h') or
-                (not is_protected and filename != 'openxr_platform.h'))
+        is_platform_header = (filename == 'openxr_platform.h')
+
+        # non-protected goes in non-platform header,
+        # protected goes in platform header.
+        return is_protected == is_platform_header
 
     def requires_error_validation(self, return_type):
         """Returns True if the return_type element is an API result code
@@ -138,13 +163,15 @@ class OpenXRConventions(ConventionsBase):
         return return_type is not None and return_type.text == 'XrResult'
 
     @property
-    def required_errors(self):
-        """Return a set of required error codes for validation."""
-        return set(('XR_ERROR_VALIDATION_FAILURE',))
+    def member_used_for_unique_vuid(self):
+        """Return the member name used in the VUID-...-...-unique ID."""
+        return self.nextpointer_member_name
 
     def is_externsync_command(self, protoname):
         """Returns True if the protoname element is an API command requiring
-           external synchronization. OpenXR does not do this at present.
+           external synchronization.
+
+           OpenXR does not do this at present.
         """
         return False
 
@@ -155,25 +182,24 @@ class OpenXRConventions(ConventionsBase):
         """
         return name[0:2].lower() == 'xr' or name[0:6] == 'PFN_xr'
 
-    def is_voidpointer_alias(self, tag, text, tail):
-        """Return True if the declaration components (tag,text,tail) of an
-           element represents a void * type
-        """
-        return tag == 'type' and text == 'void' and tail.startswith('*')
+    def should_insert_may_alias_macro(self, genOpts):
+        """Return true if we should insert a "may alias" macro in this file."""
+
+        # Don't insert may alias macro in things included in the spec.
+        return "inc" not in genOpts.filename
 
     def make_voidpointer_alias(self, tail):
         """Reformat a void * declaration to include the API alias macro"""
         return '* XR_MAY_ALIAS{}'.format(tail[1:])
 
-    @property
-    def specURL(self):
+    def specURL(self, spectype='api'):
         """Return public registry URL which ref pages should link to for the
            current all-extensions HTML specification, so xrefs in the
            asciidoc source that aren't to ref pages can link into it
            instead. N.b. this may need to change on a per-refpage basis if
            there are multiple documents involved.
         """
-        return 'https://www.khronos.org/registry/openxr/specs/1.0-extensions/html/xrspec.html'
+        return 'https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html'
 
     @property
     def xml_api_name(self):
@@ -193,7 +219,7 @@ class OpenXRConventions(ConventionsBase):
     @property
     def extra_refpage_headers(self):
         """Return any extra text to add to refpage headers."""
-        return ''
+        return 'include::../sources/attribs.adoc[]'
 
     @property
     def extension_index_prefixes(self):
@@ -202,15 +228,15 @@ class OpenXRConventions(ConventionsBase):
 
     @property
     def unified_flag_refpages(self):
-        """Returns True if Flags/FlagBits refpages are unified, False if
+        """Return True if Flags/FlagBits refpages are unified, False if
            they're separate.
         """
         return True
 
     @property
     def spec_reflow_path(self):
-        """Return the relative path to the spec source folder to reflow"""
-        return 'specification/sources'
+        """Return the path to the spec source folder to reflow"""
+        return str(Path(__file__).resolve().parent.parent / 'sources')
 
     @property
     def spec_no_reflow_dirs(self):
@@ -218,3 +244,8 @@ class OpenXRConventions(ConventionsBase):
            when reflowing spec text
         """
         return ('loader', 'styleguide')
+
+    @property
+    def zero(self):
+        """Return the preferred way of formatting a literal 0."""
+        return "`0`"

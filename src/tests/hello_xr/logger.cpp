@@ -1,6 +1,4 @@
 #include "pch.h"
-#include "common.h"
-#include "options.h"
 #include "logger.h"
 
 #include <sstream>

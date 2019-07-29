@@ -245,13 +245,13 @@ static void ksFrameLog_EndFrame(const ksNanoseconds cpuTimeNanoseconds, const ks
     }
 }
 
-    /*
-    ================================================================================================================================
+/*
+================================================================================================================================
 
-    OpenGL error checking.
+OpenGL error checking.
 
-    ================================================================================================================================
-    */
+================================================================================================================================
+*/
 
 #if defined(_DEBUG)
 #define GL(func)                                 \
@@ -1832,13 +1832,13 @@ static void ksGpuContext_GetLimits(ksGpuContext *context, ksGpuLimits *limits) {
     limits->maxSamples = glGetInteger(GL_MAX_SAMPLES);
 }
 
-    /*
-    ================================================================================================================================
+/*
+================================================================================================================================
 
-    GPU Window.
+GPU Window.
 
-    ================================================================================================================================
-    */
+================================================================================================================================
+*/
 
 #if defined(OS_WINDOWS)
 
@@ -2614,7 +2614,7 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
         XChangeProperty(window->xDisplay, window->xWindow, _NET_WM_BYPASS_COMPOSITOR, XA_CARDINAL, 32, PropModeReplace,
                         (const unsigned char *)&bypass, 1);
 
-        // Completely dissasociate window from window manager.
+        // Completely disassociate window from window manager.
         XSetWindowAttributes attributes;
         attributes.override_redirect = True;
         XChangeWindowAttributes(window->xDisplay, window->xWindow, CWOverrideRedirect, &attributes);
@@ -3159,7 +3159,8 @@ ksGpuWindowEvent ksGpuWindow_ProcessEvents(ksGpuWindow *window) {
                 }
                 break;
             }
-            default: { break; }
+            default:
+                break;
         }
         free(event);
     }
@@ -3465,12 +3466,12 @@ ksGpuWindowEvent ksGpuWindow_ProcessEvents(ksGpuWindow *window) {
     return KS_GPU_WINDOW_EVENT_NONE;
 }
 
-    /*
-     * TODO:
-     * This is a work around for ksKeyboardKey naming collision
-     * with the definitions from <linux/input.h>.
-     * The proper fix for this is to rename the key enums.
-     */
+/*
+ * TODO:
+ * This is a work around for ksKeyboardKey naming collision
+ * with the definitions from <linux/input.h>.
+ * The proper fix for this is to rename the key enums.
+ */
 
 #undef KEY_A
 #undef KEY_B

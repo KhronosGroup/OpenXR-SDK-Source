@@ -14,7 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import sys, getopt, os, platform
+import getopt
+import os
+import sys
 
 cur_layer_json_version = '1.0.0'
 
@@ -117,7 +119,7 @@ def main(argv):
     file_text  = '{\n'
     file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
     file_text += '    "api_layer": {\n'
-    file_text += '        "name": "XR_APILAYER_LUNARG_%s",\n' % layer_name
+    file_text += '        "name": "XR_APILAYER_%s",\n' % layer_name
     file_text += '        "library_path": "%s",\n' % library_location
     file_text += '        "api_version": "%s",\n' % api_version
     file_text += '        "implementation_version": "%s",\n' % implementation_version
@@ -129,11 +131,11 @@ def main(argv):
         file_text += '        "instance_extensions": [\n'
         file_text += '            {\n'
         file_text += '                "name": "XR_KHR_fake_ext2",\n'
-        file_text += '                "spec_version": "12"\n'
+        file_text += '                "extension_version": "12"\n'
         file_text += '            },\n'
         file_text += '            {\n'
         file_text += '                "name": "XR_KHR_fake_ext3",\n'
-        file_text += '                "spec_version": "42"\n'
+        file_text += '                "extension_version": "42"\n'
         file_text += '            }\n'
         file_text += '        ]'
     file_text += '\n'

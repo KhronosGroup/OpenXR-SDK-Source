@@ -18,21 +18,15 @@
 #
 # Author: Mark Young <marky@lunarg.com>
 
+
 import re
-import sys
 
-from automatic_source_generator import (AutomaticSourceGeneratorOptions,
-                                        AutomaticSourceOutputGenerator,
-                                        regSortFeatures, undecorate, write)
-
-# The following commands should not be generated for the layer
-VALID_USAGE_DONT_GEN = [
-    'xrEnumerateApiLayerProperties',
-    'xrEnumerateInstanceExtensionProperties',
-]
+from automatic_source_generator import (AutomaticSourceOutputGenerator,
+                                        undecorate)
+from generator import write
 
 # The following commands have a manually defined component to them.
-VALID_USAGE_MANUALLY_DEFINED = [
+VALID_USAGE_MANUALLY_DEFINED = set((
     'xrCreateInstance',
     'xrDestroyInstance',
     'xrCreateSession',
@@ -44,63 +38,14 @@ VALID_USAGE_MANUALLY_DEFINED = [
     'xrSessionBeginDebugUtilsLabelRegionEXT',
     'xrSessionEndDebugUtilsLabelRegionEXT',
     'xrSessionInsertDebugUtilsLabelEXT',
-]
+))
 
-
-# ValidationSourceGeneratorOptions - subclass of AutomaticSourceGeneratorOptions.
-class ValidationSourceGeneratorOptions(AutomaticSourceGeneratorOptions):
-    def __init__(self,
-                 conventions=None,
-                 filename=None,
-                 directory='.',
-                 apiname=None,
-                 profile=None,
-                 versions='.*',
-                 emitversions='.*',
-                 defaultExtensions=None,
-                 addExtensions=None,
-                 removeExtensions=None,
-                 emitExtensions=None,
-                 sortProcedure=regSortFeatures,
-                 prefixText="",
-                 genFuncPointers=True,
-                 protectFile=True,
-                 protectFeature=True,
-                 protectProto=None,
-                 protectProtoStr=None,
-                 apicall='',
-                 apientry='',
-                 apientryp='',
-                 indentFuncProto=True,
-                 indentFuncPointer=False,
-                 alignFuncParam=0,
-                 genEnumBeginEndRange=False):
-        AutomaticSourceGeneratorOptions.__init__(self,
-                                                 conventions=conventions,
-                                                 filename=filename,
-                                                 directory=directory,
-                                                 apiname=apiname,
-                                                 profile=profile,
-                                                 versions=versions,
-                                                 emitversions=emitversions,
-                                                 defaultExtensions=defaultExtensions,
-                                                 addExtensions=addExtensions,
-                                                 removeExtensions=removeExtensions,
-                                                 emitExtensions=emitExtensions,
-                                                 sortProcedure=sortProcedure)
 
 # ValidationSourceOutputGenerator - subclass of AutomaticSourceOutputGenerator.
 
 
 class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
     """Generate core validation layer source using XML element attributes from registry"""
-
-    def __init__(self,
-                 errFile=sys.stderr,
-                 warnFile=sys.stderr,
-                 diagFile=sys.stdout):
-        AutomaticSourceOutputGenerator.__init__(
-            self, errFile, warnFile, diagFile)
 
     # Override the base class header warning so the comment indicates this file.
     #   self            the ValidationSourceOutputGenerator object
@@ -517,7 +462,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 for cur_value in enum_tuple.values:
                     struct_define_name = self.genXrStructureName(
                         cur_value.name)
-                    if len(struct_define_name) > 0:
+                    if struct_define_name:
                         struct_tuple = self.getStruct(struct_define_name)
                         if struct_tuple.protect_value:
                             next_chain_info += '#if %s\n' % struct_tuple.protect_string
@@ -596,8 +541,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                         validation_header_info += '\n// ---- %s extension commands\n' % cur_cmd.ext_name
                     cur_extension_name = cur_cmd.ext_name
 
-                prototype = cur_cmd.cdecl.replace("API_ATTR ", "")
-                prototype = prototype.replace("XRAPI_CALL ", "")
+                prototype = self.replace_ATTR_CALL(cur_cmd.cdecl)
 
                 # We need to always export xrGetInstanceProcAddr, even though we automatically generate it.
                 # Also, we really only need the core function, not the others.
@@ -605,7 +549,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                     validation_header_info += '%s\n' % prototype.replace(
                         " xr", " GenValidUsageXr")
                     continue
-                elif cur_cmd.name in VALID_USAGE_DONT_GEN or not cur_cmd.name in VALID_USAGE_MANUALLY_DEFINED:
+                elif cur_cmd.name in self.no_trampoline_or_terminator or not cur_cmd.name in VALID_USAGE_MANUALLY_DEFINED:
                     continue
 
                 if cur_cmd.protect_value:
@@ -1012,7 +956,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         validate_struct_next += 'std::vector<XrStructureType> duplicate_ext_structs;\n'
         validate_struct_next += self.writeIndent(indent)
         validate_struct_next += 'std::vector<XrStructureType> encountered_structs;\n'
-        if member.valid_extension_structs and len(member.valid_extension_structs) > 0:
+        if member.valid_extension_structs:
             for valid_struct in member.valid_extension_structs:
                 validate_struct_next += self.writeIndent(indent)
                 validate_struct_next += 'valid_ext_structs.push_back(%s);\n' % self.genXrStructureType(
@@ -1122,7 +1066,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             error_prefix = 'Invalid NULL for'
         else:
             error_prefix = '%s contains invalid NULL for' % cmd_struct_name
-        if full_count_var is None or len(full_count_var) == 0:
+        if not full_count_var:
             array_check += '// Non-optional pointer/array variable that needs to not be NULL\n'
             array_check += self.writeIndent(indent)
             array_check += 'if (nullptr == %s) {\n' % pointer_to_check
@@ -1436,11 +1380,11 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         loop_param_name = 'value_'
         loop_param_name += param_member.name.lower()
         loop_param_name += '_inc'
-        if len(param_member.array_count_var) != 0:
+        if param_member.array_count_var:
             is_array = True
             if param_member.pointer_count > 0:
                 is_pointer = True
-        elif len(param_member.pointer_count_var) != 0:
+        elif param_member.pointer_count_var:
             is_array = True
             if param_member.pointer_count > 1:
                 is_pointer = True
@@ -1455,7 +1399,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             if param_member.is_static_array:
                 short_count_var = param_member.static_array_sizes[0]
                 long_count_name = param_member.static_array_sizes[0]
-            elif len(param_member.array_count_var) != 0:
+            elif param_member.array_count_var:
                 short_count_var = param_member.array_count_var
                 if self.isAllUpperCase(param_member.array_count_var):
                     long_count_name = param_member.array_count_var
@@ -1498,7 +1442,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                                                                            is_command,
                                                                            indent)
 
-        if not param_member.is_static_array and len(param_member.array_length_for) > 0:
+        if not param_member.is_static_array and param_member.array_length_for:
             if param_member.is_optional:
                 param_member_contents += self.writeIndent(indent)
                 param_member_contents += '// Optional array must be non-NULL when %s is non-zero\n' % prefixed_param_member_name
@@ -1959,7 +1903,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                     struct_check += '}\n'
                     if child_struct.protect_value:
                         struct_check += '#endif // %s\n' % child_struct.protect_string
-
+                
                 struct_check += self.writeIndent(indent)
                 struct_check += 'InvalidStructureType(instance_info, command_name, objects_info, "%s",\n' % xr_struct.name
                 struct_check += self.writeIndent(indent)
@@ -2179,7 +2123,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         pre_validate_func += 'std::vector<GenValidUsageXrObjectInfo> objects_info;\n'
         first_param = cur_command.params[0]
         first_param_tuple = self.getHandle(first_param.type)
-        if first_param_tuple != None:
+        if first_param_tuple is not None:
             first_handle_name = self.getFirstHandleName(first_param)
             obj_type = self.genXrObjectType(first_param.type)
             pre_validate_func += self.writeIndent(indent)
@@ -2222,7 +2166,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                         if param.type == cur_state.type:
                             command_param_of_type = param.name
                             break
-                    if (len(command_param_of_type) > 0) and cur_state.type not in valid_type_list:
+                    if command_param_of_type and cur_state.type not in valid_type_list:
                         valid_type_list.append(cur_state.type)
                         pre_validate_func += self.writeIndent(2)
                         pre_validate_func += 'auto %s_valid = g_%s_valid_states[%s];\n' % (
@@ -2408,6 +2352,9 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         pre_validate_func += '}\n\n'
         return pre_validate_func
 
+    def replace_ATTR_CALL(self, decl):
+        return decl.replace(self.genOpts.apicall, "").replace(self.genOpts.apientry, "")
+
     # Generate C++ code to call down to the next layer/loader terminator/runtime
     #   self            the ValidationSourceOutputGenerator object
     #   cur_command     the command generated in automatic_source_generator.py to validate
@@ -2422,10 +2369,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         # entry into the dispatch table so it's a special case all around.
         if 'xrCreateInstance' in cur_command.name:
             return ''
-        prototype = cur_command.cdecl
-        prototype = prototype.replace(" xr", " GenValidUsageNextXr")
-        prototype = prototype.replace("API_ATTR ", "")
-        prototype = prototype.replace("XRAPI_CALL ", "")
+        prototype = self.replace_ATTR_CALL(cur_command.cdecl.replace(" xr", " GenValidUsageNextXr"))
         prototype = prototype.replace(";", " {")
         next_validate_func += '%s\n' % (prototype)
         if has_return:
@@ -2567,10 +2511,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
     #   has_return      Boolean indicating that the command must return a value (usually XrResult)
     def genAutoValidateFunc(self, cur_command, has_return):
         auto_validate_func = ''
-        prototype = cur_command.cdecl
-        prototype = prototype.replace(" xr", " GenValidUsageXr")
-        prototype = prototype.replace("API_ATTR ", "")
-        prototype = prototype.replace("XRAPI_CALL ", "")
+        prototype = self.replace_ATTR_CALL(cur_command.cdecl.replace(" xr", " GenValidUsageXr"))
         prototype = prototype.replace(";", " {")
         auto_validate_func += '%s\n' % (prototype)
         auto_validate_func += self.writeIndent(1)
@@ -2693,7 +2634,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                         validation_source_funcs += '\n// ---- %s extension commands\n' % cur_cmd.ext_name
                     cur_extension_name = cur_cmd.ext_name
 
-                if cur_cmd.name in VALID_USAGE_DONT_GEN:
+                if cur_cmd.name in self.no_trampoline_or_terminator:
                     continue
 
                 # We fill in the GetInstanceProcAddr manually at the end
@@ -2721,7 +2662,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 validation_source_funcs += self.genValidateInputsFunc(cur_cmd)
                 validation_source_funcs += self.genNextValidateFunc(
                     cur_cmd, has_return, is_create, is_destroy, is_sempath_query)
-                if not cur_cmd.name in VALID_USAGE_MANUALLY_DEFINED:
+                if cur_cmd.name not in VALID_USAGE_MANUALLY_DEFINED:
                     validation_source_funcs += self.genAutoValidateFunc(
                         cur_cmd, has_return)
 
@@ -2772,11 +2713,11 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                         validation_source_funcs += '\n        // ---- %s extension commands\n' % cur_cmd.ext_name
                     cur_extension_name = cur_cmd.ext_name
 
-                if cur_cmd.name in VALID_USAGE_DONT_GEN:
+                if cur_cmd.name in self.no_trampoline_or_terminator:
                     continue
 
                 has_return = False
-                if cur_cmd.return_type != None:
+                if cur_cmd.return_type is not None:
                     has_return = True
 
                 if cur_cmd.name in VALID_USAGE_MANUALLY_DEFINED:

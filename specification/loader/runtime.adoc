@@ -1,0 +1,437 @@
+[[runtime-interaction]]
+== Runtime Interaction ==
+
+This section discusses the various requirements for the loader and an OpenXR
+runtime to properly interact.
+
+
+[[runtime-discovery]]
+=== Runtime Discovery ===
+
+OpenXR may have a choice of multiple runtimes on a user's system.
+The selection of the active runtime is handled external to the loader.
+The loader is responsible for discovering only the active OpenXR runtime on the
+system, and loading it properly.
+The standard process in which the loader discovers the active runtime on a
+system is platform dependent.
+
+
+[[active-runtime-information]]
+==== Active Runtime Information
+
+The means of identifying the active runtime used by an OpenXR application
+vary based on the underlying operating system and is detailed in the
+sub-sections below.
+This information is also important if the active runtime needs to be
+changed by an external entity (on those platforms that support updating).
+
+===== Linux Active Runtime Location
+
+On Linux, the active runtime information is contained inside a JSON-formatted
+file located under the folder:
+
+```
+/usr/local/share/openxr/<major_api_version>
+```
+
+<major_api_version> should be replaced with the integer value for
+the corresponding OpenXR API version.
+
+The JSON file is named "active_runtime.json" and contains the necessary
+information on how OpenXR components can load the appropriate runtime library.
+
+For example, the complete path location of the OpenXR 1.x active runtime file is:
+
+```
+/usr/local/share/openxr/1/active_runtime.json
+```
+
+===== Windows Active Runtime Location
+
+The Windows OpenXR active runtime information is actually located in the
+Windows Registry (not to be confused with the OpenXR registry) under
+the key:
+
+```
+HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenXR\<major_api_version>
+```
+
+Where <major_api_version> should be replaced with the integer value for
+the corresponding OpenXR API major version.
+
+[NOTE]
+.Important
+====
+If using a 32-bit application on a 64-bit Windows install, "WOW6432Node"
+is added before "SOFTWARE", in the above path like so:
+
+```
+HKEY_LOCAL_MACHINE\WOW6432Node\SOFTWARE\Khronos\OpenXR\<major_api_version>
+```
+====
+
+This means that the complete registry path to the OpenXR 1.x active runtime
+registry value is:
+
+```
+HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenXR\1
+```
+
+Under that registry key, the value "ActiveRuntime" is defined as a string
+value and should be defined to full directory path of the runtime's JSON file.
+
+An example "ActiveRuntime" value might look something like the following:
+
+```
+C:\windows\system32\my_system_runtime.json
+```
+
+[[runtime-manifest-file-format]]
+==== Runtime Manifest File Format
+
+As mentioned before, the OpenXR loader on Windows and Linux uses manifest files
+to discover the active runtime.
+The loader only loads the actual runtime library when necessary.
+Because of this, the manifest files contain important information about the
+runtime.
+The JSON file itself does not have any requirements for naming, beyond the
+requirement of using the ".json" extension.
+
+Here is an example runtime JSON manifest file:
+
+[example]
+.Runtime Manifest
+====
+[source,json]
+----
+{
+   "file_format_version": "1.0.0",
+   "runtime": {
+      "library_path": "./dbuild/src/impl/libopenxr_sample_impl.so"
+   }
+}
+----
+====
+
+.Runtime Manifest File Fields
+
+[options="header",cols="20%,10%,70%"]
+|====
+| Field Name    | Required | Field Value
+| "file_format_version"
+    | Yes
+        | The JSON format major.minor.patch version number of this file.
+        Currently supported version is 1.0.0.
+| "runtime"
+    | Yes
+        | The identifier used to group all runtime information together.
+| "library_path"
+    | Yes
+        | The "library_path" specifies either a filename, a relative pathname,
+        or a full pathname to the runtime's shared library file.  If
+        "library_path" specifies a relative pathname, it is relative to the
+        path of the JSON manifest file (e.g. for cases when an application
+        provides a runtime that is in the same folder hierarchy as the rest of
+        the application files).  If "library_path" specifies a filename, the
+        library must live in the system's shared object search path. There
+        are no rules about the name of the runtime shared library files other
+        than it should end with the appropriate suffix (".DLL" on Windows,
+        and ".so" on Linux).
+| "functions"
+    | No
+        | This section can be used to identify a different function name for
+        the loader to use in place of standard runtime interface functions. The
+        "functions" node is required if the runtime is using an alternative name
+        for `xrNegotiateLoaderRuntimeInterface`.
+            | xrGet*ProcAddr (except for `xrNegotiateLoaderRuntimeInterface`
+            which must be queried using the OS/platform-specific
+            GetProcAddress).
+|====
+
+[NOTE]
+.Note
+====
+If the same runtime shared library supports multiple, incompatible
+versions of OpenXR API, it must have separate JSON files for each
+API major version (all of which may point to the same shared library).
+====
+
+
+[[runtime-manifest-file-version-history]]
+===== Runtime Manifest File Version History
+
+The current highest supported runtime manifest file format supported is 1.0.0.
+Information about each version is detailed in the following sub-sections:
+
+_Runtime Manifest File Version 1.0.0_
+
+The initial version of the runtime manifest file specified the basic format and
+fields of a runtime JSON file.  The fields of the 1.0.0 file format include:
+
+* "file_format_version"
+* "runtime"
+* "library_path"
+
+
+[[loader-distribution]]
+==== Loader Distribution
+
+Any application using the OpenXR API is responsible with making sure it
+can properly execute on a user's system.
+Some OpenXR environments may not use an OpenXR loader but instead provide
+libraries which directly link with their runtime.
+Other runtime or platform vendors may choose to provide a separate
+OpenXR loader for debug or developmental reasons.
+Whatever the scenario, if an application uses an OpenXR loader, then
+that application is responsible for packaging the OpenXR loader in a
+location that will not interfere with other applications.
+If an engine or platform provides an OpenXR loader for applications,
+it must: provide documentation on how to properly package the necessary
+files.
+
+
+[[overriding-the-default-runtime-usage]]
+==== Overriding the Default Runtime Usage ====
+
+There may be times that a developer wishes to ignore the standard runtime
+discovery process and force the loader to use a specific runtime.
+This could be for many reasons including:
+
+ * Forcing on a Beta runtime
+ * Replacing a problematic runtime in favor of another
+
+In order to support this, the loader can be forced to look at specific runtime
+with the `XR_RUNTIME_JSON` environment variable.
+In order to use the setting, simply set it to the full global path location of
+the desired runtime manifest file.
+
+[NOTE]
+.Important
+====
+If the "XR_RUNTIME_JSON" variable is defined, then the loader will not look in
+the standard location for the active runtime.
+Instead, the loader will only utilize the filename defined in the environment
+variable.
+====
+
+[example]
+.Setting XR_RUNTIME_JSON Override
+====
+*Windows*
+
+----
+set XR_RUNTIME_JSON=\windows\system32\steam_runtime.json
+----
+
+*Linux*
+
+----
+export XR_RUNTIME_JSON=/home/user/.local/share/openxr/runtime.d/steam_runtime.json
+----
+====
+
+
+[[loader-runtime-interface-negotiation]]
+=== Loader/Runtime Interface Negotiation ===
+
+The OpenXR symbols exported by a runtime must not clash with the loader's
+exported OpenXR symbols.  Because of this, all runtimes must export only the
+following command with beginning with the `xr` prefix.  This command is not a
+part of the OpenXR API itself, only a private interface between the loader and
+runtimes for version 1 and higher interfaces. In order to negotiate the
+loader/runtime interface version, the runtime must implement the
+fname:xrNegotiateLoaderRuntimeInterface` function (or a renamed version of this
+function identified in the manifest file).
+
+[[xrNegotiateLoaderRuntimeInterface,xrNegotiateLoaderRuntimeInterface]]
+[source,c++]
+----
+XrResult xrNegotiateLoaderRuntimeInterface(
+            const XrNegotiateLoaderInfo *loaderInfo,
+            XrNegotiateRuntimeRequest *runtimeRequest);
+----
+  * pname:loaderInfo must: be a valid pointer to a constant
+    slink:XrNegotiateLoaderInfo structure.
+  * pname:runtimeRequest must be a valid pointer to a
+    slink:XrNegotiateRuntimeRequest structure.
+
+This function should be directly exported by a runtime so that using
+"GetProcAddress" on Windows or "dlsym" on Linux, should return a valid function
+pointer to it (see
+<<runtime-exporting-of-commands, Runtime Exporting of Commands>> for more
+information).
+
+If the function succeeds, the runtime should return `XR_SUCCESS`.
+If the function fails, the runtime should return
+`XR_ERROR_INITIALIZATION_FAILED`.  The entire
+<<loader-runtime-negotiation-process, negotiation process>> is defined in more
+detail below.
+
+The sname:XrNegotiateLoaderInfo struct is defined in the
+`src/common/loader_interfaces.h` header.  It is used to pass information
+about the loader to a runtime during the negotiation process.  See the
+definition of slink:XrNegotiateLoaderInfo under the 
+<<loader-api-layer-interface-negotiation,layer negotiation>> section for
+more information.
+
+The sname:XrNegotiateRuntimeRequest can also be found in the
+`src/common/loader_interfaces.h` header.  It is used to pass information
+about the runtime back to the loader during the negotiation process.
+
+[[XrNegotiateRuntimeRequest,XrNegotiateRuntimeRequest]]
+[source,c++]
+----
+struct XrNegotiateRuntimeRequest {
+    XrLoaderInterfaceStructs structType;
+    uint32_t structVersion;
+    size_t structSize;
+    uint32_t runtimeInterfaceVersion;
+    uint32_t runtimeApiVersion;
+    PFN_xrGetInstanceProcAddr getInstanceProcAddr;
+};
+----
+  * pname:structType must: be a valid value of elink:XrLoaderInterfaceStructs.
+    In this case, it must specifically be `XR_LOADER_INTERFACE_STRUCT_RUNTIME_REQUEST`.
+  * pname:structVersion must: be a valid version of the structure.
+    The `loader_interfaces.h` header uses the value
+    `XR_RUNTIME_INFO_STRUCT_VERSION` to describe the current latest
+    version of this structure.
+  * pname:structSize must: be the size in bytes of the current version
+    of the structure (i.e. sizeof(XrNegotiateRuntimeRequest))
+  * pname:runtimeInterfaceVersion is the version of the
+    <<runtime-interface-versions,loader/runtime interface version>>
+    being requested by the runtime.  Should not be outside of the bounds
+    of the slink:XrNegotiateLoaderInfo::`minInterfaceVersion` and
+    sname:XrNegotiateLoaderInfo::`maxInterfaceVersion` values (inclusive).
+  * pname:runtimeApiVersion is the version of the OpenXR API supported by
+    this runtime as formatted by `XR_MAKE_VERSION` defined in `openxr.h`.
+    Patch is ignored.
+  * pname:getInstanceProcAddr is a pointer to the runtime's
+    `xrGetInstanceProcAddr` call that will be used by the loader to
+    complete a dispatch table to all valid OpenXR commands supported
+    by the runtime.
+
+[NOTE]
+.Important
+====
+Remember, during the call to fname:xrNegotiateLoaderRuntimeInterface, the
+runtime must: grab control of the active runtime manifest file.
+Functions that should be used to grab control of the manifest file are defined
+in the common code as described in the
+<<active-runtime-file-management, Active Runtime File Management>>
+section of this document.
+The runtime must: also determine when to release control of this file.
+This may be due to the last instance an application created is destroyed,
+the application is exiting, or some period of inactivity occurs.
+====
+
+
+[[loader-runtime-negotiation-process]]
+==== Loader/Runtime Negotiation Process ====
+
+Once the loader has obtained a valid address to the runtime's
+flink:xrNegotiateLoaderRuntimeInterface function, the loader will create a
+variable of type slink:XrNegotiateLoaderInfo and initialize it in the following ways:
+
+1. Set the structure "structType" to `XR_LOADER_INTERFACE_STRUCT_LOADER_INFO`
+2. Set the structure "structVersion" to the current version,
+   `XR_LOADER_INFO_STRUCT_VERSION`
+3. Set the structure "structSize" to the current size of the
+   `XrNegotiateLoaderInfo` structure
+4. Set "minInterfaceVersion" to the minimum
+   <<runtime-interface-versions,loader/runtime interface version>> that the
+   loader supports
+5. Set "maxInterfaceVersion" to the current version of the
+   <<runtime-interface-versions,loader/runtime interface>>
+   at the time of loader compilation
+6. Set "minApiVersion" to the minimum version of OpenXR supported by the loader
+7. Set "maxApiVersion" to the maximum version of OpenXR supported by the loader
+   (the current version at the time of loader compilation).
+
+The loader will also create an initialize a variable of type
+slink:XrNegotiateRuntimeRequest to allow the runtime to properly respond to the
+request.  The structure will be initialized by the loader in the following way:
+
+1. Set the structure "structType" to `XR_LOADER_INTERFACE_STRUCT_RUNTIME_REQUEST`
+2. Set the structure "structVersion" to the current version,
+   `XR_RUNTIME_INFO_STRUCT_VERSION`
+3. Set the structure "structSize" to the current size of the
+   `XrNegotiateRuntimeRequest` structure
+
+The loader will leave the remaining fields uninitialized to allow each runtime
+to fill in the appropriate information for itself. The loader will then
+individually call each runtime's flink:xrNegotiateLoaderRuntimeInterface
+function and each runtime then must: :
+
+* Determine if it can support the loader's request:
+** Does the runtime support any
+  <<runtime-interface-versions, loader/runtime interface version>> between
+  pname:loaderInfo->pname:minInterfaceVersion and
+  pname:loaderInfo->pname:maxInterfaceVersion:
+** *AND* does the runtime support any OpenXR API version between
+  pname:loaderInfo->pname:minApiVersion and
+  pname:loaderInfo->pname:maxApiVersion:
+* If it is able to support the request, it must: return `XR_SUCCESS` and:
+** Fill in pname:runtimeRequest->pname:runtimeInterfaceVersion with the
+   runtime interface version it desires to support
+** Fill in pname:runtimeRequest->pname:runtimeApiVersion with the API
+   version of OpenXR it will execute under.
+** Fill in pname:runtimeRequest->pname:getInstanceProcAddr with a
+   valid function pointer so that the loader can query function pointers to the
+   remaining OpenXR commands supported by the runtime.
+* Otherwise, it must: return `XR_ERROR_INITIALIZATION_FAILED`
+
+
+[[runtime-exporting-of-commands]]
+==== Runtime Exporting of Commands ====
+
+The flink:xrNegotiateLoaderRuntimeInterface should be directly exported by a
+runtime so that using "GetProcAddress" on Windows or "dlsym" on Linux, should
+return a valid function pointer to it.  However, *all other OpenXR entry-points*
+must: either:
+
+ * NOT be exported directly from the runtime library
+ * or NOT use the official OpenXR command names if they are exported
+
+This requirement is especially for runtime libraries that include other
+functionality (such as OpenGL) and thus could be loaded by the
+application prior to when the OpenXR loader library is loaded by the
+application.
+
+Beware of interposing by dynamic OS library loaders if the official OpenXR
+names are used. On Linux, if official names are used, the runtime library must be
+linked with -Bsymbolic.
+
+
+[[runtime-interface-versions]]
+==== Runtime Interface Versions ====
+
+The current Runtime Interface is at version 1.  The following sections
+detail the differences between the various versions.
+
+
+[[runtime-interface-version-1]]
+===== Runtime Interface Version 1 =====
+
+* Defined manifest file version 1.0.0.
+* Introduced the concept of negotiation.
+** Requires runtimes to export `xrNegotiateLoaderRuntimeInterface` function.
+
+
+[[android-runtime-negotiation]]
+==== Android Runtime Negotiation ====
+
+The Android loader uses the same protocol for initializing the dispatch
+table as described above. The only difference is that the Android
+loader queries API layer and extension information directly from the
+respective libraries and does not use the json manifest files used
+by the Windows and Linux loaders.
+
+[[additional-loader-requirements]]
+=== Additional Loader Requirements ===
+
+* The loader must: not call the runtime for `xrEnumerateApiLayerProperties`
+* The loader must: not call the runtime for
+  `xrEnumerateInstanceExtensionProperties`, if "layerName" is not equal to
+  `NULL`.
+

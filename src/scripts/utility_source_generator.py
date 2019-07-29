@@ -22,90 +22,15 @@
 #               automatic_source_generator.py class to produce the
 #               generated source code for the loader.
 
-import os
-import re
-import sys
-from automatic_source_generator import *
-from collections import namedtuple
 
-
-# The following commands should only exist in the loader, and only as a trampoline
-# (i.e. Don't add it to the dispatch table)
-NO_TRAMPOLINE_OR_TERMINATOR = [
-    'xrEnumerateApiLayerProperties',
-    'xrEnumerateInstanceExtensionProperties',
-]
-
-# UtilitySourceGeneratorOptions - subclass of AutomaticSourceGeneratorOptions.
-
-
-class UtilitySourceGeneratorOptions(AutomaticSourceGeneratorOptions):
-    def __init__(self,
-                 conventions=None,
-                 filename=None,
-                 directory='.',
-                 apiname=None,
-                 profile=None,
-                 versions='.*',
-                 emitversions='.*',
-                 defaultExtensions=None,
-                 addExtensions=None,
-                 removeExtensions=None,
-                 emitExtensions=None,
-                 sortProcedure=regSortFeatures,
-                 prefixText="",
-                 genFuncPointers=True,
-                 protectFile=True,
-                 protectFeature=True,
-                 protectProto=None,
-                 protectProtoStr=None,
-                 apicall='',
-                 apientry='',
-                 apientryp='',
-                 indentFuncProto=True,
-                 indentFuncPointer=False,
-                 alignFuncParam=0,
-                 genEnumBeginEndRange=False):
-        AutomaticSourceGeneratorOptions.__init__(self,
-                                                 conventions=conventions,
-                                                 filename=filename,
-                                                 directory=directory,
-                                                 apiname=apiname,
-                                                 profile=profile,
-                                                 versions=versions,
-                                                 emitversions=emitversions,
-                                                 defaultExtensions=defaultExtensions,
-                                                 addExtensions=addExtensions,
-                                                 removeExtensions=removeExtensions,
-                                                 emitExtensions=emitExtensions,
-                                                 sortProcedure=sortProcedure)
-        # Instead of using prefixText, we write our own
-        self.prefixText = None
-        self.genFuncPointers = genFuncPointers
-        self.protectFile = protectFile
-        self.protectFeature = protectFeature
-        self.protectProto = protectProto
-        self.protectProtoStr = protectProtoStr
-        self.apicall = apicall
-        self.apientry = apientry
-        self.apientryp = apientryp
-        self.indentFuncProto = indentFuncProto
-        self.indentFuncPointer = indentFuncPointer
-        self.alignFuncParam = alignFuncParam
-        self.genEnumBeginEndRange = genEnumBeginEndRange
+from automatic_source_generator import AutomaticSourceOutputGenerator
+from generator import write
 
 # UtilitySourceOutputGenerator - subclass of AutomaticSourceOutputGenerator.
 
 
 class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
     """Generate loader source using XML element attributes from registry"""
-
-    def __init__(self,
-                 errFile=sys.stderr,
-                 warnFile=sys.stderr,
-                 diagFile=sys.stdout):
-        AutomaticSourceOutputGenerator.__init__(
-            self, errFile, warnFile, diagFile)
 
     # Override the base class header warning so the comment indicates this file.
     #   self            the UtilitySourceOutputGenerator object
@@ -224,6 +149,12 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
         result_to_str += '                                            char buffer[XR_MAX_RESULT_STRING_SIZE]) {\n'
         indent = 1
         result_to_str += self.writeIndent(indent)
+        result_to_str += 'if (NULL == buffer) {\n'
+        result_to_str += self.writeIndent(indent+1)
+        result_to_str += 'return XR_ERROR_VALIDATION_FAILURE;\n'
+        result_to_str += self.writeIndent(indent)
+        result_to_str += '}\n'
+        result_to_str += self.writeIndent(indent)
         result_to_str += 'XrResult int_result = XR_SUCCESS;\n'
         result_to_str += self.writeIndent(indent)
         result_to_str += 'switch (result) {\n'
@@ -286,6 +217,12 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
         struct_to_str = 'XrResult GeneratedXrUtilitiesStructureTypeToString(XrStructureType struct_type,\n'
         struct_to_str += '                                            char buffer[XR_MAX_STRUCTURE_NAME_SIZE]) {\n'
         indent = 1
+        struct_to_str += self.writeIndent(indent)
+        struct_to_str += 'if (NULL == buffer) {\n'
+        struct_to_str += self.writeIndent(indent+1)
+        struct_to_str += 'return XR_ERROR_VALIDATION_FAILURE;\n'
+        struct_to_str += self.writeIndent(indent)
+        struct_to_str += '}\n'
         struct_to_str += self.writeIndent(indent)
         struct_to_str += 'XrResult int_result = XR_SUCCESS;\n'
         struct_to_str += self.writeIndent(indent)
@@ -417,7 +354,7 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
             for cur_cmd in commands:
                 # If the command is only manually implemented in the loader,
                 # it is not needed anywhere else, so skip it.
-                if cur_cmd.name in NO_TRAMPOLINE_OR_TERMINATOR:
+                if cur_cmd.name in self.no_trampoline_or_terminator:
                     continue
 
                 # If we've switched to a new "feature" print out a comment on what it is.  Usually,

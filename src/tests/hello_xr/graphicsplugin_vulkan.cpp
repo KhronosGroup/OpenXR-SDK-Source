@@ -1459,41 +1459,39 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
             level = Log::Level::Error;
         }
 
-#define LIST_OBJECT_TYPES(_)        \
-    _(UNKNOWN)                      \
-    _(INSTANCE)                     \
-    _(PHYSICAL_DEVICE)              \
-    _(DEVICE)                       \
-    _(QUEUE)                        \
-    _(SEMAPHORE)                    \
-    _(COMMAND_BUFFER)               \
-    _(FENCE)                        \
-    _(DEVICE_MEMORY)                \
-    _(BUFFER)                       \
-    _(IMAGE)                        \
-    _(EVENT)                        \
-    _(QUERY_POOL)                   \
-    _(BUFFER_VIEW)                  \
-    _(IMAGE_VIEW)                   \
-    _(SHADER_MODULE)                \
-    _(PIPELINE_CACHE)               \
-    _(PIPELINE_LAYOUT)              \
-    _(RENDER_PASS)                  \
-    _(PIPELINE)                     \
-    _(DESCRIPTOR_SET_LAYOUT)        \
-    _(SAMPLER)                      \
-    _(DESCRIPTOR_POOL)              \
-    _(DESCRIPTOR_SET)               \
-    _(FRAMEBUFFER)                  \
-    _(COMMAND_POOL)                 \
-    _(SURFACE_KHR)                  \
-    _(SWAPCHAIN_KHR)                \
-    _(DEBUG_REPORT_CALLBACK_EXT)    \
-    _(DISPLAY_KHR)                  \
-    _(DISPLAY_MODE_KHR)             \
-    _(OBJECT_TABLE_NVX)             \
-    _(INDIRECT_COMMANDS_LAYOUT_NVX) \
-    _(DESCRIPTOR_UPDATE_TEMPLATE_KHR)
+#define LIST_OBJECT_TYPES(_) \
+    _(UNKNOWN)               \
+    _(INSTANCE)              \
+    _(PHYSICAL_DEVICE)       \
+    _(DEVICE)                \
+    _(QUEUE)                 \
+    _(SEMAPHORE)             \
+    _(COMMAND_BUFFER)        \
+    _(FENCE)                 \
+    _(DEVICE_MEMORY)         \
+    _(BUFFER)                \
+    _(IMAGE)                 \
+    _(EVENT)                 \
+    _(QUERY_POOL)            \
+    _(BUFFER_VIEW)           \
+    _(IMAGE_VIEW)            \
+    _(SHADER_MODULE)         \
+    _(PIPELINE_CACHE)        \
+    _(PIPELINE_LAYOUT)       \
+    _(RENDER_PASS)           \
+    _(PIPELINE)              \
+    _(DESCRIPTOR_SET_LAYOUT) \
+    _(SAMPLER)               \
+    _(DESCRIPTOR_POOL)       \
+    _(DESCRIPTOR_SET)        \
+    _(FRAMEBUFFER)           \
+    _(COMMAND_POOL)          \
+    _(SURFACE_KHR)           \
+    _(SWAPCHAIN_KHR)         \
+    _(DISPLAY_KHR)           \
+    _(DISPLAY_MODE_KHR)      \
+    _(OBJECT_TABLE_NVX)      \
+    _(INDIRECT_COMMANDS_LAYOUT_NVX)
 
         switch (objectType) {
             default:
@@ -1502,6 +1500,13 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         objName = #name;                           \
         break;
                 LIST_OBJECT_TYPES(MK_OBJECT_TYPE_CASE)
+
+#if VK_HEADER_VERSION >= 46
+                MK_OBJECT_TYPE_CASE(DESCRIPTOR_UPDATE_TEMPLATE_KHR)
+#endif
+#if VK_HEADER_VERSION >= 70
+                MK_OBJECT_TYPE_CASE(DEBUG_REPORT_CALLBACK_EXT)
+#endif
         }
 
         if ((objectType == VK_DEBUG_REPORT_OBJECT_TYPE_INSTANCE_EXT) && (strcmp(pLayerPrefix, "Loader Message") == 0) &&

@@ -12,7 +12,7 @@ void ShowHelp() {
     Log::Write(Log::Level::Info,
                "HelloXr --graphics|-g <Graphics API> [--formfactor|-ff <Form factor>] [--viewconfig|-vc <View config>] "
                "[--blendmode|-bm <Blend mode>] [--space|-s <Space>]");
-    Log::Write(Log::Level::Info, "Graphics APIs:            D3D10, D3D11, D3D12, OpenGLES, OpenGL, Vulkan");
+    Log::Write(Log::Level::Info, "Graphics APIs:            D3D11, D3D12, OpenGLES, OpenGL, Vulkan");
     Log::Write(Log::Level::Info, "Form factors:             Hmd, Handheld");
     Log::Write(Log::Level::Info, "View configurations:      Mono, Stereo");
     Log::Write(Log::Level::Info, "Environment blend modes:  Opaque, Additive, AlphaBlend");

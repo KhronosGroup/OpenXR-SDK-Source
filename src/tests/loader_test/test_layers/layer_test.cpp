@@ -65,12 +65,12 @@ LAYER_EXPORT XrResult xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoader
         loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
-        loaderInfo->minXrVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minXrVersion >= XR_MAKE_VERSION(1, 1, 0)) {
+        loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
 
     layerRequest->layerInterfaceVersion = XR_CURRENT_LOADER_API_LAYER_VERSION;
-    layerRequest->layerXrVersion = XR_MAKE_VERSION(0, 1, 0);
+    layerRequest->layerApiVersion = XR_MAKE_VERSION(0, 1, 0);
     layerRequest->getInstanceProcAddr = reinterpret_cast<PFN_xrGetInstanceProcAddr>(LayerTestXrGetInstanceProcAddr);
 
     return XR_SUCCESS;
@@ -95,12 +95,12 @@ LAYER_EXPORT XrResult TestLayerNullGipaNegotiateLoaderApiLayerInterface(const Xr
         loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
-        loaderInfo->minXrVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minXrVersion >= XR_MAKE_VERSION(1, 1, 0)) {
+        loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
 
     layerRequest->layerInterfaceVersion = XR_CURRENT_LOADER_API_LAYER_VERSION;
-    layerRequest->layerXrVersion = XR_MAKE_VERSION(0, 1, 0);
+    layerRequest->layerApiVersion = XR_MAKE_VERSION(0, 1, 0);
     layerRequest->getInstanceProcAddr = nullptr;
 
     return XR_SUCCESS;
@@ -118,12 +118,12 @@ LAYER_EXPORT XrResult TestLayerInvalidInterfaceNegotiateLoaderApiLayerInterface(
         loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
-        loaderInfo->minXrVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minXrVersion >= XR_MAKE_VERSION(1, 1, 0)) {
+        loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
 
     layerRequest->layerInterfaceVersion = 0;
-    layerRequest->layerXrVersion = XR_MAKE_VERSION(0, 1, 0);
+    layerRequest->layerApiVersion = XR_MAKE_VERSION(0, 1, 0);
     layerRequest->getInstanceProcAddr = reinterpret_cast<PFN_xrGetInstanceProcAddr>(LayerTestXrGetInstanceProcAddr);
 
     return XR_SUCCESS;
@@ -141,12 +141,12 @@ LAYER_EXPORT XrResult TestLayerInvalidApiNegotiateLoaderApiLayerInterface(const 
         loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
-        loaderInfo->minXrVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minXrVersion >= XR_MAKE_VERSION(1, 1, 0)) {
+        loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
 
     layerRequest->layerInterfaceVersion = XR_CURRENT_LOADER_API_LAYER_VERSION;
-    layerRequest->layerXrVersion = 0;
+    layerRequest->layerApiVersion = 0;
     layerRequest->getInstanceProcAddr = reinterpret_cast<PFN_xrGetInstanceProcAddr>(LayerTestXrGetInstanceProcAddr);
 
     return XR_SUCCESS;

@@ -1,0 +1,8 @@
+# Optional but recommended for check spec links
+termcolor
+
+# Optional but recommended for check spec links on Windows
+colorama
+
+# Optional but recommended for check spec links
+tabulate

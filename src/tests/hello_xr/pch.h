@@ -53,10 +53,6 @@
 //
 // Graphics Headers
 //
-#ifdef XR_USE_GRAPHICS_API_D3D10
-#include <d3d10_1.h>
-#endif
-
 #ifdef XR_USE_GRAPHICS_API_D3D11
 #include <d3d11_4.h>
 #endif
@@ -94,3 +90,4 @@
 //
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
+#include <openxr/openxr_reflection.h>
