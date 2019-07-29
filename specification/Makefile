@@ -70,19 +70,30 @@ MANDIR     := man
 default:
 	$(ECHO) "Makefile help - targets:"
 	$(ECHO) "header:           build OpenXR header"
-	$(ECHO) "header-test:      test-compile the OpenXR header"
-	$(ECHO) "html:             HTML version of OpenXR spec"
-	$(ECHO) "pdf:              PDF version of OpenXR spec (Letter [8.5 x 11] paper size)"
-	$(ECHO) "pdfA4:            PDF version of OpenXR spec (A4 paper size)"
-#	$(ECHO) "manhtml:          HTML version of OpenXR man pages"
-#	$(ECHO) "manpdf:           PDF version of OpenXR man pages"
-	$(ECHO) "manhtmlpages:     HTML separate per-feature reference pages"
-	$(ECHO) "styleguide:       HTML version of styleguide"
-	$(ECHO) "loader:           HTML version of the loader doc"
-	$(ECHO) "build-examples:   try compiling all examples"
-	$(ECHO) "check-spec-links: run the checkMarkup and checkSpecLinks scripts"
-	$(ECHO) "all:              build header header-test html pdf styleguide loader build-examples check-spec-links"
-	$(ECHO) "release:          build header html pdf manhtmlpages and copy output to an OpenXR-Registry-like layout"
+	@if [ -d sources/chapters ]; then \
+	    echo "html:             HTML version of OpenXR spec"; \
+	    echo "pdf:              PDF version of OpenXR spec (Letter [8.5 x 11] paper size)"; \
+	    echo "pdfA4:            PDF version of OpenXR spec (A4 paper size)"; \
+	    echo "manhtmlpages:     HTML separate per-feature reference pages"; \
+	    echo "build-examples:   try compiling all examples"; \
+	    echo "check-spec-links: run the checkMarkup and checkSpecLinks scripts"; \
+	fi
+
+	@if [ -f sources/test.c ]; then \
+	    echo "header-test:      test-compile the OpenXR header"; fi
+
+	@if [ -d sources/styleguide ]; then \
+	    echo "styleguide:       HTML version of styleguide"; fi
+
+	@if [ -d loader ]; then \
+	    echo "loader:           HTML version of the loader doc"; fi
+
+	@if [ -d sources/chapters ] && [ -d sources/styleguide ] && [ -d loader ]; then \
+	    echo "all:              build header header-test html pdf styleguide loader build-examples check-spec-links"; fi
+
+	@if [ -d sources/chapters ] && [ -d loader ]; then \
+	    echo "release:          build header html pdf manhtmlpages and copy output to an OpenXR-Registry-like layout"; fi
+
 	$(ECHO) "clean_dirt:       remove intermediate files"
 	$(ECHO) "clean:            remove targets and intermediate files"
 	$(ECHO) ""
