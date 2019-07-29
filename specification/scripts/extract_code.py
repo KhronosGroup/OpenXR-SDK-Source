@@ -285,19 +285,20 @@ gen: {script}
             for fn, gen in self.generated_files.items():
                 f.write('{stem}: {files}\n.PHONY: {stem}\n'.format(
                     stem=fn.stem, files=' '.join(str(g.with_suffix('.o')) for g in gen)))
-            width = max(len(generated.name) for generated in self.origins)
+            if self.origins:
+                width = max(len(generated.name) for generated in self.origins)
 
-            for generated, origin in self.origins.items():
-                pad = ' ' * (width - len(generated.name))
-                origin_file, origin_line = origin
-                if generated.suffix == '.cpp':
-                    compiler = '[c++] '
-                else:
-                    compiler = '[cc]  '
-                origin_str = '{} {} {} extracted from {}:{}'.format(compiler, generated.name, pad,
-                                                                   origin_file, origin_line)
-                f.write('{obj}: ORIGIN := {originstr}\n'.format(
-                    obj=generated.with_suffix('.o'), originstr=origin_str))
+                for generated, origin in self.origins.items():
+                    pad = ' ' * (width - len(generated.name))
+                    origin_file, origin_line = origin
+                    if generated.suffix == '.cpp':
+                        compiler = '[c++] '
+                    else:
+                        compiler = '[cc]  '
+                    origin_str = '{} {} {} extracted from {}:{}'.format(compiler, generated.name, pad,
+                                                                    origin_file, origin_line)
+                    f.write('{obj}: ORIGIN := {originstr}\n'.format(
+                        obj=generated.with_suffix('.o'), originstr=origin_str))
 
 
 if __name__ == "__main__":
