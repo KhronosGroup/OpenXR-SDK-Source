@@ -477,4 +477,3 @@ clean clobber: clean_dirt clean_generated
 	$(RM) $(EXAMPLES_MAKEFILE)
 	# Clean up man pages
 	$(RMRF) $(MANHTMLDIR)
-	find $(CURDIR)/sources/chapters/ -name "*.cpp" -o -name "*.c" -o -name "*.o" | xargs $(RM)
