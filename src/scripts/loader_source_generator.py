@@ -126,6 +126,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
             preamble += '#include "openxr/openxr_platform.h"\n\n'
             preamble += '#include "loader_interfaces.h"\n\n'
             preamble += '#include "loader_instance.hpp"\n\n'
+            preamble += '#include "loader_platform.hpp"\n\n'
 
         elif self.genOpts.filename == 'xr_generated_loader.cpp':
             preamble += '#include "xr_generated_loader.hpp"\n\n'
@@ -207,6 +208,11 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
 
                     # Use the Cdecl directly from the XML
                     func_proto = cur_cmd.cdecl
+
+                    # Export only core functions
+                    if self.isCoreExtensionName(cur_cmd.ext_name):
+                        func_proto = func_proto.replace(
+                            "XRAPI_ATTR", "LOADER_EXPORT XRAPI_ATTR")
 
                     # Output the standard API form of the command
                     manual_funcs += func_proto
@@ -487,8 +493,14 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
 
                 if cur_cmd.protect_value:
                     generated_funcs += '#if %s\n' % cur_cmd.protect_string
+                decl = cur_cmd.cdecl.replace(";", " XRLOADER_ABI_TRY {\n")
 
-                generated_funcs += cur_cmd.cdecl.replace(";", " XRLOADER_ABI_TRY {\n")
+                # Export only core functions
+                if self.isCoreExtensionName(cur_cmd.ext_name):
+                    decl = decl.replace(
+                        "XRAPI_ATTR", "LOADER_EXPORT XRAPI_ATTR")
+
+                generated_funcs += decl
                 generated_funcs += tramp_variable_defines
 
                 # If this is not core, but an extension, check to make sure the extension is enabled.
