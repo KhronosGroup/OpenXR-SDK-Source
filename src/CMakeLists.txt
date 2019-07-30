@@ -39,6 +39,7 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/conformance" AND NOT CMAKE_SYSTEM_NAME ST
     option(BUILD_CONFORMANCE_TESTS "Build conformance tests" ON)
 endif()
 
+
 # Several files use these compile-time OS switches
 if(WIN32)
     add_definitions(-DXR_OS_WINDOWS)

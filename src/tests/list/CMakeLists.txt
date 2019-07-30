@@ -33,16 +33,14 @@ if(VulkanHeaders_FOUND)
     )
 endif()
 
-set(OPENXR_LIB openxr_loader)
-
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     target_compile_options(runtime_list PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
-    target_link_libraries(runtime_list ${OPENXR_LIB} opengl32)
+    target_link_libraries(runtime_list openxr_loader opengl32)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_options(runtime_list PRIVATE -Wall)
-    target_link_libraries(runtime_list ${OPENXR_LIB} m pthread GL ${XLIB_LIBRARIES} ${XCB_LIBRARIES} ${WAYLAND_LIBRARIES})
+    target_link_libraries(runtime_list openxr_loader m pthread GL ${XLIB_LIBRARIES} ${XCB_LIBRARIES} ${WAYLAND_LIBRARIES})
 endif()
 
 set_target_properties(runtime_list PROPERTIES FOLDER ${TESTS_FOLDER})
