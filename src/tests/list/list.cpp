@@ -1,4 +1,4 @@
-// Copyright (c) 2017 Collabora, Ltd.
+// Copyright (c) 2017-2019 Collabora, Ltd.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -31,26 +31,14 @@
 #include <vector>
 
 // Struct that does book keeping of what a
-// OpenXr application need to keep track of.
+// OpenXR application need to keep track of.
 struct Program {
    public:
     XrInstance instance;
 
-    uint32_t numPhysDevs;
-    XrPath* physDevs;
-
    public:
-    Program() {
-        numPhysDevs = 0;
-        physDevs = nullptr;
-    }
+    Program() : instance(XR_NULL_HANDLE) {}
     ~Program() {
-        if (physDevs != NULL) {
-            free(physDevs);
-            numPhysDevs = 0;
-            physDevs = NULL;
-        }
-
         if (instance != XR_NULL_HANDLE) {
             xrDestroyInstance(instance);
             instance = XR_NULL_HANDLE;
