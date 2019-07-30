@@ -169,14 +169,8 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
 
         elif self.genOpts.filename == 'xr_generated_loader.cpp':
             file_data += self.outputLoaderMapDefines()
-            file_data += '#ifdef __cplusplus\n'
-            file_data += 'extern "C" { \n'
-            file_data += '#endif\n'
             file_data += self.outputLoaderGeneratedFuncs()
             file_data += self.outputLoaderExportFuncs()
-            file_data += '#ifdef __cplusplus\n'
-            file_data += '} // extern "C"\n'
-            file_data += '#endif\n'
 
         write(file_data, file=self.outFile)
 
