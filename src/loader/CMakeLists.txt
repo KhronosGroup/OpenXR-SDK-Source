@@ -37,6 +37,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(LOADER_NAME ${LOADER_NAME}-${MAJOR}_${MINOR})
 endif()
 
+if(NOT MSVC)
+    set(CMAKE_C_VISIBILITY_PRESET hidden)
+    set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+endif()
+
 # List of all files externally generated outside of the loader that the loader
 # needs to build with.
 SET(LOADER_EXTERNAL_GEN_FILES
