@@ -37,6 +37,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set(LOADER_NAME ${LOADER_NAME}-${MAJOR}_${MINOR})
 endif()
 
+if(NOT MSVC)
+    set(CMAKE_C_VISIBILITY_PRESET hidden)
+    set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+endif()
+
 # List of all files externally generated outside of the loader that the loader
 # needs to build with.
 SET(LOADER_EXTERNAL_GEN_FILES
@@ -168,6 +173,7 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     target_compile_options(openxr_loader
         PRIVATE -Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -Wpointer-arith
         PRIVATE -fno-strict-aliasing -fno-builtin-memcmp "$<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>"
+        -ffunction-sections -fdata-sections
     )
     # For GCC version 7.1 or greater, we need to disable the implicit fallthrough warning since
     # there's no consistent way to satisfy all compilers until they all accept the C++17 standard
