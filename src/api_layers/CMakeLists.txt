@@ -39,16 +39,29 @@ gen_xr_layer_json(
     "API Layer to record api calls as they occur"
     ""
 )
+
+# Flag generated files that aren't generated in this directory.
+set_source_files_properties(
+    ${COMMON_GENERATED_OUTPUT}
+    PROPERTIES GENERATED TRUE
+)
+
+set(GENERATED_OUTPUT)
+set(GENERATED_DEPENDS)
 run_xr_xml_generate(api_dump_generator.py xr_generated_api_dump.hpp)
 run_xr_xml_generate(api_dump_generator.py xr_generated_api_dump.cpp)
 
 add_library(XrApiLayer_api_dump SHARED
     api_dump.cpp
-    ${CMAKE_SOURCE_DIR}/src/common/hex_and_handles.cpp
-    ${CMAKE_SOURCE_DIR}/src/common/hex_and_handles.h
-    ${CMAKE_BINARY_DIR}/src/xr_generated_dispatch_table.c
-    ${CMAKE_CURRENT_BINARY_DIR}/xr_generated_api_dump.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/xr_generated_api_dump.hpp
+    ${OPENXR_COMMON_DIR}/hex_and_handles.cpp
+    ${OPENXR_COMMON_DIR}/hex_and_handles.h
+
+    # target-specific generated files
+    ${GENERATED_OUTPUT}
+
+    # Dispatch table
+    ${COMMON_GENERATED_OUTPUT}
+
     # Included in this list to force generation
     ${CMAKE_CURRENT_BINARY_DIR}/XrApiLayer_api_dump.json
 )
@@ -60,11 +73,21 @@ add_dependencies(XrApiLayer_api_dump
 )
 
 target_include_directories(XrApiLayer_api_dump
-    PRIVATE ${CMAKE_SOURCE_DIR}/src/common
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-    PRIVATE ${CMAKE_BINARY_DIR}/include
-    PRIVATE ${CMAKE_BINARY_DIR}/src
-    PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+    PRIVATE
+    ${OPENXR_COMMON_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}
+
+    # for OpenXR headers
+    ${OPENXR_SOURCE_DIR}/include
+    ${OPENXR_BINARY_DIR}/include
+
+    # for generated dispatch table
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+
+    # for target-specific generated files
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
 )
 if(VulkanHeaders_FOUND)
     target_include_directories(XrApiLayer_api_dump
@@ -82,18 +105,25 @@ gen_xr_layer_json(
     "API Layer to perform validation of api calls and parameters as they occur"
     ""
 )
+
+set(GENERATED_OUTPUT)
+set(GENERATED_DEPENDS)
 run_xr_xml_generate(validation_layer_generator.py xr_generated_core_validation.hpp)
 run_xr_xml_generate(validation_layer_generator.py xr_generated_core_validation.cpp)
 
 add_library(XrApiLayer_core_validation SHARED
     core_validation.cpp
-    ${CMAKE_SOURCE_DIR}/src/common/hex_and_handles.cpp
-    ${CMAKE_SOURCE_DIR}/src/common/hex_and_handles.h
-    ${CMAKE_SOURCE_DIR}/src/common/object_info.cpp
-    ${CMAKE_SOURCE_DIR}/src/common/object_info.h
-    ${CMAKE_BINARY_DIR}/src/xr_generated_dispatch_table.c 
-    ${CMAKE_CURRENT_BINARY_DIR}/xr_generated_core_validation.cpp
-    ${CMAKE_CURRENT_BINARY_DIR}/xr_generated_core_validation.hpp
+    ${OPENXR_COMMON_DIR}/hex_and_handles.cpp
+    ${OPENXR_COMMON_DIR}/hex_and_handles.h
+    ${OPENXR_COMMON_DIR}/object_info.cpp
+    ${OPENXR_COMMON_DIR}/object_info.h
+
+    # target-specific generated files
+    ${GENERATED_OUTPUT}
+
+    # Dispatch table
+    ${COMMON_GENERATED_OUTPUT}
+
     # Included in this list to force generation
     ${CMAKE_CURRENT_BINARY_DIR}/XrApiLayer_core_validation.json
 )
@@ -104,23 +134,27 @@ add_dependencies(XrApiLayer_core_validation
     xr_global_generated_files
 )
 target_include_directories(XrApiLayer_core_validation
-    PRIVATE ${CMAKE_SOURCE_DIR}/src/common
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-    PRIVATE ${CMAKE_BINARY_DIR}/include
-    PRIVATE ${CMAKE_BINARY_DIR}/src
-    PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
+    PRIVATE
+    ${OPENXR_COMMON_DIR}
+
+    # for OpenXR headers
+    ${OPENXR_SOURCE_DIR}/include
+    ${OPENXR_BINARY_DIR}/include
+
+    # for generated dispatch table
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+
+    # for target-specific generated files
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+
 )
 if(VulkanHeaders_FOUND)
     target_include_directories(XrApiLayer_core_validation
         PRIVATE ${Vulkan_INCLUDE_DIRS}
     )
 endif()
-
-# Flag generated files
-set_source_files_properties(
-    ${CMAKE_BINARY_DIR}/src/xr_generated_dispatch_table.c
-    PROPERTIES GENERATED TRUE
-)
 
 if(WIN32)
     # Windows api_dump-specific information

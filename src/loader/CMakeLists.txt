@@ -65,15 +65,15 @@ add_library(openxr_loader ${LIBRARY_TYPE}
     runtime_interface.cpp
     runtime_interface.hpp
     ${GENERATED_OUTPUT}
-    ${CMAKE_SOURCE_DIR}/src/common/filesystem_utils.cpp
-    ${CMAKE_SOURCE_DIR}/src/common/filesystem_utils.hpp
-    ${CMAKE_SOURCE_DIR}/src/common/hex_and_handles.cpp
-    ${CMAKE_SOURCE_DIR}/src/common/hex_and_handles.h
-    ${CMAKE_SOURCE_DIR}/src/common/object_info.cpp
-    ${CMAKE_SOURCE_DIR}/src/common/object_info.h
-    ${CMAKE_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_reader.cpp
-    ${CMAKE_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_value.cpp
-    ${CMAKE_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_writer.cpp
+    ${OPENXR_COMMON_DIR}/filesystem_utils.cpp
+    ${OPENXR_COMMON_DIR}/filesystem_utils.hpp
+    ${OPENXR_COMMON_DIR}/hex_and_handles.cpp
+    ${OPENXR_COMMON_DIR}/hex_and_handles.h
+    ${OPENXR_COMMON_DIR}/object_info.cpp
+    ${OPENXR_COMMON_DIR}/object_info.h
+    ${OPENXR_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_reader.cpp
+    ${OPENXR_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_value.cpp
+    ${OPENXR_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_writer.cpp
     ${LOADER_EXTERNAL_GEN_FILES}
     ${openxr_loader_RESOURCE_FILE}
 )
@@ -88,12 +88,23 @@ add_dependencies(openxr_loader
     xr_global_generated_files
 )
 target_include_directories(openxr_loader
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}
-    PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
-    PRIVATE ${CMAKE_BINARY_DIR}/include
-    PRIVATE ${CMAKE_BINARY_DIR}/src
-    PRIVATE ${CMAKE_SOURCE_DIR}/src/common
-    PRIVATE ${CMAKE_SOURCE_DIR}/src/external/jsoncpp/include
+    PRIVATE
+    ${OPENXR_COMMON_DIR}
+
+    # for OpenXR headers
+    ${OPENXR_SOURCE_DIR}/include
+    ${OPENXR_BINARY_DIR}/include
+
+    # for generated dispatch table
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+
+    # for target-specific generated files
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+
+    # For jsoncpp
+    ${OPENXR_SOURCE_DIR}/src/external/jsoncpp/include
 )
 if(VulkanHeaders_FOUND)
     target_include_directories(openxr_loader
