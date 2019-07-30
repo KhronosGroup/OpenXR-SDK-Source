@@ -51,3 +51,6 @@ endif()
 
 set_target_properties(runtime_list PROPERTIES FOLDER ${TESTS_FOLDER})
 
+
+install(TARGETS runtime_list
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
