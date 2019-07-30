@@ -22,10 +22,10 @@ add_dependencies(runtime_list
     generate_openxr_header
 )
 target_include_directories(runtime_list
-    PRIVATE ${CMAKE_SOURCE_DIR}/src
-    PRIVATE ${CMAKE_SOURCE_DIR}/src/common
-    PRIVATE ${CMAKE_BINARY_DIR}/include
-    PRIVATE ${CMAKE_SOURCE_DIR}/external/include
+    PRIVATE ${OPENXR_SOURCE_DIR}/src
+    PRIVATE ${OPENXR_COMMON_DIR}
+    PRIVATE ${OPENXR_BINARY_DIR}/include
+    PRIVATE ${OPENXR_SOURCE_DIR}/external/include
 )
 if(VulkanHeaders_FOUND)
     target_include_directories(runtime_list

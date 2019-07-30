@@ -37,9 +37,9 @@ add_dependencies(test_runtime
     generated_rt_json_files
 )
 target_include_directories(test_runtime
-    PRIVATE ${CMAKE_SOURCE_DIR}/src
-    PRIVATE ${CMAKE_SOURCE_DIR}/src/common
-    PRIVATE ${CMAKE_BINARY_DIR}/include
+    PRIVATE ${OPENXR_SOURCE_DIR}/src
+    PRIVATE ${OPENXR_COMMON_DIR}
+    PRIVATE ${OPENXR_BINARY_DIR}/include
 )
 if(VulkanHeaders_FOUND)
     target_include_directories(test_runtime
@@ -52,9 +52,9 @@ macro(gen_xr_runtime_json filename libfile)
         COMMAND
             ${CMAKE_COMMAND} -E env
                 ${PYTHON_EXECUTABLE}
-                    ${CMAKE_SOURCE_DIR}/src/scripts/generate_runtime_manifest.py -f ${filename} -l ${libfile} ${ARGN}
+                    ${OPENXR_SOURCE_DIR}/src/scripts/generate_runtime_manifest.py -f ${filename} -l ${libfile} ${ARGN}
     DEPENDS
-        ${CMAKE_SOURCE_DIR}/src/scripts/generate_runtime_manifest.py
+        ${OPENXR_SOURCE_DIR}/src/scripts/generate_runtime_manifest.py
     COMMENT "Generating Runtime JSON ${filename} using -f ${filename} -l ${libfile} ${ARGN}"
     )
 endmacro()
@@ -65,7 +65,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # The changed behavior is that constructor initializers are now fixed to clear the struct members.
     target_compile_options(test_runtime PRIVATE "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19>>:/wd4351>")
     gen_xr_runtime_json(
-        ${CMAKE_BINARY_DIR}/src/tests/loader_test/resources/runtimes/test_runtime.json
+        ${OPENXR_BINARY_DIR}/src/tests/loader_test/resources/runtimes/test_runtime.json
         ${CMAKE_CURRENT_BINARY_DIR}/test_runtime.dll
         -b
     )
@@ -79,14 +79,14 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_options(test_runtime PRIVATE -Wpointer-arith -Wno-unused-function -Wno-sign-compare)
     set_target_properties(test_runtime PROPERTIES LINK_FLAGS "-Wl,-Bsymbolic,--exclude-libs,ALL")
     gen_xr_runtime_json(
-        ${CMAKE_BINARY_DIR}/src/tests/loader_test/resources/runtimes/test_runtime.json
+        ${OPENXR_BINARY_DIR}/src/tests/loader_test/resources/runtimes/test_runtime.json
         ${CMAKE_CURRENT_BINARY_DIR}/libtest_runtime.so
         -b
     )
 endif()
 
 add_custom_target(generated_rt_json_files DEPENDS
-    ${CMAKE_BINARY_DIR}/src/tests/loader_test/resources/runtimes/test_runtime.json
+    ${OPENXR_BINARY_DIR}/src/tests/loader_test/resources/runtimes/test_runtime.json
 )
 set_target_properties(generated_rt_json_files PROPERTIES FOLDER ${CODEGEN_FOLDER})
 
