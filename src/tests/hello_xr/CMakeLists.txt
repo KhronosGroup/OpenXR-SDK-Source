@@ -116,3 +116,6 @@ endif()
 if(Vulkan_LIBRARY)
     target_link_libraries(hello_xr ${Vulkan_LIBRARY})
 endif()
+
+install(TARGETS hello_xr
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
