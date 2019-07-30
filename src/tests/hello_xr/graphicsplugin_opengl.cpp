@@ -78,8 +78,13 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
     }
 
     void InitializeDevice(XrInstance instance, XrSystemId systemId) override {
+        // Extension function must be loaded by name
+        PFN_xrGetOpenGLGraphicsRequirementsKHR pfnGetOpenGLGraphicsRequirementsKHR = nullptr;
+        CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrGetOpenGLGraphicsRequirementsKHR",
+                                          reinterpret_cast<PFN_xrVoidFunction*>(&pfnGetOpenGLGraphicsRequirementsKHR)));
+
         XrGraphicsRequirementsOpenGLKHR graphicsRequirements{XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_KHR};
-        CHECK_XRCMD(xrGetOpenGLGraphicsRequirementsKHR(instance, systemId, &graphicsRequirements));
+        CHECK_XRCMD(pfnGetOpenGLGraphicsRequirementsKHR(instance, systemId, &graphicsRequirements));
 
         // Initialize the gl extensions. Note we have to open a window.
         ksDriverInstance driverInstance{};
