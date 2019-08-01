@@ -780,6 +780,8 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                     if count == 0:
                         export_funcs += '\n    // A few instance commands need to go through a loader terminator.\n'
                         export_funcs += '    // Otherwise, go directly to the runtime version of the command if it exists.\n'
+                        export_funcs += '    // But first set the function pointer to NULL so that the fall-through below actually works.\n'
+                        export_funcs += '    *function = nullptr;\n\n'
                         export_funcs += '    if (0 == strcmp(name, "%s")) {\n' % (
                             cur_cmd.name)
                     else:
