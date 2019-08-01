@@ -1189,6 +1189,9 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         generated_commands += '        contents.emplace_back("const char*", "name", name);\n'
         generated_commands += '        contents.emplace_back("PFN_xrVoidFunction*", "function", PointerToHexString(reinterpret_cast<const void*>(function)));\n'
         generated_commands += '        ApiDumpLayerRecordContent(contents);\n'
+        
+        generated_commands += '        // Set the function pointer to NULL so that the fall-through below actually works:\n'
+        generated_commands += '        *function = nullptr;\n\n'
 
         count = 0
         for x in range(0, 2):
