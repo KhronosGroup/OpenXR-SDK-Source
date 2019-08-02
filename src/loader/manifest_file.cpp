@@ -23,7 +23,10 @@
 
 #include "manifest_file.hpp"
 
-#include "common_cmake_config.h"
+#ifdef OPENXR_HAVE_COMMON_CONFIG
+#include "common_config.h"
+#endif  // OPENXR_HAVE_COMMON_CONFIG
+
 #include "filesystem_utils.hpp"
 #include "loader_platform.hpp"
 #include "platform_utils.hpp"
