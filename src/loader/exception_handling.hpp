@@ -42,6 +42,12 @@
     }
 
 #else
+
+// Make it hard to accidentally build this wrong.
+#ifndef XRLOADER_SILENCE_EXCEPTION_HANDLING_WARNING
+#warning "Warning: Exception handling disabled in OpenXR loader - exceptions may escape C ABI if standard library can throw exceptions!"
+#endif
+
 #define XRLOADER_ABI_TRY
 #define XRLOADER_ABI_CATCH_BAD_ALLOC_OOM
 #define XRLOADER_ABI_CATCH_FALLBACK
