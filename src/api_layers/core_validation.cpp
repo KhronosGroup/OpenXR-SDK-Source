@@ -715,11 +715,13 @@ XrResult CoreValidationXrDestroyDebugUtilsMessengerEXT(XrDebugUtilsMessengerEXT 
             return XR_ERROR_HANDLE_INVALID;
         }
         auto info_with_lock = g_debugutilsmessengerext_info.getWithLock(messenger);
-        GenValidUsageXrHandleInfo *gen_handle_info = info_with_lock.second;
-        if (nullptr != gen_handle_info) {
-            auto &debug_messengers = gen_handle_info->instance_info->debug_messengers;
-            vector_remove_if_and_erase(debug_messengers,
-                                       [=](UniqueCoreValidationMessengerInfo const &msg) { return msg->messenger == messenger; });
+        if (info_with_lock.second != nullptr) {
+            GenValidUsageXrHandleInfo *gen_handle_info = info_with_lock.second;
+            if (nullptr != gen_handle_info) {
+                auto &debug_messengers = gen_handle_info->instance_info->debug_messengers;
+                vector_remove_if_and_erase(
+                    debug_messengers, [=](UniqueCoreValidationMessengerInfo const &msg) { return msg->messenger == messenger; });
+            }
         }
         return result;
     } catch (...) {
@@ -733,9 +735,11 @@ XrResult CoreValidationXrSessionBeginDebugUtilsLabelRegionEXT(XrSession session,
         return test_result;
     }
     auto info_with_lock = g_session_info.getWithLock(session);
-    GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
-    if (nullptr != gen_instance_info) {
-        gen_instance_info->debug_data.BeginLabelRegion(session, *labelInfo);
+    if (info_with_lock.second != nullptr) {
+        GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
+        if (nullptr != gen_instance_info) {
+            gen_instance_info->debug_data.BeginLabelRegion(session, *labelInfo);
+        }
     }
     return GenValidUsageNextXrSessionBeginDebugUtilsLabelRegionEXT(session, labelInfo);
 }
@@ -746,9 +750,11 @@ XrResult CoreValidationXrSessionEndDebugUtilsLabelRegionEXT(XrSession session) {
         return test_result;
     }
     auto info_with_lock = g_session_info.getWithLock(session);
-    GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
-    if (nullptr != gen_instance_info) {
-        gen_instance_info->debug_data.EndLabelRegion(session);
+    if (info_with_lock.second != nullptr) {
+        GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
+        if (nullptr != gen_instance_info) {
+            gen_instance_info->debug_data.EndLabelRegion(session);
+        }
     }
     return GenValidUsageNextXrSessionEndDebugUtilsLabelRegionEXT(session);
 }
@@ -759,9 +765,11 @@ XrResult CoreValidationXrSessionInsertDebugUtilsLabelEXT(XrSession session, cons
         return test_result;
     }
     auto info_with_lock = g_session_info.getWithLock(session);
-    GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
-    if (nullptr != gen_instance_info) {
-        gen_instance_info->debug_data.InsertLabel(session, *labelInfo);
+    if (info_with_lock.second != nullptr) {
+        GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
+        if (nullptr != gen_instance_info) {
+            gen_instance_info->debug_data.InsertLabel(session, *labelInfo);
+        }
     }
     return GenValidUsageNextXrSessionInsertDebugUtilsLabelEXT(session, labelInfo);
 }
