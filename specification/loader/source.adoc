@@ -155,9 +155,26 @@ std::experimental::filesystem::path search_path;
 
 .Exceptions
 
-The OpenXR loader relies on throwing and catching pass:[C++] exceptions.  Adding code
-should take this into account and properly wrap executing code with a "try"/"catch"
-block.
+The OpenXR loader itself does not internally throw pass:[C++] exceptions,
+for compatibility with environments where exceptions are forbidden.
+However, since it exposes a C ABI, and the standard library facilities used
+may throw exceptions, functions exposed to the ABI (those with names matching OpenXR functions)
+must: have `XRLOADER_ABI_TRY` before the opening `{` of the function body
+and `XRLOADER_ABI_CATCH_FALLBACK` after the closing `}` of the function body.
+(This is done automatically for those functions whose trampoline is entirely generated.)
+In normal cases, these two macros are defined by `exception_handling.hpp` to expand to `try`
+and a full `catch` clause, respectively. This prevents any exceptions from escaping,
+in what's known as a "function-try-block".
+
+In very limited cases, you may choose to disable exception handling through the provided CMake option
+or by defining `XRLOADER_DISABLE_EXCEPTION_HANDLING`.
+The only two reasons you may define this are:
+
+* Due to a platform or project policy, you're using a custom standard-library build
+  that has exception throwing disabled.
+
+* You're developing or debugging the loader and want exceptions to go
+  uncaught to trigger a debugger.
 
 
 .Experimental Filesystem Usage
