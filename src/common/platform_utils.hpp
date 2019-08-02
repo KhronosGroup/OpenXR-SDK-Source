@@ -32,9 +32,7 @@
 // that it found present and build-time configuration.
 // If you don't have this file, on non-Windows you'll need to define
 // one of HAVE_SECURE_GETENV or HAVE___SECURE_GETENV depending on which
-// of secure_getenv or __secure_getenv are present, as well as defining
-// XRLOADER_ENABLE_EXCEPTION_HANDLING if your standard library can throw exceptions
-// (which most can)
+// of secure_getenv or __secure_getenv are present
 #ifdef OPENXR_HAVE_COMMON_CONFIG
 #include "common_config.h"
 #endif  // OPENXR_HAVE_COMMON_CONFIG
