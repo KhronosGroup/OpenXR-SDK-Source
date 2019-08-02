@@ -17,9 +17,9 @@
 // Author: Mark Young <marky@lunarg.com>
 //
 
-#ifdef XR_OS_WINDOWS
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
-#endif
+#endif  // defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 
 #include "loader_instance.hpp"
 

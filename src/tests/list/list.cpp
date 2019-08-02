@@ -16,7 +16,11 @@
 //
 
 // We do not need any graphics.
-#define _CRT_SECURE_NO_WARNINGS 1
+
+#if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
+#define _CRT_SECURE_NO_WARNINGS
+#endif  // defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
+
 #include "xr_dependencies.h"
 #include <openxr/openxr.h>
 
