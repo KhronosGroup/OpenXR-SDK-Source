@@ -24,16 +24,18 @@ files.  Currently, the loader requires CMake version 3.5.1 or newer.
 CMake may be obtained from either the https://cmake.org/[CMake web-site]
 or often using your computer's software update mechanism.
 
-The CMake
-files of interest exist in several locations:
+The CMake files of interest exist in several locations:
 
 . CMake Files of interest
 
 [width="80%",options="header",cols="^.^50%e,^.^50%"]
 |====
 | CMake File | Usage
-| src/CmakeLists.txt
-    | Top-Level CMake file used to define and build items used by all source
+| CMakeLists.txt
+    | Root CMake file to set up some variables and recurse into include/
+    and src/
+| src/CMakeLists.txt
+    | Main CMake file used to define and build items used by all source
     in the tree, as well as build all projects under the "src" folder.
 | src/cmake/cmake_uninstall.cmake.in
     | CMake files used to define the uninstall process required if the project
@@ -41,11 +43,43 @@ files of interest exist in several locations:
 | src/loader/CMakeLists.txt
     | The loader specific CMake file used to define the build process of the
     loader source.
-| src/loader/loader_cmake_configure.h.in
+| src/common_config.h.in
     | A special file used to generate a header which indicates
     platform-specific items of interest, such as whether or not the platform
     being targeted supports the secure environmental variable functions.
 |====
+
+// dunder = double underscore
+// setting an attribute to prevent formatting attempts.
+:dunder: __
+
+[NOTE]
+.Note
+====
+
+A note about `common_config.h.in`: The supplied CMake build system defines
+`OPENXR_HAVE_COMMON_CONFIG` to indicate that the source should include
+`common_config.h`.
+
+If you aren't using the supplied CMake build system, you will need to either
+generate the header yourself (preferred), or supply equivalent definitions:
+
+* Define `HAVE_SECURE_GETENV` on systems where `secure_getenv` is available.
+* Define `HAVE_{dunder}SECURE_GETENV` on systems where
+  `{dunder}secure_getenv` is available.
+* Define `XRLOADER_ENABLE_EXCEPTION_HANDLING` to enable `try`/`catch` in the
+  loader to handle any library-thrown exceptions.
+  This is *required* to avoid exceptions escaping the C ABI presented by the
+  loader.
+  The only two reasons you may wish to _not_ define this are:
+** Due to a project policy, you're using a custom standard-library build
+   that has exception throwing disabled.
+   (The loader itself does not throw any exceptions but it uses standard
+   library functionality that may throw.)
+** You're developing or debugging the loader and want exceptions to go
+   uncaught to trigger a debugger.
+
+====
 
 
 === Contributing to the Loader ===
