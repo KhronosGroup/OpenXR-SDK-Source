@@ -91,10 +91,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_definitions(-DXR_USE_GRAPHICS_API_D3D12)
 endif()
 
-if(NOT BUILD_LOADER_WITH_EXCEPTION_HANDLING)
-    # This variable is configured into common_config.h
-    set(XRLOADER_DISABLE_EXCEPTION_HANDLING TRUE)
-endif()
 # Check for the existence of the secure_getenv or __secure_getenv commands
 include(CheckFunctionExists)
 

@@ -100,6 +100,11 @@ if(VulkanHeaders_FOUND)
         PRIVATE ${Vulkan_INCLUDE_DIRS}
     )
 endif()
+if(NOT BUILD_LOADER_WITH_EXCEPTION_HANDLING)
+    target_compile_definitions(${LOADER_NAME}
+        PRIVATE XRLOADER_DISABLE_EXCEPTION_HANDLING
+    )
+endif()
 
 target_compile_definitions(${LOADER_NAME}
     PRIVATE API_NAME="OpenXR"
