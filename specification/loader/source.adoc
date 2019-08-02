@@ -67,17 +67,6 @@ generate the header yourself (preferred), or supply equivalent definitions:
 * Define `HAVE_SECURE_GETENV` on systems where `secure_getenv` is available.
 * Define `HAVE_{dunder}SECURE_GETENV` on systems where
   `{dunder}secure_getenv` is available.
-* Define `XRLOADER_ENABLE_EXCEPTION_HANDLING` to enable `try`/`catch` in the
-  loader to handle any library-thrown exceptions.
-  This is *required* to avoid exceptions escaping the C ABI presented by the
-  loader.
-  The only two reasons you may wish to _not_ define this are:
-** Due to a project policy, you're using a custom standard-library build
-   that has exception throwing disabled.
-   (The loader itself does not throw any exceptions but it uses standard
-   library functionality that may throw.)
-** You're developing or debugging the loader and want exceptions to go
-   uncaught to trigger a debugger.
 
 ====
 
