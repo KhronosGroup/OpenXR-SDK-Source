@@ -474,8 +474,8 @@ XrResult CoreValidationXrCreateApiLayerInstance(const XrInstanceCreateInfo *info
             std::transform(string_export_type.begin(), string_export_type.end(), string_export_type.begin(),
                            [](unsigned char c) { return std::tolower(c); });
 
-            std::cerr << "Core Validation output type: " << string_export_type << ", first time = " << std::to_string(first_time)
-                      << std::endl;
+            std::cerr << "Core Validation output type: " << string_export_type
+                      << ", first time = " << (first_time ? "true" : "false") << std::endl;
             if (string_export_type == "text") {
                 if (!g_record_info.file_name.empty()) {
                     g_record_info.type = RECORD_TEXT_FILE;
