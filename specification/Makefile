@@ -30,6 +30,8 @@ GENXR_ARGS += $(GENXR_OPTIONS) -registry $(REGISTRY)
 
 ifneq (,$(strip $(VERBOSE)))
 ASCIIDOC := $(ASCIIDOC) --verbose
+else
+GENXR_ARGS += -q
 endif
 
 ifneq (,$(strip $(STRICT)))
@@ -41,31 +43,29 @@ ifneq (,$(strip $(VERY_STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level WARN
 endif
 
-SPECREVISION = 1.0.0
+SPECREVISION = 1.0.1
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
 # Target directory for output files.
-OUTDIR	 ?= $(CURDIR)/out/$(MAJORMINORVER)
+OUTDIR	 ?= out/$(MAJORMINORVER)
 
 # Target directory for generated files.
 # This is shorthand; can't be moved because the spec source
 # files expect to find these here.
-GENDIR    = $(CURDIR)/generated
+GENDIR    = generated
 
 # Generator scripts and options
 # GENOPTS can be e.g. '-noprotect'
 GENOPTS =
 
-HEADER_DIR  = $(OUTDIR)/openxr
-HEADER      = $(HEADER_DIR)/openxr.h
-PLATHEAD    = $(HEADER_DIR)/openxr_platform.h
-REFLECTHEAD = $(HEADER_DIR)/openxr_reflection.h
-HTMLSPEC    = $(OUTDIR)/openxr.html
-PDFSPEC     = $(OUTDIR)/openxr.pdf
-REGISTRYOUTDIR = $(OUTDIR)/../registry-release/specs/$(MAJORMINORVER)
-METADIR     = sources/chapters/extensions/meta
-MANDIR     := man
+SCRIPTS       := ./scripts
+SPECTOOLS     := $(SCRIPTS)/spec_tools
+XRAPI         := scripts/xrapi.py
+METADIR       := sources/chapters/extensions/meta
+
+# Gets built automatically
+ASCIIDOCTOR_TARGETS :=
 
 default:
 	$(ECHO) "Makefile help - targets:"
@@ -88,8 +88,7 @@ default:
 	@if [ -d loader ]; then \
 	    echo "loader:           HTML version of the loader doc"; fi
 
-	@if [ -d sources/chapters ] && [ -d sources/styleguide ] && [ -d loader ]; then \
-	    echo "all:              build header header-test html pdf styleguide loader build-examples check-spec-links"; fi
+	$(ECHO) "all:              build as many of these as possible: header header-test html pdf styleguide loader build-examples check-spec-links"
 
 	@if [ -d sources/chapters ] && [ -d loader ]; then \
 	    echo "release:          build header html pdf manhtmlpages and copy output to an OpenXR-Registry-like layout"; fi
@@ -99,74 +98,200 @@ default:
 	$(ECHO) ""
 	$(ECHO) "Variables controlling options:"
 	$(ECHO) "Pass QUIET= to disable quiet mode (echos all commands)"
-	$(ECHO) "Pass VERBOSE=1 to invoke asciidoctor with the --verbose option"
+	$(ECHO) "Pass VERBOSE=1 to invoke asciidoctor with the --verbose option and genxr.py without the -q option"
 	$(ECHO) "Pass STRICT=1 to invoke asciidoctor with the --failure-level ERROR option"
 	$(ECHO) "Pass VERY_STRICT=1 to invoke asciidoctor with the --failure-level WARN option"
 
 ################################################
+# Store our build configuration in a file, and force re-generation if it changes.
+# Most common thing that changes is the extension list.
+
+APITITLE ?= OpenXR
+EXTS := $(sort $(EXTENSIONS))
+
+CONFIG_STAMP_FN := $(OUTDIR)/config-stamp
+
+# This is the stuff stored/checked
+STAMP_DATA := $(EXTS) "$(APITITLE)"
+
+# Depend on this target to force checking the config for changes.
+config_stamp:
+	$(QUIET)$(MKDIR) $(dir $(CONFIG_STAMP_FN))
+	$(QUIET)if ! $(PYTHON) $(SCRIPTS)/check_stamp.py $(CONFIG_STAMP_FN) $(STAMP_DATA); then $(MAKE) clean_generated; fi
+.PHONY: config_stamp
+
+################################################
 ## OpenXR header file targets
-# Autogenerate openxr header from XML API description
-# Python and XML files on which openxr.h depends
-header: $(HEADER)
 
-# Directory to build headers into
-$(OUTDIR)/openxr:
-	$(QUIET)$(MKDIR) $@
-
-REGISTRY    = ./registry/xr.xml
-GENXR       = ./scripts/genxr.py
-XRH_DEPENDS = $(REGISTRY) $(GENXR) ./scripts/reg.py ./scripts/generator.py $(OUTDIR)/openxr
-
-
-# OpenXR header target
-$(HEADER): $(XRH_DEPENDS) $(PLATHEAD)
-	$(QUIET)$(PYTHON) $(GENXR) $(GENXR_ARGS) -o $(HEADER_DIR) openxr.h
-	$(QUIET)$(PYTHON) $(GENXR) $(GENXR_ARGS) -o $(HEADER_DIR) openxr_platform.h
-	$(QUIET)$(PYTHON) $(GENXR) $(GENXR_ARGS) -o $(HEADER_DIR) openxr_reflection.h
+HEADER_DIR    := $(OUTDIR)/openxr
+HEADER        := $(HEADER_DIR)/openxr.h
+PLATHEAD      := $(HEADER_DIR)/openxr_platform.h
+REFLECTHEAD   := $(HEADER_DIR)/openxr_reflection.h
+GENHEADERS    := $(HEADER) $(PLATHEAD) $(REFLECTHEAD)
+DEFINESHEAD   := $(HEADER_DIR)/openxr_platform_defines.h
 
 # Platform header (just copy)
-$(PLATHEAD): $(OUTDIR)/openxr
-	$(QUIET)$(CP) ../include/openxr/openxr_platform_defines.h $(HEADER_DIR)
+$(DEFINESHEAD): ../include/openxr/openxr_platform_defines.h
+	$(QUIET)$(MKDIR) $(@D)
+	$(QUIET)$(CP) $< $@
 
+# Named target to geneate all headers
+header: $(GENHEADERS) $(DEFINESHEAD)
+.PHONY: header
+
+TESTSRC := sources/test.c
 # Test that openxr.h compiles
-header-test: $(HEADER)
-	$(CC) -Wall -pedantic -std=c99 -c -I$(OUTDIR) sources/test.c
-	$(CXX) -Wall -c -std=c++98 -I$(OUTDIR) sources/test.c
-	$(CXX) -Wall -c -std=c++11 -I$(OUTDIR) sources/test.c
+header-test: header $(TESTSRC)
+	$(CC) -Wall -pedantic -std=c99 -c -I$(OUTDIR) $(TESTSRC)
+	$(CXX) -Wall -c -std=c++98 -I$(OUTDIR) $(TESTSRC)
+	$(CXX) -Wall -c -std=c++11 -I$(OUTDIR) $(TESTSRC)
 	rm test.o
+.PHONY: header-test
+
+################################################
+# Generated files: headers or includes referenced in spec.
+# Some nominal targets are just "stamp" files generated.
+
+REGISTRY    := registry/xr.xml
+GENXR       := $(SCRIPTS)/genxr.py
+BASIC_GENERATED_DEPENDS := \
+  $(REGISTRY) \
+  $(GENXR) \
+  $(SCRIPTS)/reg.py \
+  $(SCRIPTS)/generator.py \
+  $(SPECTOOLS)/util.py \
+  $(SCRIPTS)/conventions.py \
+  $(SCRIPTS)/xrconventions.py \
+  config_stamp \
+  Makefile
+
+# Stamp files for the generated includes
+GENSTAMPS := \
+  $(GENDIR)/api/apiinc \
+  $(GENDIR)/validity/validinc \
+  $(GENDIR)/hostsynctable/hostsyncinc \
+  $(METADIR)/extinc \
+
+# The actual generated index
+GENDEPENDS := $(GENSTAMPS) $(GENDIR)/index.adoc
+
+# The rule for every genxr-generated file
+$(GENDEPENDS) $(GENHEADERS) $(XRAPI): $(BASIC_GENERATED_DEPENDS)
+	$(ECHO) "[genxr]       $(REGISTRY) -> $@"
+	@if [ "x$(STAMP_NOTE)" != "x" ]; then echo "                                 $(STAMP_NOTE)"; fi
+	$(QUIET)$(MKDIR) $(@D)
+	$(QUIET)$(PYTHON) $(GENXR) $(GENXR_ARGS) $(EXTOPTIONS) -o $(@D) $(@F)
+
+# Print an extra note for stamp files
+$(GENSTAMPS): STAMP_NOTE = (and additional files in $(@D))
+
+# Extra deps
+$(GENDIR)/api/apiinc: $(SCRIPTS)/docgenerator.py
+$(GENDIR)/validity/validinc: $(SCRIPTS)/validitygenerator.py $(SPECTOOLS)/validity.py $(SPECTOOLS)/attributes.py $(SPECTOOLS)/data_structures.py
+$(XRAPI): $(SCRIPTS)/pygenerator.py $(SCRIPTS)/docgenerator.py
+$(GENHEADERS): $(SCRIPTS)/cgenerator.py
+$(REFLECTHEAD): $(SCRIPTS)/creflectiongenerator.py $(SCRIPTS)/jinja_helpers.py
+
+# The actual generated files depend on their stamp file.
+GENAPI = $(wildcard $(GENDIR)/api/*/[A-Za-z]*.txt)
+$(GENAPI): $(GENDIR)/api/apiinc
+
+GENVALIDITY = $(wildcard $(GENDIR)/validity/*/[A-Za-z]*.txt)
+$(GENVALIDITY): $(GENDIR)/validity/validinc
+
+GENSYNC := \
+  $(GENDIR)/hostsynctable/implicit.txt \
+  $(GENDIR)/hostsynctable/parameterlists.txt \
+  $(GENDIR)/hostsynctable/parameters.txt
+$(GENSYNC): $(GENDIR)/hostsynctable/hostsyncinc
+
+GENMETA = $(wildcard $(METADIR)/extinc/[A-Za-z]*.adoc)
+$(GENMETA): $(METADIR)/extinc
+
+# The actual generated include files
+GENINCLUDE = $(GENAPI) $(GENVALIDITY) $(GENSYNC) $(GENMETA)
+.PHONY: generated
+generated: $(GENDEPENDS)
+
+################################################
+# OpenXR Style Guide
+
+SPECSRC = sources/openxr.adoc
+SPECFILES = $(wildcard sources/chapters/[A-Za-z]*.adoc)
+STYLEGUIDE = $(OUTDIR)/styleguide.html
+STYLESRC = sources/styleguide/styleguide.txt
+STYLEFILES = $(wildcard sources/styleguide/[A-Za-z]*.txt)
+
+styleguide: $(STYLEGUIDE)
+
+# Use the AsciiDoctor rule
+ASCIIDOCTOR_TARGETS += $(STYLEGUIDE)
+
+# Target-specific variables and deps customizing the AsciiDoctor rule
+$(STYLEGUIDE): SPECSRC=$(STYLESRC)
+$(STYLEGUIDE): LOGFILE=$(OUTDIR)/adoc_styleguide_stderr.txt
+$(STYLEGUIDE): $(STYLESRC) $(STYLEFILES) $(GENDIR)/api/apiinc
+
+
+################################################
+# OpenXR Loader Guide
+
+LOADERGUIDE = $(OUTDIR)/loader.html
+LOADERSRC = loader/loader.adoc
+LOADERFILES = $(wildcard loader/[A-Za-z]*.adoc)
+
+loader: $(LOADERGUIDE)
+
+# Use the AsciiDoctor rule
+ASCIIDOCTOR_TARGETS += $(LOADERGUIDE)
+
+# Target-specific variables and deps customizing the AsciiDoctor rule
+$(LOADERGUIDE): SPECSRC=$(LOADERSRC)
+$(LOADERGUIDE): LOGFILE=$(OUTDIR)/adoc_loader_stderr.txt
+$(LOADERGUIDE): $(LOADERSRC) $(LOADERFILES)
 
 ################################################
 ## Specification targets
 
+COMMONDOCS = $(SPECSRC) $(SPECFILES) $(GENINCLUDE) $(GENDEPENDS)
+
+## HTML
+HTMLSPEC      := $(OUTDIR)/openxr.html
 html: $(HTMLSPEC)
-pdf pdfLetter:
-	$(MAKE) PAGESIZE=LETTER $(PDFSPEC)
-pdfA4:
-	$(MAKE) PAGESIZE=A4 $(PDFSPEC)
-manhtml: $(HTMLMAN)
-manpdf: $(PDFMAN)
 
-SPECSRC = sources/openxr.adoc
-SPECFILES = $(wildcard sources/chapters/[A-Za-z]*.adoc)
+# Use the AsciiDoctor rule
+ASCIIDOCTOR_TARGETS += $(LOADERGUIDE)
 
-HOSTSYNCPATH   = $(GENDIR)/hostsynctable
-HOSTSYNCDEPEND = $(HOSTSYNCPATH)/hostsyncinc
-INDEXDEPEND = $(GENDIR)
-INDEXNAME = index.adoc
-GENDEPENDS = $(GENDIR)/api/apiinc $(GENDIR)/validity/validinc $(METADIR)/extinc $(INDEXDEPEND)/$(INDEXNAME) $(HOSTSYNCDEPEND)
-GENINCLUDE = $(wildcard $(GENDIR)/api/*/[A-Za-z]*.txt $(GENDIR)/validity/*/[A-Za-z]*.txt $(HOSTSYNCPATH)/*/[A-Za-z]*.txt)
-COMMONDOCS = $(SPECSRC) $(SPECFILES) $(GENINCLUDE) $(GENDEPENDS) $(OUTDIR)
+# Target-specific variables and deps customizing the AsciiDoctor rule
+$(HTMLSPEC): LOGFILE=$(OUTDIR)/adoc_html_stderr.txt
+$(HTMLSPEC): EXTRA_ARGS=--backend html5
+$(HTMLSPEC): $(COMMONDOCS)
 
-.PHONY: generated
-generated: $(COMMONDOCS)
+## PDF
+PDFSPEC       := $(OUTDIR)/openxr.pdf
+PDFA4SPEC       := $(OUTDIR)/openxr.a4.pdf
 
-EXTS := $(sort $(EXTENSIONS))
+pdf pdfLetter: $(PDFSPEC)
+pdfA4: $(PDFA4SPEC)
+
+# Use the AsciiDoctor rule
+ASCIIDOCTOR_TARGETS += $(PDFSPEC) $(PDFA4SPEC)
+
+# Target-specific variables and deps customizing the AsciiDoctor rule
+$(PDFSPEC) $(PDFA4SPEC): LOGFILE=$(OUTDIR)/adoc_pdf_stderr.txt
+$(PDFSPEC) $(PDFA4SPEC): BACKEND_ARGS=--backend pdf --require asciidoctor-pdf
+$(PDFSPEC): PAGESIZE=LETTER
+$(PDFA4SPEC): PAGESIZE=A4
+$(PDFSPEC) $(PDFA4SPEC): $(COMMONDOCS)
+
+################################################
+## Shared asciidoctor rule
+
 EXTATTRIBS := $(foreach ext,$(EXTS),-a $(ext))
 EXTOPTIONS := $(foreach ext,$(EXTS),-extension $(ext))
 
-
 # Generate Asciidoc attributes for spec revision remark.
-APITITLE ?= OpenXR
+
 
 # Spell out RFC2822 format as not all date commands support -R
 SPECDATE     = $(shell echo `date -u "+%a, %d %b %Y %T %z"`)
@@ -193,48 +318,35 @@ ATTRIBOPTS   = -a revnumber="$(SPECREVISION)" \
 
 ADOCOPTS = --doctype book -a data-uri -r $(CURDIR)/scripts/openxr-macros.rb $(ATTRIBOPTS)
 
-$(HTMLSPEC): $(COMMONDOCS)
+# Default to html5
+BACKEND_ARGS=--backend html5
+
+# AsciiDoctor rule - customized by the places where these are described
+$(HTMLSPEC) $(PDFSPEC) $(PDFA4SPEC) $(STYLEGUIDE) $(LOADERGUIDE):
+	$(ECHO) "[asciidoctor] $(SPECSRC) -> $@"
+	$(QUIET)$(MKDIR) $(@D)
 	$(QUIET)if [ $$(uname -s | cut -c 1-6) == "CYGWIN" ]; then \
-	HTMLSPEC_DOS=$$(cygpath -w $@) ;\
+	OUTSPEC_DOS=$$(cygpath -w $@) ;\
 	SPECSRC_DOS=$$(cygpath -w $(SPECSRC)) ;\
 	ATTRIBOPTS_DOS='$(ATTRIBOPTS)' ;\
 	ADOCOPTS_DOS="--doctype book -a data-uri -r $$(cygpath -w $(CURDIR)/scripts/openxr-macros.rb) $$ATTRIBOPTS_DOS" ;\
-	HTML_BATCH_FILE=$$(cygpath -w $$(mktemp)).bat ;\
-	echo $(ASCIIDOC) $$ADOCOPTS_DOS --backend html5 --out-file $$HTMLSPEC_DOS $$SPECSRC_DOS > $$HTML_BATCH_FILE ;\
-	CMD /C $$HTML_BATCH_FILE ;\
-	rm -f $$HTML_BATCH_FILE ;\
+	BATCH_FILE=$$(cygpath -w $$(mktemp)).bat ;\
+	echo $(ASCIIDOC) $$ADOCOPTS_DOS $(BACKEND_ARGS) --out-file $$OUTSPEC_DOS $$SPECSRC_DOS > $$BATCH_FILE ;\
+	CMD /C $$BATCH_FILE ;\
+	rm -f $$BATCH_FILE ;\
 	else \
-	$(ASCIIDOC) $(ADOCOPTS) --backend html5 --out-file $@ $(SPECSRC) 2>&1 | tee $(OUTDIR)/adoc_html_stderr.txt ;\
-	if [ -s $(OUTDIR)/adoc_html_stderr.txt ]; then \
+	$(ASCIIDOC) $(ADOCOPTS) $(BACKEND_ARGS) --out-file $@ $(SPECSRC) 2>&1 | tee $(LOGFILE) ;\
+	if [ -s $(LOGFILE) ]; then \
 		false; \
 	else \
-		rm $(OUTDIR)/adoc_html_stderr.txt; \
+		rm $(LOGFILE); \
 	fi; \
 	fi
-
-$(PDFSPEC): $(COMMONDOCS)
-	$(QUIET)if [ $$(uname -s | cut -c 1-6) == "CYGWIN" ]; then \
-	PDFSPEC_DOS=$$(cygpath -w $@) ;\
-	SPECSRC_DOS=$$(cygpath -w $(SPECSRC)) ;\
-	ATTRIBOPTS_DOS='$(ATTRIBOPTS)' ;\
-	ADOCOPTS_DOS="--doctype book -a data-uri -r $$(cygpath -w $(CURDIR)/scripts/openxr-macros.rb) $$ATTRIBOPTS_DOS" ;\
-	PDF_BATCH_FILE=$$(cygpath -w $$(mktemp)).bat ;\
-	echo $(ASCIIDOC) $$ADOCOPTS_DOS --backend pdf --require asciidoctor-pdf --out-file $$PDFSPEC_DOS $$SPECSRC_DOS > $$PDF_BATCH_FILE ;\
-	CMD /C $$PDF_BATCH_FILE ;\
-	rm -f $$PDF_BATCH_FILE ;\
-	else \
-	$(ASCIIDOC) $(ADOCOPTS) --backend pdf --require asciidoctor-pdf --out-file $@ $(SPECSRC) 2>&1 | tee $(OUTDIR)/adoc_pdf_stderr.txt ;\
-	if [ -s $(OUTDIR)/adoc_pdf_stderr.txt ]; then \
-		false; \
-	else \
-		rm $(OUTDIR)/adoc_pdf_stderr.txt; \
-	fi; \
-	fi
-
 
 ################################################
 # Reference "man" pages extracted from spec
 
+MANDIR      := man
 MANHTMLDIR   = $(OUTDIR)/man/html
 KHRSOURCES   = $(wildcard $(MANDIR)/*KHR.txt)
 MACROSOURCES = $(wildcard $(MANDIR)/XR_*[A-Z][A-Z].txt)
@@ -243,9 +355,9 @@ CORESOURCES  = $(filter-out $(KHRSOURCES) $(VENSOURCES),$(wildcard $(MANDIR)/[Xx
 MANSOURCES   = $(CORESOURCES) $(VENSOURCES) $(KHRSOURCES)
 MANCOPYRIGHT = $(MANDIR)/copyright-ccby.txt $(MANDIR)/footer.txt
 MANGENERATED = $(filter-out $(MANCOPYRIGHT),$(wildcard $(MANDIR)/*))
-MANHTML     = $(MANSOURCES:$(MANDIR)/%.txt=$(MANHTMLDIR)/%.html)
-MANDEPS     = $(MANCOPYRIGHT) $(GENINCLUDE) $(GENDEPENDS)
-MANATTRIBOPTS = -a stylesheet=khronos.css \
+MANHTML      = $(MANSOURCES:$(MANDIR)/%.txt=$(MANHTMLDIR)/%.html)
+MANDEPS      = $(MANCOPYRIGHT) $(GENINCLUDE) $(GENDEPENDS)
+MANATTRIBOPTS := -a stylesheet=khronos.css \
 				-a stylesdir=$(CURDIR)/config \
 				-a html_spec_relative='../../openxr.html' \
 
@@ -259,161 +371,57 @@ make_extension_source = sources/chapters/extensions/$(word 1,$(subst _, ,$(1)))/
 # Call make_extension_source on every enabled extension, after lowercasing and stripping the leading XR prefix.
 EXTENSION_SOURCES := $(foreach ext,$(patsubst xr_%,%,$(EXTENSIONS_LOWER)),$(call make_extension_source,$(ext)))
 
-# This is a generated python script used by genRef
-# in the process of extracting man page sources.
-# So, it must be generated before we can run genRef
-scripts/xrapi.py: $(XRH_DEPENDS)
-	$(QUIET)$(PYTHON) $(GENXR) $(GENXR_ARGS) $(EXTOPTIONS) -o scripts xrapi.py
-
 # Generation of ref page asciidoctor sources by extraction from the
 # specification.
 #
-# Should have a proper dependency causing the man page sources to be
-# generated by running genRef (once), but adding $(MANSOURCES) to the
-# targets causes genRef to run once/target.
-#
-# So, we treat the apispec.txt file as the "stamp" for genRef.
-#
-# Should pass in $(EXTOPTIONS) to determine which pages to generate,
-# which requires a matching update to genRef.
-# For now, all core and extension ref pages are extracted by genRef.py.
-LOGFILE = man/logfile
-man/apispec.txt: $(SPECFILES) $(EXTENSION_SOURCES) ./scripts/genRef.py ./scripts/reflib.py ./scripts/xrapi.py
-	$(QUIET)$(PYTHON) ./scripts/genRef.py -log $(LOGFILE) -registry $(REGISTRY) $(EXTOPTIONS) $(SPECFILES) $(EXTENSION_SOURCES)
+# Treating the all-in-one ref page source apispec.txt as the "stamp" for genRef.
+LOGFILE := man/logfile
+man/apispec.txt: $(SPECFILES) $(EXTENSION_SOURCES) $(SCRIPTS)/genRef.py $(SCRIPTS)/reflib.py $(SCRIPTS)/xrapi.py
+	$(ECHO) "[genRef.py]   $(REGISTRY) and spec -> $@"
+	$(ECHO) "                                          (and additional files in $(@D))"
+	$(QUIET)$(PYTHON) $(SCRIPTS)/genRef.py -log $(LOGFILE) -registry $(REGISTRY) $(EXTOPTIONS) $(SPECFILES) $(EXTENSION_SOURCES)
 	$(QUIET)grep "ERROR:" $(LOGFILE)
 
 # The recursive $(MAKE) is an apparently unavoidable hack, since the
 # actual list of man page sources isn't known until after
 # man/apispec.txt is generated.
 manhtmlpages: man/apispec.txt
-	$(MAKE) buildmanpages
+	$(QUIET)$(MAKE) buildmanpages
 
 buildmanpages: $(MANHTML) $(MANHTMLDIR)/openxr.html
 
 # This is the single-page ref page.
 # Manually defining doctype-manpage so that we can use "book" style but still enable the refpage-only portions.
 $(MANHTMLDIR)/openxr.html: man/apispec.txt $(MANDEPS)
+	$(ECHO) "[asciidoctor] $< -> $@"
+	$(QUIET)$(MKDIR) $(@D)
 	$(QUIET)$(ASCIIDOC) -b html5 $(MANATTRIBOPTS) $(ADOCOPTS) -a doctype-manpage -d book -o $@ $<
 
 # This is all the individual-page ref pages.
 $(MANHTML): $(MANHTMLDIR)/%.html: $(MANDIR)/%.txt $(MANDEPS)
-	$(QUIET)$(MKDIR) $(MANHTMLDIR)
+	$(ECHO) "[asciidoctor] $< -> $@"
+	$(QUIET)$(MKDIR) $(@D)
 	$(QUIET)$(ASCIIDOC) -b html5 $(MANATTRIBOPTS) $(ADOCOPTS) -a cross-file-links -d manpage -o $@ $<
 
-
-#manpdf: $(OUTDIR)/apispec.pdf
-#$(OUTDIR)/apispec.pdf: $(SPECVERSION) man/apispec.txt $(MANCOPYRIGHT) $(SVGFILES) $(GENINCLUDE) $(GENDEPENDS)
-#        $(QUIET)$(MKDIR) $(OUTDIR)
-#        $(QUIET)$(MKDIR) $(PDFMATHDIR)
-#        $(QUIET)$(ASCIIDOC) -b pdf -a html_spec_relative='html/vkspec.html' $(ADOCOPTS) $(ADOCPDFOPTS) -o $@ man/apispec.txt
-#ifndef GS_EXISTS
-#        $(QUIET) echo "Warning: Ghostscript not installed, skipping pdf optimization"
-#else
-#        $(QUIET)$(CURDIR)/config/optimize-pdf $@
-#        $(QUIET)rm $@
-#        $(QUIET)mv $(OUTDIR)/apispec-optimized.pdf $@
-#endif
-
-#manhtml: $(OUTDIR)/apispec.html
-#$(OUTDIR)/apispec.html: KATEXDIR = katex
-#$(OUTDIR)/apispec.html: $(SPECVERSION) man/apispec.txt $(MANCOPYRIGHT) $(SVGFILES) $(GENINCLUDE) $(GENDEPENDS) katexinst
-#        $(QUIET)$(MKDIR) $(OUTDIR)
-#        $(QUIET)$(ASCIIDOC) -b html5 -a html_spec_relative='html/vkspec.html' $(ADOCOPTS) $(ADOCHTMLOPTS) -o $@ man/apispec.txt
-
 ################################################
-# Generated include files referenced in spec
+# Extension dependency script
 
-# The nominal targets here are just "stamp" files generated
-# at the same time as the real outputs of these commands.
-
-# Generated files for spec
-$(GENDIR)/api/apiinc: $(XRH_DEPENDS)
+DEPSCRIPT = $(SCRIPTS)/make_ext_dependency.py
+DEPSCRIPTOUT := out/extDependency.sh
+$(DEPSCRIPTOUT): $(REGISTRY) $(DEPSCRIPT)
+	$(ECHO) "[mk_ext_dep]  $(REGISTRY) -> $@"
 	$(QUIET)$(MKDIR) $(@D)
-	$(QUIET)$(PYTHON) $(GENXR) $(GENXR_ARGS) $(EXTOPTIONS) -o $(GENDIR)/api apiinc
-
-$(GENDIR)/validity/validinc: $(XRH_DEPENDS)
-	$(QUIET)$(MKDIR) $(@D)
-	$(QUIET)$(PYTHON) $(GENXR) $(GENXR_ARGS) $(EXTOPTIONS) -o $(GENDIR)/validity validinc
-
-$(HOSTSYNCDEPEND): $(XRH_DEPENDS)
-	$(QUIET)$(MKDIR) $(@D)
-	$(QUIET)$(PYTHON) $(GENXR) $(GENXR_ARGS) $(EXTOPTIONS) -o $(HOSTSYNCPATH) hostsyncinc
-
-$(INDEXDEPEND)/$(INDEXNAME): $(XRH_DEPENDS)
-	$(QUIET)$(MKDIR) $(@D)
-	$(QUIET)$(PYTHON) $(GENXR) $(GENXR_ARGS) $(EXTOPTIONS) -o $(INDEXDEPEND) $(INDEXNAME)
-
-XRM_DEPENDS = $(REGISTRY) $(GENXR) ./scripts/reg.py ./scripts/generator.py
-
-$(METADIR)/extinc: $(XRM_DEPENDS)
-	$(QUIET)$(MKDIR) $(@D)
-	$(QUIET)$(PYTHON) $(GENXR) $(GENXR_ARGS) $(EXTOPTIONS) -o $(METADIR) extinc
-
-# Every generated include snippet depends on registry and scripts.
-$(GENINCLUDE): $(XRH_DEPENDS)
-
-DEPSCRIPT = ./scripts/make_ext_dependency.py
-generated/extDependency.sh: $(REGISTRY) $(DEPSCRIPT)
-	$(QUIET)$(PYTHON) $(DEPSCRIPT) -registry $(REGISTRY) \
-	    -outscript $@
-
-################################################
-# OpenXR Style Guide
-
-STYLEGUIDE = $(OUTDIR)/styleguide.html
-STYLESRC = sources/styleguide/styleguide.txt
-STYLEFILES = $(wildcard sources/styleguide/[A-Za-z]*.txt)
-
-styleguide: $(STYLEGUIDE)
-
-$(STYLEGUIDE): $(STYLESRC) $(STYLEFILES) $(GENDIR)/api/apiinc
-	$(QUIET)$(MKDIR) $(OUTDIR)
-	$(QUIET)if [ $$(uname -s | cut -c 1-6) == "CYGWIN" ]; then \
-	STYLESPEC_DOS=$$(cygpath -w $@) ;\
-	STYLESRC_DOS=$$(cygpath -w $(SPECSRC)) ;\
-	ATTRIBOPTS_DOS='$(ATTRIBOPTS)' ;\
-	ADOCOPTS_DOS="--doctype book -a data-uri -r $$(cygpath -w $(CURDIR)/scripts/openxr-macros.rb) $$ATTRIBOPTS_DOS" ;\
-	STYLE_BATCH_FILE=$$(cygpath -w $$(mktemp)).bat ;\
-	echo $(ASCIIDOC) -b html5 $$ADOCOPTS_DOS -o $$STYLESPEC_DOS $$STYLESRC_DOS > $$STYLE_BATCH_FILE ;\
-	CMD /C $$STYLE_BATCH_FILE ;\
-	rm -f $$STYLE_BATCH_FILE ;\
-	else \
-	$(ASCIIDOC) -b html5 $(ADOCOPTS) -o $@ $(STYLESRC) ;\
-	fi
-
-################################################
-# OpenXR Loader Guide
-
-LOADERGUIDE = $(OUTDIR)/loader.html
-LOADERSRC = loader/loader.adoc
-LOADERFILES = $(wildcard loader/[A-Za-z]*.adoc)
-
-loader: $(LOADERGUIDE)
-
-$(LOADERGUIDE): $(LOADERSRC) $(LOADERFILES)
-	$(QUIET)$(MKDIR) $(OUTDIR)
-	$(QUIET)if [ $$(uname -s | cut -c 1-6) == "CYGWIN" ]; then \
-	SPEC_DOS=$$(cygpath -w $@) ;\
-	SRC_DOS=$$(cygpath -w $(LOADERSRC)) ;\
-	ATTRIBOPTS_DOS='$(ATTRIBOPTS)' ;\
-	ADOCOPTS_DOS="--doctype book -a data-uri -r $$(cygpath -w $(CURDIR)/scripts/openxr-macros.rb) $$ATTRIBOPTS_DOS" ;\
-	BATCH_FILE=$$(cygpath -w $$(mktemp)).bat ;\
-	echo $(ASCIIDOC) -b html5 $$ADOCOPTS_DOS -o $$SPEC_DOS $$SRC_DOS > $$BATCH_FILE ;\
-	CMD /C $$BATCH_FILE ;\
-	rm -f $$BATCH_FILE ;\
-	else \
-	$(ASCIIDOC) -b html5 $(ADOCOPTS) -o $@ $(LOADERSRC) ;\
-	fi
+	$(QUIET)$(PYTHON) $(DEPSCRIPT) -registry $< -outscript $@
 
 ################################################
 # Embedded example code
 
 # Script that extracts code to .cpp and .c files, and
 # generates an associated makefile
-EXAMPLES_SCRIPT = $(CURDIR)/scripts/extract_code.py
+EXAMPLES_SCRIPT = $(SCRIPTS)/extract_code.py
 
 # The makefile generated by extract_code.py
-EXAMPLES_MAKEFILE = $(CURDIR)/examples.mk
+EXAMPLES_MAKEFILE = examples.mk
 
 ifeq ($(strip $(QUIET)),@)
 EXTRACT_QUIET := --quiet
@@ -441,21 +449,28 @@ check-spec-links:
 	$(QUIET)$(CHECK_MARKUP_SCRIPT) -Werror
 	$(QUIET)$(PYTHON) $(CHECK_SPEC_LINKS_SCRIPT)
 	$(QUIET)env FAIL_IF_COULD_NOT_VALIDATE=false ./checkXml.sh
-	$(QUIET)$(PYTHON) $(CURDIR)/scripts/xml_consistency.py
+	$(QUIET)$(PYTHON) $(SCRIPTS)/xml_consistency.py
 
 .PHONY: check-spec-links
 
 ################################################
 # Meta "build approximately everything spec-specific required to pass CI" target
+
+# recursive to cause csl to run first for better errors messages, without adding bogus depends.
 all:
-	$(QUIET)$(MAKE) check-spec-links # recursive to cause csl to run first for better errors messages, without adding bogus depends.
-	$(QUIET)$(MAKE) header header-test html pdf styleguide loader build-examples
+	$(QUIET)if [ -f $(SPECSRC) ]; then $(MAKE) check-spec-links; fi
+	$(QUIET)$(MAKE) header
+	$(QUIET)if [ -f $(TESTSRC) ]; then $(MAKE) header-test; fi
+	$(QUIET)if [ -f $(SPECSRC) ]; then $(MAKE) html pdf build-examples; fi
+	$(QUIET)if [ -f $(STYLESRC) ]; then $(MAKE) styleguide; fi
+	$(QUIET)if [ -f $(LOADERSRC) ]; then $(MAKE) loader; fi
 	$(ECHO) ""
 	$(ECHO) "Target 'all': Completed specification build and basic checks successfully."
 .PHONY: all
 
 ################################################
 # Meta build for releases. Also copies into approximately the right layout for the OpenXR-Registry repo.
+REGISTRYOUTDIR = $(OUTDIR)/../registry-release/specs/$(MAJORMINORVER)
 release: header html pdf manhtmlpages loader
 	$(QUIET)$(MKDIR) $(REGISTRYOUTDIR)/pdf
 	$(QUIET)$(CP) $(PDFSPEC) $(REGISTRYOUTDIR)/pdf/xrspec.pdf
@@ -482,7 +497,7 @@ clean_generated:
 
 # Clean generated targets as well as intermediates.
 clean clobber: clean_dirt clean_generated
-	$(RM) $(HEADER) $(PLATHEAD) $(HTMLSPEC) $(PDFSPEC) $(STYLEGUIDE) $(LOADERGUIDE)
+	$(RM) $(HEADER) $(PLATHEAD) $(REFLECTHEAD) $(DEFINESHEAD) $(HTMLSPEC) $(PDFSPEC) $(PDFA4SPEC) $(STYLEGUIDE) $(LOADERGUIDE) $(DEPSCRIPTOUT) config_stamp
 	# Clean up extracted code
 	if [ -f $(EXAMPLES_MAKEFILE) ]; then $(MAKE) -f $(EXAMPLES_MAKEFILE) clean-examples; fi
 	$(RM) $(EXAMPLES_MAKEFILE)

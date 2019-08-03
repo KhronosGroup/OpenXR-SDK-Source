@@ -20,8 +20,7 @@
 
 #ifdef OPENXR_HAVE_COMMON_CONFIG
 #include "common_config.h"
-#endif // OPENXR_HAVE_COMMON_CONFIG
-
+#endif  // OPENXR_HAVE_COMMON_CONFIG
 
 #ifdef XRLOADER_ENABLE_EXCEPTION_HANDLING
 #include <stdexcept>
@@ -45,7 +44,8 @@
 
 // Make it hard to accidentally build this wrong.
 #ifndef XRLOADER_SILENCE_EXCEPTION_HANDLING_WARNING
-#warning "Warning: Exception handling disabled in OpenXR loader - exceptions may escape C ABI if standard library can throw exceptions!"
+#warning \
+    "Warning: Exception handling disabled in OpenXR loader - exceptions may escape C ABI if standard library can throw exceptions!"
 #endif
 
 #define XRLOADER_ABI_TRY
