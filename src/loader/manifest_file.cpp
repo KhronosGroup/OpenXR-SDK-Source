@@ -185,55 +185,44 @@ static void ReadDataFilesInSearchPaths(ManifestFileType type, const std::string 
                                        bool &override_active, std::vector<std::string> &manifest_files) {
     bool is_directory_list = true;
     bool is_runtime = (type == MANIFEST_TYPE_RUNTIME);
-    char *override_env = nullptr;
     std::string override_path;
     std::string search_path;
 
     if (!override_env_var.empty()) {
+        bool permit_override = true;
 #ifndef XR_OS_WINDOWS
         if (geteuid() != getuid() || getegid() != getgid()) {
-            // Don't allow setuid apps to use the env var:
-            override_env = nullptr;
-        } else
+            // Don't allow setuid apps to use the env var
+            permit_override = false;
+        }
 #endif
-        {
-            override_env = PlatformUtilsGetSecureEnv(override_env_var.c_str());
-            if (nullptr != override_env) {
+        if (permit_override) {
+            override_path = PlatformUtilsGetSecureEnv(override_env_var.c_str());
+            if (!override_path.empty()) {
                 // The runtime override is actually a specific list of filenames, not directories
                 if (is_runtime) {
                     is_directory_list = false;
                 }
-                override_path = override_env;
             }
         }
     }
 
-    if (nullptr != override_env && !override_path.empty()) {
+    if (!override_path.empty()) {
         CopyIncludedPaths(is_directory_list, override_path, "", search_path);
-        PlatformUtilsFreeEnv(override_env);
         override_active = true;
     } else {
         override_active = false;
 #ifndef XR_OS_WINDOWS
-        bool xdg_conf_dirs_alloc = true;
-        bool xdg_data_dirs_alloc = true;
         const char home_additional[] = ".local/share/";
 
         // Determine how much space is needed to generate the full search path
         // for the current manifest files.
-        char *xdg_conf_dirs = PlatformUtilsGetSecureEnv("XDG_CONFIG_DIRS");
-        char *xdg_data_dirs = PlatformUtilsGetSecureEnv("XDG_DATA_DIRS");
-        char *xdg_data_home = PlatformUtilsGetSecureEnv("XDG_DATA_HOME");
-        char *home = PlatformUtilsGetSecureEnv("HOME");
+        std::string xdg_conf_dirs = PlatformUtilsGetSecureEnv("XDG_CONFIG_DIRS");
+        std::string xdg_data_dirs = PlatformUtilsGetSecureEnv("XDG_DATA_DIRS");
+        std::string xdg_data_home = PlatformUtilsGetSecureEnv("XDG_DATA_HOME");
+        std::string home = PlatformUtilsGetSecureEnv("HOME");
 
-        if (nullptr == xdg_conf_dirs) {
-            xdg_conf_dirs_alloc = false;
-        }
-        if (nullptr == xdg_data_dirs) {
-            xdg_data_dirs_alloc = false;
-        }
-
-        if (nullptr == xdg_conf_dirs || xdg_conf_dirs[0] == '\0') {
+        if (xdg_conf_dirs.empty()) {
             CopyIncludedPaths(true, FALLBACK_CONFIG_DIRS, relative_path, search_path);
         } else {
             CopyIncludedPaths(true, xdg_conf_dirs, relative_path, search_path);
@@ -244,32 +233,20 @@ static void ReadDataFilesInSearchPaths(ManifestFileType type, const std::string 
         CopyIncludedPaths(true, EXTRASYSCONFDIR, relative_path, search_path);
 #endif
 
-        if (xdg_data_dirs == nullptr || xdg_data_dirs[0] == '\0') {
+        if (xdg_data_dirs.empty()) {
             CopyIncludedPaths(true, FALLBACK_DATA_DIRS, relative_path, search_path);
         } else {
             CopyIncludedPaths(true, xdg_data_dirs, relative_path, search_path);
         }
 
-        if (nullptr != xdg_data_home) {
+        if (!xdg_data_home.empty()) {
             CopyIncludedPaths(true, xdg_data_home, relative_path, search_path);
-        } else if (nullptr != home) {
+        } else if (!home.empty()) {
             std::string relative_home_path = home_additional;
             relative_home_path += relative_path;
             CopyIncludedPaths(true, home, relative_home_path, search_path);
         }
 
-        if (xdg_conf_dirs_alloc) {
-            PlatformUtilsFreeEnv(xdg_conf_dirs);
-        }
-        if (xdg_data_dirs_alloc) {
-            PlatformUtilsFreeEnv(xdg_data_dirs);
-        }
-        if (nullptr != xdg_data_home) {
-            PlatformUtilsFreeEnv(xdg_data_home);
-        }
-        if (nullptr != home) {
-            PlatformUtilsFreeEnv(home);
-        }
 #endif
     }
 
@@ -284,30 +261,19 @@ static void ReadDataFilesInSearchPaths(ManifestFileType type, const std::string 
 // is supplied. If ${fallback_env} or ${fallback_env}/... would be returned but that environment
 // variable is unset or empty, return the empty string.
 static std::string GetXDGEnv(const char *name, const char *fallback_env, const char *fallback_path) {
-    char *path = PlatformUtilsGetSecureEnv(name);
-    std::string result;
-    if (path != nullptr) {
-        result = path;
-        PlatformUtilsFreeEnv(path);
-        if (!result.empty()) {
-            return result;
-        }
+    std::string result = PlatformUtilsGetSecureEnv(name);
+    if (!result.empty()) {
+        return result;
     }
     if (fallback_env != nullptr) {
-        char *path = PlatformUtilsGetSecureEnv(fallback_env);
-        if (path != nullptr) {
-            result = path;
-            PlatformUtilsFreeEnv(path);
-        }
+        result = PlatformUtilsGetSecureEnv(fallback_env);
         if (result.empty()) {
-            return "";
+            return result;
         }
         if (fallback_path != nullptr) {
             result += "/";
+            result += fallback_path;
         }
-    }
-    if (fallback_path != nullptr) {
-        result += fallback_path;
     }
     return result;
 }
@@ -630,15 +596,11 @@ XrResult RuntimeManifestFile::FindManifestFiles(ManifestFileType type,
         LoaderLogger::LogErrorMessage("", "RuntimeManifestFile::FindManifestFiles - unknown manifest file requested");
         return XR_ERROR_FILE_ACCESS_ERROR;
     }
-    std::string filename;
-    char *override_path = PlatformUtilsGetSecureEnv(OPENXR_RUNTIME_JSON_ENV_VAR);
-    if (override_path != nullptr && *override_path != '\0') {
-        filename = override_path;
-        PlatformUtilsFreeEnv(override_path);
+    std::string filename = PlatformUtilsGetSecureEnv(OPENXR_RUNTIME_JSON_ENV_VAR);
+    if (!filename.empty()) {
         LoaderLogger::LogInfoMessage(
             "", "RuntimeManifestFile::FindManifestFiles - using environment variable override runtime file " + filename);
     } else {
-        PlatformUtilsFreeEnv(override_path);
 #ifdef XR_OS_WINDOWS
         std::vector<std::string> filenames;
         ReadRuntimeDataFilesInRegistry(type, "", "ActiveRuntime", filenames);
@@ -731,20 +693,18 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
         }
         // Check if there's an enable environment variable provided
         if (!layer_root_node["enable_environment"].isNull() && layer_root_node["enable_environment"].isString()) {
-            char *enable_val = PlatformUtilsGetEnv(layer_root_node["enable_environment"].asString().c_str());
+            std::string env_var = layer_root_node["enable_environment"].asString();
             // If it's not set in the environment, disable the layer
-            if (nullptr == enable_val) {
+            if (!PlatformUtilsGetEnvSet(env_var.c_str())) {
                 enabled = false;
             }
-            PlatformUtilsFreeEnv(enable_val);
         }
         // Check for the disable environment variable, which must be provided in the JSON
-        char *disable_val = PlatformUtilsGetEnv(layer_root_node["disable_environment"].asString().c_str());
-        // If the envar is set, disable the layer. Disable envar overrides enable above
-        if (nullptr != disable_val) {
+        std::string env_var = layer_root_node["disable_environment"].asString();
+        // If the env var is set, disable the layer. Disable env var overrides enable above
+        if (PlatformUtilsGetEnvSet(env_var.c_str())) {
             enabled = false;
         }
-        PlatformUtilsFreeEnv(disable_val);
 
         // Not enabled, so pretend like it isn't even there.
         if (!enabled) {
