@@ -523,7 +523,7 @@ RuntimeManifestFile::~RuntimeManifestFile() = default;
 
 void RuntimeManifestFile::CreateIfValid(const std::string &filename,
                                         std::vector<std::unique_ptr<RuntimeManifestFile>> &manifest_files) {
-    std::ifstream json_stream = std::ifstream(filename, std::ifstream::in);
+    std::ifstream json_stream(filename, std::ifstream::in);
     if (!json_stream.is_open()) {
         std::string error_message = "RuntimeManifestFile::createIfValid failed to open ";
         error_message += filename;
@@ -721,7 +721,7 @@ ApiLayerManifestFile::~ApiLayerManifestFile() = default;
 
 void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::string &filename,
                                          std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files) {
-    std::ifstream json_stream = std::ifstream(filename, std::ifstream::in);
+    std::ifstream json_stream(filename, std::ifstream::in);
     Json::Reader reader;
     Json::Value root_node = Json::nullValue;
     if (!reader.parse(json_stream, root_node, false) || root_node.isNull()) {
