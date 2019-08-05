@@ -49,6 +49,18 @@
 #include <utility>
 #include <vector>
 
+#ifndef FALLBACK_CONFIG_DIRS
+#define FALLBACK_CONFIG_DIRS "/etc/xdg"
+#endif  // !FALLBACK_CONFIG_DIRS
+
+#ifndef FALLBACK_DATA_DIRS
+#define FALLBACK_DATA_DIRS "/usr/local/share:/usr/share"
+#endif  // !FALLBACK_DATA_DIRS
+
+#ifndef SYSCONFDIR
+#define SYSCONFDIR "/etc"
+#endif  // !SYSCONFDIR
+
 #ifdef XRLOADER_DISABLE_EXCEPTION_HANDLING
 #if JSON_USE_EXCEPTIONS
 #error \
