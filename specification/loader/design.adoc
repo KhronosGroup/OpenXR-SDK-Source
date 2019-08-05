@@ -1044,6 +1044,12 @@ Since the runtime file name can vary based on the supporting system,
 the command fname:PlatformGetGlobalRuntimeFileName provides a quick
 mechanism for querying the name of the file.
 
+[NOTE]
+.Note
+****
+Not all platforms implement this call.
+****
+
 [[PlatformGetGlobalRuntimeFileName]]
 [source,c++]
 ----
