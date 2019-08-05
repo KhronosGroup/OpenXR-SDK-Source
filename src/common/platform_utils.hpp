@@ -23,12 +23,6 @@
 #include "xr_dependencies.h"
 #include <string>
 
-#if defined(XR_OS_LINUX)
-#include <unistd.h>
-#include <fcntl.h>
-#include <iostream>
-#endif
-
 // OpenXR paths and registry key locations
 #define OPENXR_RELATIVE_PATH "openxr/"
 #define OPENXR_IMPLICIT_API_LAYER_RELATIVE_PATH "/api_layers/implicit.d"
@@ -54,6 +48,10 @@
 
 // Environment variables
 #if defined(XR_OS_LINUX) || defined(XR_OS_APPLE)
+
+#include <unistd.h>
+#include <fcntl.h>
+#include <iostream>
 
 namespace detail {
 
