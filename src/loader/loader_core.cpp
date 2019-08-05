@@ -61,8 +61,6 @@ inline bool IsMissingNullTerminator(const char (&str)[max_length]) {
     return true;
 }
 
-extern "C" {
-
 // ---- Core 1.0 manual loader trampoline functions
 
 LOADER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrEnumerateApiLayerProperties(uint32_t propertyCapacityInput,
@@ -644,5 +642,3 @@ XRAPI_ATTR XrResult XRAPI_CALL xrSessionInsertDebugUtilsLabelEXT(XrSession sessi
     return XR_SUCCESS;
 }
 XRLOADER_ABI_CATCH_FALLBACK
-
-}  // extern "C"
