@@ -132,6 +132,7 @@ getSDKSourceFilenames() {
         runClangFormat.sh \
         tox.ini \
         external/ \
+        github/sdk/ \
         include/ \
         maintainer-scripts/common.sh \
         maintainer-scripts/archive-sdk.sh \
