@@ -463,29 +463,27 @@ XrResult CoreValidationXrCreateApiLayerInstance(const XrInstanceCreateInfo *info
             g_record_info.type = RECORD_NONE;
         }
 
-        char *export_type = PlatformUtilsGetEnv("XR_CORE_VALIDATION_EXPORT_TYPE");
-        char *file_name = PlatformUtilsGetEnv("XR_CORE_VALIDATION_FILE_NAME");
-        if (nullptr != file_name) {
+        std::string export_type = PlatformUtilsGetEnv("XR_CORE_VALIDATION_EXPORT_TYPE");
+        std::string file_name = PlatformUtilsGetEnv("XR_CORE_VALIDATION_FILE_NAME");
+        if (!file_name.empty()) {
             g_record_info.file_name = file_name;
-            PlatformUtilsFreeEnv(file_name);
         }
 
-        if (nullptr != export_type) {
-            std::string string_export_type = export_type;
-            PlatformUtilsFreeEnv(export_type);
-            std::transform(string_export_type.begin(), string_export_type.end(), string_export_type.begin(),
+        if (!export_type.empty()) {
+            std::string export_type_lower = export_type;
+            std::transform(export_type.begin(), export_type.end(), export_type_lower.begin(),
                            [](unsigned char c) { return std::tolower(c); });
 
-            std::cerr << "Core Validation output type: " << string_export_type
+            std::cerr << "Core Validation output type: " << export_type_lower
                       << ", first time = " << (first_time ? "true" : "false") << std::endl;
-            if (string_export_type == "text") {
+            if (export_type_lower == "text") {
                 if (!g_record_info.file_name.empty()) {
                     g_record_info.type = RECORD_TEXT_FILE;
                 } else {
                     g_record_info.type = RECORD_TEXT_COUT;
                 }
                 user_defined_output = true;
-            } else if (string_export_type == "html" && first_time) {
+            } else if (export_type_lower == "html" && first_time) {
                 g_record_info.type = RECORD_HTML_FILE;
                 if (!CoreValidationWriteHtmlHeader()) {
                     return XR_ERROR_INITIALIZATION_FAILED;

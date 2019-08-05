@@ -117,10 +117,8 @@ LoaderLogger::LoaderLogger() {
 
     // If the environment variable to enable loader debugging is set, then enable the
     // appropriate logging out to std::cout.
-    char* loader_debug = PlatformUtilsGetSecureEnv("XR_LOADER_DEBUG");
-    if (nullptr != loader_debug) {
-        std::string debug_string = loader_debug;
-        PlatformUtilsFreeEnv(loader_debug);
+    std::string debug_string = PlatformUtilsGetSecureEnv("XR_LOADER_DEBUG");
+    if (!debug_string.empty()) {
         XrLoaderLogMessageSeverityFlags debug_flags = {};
         if (debug_string == "error") {
             debug_flags = XR_LOADER_LOG_MESSAGE_SEVERITY_ERROR_BIT;

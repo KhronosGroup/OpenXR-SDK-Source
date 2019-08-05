@@ -993,7 +993,7 @@ To read an environment variable, the loader calls fname:PlatformUtilsGetEnv:
 [[PlatformUtilsGetEnv]]
 [source,c++]
 ----
-char *PlatformUtilsGetEnv(
+std::string PlatformUtilsGetEnv(
     const char *name);
 ----
   * pname:name must: be a non-NULL NULL-terminated C-style string indicating
@@ -1001,24 +1001,20 @@ char *PlatformUtilsGetEnv(
 
 If the environment variable identified by pname:name exists on the system,
 the C-style NULL-terminated string will be returned.  If the environment
-variable can not be found, a value of NULL is returned.
+variable can not be found, an empty string is returned.
 
+If you want to distinguish between an empty value and a variable not set at all,
+if the underlying platform distinguishes these cases,
+use fname:PlatformUtilsGetEnvSet:
 
-.Freeing the Memory Associated With a Environment Variable
-
-Some operating systems require memory to be allocated when accessing
-environment variables.  Because of this, all flink:PlatformUtilsGetEnv
-calls must: be paired with a fname:PlatformUtilsFreeEnv call:
-
-[[PlatformUtilsFreeEnv]]
+[[PlatformUtilsGetEnvSet]]
 [source,c++]
 ----
-void PlatformUtilsFreeEnv(
-    char *val)
+bool PlatformUtilsGetEnvSet(
+    const char *name);
 ----
-  * pname:val must: be a non-NULL NULL-terminated C-style string returned
-    by a call to flink:PlatformUtilsGetEnv.
 
+It returns true if the environment variable is set.
 
 .Reading a Secure Environment Variable
 
@@ -1038,13 +1034,6 @@ char *PlatformUtilsGetSecureEnv(
 If the platform supports secure environment variable reading, the
 appropriate method will be used.  Otherwise, it will fall back to the
 standard flink:PlatformUtilsGetEnv call.
-
-Just as the loader must: free variable memory using flink:PlatformUtilsGetEnv,
-it must do the same for any non-NULL returned values received from
-flink:PlatformUtilsGetSecureEnv.  Therefore, please pair each call of
-fname:PlatformUtilsGetSecureEnv with a corresponding call to
-flink:PlatformUtilsFreeEnv.
-
 
 [[active-runtime-file-management]]
 ==== Active Runtime File Management ====
