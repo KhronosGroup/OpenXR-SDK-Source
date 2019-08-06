@@ -2456,7 +2456,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             elif is_destroy:
                 if last_param.type == 'XrSession':
                     next_validate_func += '\n        // Clean up any labels associated with this session\n'
-                    next_validate_func += '        CoreValidationDeleteSessionLabels(session);\n\n'
+                    # next_validate_func += '        CoreValidationDeleteSessionLabels(session);\n\n'
                 # Only remove the handle from our map if the runtime returned success
                 next_validate_func += '        if (XR_SUCCEEDED(result)) {\n'
 
