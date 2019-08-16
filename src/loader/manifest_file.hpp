@@ -57,12 +57,12 @@ class ManifestFile {
     ManifestFile(const ManifestFile &) = delete;
     ManifestFile &operator=(const ManifestFile &) = delete;
 
-    ManifestFileType Type() { return _type; }
-    const std::string &Filename() { return _filename; }
-    const std::string &LibraryPath() { return _library_path; }
+    ManifestFileType Type() const { return _type; }
+    const std::string &Filename() const { return _filename; }
+    const std::string &LibraryPath() const { return _library_path; }
     void GetInstanceExtensionProperties(std::vector<XrExtensionProperties> &props);
     void GetDeviceExtensionProperties(std::vector<XrExtensionProperties> &props);
-    const std::string &GetFunctionName(const std::string &func_name);
+    const std::string &GetFunctionName(const std::string &func_name) const;
 
    protected:
     ManifestFile(ManifestFileType type, const std::string &filename, const std::string &library_path);
@@ -97,8 +97,8 @@ class ApiLayerManifestFile : public ManifestFile {
     // Factory method
     static XrResult FindManifestFiles(ManifestFileType type, std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files);
 
-    const std::string &LayerName() { return _layer_name; }
-    XrApiLayerProperties GetApiLayerProperties();
+    const std::string &LayerName() const { return _layer_name; }
+    XrApiLayerProperties GetApiLayerProperties() const;
 
    private:
     ApiLayerManifestFile(ManifestFileType type, const std::string &filename, const std::string &layer_name,

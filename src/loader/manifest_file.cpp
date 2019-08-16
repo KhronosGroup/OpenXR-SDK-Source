@@ -462,7 +462,7 @@ void ManifestFile::GetDeviceExtensionProperties(std::vector<XrExtensionPropertie
     GetExtensionProperties(_device_extensions, props);
 }
 
-const std::string &ManifestFile::GetFunctionName(const std::string &func_name) {
+const std::string &ManifestFile::GetFunctionName(const std::string &func_name) const {
     if (!_functions_renamed.empty()) {
         auto found = _functions_renamed.find(func_name);
         if (found != _functions_renamed.end()) {
@@ -765,7 +765,7 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
     manifest_files.back()->ParseCommon(layer_root_node);
 }
 
-XrApiLayerProperties ApiLayerManifestFile::GetApiLayerProperties() {
+XrApiLayerProperties ApiLayerManifestFile::GetApiLayerProperties() const {
     XrApiLayerProperties props = {};
     props.type = XR_TYPE_API_LAYER_PROPERTIES;
     props.next = nullptr;
