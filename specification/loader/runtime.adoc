@@ -27,11 +27,14 @@ changed by an external entity (on those platforms that support updating).
 
 ===== Linux Active Runtime Location
 
-On Linux, the active runtime information is contained inside a JSON-formatted
-file located under the folder:
+On Linux, the active runtime information is contained inside a
+JSON-formatted file located in a standard
+https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html[XDG
+configuration directory] or the system's standard global configuration
+directory (typically `/etc`), under the relative path:
 
 ```
-/usr/local/share/openxr/<major_api_version>
+openxr/<major_api_version>
 ```
 
 <major_api_version> should be replaced with the integer value for
@@ -40,11 +43,16 @@ the corresponding OpenXR API version.
 The JSON file is named "active_runtime.json" and contains the necessary
 information on how OpenXR components can load the appropriate runtime library.
 
-For example, the complete path location of the OpenXR 1.x active runtime file is:
+For example, a globally-configured OpenXR 1.x active runtime file might be at:
 
 ```
-/usr/local/share/openxr/1/active_runtime.json
+/etc/xdg/openxr/1/active_runtime.json
 ```
+
+When multiple such files exist, `XDG_CONFIG_HOME` is preferred,
+followed by the elements of `XDG_CONFIG_DIRS` in order, followed by
+the system's global configuration directory. This allows the user's
+preference to easily override a global default.
 
 ===== Windows Active Runtime Location
 
