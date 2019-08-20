@@ -122,7 +122,7 @@ set_source_files_properties(
     PROPERTIES GENERATED TRUE
 )
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if(WIN32)
     # Windows api_dump-specific information
     target_compile_definitions(XrApiLayer_api_dump PRIVATE _CRT_SECURE_NO_WARNINGS)
     # Turn off transitional "changed behavior" warning message for Visual Studio versions prior to 2015.

@@ -100,11 +100,7 @@ if(OPENGL_FOUND)
     )
 endif()
 
-if(WIN32)
-    set(OPENXR_LIB openxr_loader-${MAJOR}_${MINOR})
-else()
-    set(OPENXR_LIB openxr_loader)
-endif()
+set(OPENXR_LIB openxr_loader)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     if(MSVC)

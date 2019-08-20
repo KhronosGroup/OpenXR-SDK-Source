@@ -22,6 +22,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # All options defined here
 option(BUILD_LOADER "Build loader" ON)
+option(BUILD_ALL_EXTENSIONS "Build loader and layers with all extensions" OFF)
 option(BUILD_LOADER_WITH_EXCEPTION_HANDLING "Enable exception handling in the loader. Leave this on unless your standard library is built to not throw." ON)
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     option(DYNAMIC_LOADER "Build the loader as a .dll library" OFF)
@@ -31,10 +32,10 @@ endif()
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/api_layers")
     option(BUILD_API_LAYERS "Build API layers" ON)
 endif()
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests" AND NOT CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
     option(BUILD_TESTS "Build tests" ON)
 endif()
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/conformance")
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/conformance" AND NOT CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
     option(BUILD_CONFORMANCE_TESTS "Build conformance tests" ON)
 endif()
 
@@ -52,7 +53,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 # Several files use these compile-time platform switches
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if(WIN32)
     add_definitions( -DXR_USE_PLATFORM_WIN32 )
 elseif( PRESENTATION_BACKEND MATCHES "xlib" )
     add_definitions( -DXR_USE_PLATFORM_XLIB )
@@ -81,12 +82,18 @@ if (NOT CMAKE_VERSION VERSION_LESS 3.7.0)
     # wherever you normally link your library files to your target.
 endif()
 
+if (BUILD_ALL_EXTENSIONS AND NOT VulkanHeaders_FOUND)
+    message(FATAL_ERROR "Vulkan headers not found")
+endif()
+
 find_package(OpenGL)
 if (OPENGL_FOUND)
     add_definitions(-DXR_USE_GRAPHICS_API_OPENGL)
+elseif(BUILD_ALL_EXTENSIONS)
+    message(FATAL_ERROR "OpenGL not found")
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if(WIN32)
     add_definitions(-DXR_USE_GRAPHICS_API_D3D11)
     add_definitions(-DXR_USE_GRAPHICS_API_D3D12)
 endif()
@@ -110,7 +117,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/version.cmake)
 
 # Path separators ( : or ; ) are not handled well in CMake.
 # This seems like a reasonable approach.
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if(WIN32)
     set(CODEGEN_PYTHON_PATH "${CMAKE_SOURCE_DIR}/specification/scripts;${CMAKE_SOURCE_DIR}/src/scripts;$ENV{PYTHONPATH}")
 else()
     set(CODEGEN_PYTHON_PATH "${CMAKE_SOURCE_DIR}/specification/scripts:${CMAKE_SOURCE_DIR}/src/scripts:$ENV{PYTHONPATH}")

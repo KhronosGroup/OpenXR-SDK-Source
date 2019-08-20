@@ -33,11 +33,7 @@ if(VulkanHeaders_FOUND)
     )
 endif()
 
-if(WIN32)
-    set(OPENXR_LIB openxr_loader-${MAJOR}_${MINOR})
-else()
-    set(OPENXR_LIB openxr_loader)
-endif()
+set(OPENXR_LIB openxr_loader)
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     target_compile_options(runtime_list PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
