@@ -32,9 +32,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(FALLBACK_DATA_DIRS "/usr/local/share:/usr/share" CACHE STRING
         "Search path to use when XDG_DATA_DIRS is unset or empty or the current process is SUID/SGID. Default is freedesktop compliant.")
 endif()
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if(WIN32)
     set(openxr_loader_RESOURCE_FILE ${CMAKE_CURRENT_SOURCE_DIR}/loader.rc)
-    set(LOADER_NAME ${LOADER_NAME}-${MAJOR}_${MINOR})
 endif()
 
 # List of all files externally generated outside of the loader that the loader
@@ -130,24 +129,27 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(XR_API_VERSION "${MAJOR}.${MINOR}")
     configure_file("openxr.pc.in" "openxr.pc" @ONLY)
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/openxr.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    foreach(configuration in CMAKE_C_FLAGS_DEBUG
-                             CMAKE_C_FLAGS_RELEASE
-                             CMAKE_C_FLAGS_RELWITHDEBINFO
-                             CMAKE_CXX_FLAGS_DEBUG
-                             CMAKE_CXX_FLAGS_RELEASE
-                             CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-        # If building DLLs, force static CRT linkage
-        if(DYNAMIC_LOADER)
-            if (${configuration} MATCHES "/MD")
-                string(REGEX REPLACE "/MD" "/MT" ${configuration} "${${configuration}}")
+elseif(WIN32)
+    # WindowsStore (UWP) apps must be compiled with dynamic CRT linkage (default)
+    if (NOT CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+        foreach(configuration in CMAKE_C_FLAGS_DEBUG
+                                CMAKE_C_FLAGS_RELEASE
+                                CMAKE_C_FLAGS_RELWITHDEBINFO
+                                CMAKE_CXX_FLAGS_DEBUG
+                                CMAKE_CXX_FLAGS_RELEASE
+                                CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+            # If building DLLs, force static CRT linkage
+            if(DYNAMIC_LOADER)
+                if (${configuration} MATCHES "/MD")
+                    string(REGEX REPLACE "/MD" "/MT" ${configuration} "${${configuration}}")
+                endif()
+            else()  # Otherwise for static libs, link the CRT dynamically
+                if (${configuration} MATCHES "/MT")
+                    string(REGEX REPLACE "/MT" "/MD" ${configuration} "${${configuration}}")
+                endif()
             endif()
-        else()  # Otherwise for static libs, link the CRT dynamically
-            if (${configuration} MATCHES "/MT")
-                string(REGEX REPLACE "/MT" "/MD" ${configuration} "${${configuration}}")
-            endif()
-        endif()
-    endforeach()
+        endforeach()
+    endif()
 
     target_link_libraries(${LOADER_NAME} shlwapi)
     target_compile_options(${LOADER_NAME} PRIVATE)
@@ -157,7 +159,6 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # Need to copy DLL to client directories so clients can easily load it.
     if( (DYNAMIC_LOADER) AND (CMAKE_GENERATOR MATCHES "^Visual Studio.*") )
         file( TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/${LOADER_NAME}.dll COPY_SRC_PATH )
-        # file( TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/../tests/triangle/$<CONFIGURATION>/ COPY_DST_TEST_PATH )
         file( TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/../tests/hello_xr/$<CONFIGURATION>/ COPY_DST_TEST_PATH )
         file( TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/../tests/loader_test/$<CONFIGURATION>/ COPY_DST_LOADER_TEST_PATH )
         add_custom_command( TARGET ${LOADER_NAME} POST_BUILD
