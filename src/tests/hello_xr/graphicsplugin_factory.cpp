@@ -1,3 +1,5 @@
+#include <utility>
+
 #include "pch.h"
 #include "common.h"
 #include "options.h"
@@ -32,34 +34,36 @@ using GraphicsPluginFactory = std::function<std::shared_ptr<IGraphicsPlugin>(con
 std::map<std::string, GraphicsPluginFactory, IgnoreCaseStringLess> graphicsPluginMap = {
 // #ifdef XR_USE_GRAPHICS_API_OPENGL_ES
 //     { "OpenGLES", [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {
-//         return CreateGraphicsPlugin_OpenGLES(options, platformPlugin); } },
+//         return CreateGraphicsPlugin_OpenGLES(options, std::move(platformPlugin)); } },
 // #endif
 #ifdef XR_USE_GRAPHICS_API_OPENGL
     {"OpenGL",
      [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {
-         return CreateGraphicsPlugin_OpenGL(options, platformPlugin);
+         return CreateGraphicsPlugin_OpenGL(options, std::move(platformPlugin));
      }},
 #endif
 #ifdef XR_USE_GRAPHICS_API_VULKAN
     {"Vulkan",
      [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {
-         return CreateGraphicsPlugin_Vulkan(options, platformPlugin);
+         return CreateGraphicsPlugin_Vulkan(options, std::move(platformPlugin));
      }},
 #endif
 #ifdef XR_USE_GRAPHICS_API_D3D11
-    {"D3D11", [](const std::shared_ptr<Options>& options,
-                 std::shared_ptr<IPlatformPlugin> platformPlugin) { return CreateGraphicsPlugin_D3D11(options, platformPlugin); }},
+    {"D3D11",
+     [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {
+         return CreateGraphicsPlugin_D3D11(options, std::move(platformPlugin));
+     }},
 #endif
     // #ifdef XR_USE_GRAPHICS_API_D3D12
     //     { "D3D12", [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {
-    //         return CreateGraphicsPlugin_D3D12(options, platformPlugin); } },
+    //         return CreateGraphicsPlugin_D3D12(options, std::move(platformPlugin)); } },
     // #endif
 };
 }  // namespace
 
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin(const std::shared_ptr<Options>& options,
                                                       std::shared_ptr<IPlatformPlugin> platformPlugin) {
-    if (options->GraphicsPlugin.size() == 0) {
+    if (options->GraphicsPlugin.empty()) {
         throw std::invalid_argument("No graphics API specified");
     }
 
@@ -68,5 +72,5 @@ std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin(const std::shared_ptr<Opti
         throw std::invalid_argument(Fmt("Unsupported graphics API '%s'", options->GraphicsPlugin.c_str()));
     }
 
-    return apiIt->second(options, platformPlugin);
+    return apiIt->second(options, std::move(platformPlugin));
 }
