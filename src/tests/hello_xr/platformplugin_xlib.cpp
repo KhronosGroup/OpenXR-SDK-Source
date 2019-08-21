@@ -7,8 +7,6 @@ namespace {
 struct XlibPlatformPlugin : public IPlatformPlugin {
     XlibPlatformPlugin(const std::shared_ptr<Options>&) {}
 
-    virtual ~XlibPlatformPlugin() {}
-
     std::vector<std::string> GetInstanceExtensions() const override { return {}; }
 
     XrBaseInStructure* GetInstanceCreateExtension() const override { return nullptr; }
