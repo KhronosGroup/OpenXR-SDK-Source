@@ -44,6 +44,11 @@ struct Program {
             instance = XR_NULL_HANDLE;
         }
     }
+
+    Program(const Program&) = delete;
+    Program& operator=(const Program&) = delete;
+    Program(Program&&) = delete;
+    Program& operator=(Program&&) = delete;
 };
 
 // This below function is written in as close to "C style" as
