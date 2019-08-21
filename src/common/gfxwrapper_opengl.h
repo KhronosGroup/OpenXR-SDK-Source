@@ -863,7 +863,7 @@ typedef struct {
     unsigned char depthBits;
 } ksGpuSurfaceBits;
 
-bool ksGpuContext_CreateShared(ksGpuContext *context, const ksGpuContext *other, const int queueIndex);
+bool ksGpuContext_CreateShared(ksGpuContext *context, const ksGpuContext *other, int queueIndex);
 void ksGpuContext_Destroy(ksGpuContext *context);
 void ksGpuContext_WaitIdle(ksGpuContext *context);
 void ksGpuContext_SetCurrent(ksGpuContext *context);
@@ -992,13 +992,13 @@ typedef struct {
 #endif
 } ksGpuWindow;
 
-bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const ksGpuQueueInfo *queueInfo, const int queueIndex,
-                        const ksGpuSurfaceColorFormat colorFormat, const ksGpuSurfaceDepthFormat depthFormat,
-                        const ksGpuSampleCount sampleCount, const int width, const int height, const bool fullscreen);
+bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const ksGpuQueueInfo *queueInfo, int queueIndex,
+                        ksGpuSurfaceColorFormat colorFormat, ksGpuSurfaceDepthFormat depthFormat, ksGpuSampleCount sampleCount,
+                        int width, int height, bool fullscreen);
 void ksGpuWindow_Destroy(ksGpuWindow *window);
 void ksGpuWindow_Exit(ksGpuWindow *window);
 ksGpuWindowEvent ksGpuWindow_ProcessEvents(ksGpuWindow *window);
-void ksGpuWindow_SwapInterval(ksGpuWindow *window, const int swapInterval);
+void ksGpuWindow_SwapInterval(ksGpuWindow *window, int swapInterval);
 void ksGpuWindow_SwapBuffers(ksGpuWindow *window);
 ksNanoseconds ksGpuWindow_GetNextSwapTimeNanoseconds(ksGpuWindow *window);
 ksNanoseconds ksGpuWindow_GetFrameTimeNanoseconds(ksGpuWindow *window);
