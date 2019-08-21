@@ -625,13 +625,15 @@ XrResult CoreValidationXrCreateSession(XrInstance instance, const XrSessionCreat
             }
             cur_ptr = reinterpret_cast<const XrBaseInStructure *>(cur_ptr->next);
         }
-        auto const &enabled_extensions = gen_instance_info->enabled_extensions;
-#ifdef XR_KHR_headless
-        bool has_headless = (enabled_extensions.end() !=
-                             std::find(enabled_extensions.begin(), enabled_extensions.end(), XR_KHR_HEADLESS_EXTENSION_NAME));
-#else
         bool has_headless = false;
+        auto const &enabled_extensions = gen_instance_info->enabled_extensions;
+        has_headless |= (enabled_extensions.end() !=
+                         std::find(enabled_extensions.begin(), enabled_extensions.end(), XR_MND_HEADLESS_EXTENSION_NAME));
+#ifdef XR_KHR_headless
+        has_headless |= (enabled_extensions.end() !=
+                         std::find(enabled_extensions.begin(), enabled_extensions.end(), XR_KHR_HEADLESS_EXTENSION_NAME));
 #endif  // XR_KHR_headless
+
         bool got_right_graphics_binding_count = (num_graphics_bindings_found == 1);
         if (!got_right_graphics_binding_count && has_headless) {
             // This permits 0 as well.
