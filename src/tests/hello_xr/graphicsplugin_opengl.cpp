@@ -41,6 +41,11 @@ static const char* FragmentShaderGlsl = R"_(
 struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
     OpenGLGraphicsPlugin(const std::shared_ptr<Options>&, std::shared_ptr<IPlatformPlugin>){};
 
+    OpenGLGraphicsPlugin(const OpenGLGraphicsPlugin&) = delete;
+    OpenGLGraphicsPlugin& operator=(const OpenGLGraphicsPlugin&) = delete;
+    OpenGLGraphicsPlugin(OpenGLGraphicsPlugin&&) = delete;
+    OpenGLGraphicsPlugin& operator=(OpenGLGraphicsPlugin&&) = delete;
+
     ~OpenGLGraphicsPlugin() override {
         if (m_swapchainFramebuffer != 0) {
             glDeleteFramebuffers(1, &m_swapchainFramebuffer);

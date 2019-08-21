@@ -183,9 +183,12 @@ struct CmdBuffer {
     VkCommandBuffer buf{VK_NULL_HANDLE};
     VkFence execFence{VK_NULL_HANDLE};
 
-    CmdBuffer() {}
+    CmdBuffer() = default;
 
-    CmdBuffer(const CmdBuffer& that) = delete;
+    CmdBuffer(const CmdBuffer&) = delete;
+    CmdBuffer& operator=(const CmdBuffer&) = delete;
+    CmdBuffer(CmdBuffer&&) = delete;
+    CmdBuffer& operator=(CmdBuffer&&) = delete;
 
     ~CmdBuffer() {
         SetState(CmdBufferState::Undefined);
@@ -330,6 +333,11 @@ struct ShaderProgram {
         shaderInfo = {};
     }
 
+    ShaderProgram(const ShaderProgram&) = delete;
+    ShaderProgram& operator=(const ShaderProgram&) = delete;
+    ShaderProgram(ShaderProgram&&) = delete;
+    ShaderProgram& operator=(ShaderProgram&&) = delete;
+
     void LoadVertexShader(const std::vector<uint32_t>& code) { Load(0, code); }
 
     void LoadFragmentShader(const std::vector<uint32_t>& code) { Load(1, code); }
@@ -339,7 +347,7 @@ struct ShaderProgram {
    private:
     VkDevice m_vkDevice{VK_NULL_HANDLE};
 
-    const void Load(uint32_t index, const std::vector<uint32_t>& code) {
+    void Load(uint32_t index, const std::vector<uint32_t>& code) {
         VkShaderModuleCreateInfo modInfo{VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO};
 
         auto& si = shaderInfo[index];
@@ -400,6 +408,10 @@ struct VertexBufferBase {
         count = {0, 0};
     }
 
+    VertexBufferBase(const VertexBufferBase&) = delete;
+    VertexBufferBase& operator=(const VertexBufferBase&) = delete;
+    VertexBufferBase(VertexBufferBase&&) = delete;
+    VertexBufferBase& operator=(VertexBufferBase&&) = delete;
     void Init(VkDevice device, const MemoryAllocator* memAllocator, const std::vector<VkVertexInputAttributeDescription>& attr) {
         m_vkDevice = device;
         m_memAllocator = memAllocator;
@@ -465,7 +477,7 @@ struct RenderPass {
     VkFormat depthFmt{};
     VkRenderPass pass{VK_NULL_HANDLE};
 
-    RenderPass() {}
+    RenderPass() = default;
 
     bool Create(VkDevice device, VkFormat aColorFmt, VkFormat aDepthFmt) {
         m_vkDevice = device;
@@ -529,6 +541,11 @@ struct RenderPass {
         pass = VK_NULL_HANDLE;
     }
 
+    RenderPass(const RenderPass&) = delete;
+    RenderPass& operator=(const RenderPass&) = delete;
+    RenderPass(RenderPass&&) = delete;
+    RenderPass& operator=(RenderPass&&) = delete;
+
    private:
     VkDevice m_vkDevice{VK_NULL_HANDLE};
 };
@@ -541,7 +558,7 @@ struct RenderTarget {
     VkImageView depthView{VK_NULL_HANDLE};
     VkFramebuffer fb{VK_NULL_HANDLE};
 
-    RenderTarget() {}
+    RenderTarget() = default;
 
     ~RenderTarget() {
         if (m_vkDevice) {
@@ -556,8 +573,33 @@ struct RenderTarget {
         colorView = VK_NULL_HANDLE;
         depthView = VK_NULL_HANDLE;
         fb = VK_NULL_HANDLE;
+        m_vkDevice = VK_NULL_HANDLE;
     }
 
+    RenderTarget(RenderTarget&& other) : RenderTarget() {
+        using std::swap;
+        swap(colorImage, other.colorImage);
+        swap(depthImage, other.depthImage);
+        swap(colorView, other.colorView);
+        swap(depthView, other.depthView);
+        swap(fb, other.fb);
+        swap(m_vkDevice, other.m_vkDevice);
+    }
+    RenderTarget& operator=(RenderTarget&& other) {
+        if (&other == this) {
+            return *this;
+        }
+        // Clean up ourselves.
+        this->~RenderTarget();
+        using std::swap;
+        swap(colorImage, other.colorImage);
+        swap(depthImage, other.depthImage);
+        swap(colorView, other.colorView);
+        swap(depthView, other.depthView);
+        swap(fb, other.fb);
+        swap(m_vkDevice, other.m_vkDevice);
+        return *this;
+    }
     void Create(VkDevice device, VkImage aColorImage, VkImage aDepthImage, VkExtent2D size, RenderPass& renderPass) {
         m_vkDevice = device;
 
@@ -615,6 +657,9 @@ struct RenderTarget {
         CHECK_VKCMD(vkCreateFramebuffer(m_vkDevice, &fbInfo, nullptr, &fb));
     }
 
+    RenderTarget(const RenderTarget&) = delete;
+    RenderTarget& operator=(const RenderTarget&) = delete;
+
    private:
     VkDevice m_vkDevice{VK_NULL_HANDLE};
 };
@@ -623,13 +668,14 @@ struct RenderTarget {
 struct PipelineLayout {
     VkPipelineLayout layout{VK_NULL_HANDLE};
 
-    PipelineLayout() {}
+    PipelineLayout() = default;
 
     ~PipelineLayout() {
         if (m_vkDevice) {
             if (layout) vkDestroyPipelineLayout(m_vkDevice, layout, nullptr);
         }
         layout = VK_NULL_HANDLE;
+        m_vkDevice = VK_NULL_HANDLE;
     }
 
     void Create(VkDevice device) {
@@ -646,6 +692,11 @@ struct PipelineLayout {
         pipelineLayoutCreateInfo.pPushConstantRanges = &pcr;
         CHECK_VKCMD(vkCreatePipelineLayout(m_vkDevice, &pipelineLayoutCreateInfo, nullptr, &layout));
     }
+
+    PipelineLayout(const PipelineLayout&) = delete;
+    PipelineLayout& operator=(const PipelineLayout&) = delete;
+    PipelineLayout(PipelineLayout&&) = delete;
+    PipelineLayout& operator=(PipelineLayout&&) = delete;
 
    private:
     VkDevice m_vkDevice{VK_NULL_HANDLE};
@@ -778,11 +829,37 @@ struct DepthBuffer {
     VkDeviceMemory depthMemory{VK_NULL_HANDLE};
     VkImage depthImage{VK_NULL_HANDLE};
 
-    DepthBuffer() {}
+    DepthBuffer() = default;
 
     ~DepthBuffer() {
-        if (depthImage) vkDestroyImage(m_vkDevice, depthImage, nullptr);
-        if (depthMemory) vkFreeMemory(m_vkDevice, depthMemory, nullptr);
+        if (m_vkDevice) {
+            if (depthImage) vkDestroyImage(m_vkDevice, depthImage, nullptr);
+            if (depthMemory) vkFreeMemory(m_vkDevice, depthMemory, nullptr);
+        }
+        depthImage = VK_NULL_HANDLE;
+        depthMemory = VK_NULL_HANDLE;
+        m_vkDevice = VK_NULL_HANDLE;
+    }
+
+    DepthBuffer(DepthBuffer&& other) : DepthBuffer() {
+        using std::swap;
+
+        swap(depthImage, other.depthImage);
+        swap(depthMemory, other.depthMemory);
+        swap(m_vkDevice, other.m_vkDevice);
+    }
+    DepthBuffer& operator=(DepthBuffer&& other) {
+        if (&other == this) {
+            return *this;
+        }
+        // clean up self
+        this->~DepthBuffer();
+        using std::swap;
+
+        swap(depthImage, other.depthImage);
+        swap(depthMemory, other.depthMemory);
+        swap(m_vkDevice, other.m_vkDevice);
+        return *this;
     }
 
     void Create(VkDevice device, MemoryAllocator* memAllocator, VkFormat depthFormat,
@@ -812,6 +889,9 @@ struct DepthBuffer {
         memAllocator->Allocate(memRequirements, &depthMemory, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
         CHECK_VKCMD(vkBindImageMemory(device, depthImage, depthMemory, 0));
     }
+
+    DepthBuffer(const DepthBuffer&) = delete;
+    DepthBuffer& operator=(const DepthBuffer&) = delete;
 
    private:
     VkDevice m_vkDevice{VK_NULL_HANDLE};
@@ -1315,7 +1395,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         // Allocate and initialize the buffer of image structs (must be sequential in memory for xrEnumerateSwapchainImages).
         // Return back an array of pointers to each swapchain image struct so the consumer doesn't need to know the type/size.
         // Keep the buffer alive by adding it into the list of buffers.
-        m_swapchainImageContexts.push_back({});
+        m_swapchainImageContexts.emplace_back();
         SwapchainImageContext& swapchainImageContext = m_swapchainImageContexts.back();
 
         std::vector<XrSwapchainImageBaseHeader*> bases = swapchainImageContext.Create(
@@ -1416,7 +1496,6 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
     uint32_t m_queueFamilyIndex = 0;
     VkQueue m_vkQueue{VK_NULL_HANDLE};
     VkSemaphore m_vkDrawDone{VK_NULL_HANDLE};
-    uint32_t m_vkDeviceLocalHeap = 0;
 
     MemoryAllocator m_memAllocator{};
     ShaderProgram m_shaderProgram{};
