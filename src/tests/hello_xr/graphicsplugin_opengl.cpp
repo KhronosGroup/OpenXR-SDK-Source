@@ -39,7 +39,7 @@ static const char* FragmentShaderGlsl = R"_(
     )_";
 
 struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
-    OpenGLGraphicsPlugin(const std::shared_ptr<Options>&, std::shared_ptr<IPlatformPlugin>){};
+    OpenGLGraphicsPlugin(const std::shared_ptr<Options>& /*unused*/, const std::shared_ptr<IPlatformPlugin> /*unused*/&){};
 
     OpenGLGraphicsPlugin(const OpenGLGraphicsPlugin&) = delete;
     OpenGLGraphicsPlugin& operator=(const OpenGLGraphicsPlugin&) = delete;
@@ -101,7 +101,8 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
             THROW("Unable to create GL context");
         }
 
-        GLint major = 0, minor = 0;
+        GLint major = 0;
+        GLint minor = 0;
         glGetIntegerv(GL_MAJOR_VERSION, &major);
         glGetIntegerv(GL_MINOR_VERSION, &minor);
 
@@ -179,7 +180,7 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
         glEnableVertexAttribArray(m_vertexAttribColor);
         glBindBuffer(GL_ARRAY_BUFFER, m_cubeVertexBuffer);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_cubeIndexBuffer);
-        glVertexAttribPointer(m_vertexAttribCoords, 3, GL_FLOAT, GL_FALSE, sizeof(Geometry::Vertex), 0);
+        glVertexAttribPointer(m_vertexAttribCoords, 3, GL_FLOAT, GL_FALSE, sizeof(Geometry::Vertex), nullptr);
         glVertexAttribPointer(m_vertexAttribColor, 3, GL_FLOAT, GL_FALSE, sizeof(Geometry::Vertex),
                               reinterpret_cast<const void*>(sizeof(XrVector3f)));
     }
@@ -253,7 +254,8 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
 
         // This back-buffer has no cooresponding depth-stencil texture, so create one with matching dimensions.
 
-        GLint width, height;
+        GLint width;
+        GLint height;
         glBindTexture(GL_TEXTURE_2D, colorTexture);
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
@@ -328,7 +330,7 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
             glUniformMatrix4fv(m_modelViewProjectionUniformLocation, 1, GL_FALSE, reinterpret_cast<const GLfloat*>(&mvp));
 
             // Draw the cube.
-            glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(ArraySize(Geometry::c_cubeIndices)), GL_UNSIGNED_SHORT, 0);
+            glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(ArraySize(Geometry::c_cubeIndices)), GL_UNSIGNED_SHORT, nullptr);
         }
 
         glBindVertexArray(0);
@@ -337,7 +339,9 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
 
         // Swap our window every other eye for RenderDoc
         static int everyOther = 0;
-        if (everyOther++ & 1) ksGpuWindow_SwapBuffers(&window);
+        if ((everyOther++ & 1) != 0) {
+            ksGpuWindow_SwapBuffers(&window);
+        }
     }
 
    private:

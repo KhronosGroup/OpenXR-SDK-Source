@@ -146,7 +146,7 @@ struct MemoryAllocator {
                   const void* pNext = nullptr) const {
         // Search memtypes to find first index with those properties
         for (uint32_t i = 0; i < m_memProps.memoryTypeCount; ++i) {
-            if (memReqs.memoryTypeBits & (1 << i)) {
+            if ((memReqs.memoryTypeBits & (1 << i)) != 0u) {
                 // Type is available, does it match user properties?
                 if ((m_memProps.memoryTypes[i].propertyFlags & flags) == flags) {
                     VkMemoryAllocateInfo memAlloc{VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO, pNext};
@@ -192,14 +192,21 @@ struct CmdBuffer {
 
     ~CmdBuffer() {
         SetState(CmdBufferState::Undefined);
-        if (m_vkDevice) {
-            if (buf) vkFreeCommandBuffers(m_vkDevice, pool, 1, &buf);
-            if (pool) vkDestroyCommandPool(m_vkDevice, pool, nullptr);
-            if (execFence) vkDestroyFence(m_vkDevice, execFence, nullptr);
+        if (m_vkDevice != nullptr) {
+            if (buf != VK_NULL_HANDLE) {
+                vkFreeCommandBuffers(m_vkDevice, pool, 1, &buf);
+            }
+            if (pool != VK_NULL_HANDLE) {
+                vkDestroyCommandPool(m_vkDevice, pool, nullptr);
+            }
+            if (execFence != VK_NULL_HANDLE) {
+                vkDestroyFence(m_vkDevice, execFence, nullptr);
+            }
         }
-        buf = nullptr;
+        buf = VK_NULL_HANDLE;
         pool = VK_NULL_HANDLE;
         execFence = VK_NULL_HANDLE;
+        m_vkDevice = nullptr;
     }
 
     std::string StateString(CmdBufferState s) {
@@ -276,7 +283,9 @@ struct CmdBuffer {
 
     bool Wait() {
         // Waiting on a not-in-flight command buffer is a no-op
-        if (state == CmdBufferState::Initialized) return true;
+        if (state == CmdBufferState::Initialized) {
+            return true;
+        }
 
         CHECK_CBSTATE(CmdBufferState::Executing);
 
@@ -321,16 +330,19 @@ struct ShaderProgram {
     std::array<VkPipelineShaderStageCreateInfo, 2> shaderInfo{
         {{VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO}, {VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO}}};
 
-    ShaderProgram() {}
+    ShaderProgram() = default;
 
     ~ShaderProgram() {
-        if (m_vkDevice) {
+        if (m_vkDevice != nullptr) {
             for (auto& si : shaderInfo) {
-                if (si.module) vkDestroyShaderModule(m_vkDevice, shaderInfo[0].module, nullptr);
+                if (si.module != VK_NULL_HANDLE) {
+                    vkDestroyShaderModule(m_vkDevice, shaderInfo[0].module, nullptr);
+                }
                 si.module = VK_NULL_HANDLE;
             }
         }
         shaderInfo = {};
+        m_vkDevice = nullptr;
     }
 
     ShaderProgram(const ShaderProgram&) = delete;
@@ -390,14 +402,22 @@ struct VertexBufferBase {
         uint32_t vtx;
     } count = {0, 0};
 
-    VertexBufferBase() {}
+    VertexBufferBase() = default;
 
     ~VertexBufferBase() {
-        if (m_vkDevice) {
-            if (idxBuf) vkDestroyBuffer(m_vkDevice, idxBuf, nullptr);
-            if (idxMem) vkFreeMemory(m_vkDevice, idxMem, nullptr);
-            if (vtxBuf) vkDestroyBuffer(m_vkDevice, vtxBuf, nullptr);
-            if (vtxMem) vkFreeMemory(m_vkDevice, vtxMem, nullptr);
+        if (m_vkDevice != nullptr) {
+            if (idxBuf != VK_NULL_HANDLE) {
+                vkDestroyBuffer(m_vkDevice, idxBuf, nullptr);
+            }
+            if (idxMem != VK_NULL_HANDLE) {
+                vkFreeMemory(m_vkDevice, idxMem, nullptr);
+            }
+            if (vtxBuf != VK_NULL_HANDLE) {
+                vkDestroyBuffer(m_vkDevice, vtxBuf, nullptr);
+            }
+            if (vtxMem != VK_NULL_HANDLE) {
+                vkFreeMemory(m_vkDevice, vtxMem, nullptr);
+            }
         }
         idxBuf = VK_NULL_HANDLE;
         idxMem = VK_NULL_HANDLE;
@@ -406,6 +426,7 @@ struct VertexBufferBase {
         bindDesc = {};
         attrDesc.clear();
         count = {0, 0};
+        m_vkDevice = nullptr;
     }
 
     VertexBufferBase(const VertexBufferBase&) = delete;
@@ -459,14 +480,18 @@ struct VertexBuffer : public VertexBufferBase {
     void UpdateIndicies(const uint16_t* data, uint32_t elements, uint32_t offset = 0) {
         uint16_t* map = nullptr;
         CHECK_VKCMD(vkMapMemory(m_vkDevice, idxMem, sizeof(map[0]) * offset, sizeof(map[0]) * elements, 0, (void**)&map));
-        for (size_t i = 0; i < elements; ++i) map[i] = data[i];
+        for (size_t i = 0; i < elements; ++i) {
+            map[i] = data[i];
+        }
         vkUnmapMemory(m_vkDevice, idxMem);
     }
 
     void UpdateVertices(const T* data, uint32_t elements, uint32_t offset = 0) {
         T* map = nullptr;
         CHECK_VKCMD(vkMapMemory(m_vkDevice, vtxMem, sizeof(map[0]) * offset, sizeof(map[0]) * elements, 0, (void**)&map));
-        for (size_t i = 0; i < elements; ++i) map[i] = data[i];
+        for (size_t i = 0; i < elements; ++i) {
+            map[i] = data[i];
+        }
         vkUnmapMemory(m_vkDevice, vtxMem);
     }
 };
@@ -535,10 +560,13 @@ struct RenderPass {
     }
 
     ~RenderPass() {
-        if (m_vkDevice) {
-            if (pass) vkDestroyRenderPass(m_vkDevice, pass, nullptr);
+        if (m_vkDevice != nullptr) {
+            if (pass != VK_NULL_HANDLE) {
+                vkDestroyRenderPass(m_vkDevice, pass, nullptr);
+            }
         }
         pass = VK_NULL_HANDLE;
+        m_vkDevice = nullptr;
     }
 
     RenderPass(const RenderPass&) = delete;
@@ -561,10 +589,16 @@ struct RenderTarget {
     RenderTarget() = default;
 
     ~RenderTarget() {
-        if (m_vkDevice) {
-            if (fb) vkDestroyFramebuffer(m_vkDevice, fb, nullptr);
-            if (colorView) vkDestroyImageView(m_vkDevice, colorView, nullptr);
-            if (depthView) vkDestroyImageView(m_vkDevice, depthView, nullptr);
+        if (m_vkDevice != nullptr) {
+            if (fb != VK_NULL_HANDLE) {
+                vkDestroyFramebuffer(m_vkDevice, fb, nullptr);
+            }
+            if (colorView != VK_NULL_HANDLE) {
+                vkDestroyImageView(m_vkDevice, colorView, nullptr);
+            }
+            if (depthView != VK_NULL_HANDLE) {
+                vkDestroyImageView(m_vkDevice, depthView, nullptr);
+            }
         }
 
         // Note we don't own color/depthImage, it will get destroyed when xrDestroySwapchain is called
@@ -573,7 +607,7 @@ struct RenderTarget {
         colorView = VK_NULL_HANDLE;
         depthView = VK_NULL_HANDLE;
         fb = VK_NULL_HANDLE;
-        m_vkDevice = VK_NULL_HANDLE;
+        m_vkDevice = nullptr;
     }
 
     RenderTarget(RenderTarget&& other) : RenderTarget() {
@@ -610,7 +644,7 @@ struct RenderTarget {
         uint32_t attachmentCount = 0;
 
         // Create color image view
-        if (colorImage) {
+        if (colorImage != VK_NULL_HANDLE) {
             VkImageViewCreateInfo colorViewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
             colorViewInfo.image = colorImage;
             colorViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -629,7 +663,7 @@ struct RenderTarget {
         }
 
         // Create depth image view
-        if (depthImage) {
+        if (depthImage != VK_NULL_HANDLE) {
             VkImageViewCreateInfo depthViewInfo{VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO};
             depthViewInfo.image = depthImage;
             depthViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
@@ -671,11 +705,13 @@ struct PipelineLayout {
     PipelineLayout() = default;
 
     ~PipelineLayout() {
-        if (m_vkDevice) {
-            if (layout) vkDestroyPipelineLayout(m_vkDevice, layout, nullptr);
+        if (m_vkDevice != nullptr) {
+            if (layout != VK_NULL_HANDLE) {
+                vkDestroyPipelineLayout(m_vkDevice, layout, nullptr);
+            }
         }
         layout = VK_NULL_HANDLE;
-        m_vkDevice = VK_NULL_HANDLE;
+        m_vkDevice = nullptr;
     }
 
     void Create(VkDevice device) {
@@ -708,7 +744,7 @@ struct Pipeline {
     VkPrimitiveTopology topology{VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST};
     std::vector<VkDynamicState> dynamicStateEnables;
 
-    Pipeline() {}
+    Pipeline() = default;
 
     void Dynamic(VkDynamicState state) { dynamicStateEnables.emplace_back(state); }
 
@@ -815,10 +851,13 @@ struct Pipeline {
     }
 
     void Release() {
-        if (m_vkDevice) {
-            if (pipe) vkDestroyPipeline(m_vkDevice, pipe, nullptr);
+        if (m_vkDevice != nullptr) {
+            if (pipe != VK_NULL_HANDLE) {
+                vkDestroyPipeline(m_vkDevice, pipe, nullptr);
+            }
         }
         pipe = VK_NULL_HANDLE;
+        m_vkDevice = nullptr;
     }
 
    private:
@@ -832,13 +871,17 @@ struct DepthBuffer {
     DepthBuffer() = default;
 
     ~DepthBuffer() {
-        if (m_vkDevice) {
-            if (depthImage) vkDestroyImage(m_vkDevice, depthImage, nullptr);
-            if (depthMemory) vkFreeMemory(m_vkDevice, depthMemory, nullptr);
+        if (m_vkDevice != nullptr) {
+            if (depthImage != VK_NULL_HANDLE) {
+                vkDestroyImage(m_vkDevice, depthImage, nullptr);
+            }
+            if (depthMemory != VK_NULL_HANDLE) {
+                vkFreeMemory(m_vkDevice, depthMemory, nullptr);
+            }
         }
         depthImage = VK_NULL_HANDLE;
         depthMemory = VK_NULL_HANDLE;
-        m_vkDevice = VK_NULL_HANDLE;
+        m_vkDevice = nullptr;
     }
 
     DepthBuffer(DepthBuffer&& other) : DepthBuffer() {
@@ -906,7 +949,7 @@ struct SwapchainImageContext {
     RenderPass rp{};
     Pipeline pipe{};
 
-    SwapchainImageContext() {}
+    SwapchainImageContext() = default;
 
     std::vector<XrSwapchainImageBaseHeader*> Create(VkDevice device, MemoryAllocator* memAllocator, uint32_t capacity,
                                                     const XrSwapchainCreateInfo& swapchainCreateInfo, const PipelineLayout& layout,
@@ -999,6 +1042,8 @@ struct Swapchain {
             UnregisterClassW(L"hello_xr", hInst);
         }
 #endif
+
+        m_vkDevice = nullptr;
     }
     void Recreate() {
         Release();
@@ -1180,15 +1225,15 @@ void Swapchain::Present(VkQueue queue, VkSemaphore drawComplete) {
 #endif  // defined(USE_MIRROR_WINDOW)
 
 struct VulkanGraphicsPlugin : public IGraphicsPlugin {
-    VulkanGraphicsPlugin(const std::shared_ptr<Options>&, std::shared_ptr<IPlatformPlugin>){};
+    VulkanGraphicsPlugin(const std::shared_ptr<Options>& /*unused*/, std::shared_ptr<IPlatformPlugin> /*unused*/){};
 
     std::vector<std::string> GetInstanceExtensions() const override { return {XR_KHR_VULKAN_ENABLE_EXTENSION_NAME}; }
 
     std::vector<const char*> ParseExtensionString(char* names) {
         std::vector<const char*> list;
-        while (*names) {
+        while (*names != 0) {
             list.push_back(names);
-            while (*(++names)) {
+            while (*(++names) != 0) {
                 if (*names == ' ') {
                     *names++ = '\0';
                     break;
@@ -1236,9 +1281,9 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         VkInstanceCreateInfo instInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
         instInfo.pApplicationInfo = &appInfo;
         instInfo.enabledLayerCount = (uint32_t)layers.size();
-        instInfo.ppEnabledLayerNames = layers.size() ? &layers[0] : nullptr;
+        instInfo.ppEnabledLayerNames = layers.empty() ? nullptr : layers.data();
         instInfo.enabledExtensionCount = (uint32_t)extensions.size();
-        instInfo.ppEnabledExtensionNames = extensions.size() ? &extensions[0] : nullptr;
+        instInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data();
 
         CHECK_VKCMD(vkCreateInstance(&instInfo, nullptr, &m_vkInstance));
 
@@ -1274,7 +1319,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 
         for (uint32_t i = 0; i < queueFamilyCount; ++i) {
             // Only need graphics (not presentation) for draw queue
-            if (queueFamilyProps[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+            if ((queueFamilyProps[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0u) {
                 m_queueFamilyIndex = queueInfo.queueFamilyIndex = i;
                 break;
             }
@@ -1288,7 +1333,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         CHECK_XRCMD(pfnGetVulkanDeviceExtensionsKHR(instance, systemId, 0, &deviceExtensionNamesSize, nullptr));
         std::vector<char> deviceExtensionNames(deviceExtensionNamesSize);
         CHECK_XRCMD(pfnGetVulkanDeviceExtensionsKHR(instance, systemId, deviceExtensionNamesSize, &deviceExtensionNamesSize,
-                                                   &deviceExtensionNames[0]));
+                                                    &deviceExtensionNames[0]));
         std::vector<const char*> deviceExtensions = ParseExtensionString(&deviceExtensionNames[0]);
 
         VkPhysicalDeviceFeatures features{};
@@ -1302,7 +1347,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         deviceInfo.enabledLayerCount = 0;
         deviceInfo.ppEnabledLayerNames = nullptr;
         deviceInfo.enabledExtensionCount = (uint32_t)deviceExtensions.size();
-        deviceInfo.ppEnabledExtensionNames = deviceExtensions.size() ? &deviceExtensions[0] : nullptr;
+        deviceInfo.ppEnabledExtensionNames = deviceExtensions.empty() ? nullptr : deviceExtensions.data();
         deviceInfo.pEnabledFeatures = &features;
 
         CHECK_VKCMD(vkCreateDevice(m_vkPhysicalDevice, &deviceInfo, nullptr, &m_vkDevice));
@@ -1534,23 +1579,23 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         std::string objName;
         Log::Level level = Log::Level::Error;
 
-        if (flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT) {
+        if ((flags & VK_DEBUG_REPORT_DEBUG_BIT_EXT) != 0u) {
             flagNames += "DEBUG:";
             level = Log::Level::Verbose;
         }
-        if (flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT) {
+        if ((flags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT) != 0u) {
             flagNames += "INFO:";
             level = Log::Level::Info;
         }
-        if (flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT) {
+        if ((flags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT) != 0u) {
             flagNames += "PERF:";
             level = Log::Level::Warning;
         }
-        if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
+        if ((flags & VK_DEBUG_REPORT_WARNING_BIT_EXT) != 0u) {
             flagNames += "WARN:";
             level = Log::Level::Warning;
         }
-        if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) {
+        if ((flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) != 0u) {
             flagNames += "ERROR:";
             level = Log::Level::Error;
         }
@@ -1611,10 +1656,10 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         }
 
         Log::Write(level, Fmt("%s (%s 0x%llx) [%s] %s", flagNames.c_str(), objName.c_str(), object, pLayerPrefix, pMessage));
-        if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) {
+        if ((flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) != 0u) {
             return VK_FALSE;
         }
-        if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
+        if ((flags & VK_DEBUG_REPORT_WARNING_BIT_EXT) != 0u) {
             return VK_FALSE;
         }
         return VK_FALSE;
@@ -1632,7 +1677,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Vulkan(const std::shared_ptr<Options>& options,
                                                              std::shared_ptr<IPlatformPlugin> platformPlugin) {
-    return std::make_shared<VulkanGraphicsPlugin>(options, platformPlugin);
+    return std::make_shared<VulkanGraphicsPlugin>(options, std::move(platformPlugin));
 }
 
 #endif  // XR_USE_GRAPHICS_API_VULKAN
