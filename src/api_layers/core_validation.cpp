@@ -667,6 +667,9 @@ XrResult CoreValidationXrCreateSession(XrInstance instance, const XrSessionCreat
 // Called during xrDestroySession.  We need to delete all session related labels.
 void CoreValidationDeleteSessionLabels(XrSession session) {
     auto info_with_lock = g_session_info.getWithLock(session);
+    if (info_with_lock.second == nullptr) {
+        return;
+    }
     GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
     if (nullptr != gen_instance_info) {
         gen_instance_info->debug_data.DeleteSessionLabels(session);
