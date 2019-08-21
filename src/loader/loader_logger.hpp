@@ -169,10 +169,12 @@ class LoaderLogger {
     bool LogDebugUtilsMessage(XrDebugUtilsMessageSeverityFlagsEXT message_severity, XrDebugUtilsMessageTypeFlagsEXT message_type,
                               const XrDebugUtilsMessengerCallbackDataEXT* callback_data);
 
-   private:
-    LoaderLogger();
+    // Non-copyable
     LoaderLogger(const LoaderLogger&) = delete;
     LoaderLogger& operator=(const LoaderLogger&) = delete;
+
+   private:
+    LoaderLogger();
 
     static std::unique_ptr<LoaderLogger> _instance;
     static std::once_flag _once_flag;
