@@ -381,16 +381,17 @@ static XrResult ValidateInstanceCreateInfo(const XrInstanceCreateInfo *info) {
     return XR_SUCCESS;
 }
 
-XRAPI_ATTR XrResult XRAPI_CALL LoaderXrTermCreateInstance(const XrInstanceCreateInfo *info, XrInstance *instance) XRLOADER_ABI_TRY {
+XRAPI_ATTR XrResult XRAPI_CALL LoaderXrTermCreateInstance(const XrInstanceCreateInfo *createInfo,
+                                                          XrInstance *instance) XRLOADER_ABI_TRY {
     LoaderLogger::LogVerboseMessage("xrCreateInstance", "Entering loader terminator");
     LoaderInstance *loader_instance = reinterpret_cast<LoaderInstance *>(*instance);
-    XrResult result = ValidateInstanceCreateInfo(info);
+    XrResult result = ValidateInstanceCreateInfo(createInfo);
     if (XR_FAILED(result)) {
         LoaderLogger::LogValidationErrorMessage("VUID-xrCreateInstance-info-parameter", "xrCreateInstance",
                                                 "something wrong with XrInstanceCreateInfo contents");
         return result;
     }
-    result = RuntimeInterface::GetRuntime().CreateInstance(info, instance);
+    result = RuntimeInterface::GetRuntime().CreateInstance(createInfo, instance);
     loader_instance->SetRuntimeInstance(*instance);
     LoaderLogger::LogVerboseMessage("xrCreateInstance", "Completed loader terminator");
     return result;
