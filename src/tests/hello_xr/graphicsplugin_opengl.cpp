@@ -9,7 +9,7 @@
 #include <common/xr_linear.h>
 
 namespace {
-constexpr float DarkSlateGray[] = {0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
+constexpr float DarkSlateGray[] = {0.184313729F, 0.309803933F, 0.309803933F, 1.0F};
 
 static const char* VertexShaderGlsl = R"_(
     #version 410
@@ -39,7 +39,7 @@ static const char* FragmentShaderGlsl = R"_(
     )_";
 
 struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
-    OpenGLGraphicsPlugin(const std::shared_ptr<Options>&, std::shared_ptr<IPlatformPlugin>){};
+    OpenGLGraphicsPlugin(const std::shared_ptr<Options>& /*unused*/, const std::shared_ptr<IPlatformPlugin> /*unused*/&){};
 
     OpenGLGraphicsPlugin(const OpenGLGraphicsPlugin&) = delete;
     OpenGLGraphicsPlugin& operator=(const OpenGLGraphicsPlugin&) = delete;
@@ -96,7 +96,8 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
             THROW("Unable to create GL context");
         }
 
-        GLint major = 0, minor = 0;
+        GLint major = 0;
+        GLint minor = 0;
         glGetIntegerv(GL_MAJOR_VERSION, &major);
         glGetIntegerv(GL_MINOR_VERSION, &minor);
 
@@ -174,7 +175,7 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
         glEnableVertexAttribArray(m_vertexAttribColor);
         glBindBuffer(GL_ARRAY_BUFFER, m_cubeVertexBuffer);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_cubeIndexBuffer);
-        glVertexAttribPointer(m_vertexAttribCoords, 3, GL_FLOAT, GL_FALSE, sizeof(Geometry::Vertex), 0);
+        glVertexAttribPointer(m_vertexAttribCoords, 3, GL_FLOAT, GL_FALSE, sizeof(Geometry::Vertex), nullptr);
         glVertexAttribPointer(m_vertexAttribColor, 3, GL_FLOAT, GL_FALSE, sizeof(Geometry::Vertex),
                               reinterpret_cast<const void*>(sizeof(XrVector3f)));
     }
@@ -248,7 +249,8 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
 
         // This back-buffer has no cooresponding depth-stencil texture, so create one with matching dimensions.
 
-        GLint width, height;
+        GLint width;
+        GLint height;
         glBindTexture(GL_TEXTURE_2D, colorTexture);
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
         glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
@@ -293,7 +295,7 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
 
         // Clear swapchain and depth buffer.
         glClearColor(DarkSlateGray[0], DarkSlateGray[1], DarkSlateGray[2], DarkSlateGray[3]);
-        glClearDepth(1.0f);
+        glClearDepth(1.0F);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
         // Set shaders and uniform variables.
@@ -301,9 +303,9 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
 
         const auto& pose = layerView.pose;
         XrMatrix4x4f proj;
-        XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_OPENGL, layerView.fov, 0.05f, 100.0f);
+        XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_OPENGL, layerView.fov, 0.05F, 100.0F);
         XrMatrix4x4f toView;
-        XrVector3f scale{1.f, 1.f, 1.f};
+        XrVector3f scale{1.F, 1.F, 1.F};
         XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose.position, &pose.orientation, &scale);
         XrMatrix4x4f view;
         XrMatrix4x4f_InvertRigidBody(&view, &toView);
@@ -323,7 +325,7 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
             glUniformMatrix4fv(m_modelViewProjectionUniformLocation, 1, GL_FALSE, reinterpret_cast<const GLfloat*>(&mvp));
 
             // Draw the cube.
-            glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(ArraySize(Geometry::c_cubeIndices)), GL_UNSIGNED_SHORT, 0);
+            glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(ArraySize(Geometry::c_cubeIndices)), GL_UNSIGNED_SHORT, nullptr);
         }
 
         glBindVertexArray(0);
@@ -332,7 +334,9 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
 
         // Swap our window every other eye for RenderDoc
         static int everyOther = 0;
-        if (everyOther++ & 1) ksGpuWindow_SwapBuffers(&window);
+        if ((everyOther++ & 1) != 0) {
+            ksGpuWindow_SwapBuffers(&window);
+        }
     }
 
    private:

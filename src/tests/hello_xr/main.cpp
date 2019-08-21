@@ -53,7 +53,7 @@ bool UpdateOptionsFromCommandLine(Options& options, int argc, char* argv[]) {
     }
 
     // Check for required parameters.
-    if (options.GraphicsPlugin.size() == 0) {
+    if (options.GraphicsPlugin.empty()) {
         Log::Write(Log::Level::Error, "GraphicsPlugin parameter is required");
         ShowHelp();
         return false;

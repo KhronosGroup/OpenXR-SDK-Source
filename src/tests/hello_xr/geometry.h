@@ -8,21 +8,21 @@ struct Vertex {
 };
 
 constexpr XrVector3f Red{1, 0, 0};
-constexpr XrVector3f DarkRed{0.25f, 0, 0};
+constexpr XrVector3f DarkRed{0.25F, 0, 0};
 constexpr XrVector3f Green{0, 1, 0};
-constexpr XrVector3f DarkGreen{0, 0.25f, 0};
+constexpr XrVector3f DarkGreen{0, 0.25F, 0};
 constexpr XrVector3f Blue{0, 0, 1};
-constexpr XrVector3f DarkBlue{0, 0, 0.25f};
+constexpr XrVector3f DarkBlue{0, 0, 0.25F};
 
 // Vertices for a 1x1x1 meter cube. (Left/Right, Top/Bottom, Front/Back)
-constexpr XrVector3f LBB{-0.5f, -0.5f, -0.5f};
-constexpr XrVector3f LBF{-0.5f, -0.5f, 0.5f};
-constexpr XrVector3f LTB{-0.5f, 0.5f, -0.5f};
-constexpr XrVector3f LTF{-0.5f, 0.5f, 0.5f};
-constexpr XrVector3f RBB{0.5f, -0.5f, -0.5f};
-constexpr XrVector3f RBF{0.5f, -0.5f, 0.5f};
-constexpr XrVector3f RTB{0.5f, 0.5f, -0.5f};
-constexpr XrVector3f RTF{0.5f, 0.5f, 0.5f};
+constexpr XrVector3f LBB{-0.5F, -0.5F, -0.5F};
+constexpr XrVector3f LBF{-0.5F, -0.5F, 0.5F};
+constexpr XrVector3f LTB{-0.5F, 0.5F, -0.5F};
+constexpr XrVector3f LTF{-0.5F, 0.5F, 0.5F};
+constexpr XrVector3f RBB{0.5F, -0.5F, -0.5F};
+constexpr XrVector3f RBF{0.5F, -0.5F, 0.5F};
+constexpr XrVector3f RTB{0.5F, 0.5F, -0.5F};
+constexpr XrVector3f RTF{0.5F, 0.5F, 0.5F};
 
 #define CUBE_SIDE(V1, V2, V3, V4, V5, V6, COLOR) {V1, COLOR}, {V2, COLOR}, {V3, COLOR}, {V4, COLOR}, {V5, COLOR}, {V6, COLOR},
 
