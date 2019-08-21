@@ -1595,7 +1595,7 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
 
 #endif
 
-bool ksGpuContext_CreateShared(ksGpuContext *context, const ksGpuContext *other, const int queueIndex) {
+bool ksGpuContext_CreateShared(ksGpuContext *context, const ksGpuContext *other, int queueIndex) {
     UNUSED_PARM(queueIndex);
 
     memset(context, 0, sizeof(ksGpuContext));
@@ -1966,9 +1966,9 @@ void ksGpuWindow_Destroy(ksGpuWindow *window) {
     }
 }
 
-bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const ksGpuQueueInfo *queueInfo, const int queueIndex,
-                        const ksGpuSurfaceColorFormat colorFormat, const ksGpuSurfaceDepthFormat depthFormat,
-                        const ksGpuSampleCount sampleCount, const int width, const int height, const bool fullscreen) {
+bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const ksGpuQueueInfo *queueInfo, int queueIndex,
+                        ksGpuSurfaceColorFormat colorFormat, ksGpuSurfaceDepthFormat depthFormat, ksGpuSampleCount sampleCount,
+                        int width, int height, bool fullscreen) {
     memset(window, 0, sizeof(ksGpuWindow));
 
     window->colorFormat = colorFormat;
@@ -2194,7 +2194,7 @@ typedef enum { MOUSE_LEFT = Button1, MOUSE_RIGHT = Button2 } ksMouseButton;
         this still appears to be the most reliable way to change video modes for a single
         monitor configuration.
 */
-static bool ChangeVideoMode_XF86VidMode(Display *xDisplay, int xScreen, Window xWindow, int *currentWidth, int *currentHeight,
+static bool ChangeVideoMode_XF86VidMode(Display *xDisplay, int xScreen, int *currentWidth, int *currentHeight,
                                         float *currentRefreshRate, int *desiredWidth, int *desiredHeight,
                                         float *desiredRefreshRate) {
     int videoModeCount;
@@ -2225,7 +2225,7 @@ static bool ChangeVideoMode_XF86VidMode(Display *xDisplay, int xScreen, Window x
             const int dw = modeWidth - *desiredWidth;
             const int dh = modeHeight - *desiredHeight;
             const int sizeError = dw * dw + dh * dh;
-            const float refreshRateError = fabs(modeRefreshRate - *desiredRefreshRate);
+            const float refreshRateError = fabsf(modeRefreshRate - *desiredRefreshRate);
             if (sizeError < bestSizeError || (sizeError == bestSizeError && refreshRateError < bestRefreshRateError)) {
                 bestSizeError = sizeError;
                 bestRefreshRateError = refreshRateError;
@@ -2267,7 +2267,7 @@ static bool ChangeVideoMode_XF86VidMode(Display *xDisplay, int xScreen, Window x
         then NV-CONTROL clients, such as nvidia-settings, will not be able to dynamically manipulate
         the X screen's MetaModes.
 */
-static bool ChangeVideoMode_XRandR_1_1(Display *xDisplay, int xScreen, Window xWindow, int *currentWidth, int *currentHeight,
+static bool ChangeVideoMode_XRandR_1_1(Display *xDisplay, Window xWindow, int *currentWidth, int *currentHeight,
                                        float *currentRefreshRate, int *desiredWidth, int *desiredHeight,
                                        float *desiredRefreshRate) {
     int major_version;
@@ -2321,7 +2321,7 @@ static bool ChangeVideoMode_XRandR_1_1(Display *xDisplay, int xScreen, Window xW
         int rate_index = -1;
         float bestRateError = 1e6f;
         for (int i = 0; i < nrates; i++) {
-            const float error = fabs(rates[i] - *desiredRefreshRate);
+            const float error = fabsf(rates[i] - *desiredRefreshRate);
             if (error < bestRateError) {
                 bestRateError = error;
                 rate_index = i;
@@ -2398,7 +2398,7 @@ static bool ChangeVideoMode_XRandR_1_1(Display *xDisplay, int xScreen, Window xW
         However, this requires calculating all the timing information in code
         because there is no standard library that implements the GTF or CVT.
 */
-static bool ChangeVideoMode_XRandR_1_2(Display *xDisplay, int xScreen, Window xWindow, int *currentWidth, int *currentHeight,
+static bool ChangeVideoMode_XRandR_1_2(Display *xDisplay, Window xWindow, int *currentWidth, int *currentHeight,
                                        float *currentRefreshRate, int *desiredWidth, int *desiredHeight,
                                        float *desiredRefreshRate) {
     int major_version;
@@ -2464,7 +2464,7 @@ static bool ChangeVideoMode_XRandR_1_2(Display *xDisplay, int xScreen, Window xW
             const int dw = modeWidth - *desiredWidth;
             const int dh = modeHeight - *desiredHeight;
             const int sizeError = dw * dw + dh * dh;
-            const float refreshRateError = fabs(modeRefreshRate - *desiredRefreshRate);
+            const float refreshRateError = fabsf(modeRefreshRate - *desiredRefreshRate);
             if (sizeError < bestSizeError || (sizeError == bestSizeError && refreshRateError < bestRefreshRateError)) {
                 bestSizeError = sizeError;
                 bestRefreshRateError = refreshRateError;
@@ -2495,7 +2495,7 @@ void ksGpuWindow_Destroy(ksGpuWindow *window) {
     ksGpuDevice_Destroy(&window->device);
 
     if (window->windowFullscreen) {
-        ChangeVideoMode_XF86VidMode(window->xDisplay, window->xScreen, window->xRoot, NULL, NULL, NULL, &window->desktopWidth,
+        ChangeVideoMode_XF86VidMode(window->xDisplay, window->xScreen, NULL, NULL, NULL, &window->desktopWidth,
                                     &window->desktopHeight, &window->desktopRefreshRate);
 
         XUngrabPointer(window->xDisplay, CurrentTime);
@@ -2551,11 +2551,11 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     window->xRoot = XRootWindow(window->xDisplay, window->xScreen);
 
     if (window->windowFullscreen) {
-        ChangeVideoMode_XF86VidMode(window->xDisplay, window->xScreen, window->xRoot, &window->desktopWidth, &window->desktopHeight,
+        ChangeVideoMode_XF86VidMode(window->xDisplay, window->xScreen, &window->desktopWidth, &window->desktopHeight,
                                     &window->desktopRefreshRate, &window->windowWidth, &window->windowHeight,
                                     &window->windowRefreshRate);
     } else {
-        ChangeVideoMode_XF86VidMode(window->xDisplay, window->xScreen, window->xRoot, &window->desktopWidth, &window->desktopHeight,
+        ChangeVideoMode_XF86VidMode(window->xDisplay, window->xScreen, &window->desktopWidth, &window->desktopHeight,
                                     &window->desktopRefreshRate, NULL, NULL, NULL);
         window->windowRefreshRate = window->desktopRefreshRate;
     }
@@ -4303,7 +4303,7 @@ ksGpuWindowEvent ksGpuWindow_ProcessEvents(ksGpuWindow *window) {
 
 #endif
 
-void ksGpuWindow_SwapInterval(ksGpuWindow *window, const int swapInterval) {
+void ksGpuWindow_SwapInterval(ksGpuWindow *window, int swapInterval) {
     if (swapInterval != window->windowSwapInterval) {
 #if defined(OS_WINDOWS)
         wglSwapIntervalEXT(swapInterval);
@@ -4342,7 +4342,7 @@ void ksGpuWindow_SwapBuffers(ksGpuWindow *window) {
     // Even with smoothing, this is not particularly accurate.
     const float frameTimeNanoseconds = 1000.0f * 1000.0f * 1000.0f / window->windowRefreshRate;
     const float deltaTimeNanoseconds = (float)newTimeNanoseconds - window->lastSwapTime - frameTimeNanoseconds;
-    if (fabs(deltaTimeNanoseconds) < frameTimeNanoseconds * 0.75f) {
+    if (fabsf(deltaTimeNanoseconds) < frameTimeNanoseconds * 0.75f) {
         newTimeNanoseconds = (ksNanoseconds)(window->lastSwapTime + frameTimeNanoseconds + 0.025f * deltaTimeNanoseconds);
     }
     // const float smoothDeltaNanoseconds = (float)( newTimeNanoseconds - window->lastSwapTime );
