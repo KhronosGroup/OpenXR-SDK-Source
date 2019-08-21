@@ -37,7 +37,7 @@
 #define OPENXR_ENABLE_LAYERS_ENV_VAR "XR_ENABLE_API_LAYERS"
 
 // Add any layers defined in the loader layer environment variable.
-static void AddEnvironmentApiLayers(const std::string& openxr_command, std::vector<std::string>& enabled_layers) {
+static void AddEnvironmentApiLayers(std::vector<std::string>& enabled_layers) {
     std::string layers = PlatformUtilsGetEnv(OPENXR_ENABLE_LAYERS_ENV_VAR);
 
     std::size_t last_found = 0;
@@ -159,7 +159,7 @@ XrResult ApiLayerInterface::GetInstanceExtensionProperties(const std::string& op
             // Find any environmentally enabled explicit layers.  If they're present, treat them like implicit layers
             // since we know that they're going to be enabled.
             std::vector<std::string> env_enabled_layers;
-            AddEnvironmentApiLayers(openxr_command, env_enabled_layers);
+            AddEnvironmentApiLayers(env_enabled_layers);
             if (!env_enabled_layers.empty()) {
                 std::vector<std::unique_ptr<ApiLayerManifestFile>> exp_layer_man_files = {};
                 result = ApiLayerManifestFile::FindManifestFiles(MANIFEST_TYPE_EXPLICIT_API_LAYER, exp_layer_man_files);
@@ -206,7 +206,7 @@ XrResult ApiLayerInterface::LoadApiLayers(const std::string& openxr_command, uin
 
     // Put all the enabled layers into a string vector
     std::vector<std::string> enabled_api_layers = {};
-    AddEnvironmentApiLayers(openxr_command, enabled_api_layers);
+    AddEnvironmentApiLayers(enabled_api_layers);
     if (enabled_api_layer_count > 0) {
         if (nullptr == enabled_api_layer_names) {
             LoaderLogger::LogErrorMessage(
