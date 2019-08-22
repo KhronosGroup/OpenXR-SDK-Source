@@ -113,15 +113,6 @@ inline XrReferenceSpaceCreateInfo GetXrReferenceSpaceCreateInfo(const std::strin
     return referenceSpaceCreateInfo;
 }
 
-inline std::string GetXrPathString(XrInstance instance, XrPath path) {
-    uint32_t pathCount;
-    CHECK_XRCMD(xrPathToString(instance, path, 0, &pathCount, nullptr));
-    std::string pathStr(pathCount, '\0');
-    CHECK_XRCMD(xrPathToString(instance, path, pathCount, &pathCount, &pathStr.front()));
-    pathStr.resize(pathCount - 1);  // Remove null terminator because std::string will include it.
-    return pathStr;
-}
-
 struct OpenXrProgram : IOpenXrProgram {
     OpenXrProgram(const std::shared_ptr<Options>& options, const std::shared_ptr<IPlatformPlugin>& platformPlugin,
                   const std::shared_ptr<IGraphicsPlugin>& graphicsPlugin)
@@ -988,7 +979,6 @@ struct OpenXrProgram : IOpenXrProgram {
     XrEnvironmentBlendMode m_environmentBlendMode{XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
     XrSystemId m_systemId{XR_NULL_SYSTEM_ID};
 
-    XrViewConfigurationProperties m_viewConfig{};
     std::vector<XrViewConfigurationView> m_configViews;
     std::vector<Swapchain> m_swapchains;
     std::map<XrSwapchain, std::vector<XrSwapchainImageBaseHeader*>> m_swapchainImages;
