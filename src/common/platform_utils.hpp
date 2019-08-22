@@ -62,17 +62,41 @@ static inline char* ImplGetSecureEnv(const char* name) {
 #endif  // defined(XR_OS_LINUX) || defined(XR_OS_APPLE)
 #if defined(XR_OS_LINUX)
 
-static inline std::string PlatformUtilsGetEnv(const char* name) { return detail::ImplGetEnv(name); }
+static inline std::string PlatformUtilsGetEnv(const char* name) {
+    auto str = detail::ImplGetEnv(name);
+    if (str == nullptr) {
+        return {};
+    }
+    return str;
+}
 
-static inline std::string PlatformUtilsGetSecureEnv(const char* name) { return detail::ImplGetSecureEnv(name); }
+static inline std::string PlatformUtilsGetSecureEnv(const char* name) {
+    auto str = detail::ImplGetSecureEnv(name);
+    if (str == nullptr) {
+        return {};
+    }
+    return str;
+}
 
 static inline bool PlatformUtilsGetEnvSet(const char* name) { return detail::ImplGetEnv(name) != nullptr; }
 
 #elif defined(XR_OS_APPLE)
 
-static inline std::string PlatformUtilsGetEnv(const char* name) { return detail::ImplGetEnv(name); }
+static inline std::string PlatformUtilsGetEnv(const char* name) {
+    auto str = detail::ImplGetEnv(name);
+    if (str == nullptr) {
+        return {};
+    }
+    return str;
+}
 
-static inline std::string PlatformUtilsGetSecureEnv(const char* name) { return detail::ImplGetSecureEnv(name); }
+static inline std::string PlatformUtilsGetSecureEnv(const char* name) {
+    auto str = detail::ImplGetSecureEnv(name);
+    if (str == nullptr) {
+        return {};
+    }
+    return str;
+}
 
 static inline bool PlatformUtilsGetEnvSet(const char* name) { return detail::ImplGetEnv(name) != nullptr; }
 
