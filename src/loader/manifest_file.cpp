@@ -387,7 +387,6 @@ static void ReadLayerDataFilesInRegistry(ManifestFileType type, const std::strin
         LONG open_value = RegOpenKeyExW(hive[hive_index], full_registry_location_w.c_str(), 0, access_flags, &hkey);
         if (ERROR_SUCCESS != open_value) {
             if (hive_index == 1 && !found[0]) {
-                std::string warning_message = ;
                 LoaderLogger::LogWarningMessage("", "ReadLayerDataFilesInRegistry - failed to read registry location " +
                                                         registry_location + " in either HKEY_LOCAL_MACHINE or HKEY_CURRENT_USER");
             }
