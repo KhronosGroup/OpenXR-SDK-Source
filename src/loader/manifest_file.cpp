@@ -256,32 +256,34 @@ static void ReadDataFilesInSearchPaths(ManifestFileType type, const std::string 
 
 #ifdef XR_OS_LINUX
 
-// If ${name} has a nonempty value, return it; if both other arguments are supplied return
-// ${fallback_env}/fallback_path; otherwise, return whichever of ${fallback_env} and fallback_path
-// is supplied. If ${fallback_env} or ${fallback_env}/... would be returned but that environment
-// variable is unset or empty, return the empty string.
-static std::string GetXDGEnv(const char *name, const char *fallback_env, const char *fallback_path) {
+// Get an XDG environment variable with a $HOME-relative default
+static std::string GetXDGEnvHome(const char *name, const char *fallback_path) {
     std::string result = PlatformUtilsGetSecureEnv(name);
     if (!result.empty()) {
         return result;
     }
-    if (fallback_env != nullptr) {
-        result = PlatformUtilsGetSecureEnv(fallback_env);
-        if (result.empty()) {
-            return result;
-        }
-        if (fallback_path != nullptr) {
-            result += "/";
-            result += fallback_path;
-        }
+    result = PlatformUtilsGetSecureEnv("HOME");
+    if (result.empty()) {
+      return result;
     }
+    result += "/";
+    result += fallback_path;
     return result;
+}
+
+// Get an XDG environment variable with absolute defaults
+static std::string GetXDGEnvAbsolute(const char *name, const char *fallback_paths) {
+    std::string result = PlatformUtilsGetSecureEnv(name);
+    if (!result.empty()) {
+        return result;
+    }
+    return fallback_paths;
 }
 
 // Return the first instance of relative_path occurring in an XDG config dir according to standard
 // precedence order.
 static bool FindXDGConfigFile(const std::string &relative_path, std::string &out) {
-    out = GetXDGEnv("XDG_CONFIG_HOME", "HOME", ".config");
+    out = GetXDGEnvHome("XDG_CONFIG_HOME", ".config");
     if (!out.empty()) {
         out += "/";
         out += relative_path;
@@ -290,7 +292,7 @@ static bool FindXDGConfigFile(const std::string &relative_path, std::string &out
         }
     }
 
-    std::istringstream iss(GetXDGEnv("XDG_CONFIG_DIRS", nullptr, FALLBACK_CONFIG_DIRS));
+    std::istringstream iss(GetXDGEnvAbsolute("XDG_CONFIG_DIRS", FALLBACK_CONFIG_DIRS));
     std::string path;
     while (std::getline(iss, path, PATH_SEPARATOR)) {
         if (path.empty()) {
