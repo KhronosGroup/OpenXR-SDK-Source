@@ -264,7 +264,7 @@ static std::string GetXDGEnvHome(const char *name, const char *fallback_path) {
     }
     result = PlatformUtilsGetSecureEnv("HOME");
     if (result.empty()) {
-      return result;
+        return result;
     }
     result += "/";
     result += fallback_path;
