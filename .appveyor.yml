@@ -40,7 +40,7 @@ install:
         $wc = New-Object System.Net.WebClient
         $wc.DownloadFile($env:VKSDKURL, $env:VKSDKINSTALLER)
         Start-Process $env:VKSDKINSTALLER -ArgumentList "/S" -Wait }
-  - sh: sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential cmake libgl1-mesa-dev libvulkan-dev libx11-xcb-dev libxcb-dri2-0-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-keysyms1-dev libxcb-randr0-dev libxrandr-dev libxxf86vm-dev mesa-common-dev python3-pip clang-format-6.0 libllvm6.0 ninja-build
+  - sh: sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential cmake libgl1-mesa-dev libvulkan-dev libx11-xcb-dev libxcb-dri2-0-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-keysyms1-dev libxcb-randr0-dev libxrandr-dev libxxf86vm-dev mesa-common-dev python3-pip ninja-build
   - sh: pip3 install --user codespell
 
 # for future use if we need vcpkg
@@ -55,12 +55,12 @@ build_script:
     cd ..
 - sh: >-
     ./checkCodespell
-    ./runClangFormat.sh
-    git diff --patch --exit-code > clang-format.patch || { echo "The following files need clang-formatting:"; sed -n -e "s/^diff.* b\///p" clang-format.patch; false; }
-
     cmake -G Ninja -H. -Bbuild-xlib -DPRESENTATION_BACKEND=xlib
     ninja -C build-xlib
     cmake -G Ninja -H. -Bbuild-xcb -DPRESENTATION_BACKEND=xcb
     ninja -C build-xcb
     cmake -G Ninja -H. -Bbuild-wayland -DPRESENTATION_BACKEND=wayland
     ninja -C build-wayland
+    ./runClangFormat.sh
+    git diff --patch --exit-code > clang-format.patch || { echo "The following files need clang-formatting:"; sed -n -e "s/^diff.* b\///p" clang-format.patch; false; }
+
