@@ -1,7 +1,7 @@
 version: 1.0.1.{build}
-image:
-- Visual Studio 2017
-- Ubuntu1804
+# image:
+# - Visual Studio 2017
+# - Ubuntu1804
 
 
 environment:
@@ -9,12 +9,18 @@ environment:
   VKSDKURL: https://sdk.lunarg.com/sdk/download/1.1.106.0/windows/VulkanSDK-1.1.106.0-Installer.exe
   VKSDKINSTALLER: c:\tools\vksdk1.1.106.0.exe
   matrix:
-# 32-bit
-    - VCVARS: vcvarsamd64_x86
+# 32-bit, VC2017
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      VCVARS: vcvarsamd64_x86
       VCPKG_PLATFORM: x86-windows
-# 64-bit
-    - VCVARS: vcvars64
+
+# 64-bit, VC2017
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      VCVARS: vcvars64
       VCPKG_PLATFORM: x64-windows
+
+# Linux
+    - APPVEYOR_BUILD_WORKER_IMAGE: Ubuntu1804
 
 matrix:
   fast_finish: true # finish immediately once one of the jobs fails
@@ -34,7 +40,7 @@ install:
         $wc = New-Object System.Net.WebClient
         $wc.DownloadFile($env:VKSDKURL, $env:VKSDKINSTALLER)
         Start-Process $env:VKSDKINSTALLER -ArgumentList "/S" -Wait }
-  - sh: sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential cmake libgl1-mesa-dev libvulkan-dev libx11-xcb-dev libxcb-dri2-0-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-keysyms1-dev libxcb-randr0-dev libxrandr-dev libxxf86vm-dev mesa-common-dev python3-pip clang-format ninja-build
+  - sh: sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential cmake libgl1-mesa-dev libvulkan-dev libx11-xcb-dev libxcb-dri2-0-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-keysyms1-dev libxcb-randr0-dev libxrandr-dev libxxf86vm-dev mesa-common-dev python3-pip clang-format-6.0 ninja-build
   - sh: pip3 install --user codespell
 
 # for future use if we need vcpkg
