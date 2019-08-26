@@ -40,8 +40,7 @@ install:
         $wc = New-Object System.Net.WebClient
         $wc.DownloadFile($env:VKSDKURL, $env:VKSDKINSTALLER)
         Start-Process $env:VKSDKINSTALLER -ArgumentList "/S" -Wait }
-  - sh: sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential cmake libgl1-mesa-dev libvulkan-dev libx11-xcb-dev libxcb-dri2-0-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-keysyms1-dev libxcb-randr0-dev libxrandr-dev libxxf86vm-dev mesa-common-dev python3-pip ninja-build
-  - sh: pip3 install --user codespell
+  - sh: sudo apt-get update && sudo apt-get install -y --no-install-recommends build-essential cmake libgl1-mesa-dev libvulkan-dev libx11-xcb-dev libxcb-dri2-0-dev libxcb-glx0-dev libxcb-icccm4-dev libxcb-keysyms1-dev libxcb-randr0-dev libxrandr-dev libxxf86vm-dev mesa-common-dev codespell ninja-build
 
 # for future use if we need vcpkg
 # -DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake
@@ -59,8 +58,8 @@ build_script:
     ninja -C build-xlib
     cmake -G Ninja -H. -Bbuild-xcb -DPRESENTATION_BACKEND=xcb
     ninja -C build-xcb
-    cmake -G Ninja -H. -Bbuild-wayland -DPRESENTATION_BACKEND=wayland
-    ninja -C build-wayland
+    # cmake -G Ninja -H. -Bbuild-wayland -DPRESENTATION_BACKEND=wayland
+    # ninja -C build-wayland
     ./runClangFormat.sh
     git diff --patch --exit-code > clang-format.patch || { echo "The following files need clang-formatting:"; sed -n -e "s/^diff.* b\///p" clang-format.patch; false; }
 
