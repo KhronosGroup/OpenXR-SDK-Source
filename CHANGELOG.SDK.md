@@ -56,7 +56,7 @@ These had been integrated into the public repo incrementally.
   - Reserve additional extension number for Oculus. (Internal MR 1517)
 - Loader
   - **Security fix**: Do not use HKEY_CURRENT_USER or environment variables when
-    running as a medium-integrity process or higher on Windows.
+    the process is running higher than medium-integrity on Windows.
     (Internal issue 1205, internal MR 1511)
   - Small updates to the loader documentation.
 
