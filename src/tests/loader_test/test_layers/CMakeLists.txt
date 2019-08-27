@@ -37,9 +37,9 @@ add_dependencies(XrApiLayer_test
     generated_layer_json_files
 )
 target_include_directories(XrApiLayer_test
-    PRIVATE ${OPENXR_SOURCE_DIR}/src
-    PRIVATE ${OPENXR_COMMON_DIR}
-    PRIVATE ${OPENXR_BINARY_DIR}/include
+    PRIVATE ${PROJECT_SOURCE_DIR}/src
+    PRIVATE ${PROJECT_SOURCE_DIR}/src/common
+    PRIVATE ${PROJECT_BINARY_DIR}/include
 )
 if(VulkanHeaders_FOUND)
     target_include_directories(XrApiLayer_test
@@ -53,7 +53,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # The changed behavior is that constructor initializers are now fixed to clear the struct members.
     target_compile_options(XrApiLayer_test PRIVATE "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19>>:/wd4351>")
     gen_xr_layer_json(
-        ${OPENXR_BINARY_DIR}/src/tests/loader_test/resources/layers/XrApiLayer_test.json
+        ${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/layers/XrApiLayer_test.json
         test
         ${CMAKE_CURRENT_BINARY_DIR}/XrApiLayer_test.dll
         1
@@ -70,7 +70,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_options(XrApiLayer_test PRIVATE -Wpointer-arith -Wno-unused-function -Wno-sign-compare)
     set_target_properties(XrApiLayer_test PROPERTIES LINK_FLAGS "-Wl,-Bsymbolic,--exclude-libs,ALL")
     gen_xr_layer_json(
-        ${OPENXR_BINARY_DIR}/src/tests/loader_test/resources/layers/XrApiLayer_test.json
+        ${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/layers/XrApiLayer_test.json
         test
         ${CMAKE_CURRENT_BINARY_DIR}/libXrApiLayer_test.so
         1
@@ -80,7 +80,7 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 add_custom_target(generated_layer_json_files DEPENDS
-    ${OPENXR_BINARY_DIR}/src/tests/loader_test/resources/layers/XrApiLayer_test.json
+    ${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/layers/XrApiLayer_test.json
 )
 set_target_properties(generated_layer_json_files PROPERTIES FOLDER ${CODEGEN_FOLDER})
 

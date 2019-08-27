@@ -18,8 +18,8 @@
 add_executable(loader_test
     loader_test_utils.cpp
     loader_test.cpp
-    ${OPENXR_COMMON_DIR}/gfxwrapper_opengl.c
-    ${OPENXR_COMMON_DIR}/filesystem_utils.cpp
+    ${PROJECT_SOURCE_DIR}/src/common/gfxwrapper_opengl.c
+    ${PROJECT_SOURCE_DIR}/src/common/filesystem_utils.cpp
     ${WAYLAND_PROTOCOL_SRC}
 )
 set_target_properties(loader_test PROPERTIES FOLDER ${TESTS_FOLDER})
@@ -29,10 +29,10 @@ add_dependencies(loader_test
 )
 target_include_directories(loader_test
     PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
-    PRIVATE ${OPENXR_BINARY_DIR}/src
-    PRIVATE ${OPENXR_BINARY_DIR}/include
-    PRIVATE ${OPENXR_COMMON_DIR}
-    PRIVATE ${OPENXR_SOURCE_DIR}/external/include
+    PRIVATE ${PROJECT_BINARY_DIR}/src
+    PRIVATE ${PROJECT_BINARY_DIR}/include
+    PRIVATE ${PROJECT_SOURCE_DIR}/src/common
+    PRIVATE ${PROJECT_SOURCE_DIR}/external/include
 )
 if(VulkanHeaders_FOUND)
     target_include_directories(loader_test

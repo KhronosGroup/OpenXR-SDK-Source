@@ -95,7 +95,7 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
         glGetIntegerv(GL_MAJOR_VERSION, &major);
         glGetIntegerv(GL_MINOR_VERSION, &minor);
 
-        const uint32_t desiredApiVersion = XR_MAKE_VERSION(major, minor, 0);
+        const XrVersion desiredApiVersion = XR_MAKE_VERSION(major, minor, 0);
         if (graphicsRequirements.minApiVersionSupported > desiredApiVersion) {
             THROW("Runtime does not support desired Graphics API and/or version");
         }

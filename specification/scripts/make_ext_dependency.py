@@ -13,22 +13,21 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Generate a mapping of extension name -> all required extension names for that extension.
 
-# make_ext_dependency - generate a mapping of extension name -> all required
-# extension names for that extension.
+This script generates a list of all extensions, and of just KHR
+extensions, that are placed into a Bash script and/or Python script. This
+script can then be sources or executed to set a variable (e.g. khrExts),
+Frontend scripts such as 'makeAllExts' and 'makeKHR' use this information
+to set the EXTENSIONS Makefile variable when building the spec.
 
-# This script generates a list of all extensions, and of just KHR
-# extensions, that are placed into a Bash script and/or Python script. This
-# script can then be sources or executed to set a variable (e.g. khrExts),
-# Frontend scripts such as 'makeAllExts' and 'makeKHR' use this information
-# to set the EXTENSIONS Makefile variable when building the spec.
-#
-# Sample Usage:
-#
-# python3 scripts/make_ext_dependency.py -outscript=temp.sh
-# source temp.sh
-# make EXTENSIONS="$khrExts" html
-# rm temp.sh
+Sample Usage:
+
+python3 scripts/make_ext_dependency.py -outscript=temp.sh
+source temp.sh
+make EXTENSIONS="$khrExts" html
+rm temp.sh
+"""
 
 import argparse
 import errno
@@ -41,6 +40,7 @@ from xrconventions import OpenXRConventions as APIConventions
 def enQuote(key):
     return "'" + str(key) + "'"
 
+
 def shList(names):
     """Return a sortable (list or set) of names as a string encoding
     of a Bash or Python list, sorted on the names."""
@@ -49,11 +49,13 @@ def shList(names):
          '"')
     return s
 
+
 def pyList(names):
     s = ('[ ' +
          ', '.join(enQuote(key) for key in sorted(names)) +
          ' ]')
     return s
+
 
 class DiGraph:
     """A directed graph.
@@ -121,11 +123,13 @@ class DiGraph:
                     seen.add(y)
                     visit_me.append(y)
 
+
 class DiGraphNode:
 
     def __init__(self):
         # Set of adjacent of nodes.
         self.adj = set()
+
 
 def make_dir(fn):
     outdir = Path(fn).parent
@@ -134,6 +138,7 @@ def make_dir(fn):
     except OSError as e:
         if e.errno != errno.EEXIST:
             raise
+
 
 # API conventions object
 conventions = APIConventions()
@@ -198,7 +203,7 @@ if __name__ == '__main__':
         fp = open(args.outscript, 'w', encoding='utf-8')
 
         print('#!/bin/bash', file=fp)
-        print('# Generated from extDependency.py', file=fp)
+        print('# Generated from make_ext_dependency.py', file=fp)
         print('# Specify maps of all extensions required by an enabled extension', file=fp)
         print('', file=fp)
         print('declare -A extensions', file=fp)
@@ -225,7 +230,7 @@ if __name__ == '__main__':
         fp = open(args.outpy, 'w', encoding='utf-8')
 
         print('#!/usr/bin/env python', file=fp)
-        print('# Generated from extDependency.py', file=fp)
+        print('# Generated from make_ext_dependency.py', file=fp)
         print('# Specify maps of all extensions required by an enabled extension', file=fp)
         print('', file=fp)
         print('extensions = {}', file=fp)
@@ -238,7 +243,8 @@ if __name__ == '__main__':
 
             # Only emit an ifdef block if an extension has dependencies
             if children:
-                print("extensions['" + ext + "'] = " + pyList(children), file=fp)
+                print("extensions['" + ext + "'] = " +
+                      pyList(children), file=fp)
 
         print('', file=fp)
         print('# Define lists of all extensions and KHR extensions', file=fp)

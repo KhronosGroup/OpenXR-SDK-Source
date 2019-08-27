@@ -65,15 +65,15 @@ add_library(openxr_loader ${LIBRARY_TYPE}
     runtime_interface.cpp
     runtime_interface.hpp
     ${GENERATED_OUTPUT}
-    ${OPENXR_COMMON_DIR}/filesystem_utils.cpp
-    ${OPENXR_COMMON_DIR}/filesystem_utils.hpp
-    ${OPENXR_COMMON_DIR}/hex_and_handles.cpp
-    ${OPENXR_COMMON_DIR}/hex_and_handles.h
-    ${OPENXR_COMMON_DIR}/object_info.cpp
-    ${OPENXR_COMMON_DIR}/object_info.h
-    ${OPENXR_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_reader.cpp
-    ${OPENXR_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_value.cpp
-    ${OPENXR_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_writer.cpp
+    ${PROJECT_SOURCE_DIR}/src/common/filesystem_utils.cpp
+    ${PROJECT_SOURCE_DIR}/src/common/filesystem_utils.hpp
+    ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.cpp
+    ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h
+    ${PROJECT_SOURCE_DIR}/src/common/object_info.cpp
+    ${PROJECT_SOURCE_DIR}/src/common/object_info.h
+    ${PROJECT_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_reader.cpp
+    ${PROJECT_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_value.cpp
+    ${PROJECT_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_writer.cpp
     ${LOADER_EXTERNAL_GEN_FILES}
     ${openxr_loader_RESOURCE_FILE}
 )
@@ -89,13 +89,13 @@ add_dependencies(openxr_loader
 )
 target_include_directories(openxr_loader
     PRIVATE
-    ${OPENXR_COMMON_DIR}
+    ${PROJECT_SOURCE_DIR}/src/common
 
     # for OpenXR headers
-    ${OPENXR_SOURCE_DIR}/include
-    ${OPENXR_BINARY_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_BINARY_DIR}/include
 
-    # for generated dispatch table
+    # for generated dispatch table, common_config.h
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
 
@@ -104,7 +104,7 @@ target_include_directories(openxr_loader
     ${CMAKE_CURRENT_BINARY_DIR}
 
     # For jsoncpp
-    ${OPENXR_SOURCE_DIR}/src/external/jsoncpp/include
+    ${PROJECT_SOURCE_DIR}/src/external/jsoncpp/include
 )
 if(VulkanHeaders_FOUND)
     target_include_directories(openxr_loader
@@ -168,12 +168,18 @@ elseif(WIN32)
 
     # Need to copy DLL to client directories so clients can easily load it.
     if( (DYNAMIC_LOADER) AND (CMAKE_GENERATOR MATCHES "^Visual Studio.*") )
-        file( TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/openxr_loader.dll COPY_SRC_PATH )
-        file( TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/../tests/hello_xr/$<CONFIGURATION>/ COPY_DST_TEST_PATH )
+        file( TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/openxr_loader.dll COPY_DLL_SRC_PATH )
+        file( TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/openxr_loader.pdb COPY_PDB_SRC_PATH )
+        file( TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/../tests/hello_xr/$<CONFIGURATION>/ COPY_DST_HELLO_XR_PATH )
         file( TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/../tests/loader_test/$<CONFIGURATION>/ COPY_DST_LOADER_TEST_PATH )
+        file( TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/../conformance/conformance_test/$<CONFIGURATION>/ COPY_DST_CONFORMANCE_TEST_PATH )
         add_custom_command( TARGET openxr_loader POST_BUILD
-            COMMAND xcopy /Y /I ${COPY_SRC_PATH} ${COPY_DST_TEST_PATH}
-            COMMAND xcopy /Y /I ${COPY_SRC_PATH} ${COPY_DST_LOADER_TEST_PATH}
+            COMMAND xcopy /Y /I ${COPY_DLL_SRC_PATH} ${COPY_DST_HELLO_XR_PATH}
+            COMMAND xcopy /Y /I ${COPY_PDB_SRC_PATH} ${COPY_DST_HELLO_XR_PATH}
+            COMMAND xcopy /Y /I ${COPY_DLL_SRC_PATH} ${COPY_DST_LOADER_TEST_PATH}
+            COMMAND xcopy /Y /I ${COPY_PDB_SRC_PATH} ${COPY_DST_LOADER_TEST_PATH}
+            COMMAND xcopy /Y /I ${COPY_DLL_SRC_PATH} ${COPY_DST_CONFORMANCE_TEST_PATH}
+            COMMAND xcopy /Y /I ${COPY_PDB_SRC_PATH} ${COPY_DST_CONFORMANCE_TEST_PATH}
         )
     endif()
 endif()

@@ -591,7 +591,7 @@ class Registry:
         """Dump all the dictionaries constructed from the Registry object.
 
         Diagnostic to dump the dictionaries to specified file handle (default stdout).
-        Truncates type / enum / command elements to maxlen characters (default 80)"""
+        Truncates type / enum / command elements to maxlen characters (default 120)"""
         write('***************************************', file=filehandle)
         write('    ** Dumping Registry contents **',     file=filehandle)
         write('***************************************', file=filehandle)

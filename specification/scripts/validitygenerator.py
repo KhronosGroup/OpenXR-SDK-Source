@@ -364,8 +364,8 @@ class ValidityOutputGenerator(OutputGenerator):
 
             # Host Synchronization
             if threadsafety:
-                # TODO the heading of this block differs between projects
-                write('.Thread Safety', file=fp)
+                # The heading of this block differs between projects, so an Asciidoc attribute is used.
+                write('.{externsynctitle}', file=fp)
                 write('****', file=fp)
                 write(threadsafety, file=fp, end='')
                 write('****', file=fp)
@@ -770,8 +770,11 @@ class ValidityOutputGenerator(OutputGenerator):
 
         elif typecategory == 'bitmask':
             bitsname = paramtype.replace('Flags', 'FlagBits')
-            if self.registry.tree.find("enums[@name='" + bitsname + "']") is None:
-                # Empty bit mask: presumably just a placeholder (or only in an extension not enabled for this build)
+            bitselem = self.registry.tree.find("enums[@name='" + bitsname + "']")
+            if bitselem is None or len(bitselem.findall('enum')) == 0:
+                # Empty bit mask: presumably just a placeholder (or only in
+                # an extension not enabled for this build)
+
                 entry = ValidityEntry(
                     anchor=(param_name, 'zerobitmask'))
                 entry += self.makeParameterName(param_name)
@@ -1212,8 +1215,8 @@ class ValidityOutputGenerator(OutputGenerator):
         # See also makeThreadSafetyBlock in validitygenerator.py
         validity = self.makeValidityCollection(getElemName(cmd))
 
-        # This text varies between projects
-        extsync_prefix = "Access to "
+        # This text varies between projects, so an Asciidoctor attribute is used.
+        extsync_prefix = "{externsyncprefix} "
 
         # Find and add any parameters that are thread unsafe
         explicitexternsyncparams = cmd.findall(paramtext + "[@externsync]")
@@ -1262,6 +1265,10 @@ class ValidityOutputGenerator(OutputGenerator):
         return validity
 
     def findRequiredEnums(self, enums):
+        """Check each enumerant name in the enums list and remove it if not
+        required by the generator. This allows specifying success and error
+        codes for extensions that are only included in validity when needed
+        for the spec being targeted."""
         return self.keepOnlyRequired(enums, self.registry.enumdict)
 
     def findRequiredCommands(self, commands):

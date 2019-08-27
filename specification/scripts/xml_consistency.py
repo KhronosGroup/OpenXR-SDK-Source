@@ -235,7 +235,7 @@ class Checker(XMLChecker):
         param_type = getElemType(param_elem)
         if param_type != 'uint32_t':
             self.record_error('Two-call-idiom call has count parameter', param_name,
-                              'with type', input_type, 'instead of uint32_t')
+                              'with type', param_type, 'instead of uint32_t')
         type_elem = param_elem.find('type')
         assert(type_elem is not None)
 
@@ -295,7 +295,6 @@ class Checker(XMLChecker):
     def check_two_call_command(self, name, info, params):
         """Check a two-call-idiom command."""
         named_params = [(getElemName(p), p) for p in params]
-        param_indices = {getElemName(p): i for i, p in enumerate(params)}
 
         # Find the three important parameters
         capacity_input_param_name = None
@@ -359,6 +358,14 @@ class Checker(XMLChecker):
         """Check a command's XML data for consistency.
 
         Called from check."""
+        t = info.elem.find('proto/type')
+        if t is None:
+            self.record_warning("Got a command without a return type?")
+        else:
+            return_type = t.text
+            if return_type != 'XrResult':
+                self.record_error("Got a function that returned", return_type,
+                                  "instead of XrResult - some scripts/software assume all functions return XrResult!")
         params = info.elem.findall('./param')
         for p in params:
             param_name = getElemName(p)
@@ -409,27 +416,31 @@ class Checker(XMLChecker):
         else:
             fn = get_extension_source(name)
             revisions = []
-            with open(fn, 'r', encoding='utf-8') as fp:
-                for line in fp:
-                    line = line.rstrip()
-                    match = REVISION_RE.match(line)
-                    if match:
-                        revisions.append(int(match.group('num')))
-            ver_from_xml = version_elem.get('value')
-            if revisions:
-                ver_from_text = str(max(revisions))
-                if ver_from_xml != ver_from_text:
-                    self.record_error("Version enum mismatch: spec text indicates", ver_from_text,
-                                      "but XML says", ver_from_xml)
-            else:
-                if ver_from_xml == '1':
-                    self.record_warning(
-                        "Cannot find version history in spec text - make sure it has lines starting exactly like '* Revision 1, ....'",
-                        filename=fn)
+            try:
+                with open(fn, 'r', encoding='utf-8') as fp:
+                    for line in fp:
+                        line = line.rstrip()
+                        match = REVISION_RE.match(line)
+                        if match:
+                            revisions.append(int(match.group('num')))
+                ver_from_xml = version_elem.get('value')
+                if revisions:
+                    ver_from_text = str(max(revisions))
+                    if ver_from_xml != ver_from_text:
+                        self.record_error("Version enum mismatch: spec text indicates", ver_from_text,
+                                        "but XML says", ver_from_xml)
                 else:
-                    self.record_error("Cannot find version history in spec text, but XML reports a non-1 version number", ver_from_xml,
-                                      " - make sure the spec text has lines starting exactly like '* Revision 1, ....'",
-                                      filename=fn)
+                    if ver_from_xml == '1':
+                        self.record_warning(
+                            "Cannot find version history in spec text - make sure it has lines starting exactly like '* Revision 1, ....'",
+                            filename=fn)
+                    else:
+                        self.record_error("Cannot find version history in spec text, but XML reports a non-1 version number", ver_from_xml,
+                                        " - make sure the spec text has lines starting exactly like '* Revision 1, ....'",
+                                        filename=fn)
+            except FileNotFoundError:
+                # This is OK: just means we can't check against the spec text.
+                pass
 
         name_define = "{}_EXTENSION_NAME".format(name_upper)
         name_elem = findNamedElem(enums, name_define)

@@ -15,7 +15,7 @@ elseif( ${CMAKE_CXX_COMPILER_ID} MATCHES "Clang" )
     add_definitions( -std=c++11 )
 endif()
 
-set( GLSLANG_DIR "${CMAKE_SOURCE_DIR}/../glslang" )
+set( GLSLANG_DIR "${PROJECT_SOURCE_DIR}/../glslang" )
 
 # SPIRV
 set( SOURCES

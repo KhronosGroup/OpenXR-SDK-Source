@@ -16,6 +16,7 @@
 
 import argparse
 import os
+import pdb
 import re
 import sys
 import time
@@ -45,6 +46,7 @@ def startTimer(timeit):
     if timeit:
         startTime = time.process_time()
 
+
 def endTimer(timeit, msg):
     global startTime
     if timeit:
@@ -52,11 +54,15 @@ def endTimer(timeit, msg):
         write(msg, endTime - startTime, file=sys.stderr)
         startTime = None
 
-def makeREstring(strings, default=None):
+
+def makeREstring(strings, default=None, strings_are_regex=False):
     """Turn a list of strings into a regexp string matching exactly those strings."""
     if strings or default is None:
-        return '^(' + '|'.join((re.escape(s) for s in strings)) + ')$'
+        if not strings_are_regex:
+            strings = (re.escape(s) for s in strings)
+        return '^(' + '|'.join(strings) + ')$'
     return default
+
 
 def makeGenOpts(args):
     """Returns a directory of [ generator function, generator options ] indexed
@@ -449,16 +455,19 @@ if __name__ == '__main__':
     tree = etree.parse(args.registry)
     endTimer(args.time, '* Time to make ElementTree =')
 
-    startTimer(args.time)
-    reg.loadElementTree(tree)
-    endTimer(args.time, '* Time to parse ElementTree =')
+    if args.debug:
+        pdb.run('reg.loadElementTree(tree)')
+    else:
+        startTimer(args.time)
+        reg.loadElementTree(tree)
+        endTimer(args.time, '* Time to parse ElementTree =')
 
     if args.validate:
         reg.validateGroups()
 
     if args.dump:
         write('* Dumping registry to regdump.txt', file=sys.stderr)
-        reg.dumpReg(filehandle = open('regdump.txt', 'w', encoding='utf-8'))
+        reg.dumpReg(filehandle=open('regdump.txt', 'w', encoding='utf-8'))
 
     # create error/warning & diagnostic files
     if args.errfile:
@@ -472,7 +481,6 @@ if __name__ == '__main__':
         diag = None
 
     if args.debug:
-        import pdb
         pdb.run('genTarget(args)')
     elif args.profile:
         import cProfile

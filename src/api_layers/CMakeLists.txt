@@ -53,9 +53,8 @@ run_xr_xml_generate(api_dump_generator.py xr_generated_api_dump.cpp)
 
 add_library(XrApiLayer_api_dump SHARED
     api_dump.cpp
-    ${OPENXR_COMMON_DIR}/hex_and_handles.cpp
-    ${OPENXR_COMMON_DIR}/hex_and_handles.h
-
+    ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.cpp
+    ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h
     # target-specific generated files
     ${GENERATED_OUTPUT}
 
@@ -74,12 +73,12 @@ add_dependencies(XrApiLayer_api_dump
 
 target_include_directories(XrApiLayer_api_dump
     PRIVATE
-    ${OPENXR_COMMON_DIR}
+    ${PROJECT_SOURCE_DIR}/src/common
     ${CMAKE_CURRENT_SOURCE_DIR}
 
     # for OpenXR headers
-    ${OPENXR_SOURCE_DIR}/include
-    ${OPENXR_BINARY_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_BINARY_DIR}/include
 
     # for generated dispatch table
     ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -113,10 +112,10 @@ run_xr_xml_generate(validation_layer_generator.py xr_generated_core_validation.c
 
 add_library(XrApiLayer_core_validation SHARED
     core_validation.cpp
-    ${OPENXR_COMMON_DIR}/hex_and_handles.cpp
-    ${OPENXR_COMMON_DIR}/hex_and_handles.h
-    ${OPENXR_COMMON_DIR}/object_info.cpp
-    ${OPENXR_COMMON_DIR}/object_info.h
+    ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.cpp
+    ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h
+    ${PROJECT_SOURCE_DIR}/src/common/object_info.cpp
+    ${PROJECT_SOURCE_DIR}/src/common/object_info.h
 
     # target-specific generated files
     ${GENERATED_OUTPUT}
@@ -135,11 +134,11 @@ add_dependencies(XrApiLayer_core_validation
 )
 target_include_directories(XrApiLayer_core_validation
     PRIVATE
-    ${OPENXR_COMMON_DIR}
+    ${PROJECT_SOURCE_DIR}/src/common
 
     # for OpenXR headers
-    ${OPENXR_SOURCE_DIR}/include
-    ${OPENXR_BINARY_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_BINARY_DIR}/include
 
     # for generated dispatch table
     ${CMAKE_CURRENT_SOURCE_DIR}/..

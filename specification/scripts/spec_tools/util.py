@@ -32,28 +32,6 @@ def getElemType(elem, default=None):
     # Fallback if there is no child.
     return elem.get('type', default)
 
-def _conditional_string_strip_append(my_list, optional_str):
-    if not optional_str:
-        return
-    stripped = optional_str.strip()
-    if not stripped:
-        return
-    my_list.append(stripped)
-
-def getParamOrMemberFullType(elem, default=None):
-    """Get the full type associated with a member or param element.
-
-    This includes the text preceding, within, and following the 'type' tag."""
-    parts = []
-    for node in elem.iter():
-        _conditional_string_strip_append(parts, node.text)
-        _conditional_string_strip_append(parts, node.tail)
-        if node.tag == 'type':
-            return ' '.join(parts)
-
-    # Fallback if there is no child with a "type" tag
-    return default
-
 
 def findFirstWithPredicate(collection, pred):
     """Return the first element that satisfies the predicate, or None if none exist.

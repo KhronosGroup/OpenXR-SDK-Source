@@ -368,33 +368,22 @@ static void ReadRuntimeDataFilesInRegistry(ManifestFileType type, const std::str
 // if we should use that instead.
 static void ReadLayerDataFilesInRegistry(ManifestFileType type, const std::string &registry_location,
                                          std::vector<std::string> &manifest_files) {
-    HKEY hive[2] = {HKEY_LOCAL_MACHINE, HKEY_CURRENT_USER};
-    bool found[2] = {false, false};
-    HKEY hkey;
-    DWORD access_flags;
-    LONG rtn_value;
-    wchar_t name_w[1024]{};
-    DWORD value;
-    DWORD name_size = 1023;
-    DWORD value_size = sizeof(value);
+    const std::wstring full_registry_location_w =
+        utf8_to_wide(OPENXR_REGISTRY_LOCATION + std::to_string(XR_VERSION_MAJOR(XR_CURRENT_API_VERSION)) + registry_location);
 
-    for (uint8_t hive_index = 0; hive_index < 2; ++hive_index) {
-        DWORD key_index = 0;
-        std::string full_registry_location = OPENXR_REGISTRY_LOCATION;
-        full_registry_location += std::to_string(XR_VERSION_MAJOR(XR_CURRENT_API_VERSION));
-        full_registry_location += registry_location;
-
-        access_flags = KEY_QUERY_VALUE;
-        std::wstring full_registry_location_w = utf8_to_wide(full_registry_location);
-        LONG open_value = RegOpenKeyExW(hive[hive_index], full_registry_location_w.c_str(), 0, access_flags, &hkey);
+    auto ReadLayerDataFilesInHive = [&](HKEY hive) {
+        HKEY hkey;
+        LONG open_value = RegOpenKeyExW(hive, full_registry_location_w.c_str(), 0, KEY_QUERY_VALUE, &hkey);
         if (ERROR_SUCCESS != open_value) {
-            if (hive_index == 1 && !found[0]) {
-                LoaderLogger::LogWarningMessage("", "ReadLayerDataFilesInRegistry - failed to read registry location " +
-                                                        registry_location + " in either HKEY_LOCAL_MACHINE or HKEY_CURRENT_USER");
-            }
-            continue;
+            return false;
         }
-        found[hive_index] = true;
+
+        wchar_t name_w[1024]{};
+        LONG rtn_value;
+        DWORD name_size = 1023;
+        DWORD value;
+        DWORD value_size = sizeof(value);
+        DWORD key_index = 0;
         while (ERROR_SUCCESS ==
                (rtn_value = RegEnumValueW(hkey, key_index++, name_w, &name_size, NULL, NULL, (LPBYTE)&value, &value_size))) {
             if (value_size == sizeof(value) && value == 0) {
@@ -404,6 +393,25 @@ static void ReadLayerDataFilesInRegistry(ManifestFileType type, const std::strin
             // Reset some items for the next loop
             name_size = 1023;
         }
+
+        RegCloseKey(hkey);
+
+        return true;
+    };
+
+    // Do not allow high integrity processes to act on data that can be controlled by medium integrity processes.
+    const bool readFromCurrentUser = !IsHighIntegrityLevel();
+
+    bool found = ReadLayerDataFilesInHive(HKEY_LOCAL_MACHINE);
+    if (readFromCurrentUser) {
+        found |= ReadLayerDataFilesInHive(HKEY_CURRENT_USER);
+    }
+
+    if (!found) {
+        std::string warning_message = "ReadLayerDataFilesInRegistry - failed to read registry location ";
+        warning_message += registry_location;
+        warning_message += (readFromCurrentUser ? " in either HKEY_LOCAL_MACHINE or HKEY_CURRENT_USER" : " in HKEY_LOCAL_MACHINE");
+        LoaderLogger::LogWarningMessage("", warning_message);
     }
 }
 

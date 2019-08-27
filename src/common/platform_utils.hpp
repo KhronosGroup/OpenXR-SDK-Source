@@ -168,6 +168,30 @@ inline std::string wide_to_utf8(const std::wstring& wideText) {
     return narrowText;
 }
 
+static inline bool IsHighIntegrityLevel() {
+    static bool isHighIntegrityLevel = ([] {
+        HANDLE processToken;
+        if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_QUERY_SOURCE, &processToken)) {
+            // Maximum possible size of SID_AND_ATTRIBUTES is maximum size of a SID + size of attributes DWORD.
+            uint8_t mandatoryLabelBuffer[SECURITY_MAX_SID_SIZE + sizeof(DWORD)]{};
+            DWORD bufferSize;
+            if (GetTokenInformation(processToken, TokenIntegrityLevel, mandatoryLabelBuffer, sizeof(mandatoryLabelBuffer),
+                                    &bufferSize) != 0) {
+                const auto mandatoryLabel = reinterpret_cast<const TOKEN_MANDATORY_LABEL*>(mandatoryLabelBuffer);
+                const DWORD subAuthorityCount = *GetSidSubAuthorityCount(mandatoryLabel->Label.Sid);
+                const DWORD integrityLevel = *GetSidSubAuthority(mandatoryLabel->Label.Sid, subAuthorityCount - 1);
+                return integrityLevel > SECURITY_MANDATORY_MEDIUM_RID;
+            }
+
+            CloseHandle(processToken);
+        }
+
+        return false;
+    })();
+
+    return isHighIntegrityLevel;
+}
+
 static inline bool PlatformUtilsGetEnvSet(const char* name) {
     const std::wstring wname = utf8_to_wide(name);
     const DWORD valSize = ::GetEnvironmentVariableW(wname.c_str(), nullptr, 0);
@@ -198,7 +222,12 @@ static inline std::string PlatformUtilsGetEnv(const char* name) {
 }
 
 static inline std::string PlatformUtilsGetSecureEnv(const char* name) {
-    // No secure version for Windows as far as I know
+    // Do not allow high integrity processes to act on data that can be controlled by medium integrity processes.
+    if (IsHighIntegrityLevel()) {
+        return nullptr;
+    }
+
+    // No secure version for Windows so the above integrity check is needed.
     return PlatformUtilsGetEnv(name);
 }
 

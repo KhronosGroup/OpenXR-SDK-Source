@@ -389,15 +389,17 @@ XrResult res = xrCreateInstance(info, instance);
 if (XR_SUCCESS != res) {
     std::string error_message = "xrCreateInstance failed with result ";
     error_message += std::to_string(res);
-    LoaderLogger::LogErrorMessage(error_message);
+    LoaderLogger::LogErrorMessage("", error_message);
 }
 ----
 
 [source,c++]
 ----
 // After successfully adding all API layers
-LoaderLogger::LogInfoMessage("Loaded all API layers");
+LoaderLogger::LogInfoMessage("", "Loaded all API layers");
 ----
+
+In these examples, the message does not correspond to a named command so an empty string is passed.
 ====
 
 [[loaderlogrecorder]]
@@ -597,7 +599,7 @@ void LoaderCleanUpMapsForInstance(
 ----
   * pname:loader_instance is a pointer to the `LoaderInstance`
     that is going away and needs all references removed from all the
-    global unordered_maps.
+    global state.
 
 ==== xr_loader_generated.cpp ====
 
@@ -735,40 +737,32 @@ same `LoaderInstance*`.
 XRAPI_ATTR XrResult XRAPI_CALL xrCreateSession(
     XrInstance                                  instance,
     const XrSessionCreateInfo*                  createInfo,
-    XrSession*                                  session) {
-    try {
-        LoaderInstance *loader_instance = g_instance_map.Get(instance);
-        if (nullptr == loader_instance) {
-            LoaderLogger::LogValidationErrorMessage(
-                "VUID-xrCreateSession-instance-parameter",
-                "xrCreateSession",
-                "instance is not a valid XrInstance",
-                {XrLoaderLogObjectInfo{instance, XR_OBJECT_TYPE_INSTANCE}});
-            return XR_ERROR_HANDLE_INVALID;
-        }
-        const std::unique_ptr<XrGeneratedDispatchTable>& dispatch_table =
-            loader_instance->DispatchTable();
-        XrResult result = XR_SUCCESS;
-        result = dispatch_table->CreateSession(instance, createInfo, session);
-        if (XR_SUCCESS == result && nullptr != session) {
-            XrResult insert_result = g_session_map.Insert(*session, *loader_instance);
-            if (XR_FAILED(insert_result)) {
-                LoaderLogger::LogErrorMessage(
-                    "xrCreateSession",
-                    "Failed inserting new session into map: may be null or not unique");
-            }
-        }
-        return result;
-    } catch (std::bad_alloc &) {
-        LoaderLogger::LogErrorMessage("xrCreateSession",
-            "xrCreateSession trampoline failed allocating memory");
-        return XR_ERROR_OUT_OF_MEMORY;
-    } catch (...) {
-        LoaderLogger::LogErrorMessage("xrCreateSession",
-            "xrCreateSession trampoline encountered an unknown error");
-        return XR_ERROR_INITIALIZATION_FAILED;
+    XrSession*                                  session) XRLOADER_ABI_TRY {
+
+    LoaderInstance *loader_instance = g_instance_map.Get(instance);
+    if (nullptr == loader_instance) {
+        LoaderLogger::LogValidationErrorMessage(
+            "VUID-xrCreateSession-instance-parameter", "xrCreateSession",
+            "instance is not a valid XrInstance",
+            {XrSdkLogObjectInfo{instance, XR_OBJECT_TYPE_INSTANCE}});
+        return XR_ERROR_HANDLE_INVALID;
     }
+    const std::unique_ptr<XrGeneratedDispatchTable> &dispatch_table =
+        loader_instance->DispatchTable();
+    XrResult result = XR_SUCCESS;
+    result = dispatch_table->CreateSession(instance, createInfo, session);
+    if (XR_SUCCESS == result && nullptr != session) {
+        XrResult insert_result =
+            g_session_map.Insert(*session, *loader_instance);
+        if (XR_FAILED(insert_result)) {
+            LoaderLogger::LogErrorMessage("xrCreateSession",
+                                          "Failed inserting new session into "
+                                          "map: may be null or not unique");
+        }
+    }
+    return result;
 }
+XRLOADER_ABI_CATCH_FALLBACK
 ----
 ====
 
@@ -780,32 +774,27 @@ is called.
 [source,c++]
 ----
 XRAPI_ATTR XrResult XRAPI_CALL xrDestroySession(
-    XrSession                                   session) {
-    try {
-        LoaderInstance *loader_instance = g_session_map.Get(session);
-        // Destroy the mapping entry for this item if it was valid.
-        if (nullptr != loader_instance) {
-            g_session_map.Erase(session);
-        }
-        if (nullptr == loader_instance) {
-            LoaderLogger::LogValidationErrorMessage(
-                "VUID-xrDestroySession-session-parameter", "xrDestroySession",
-                "session is not a valid XrSession",
-                {XrLoaderLogObjectInfo{session, XR_OBJECT_TYPE_SESSION} });
-            return XR_ERROR_HANDLE_INVALID;
-        }
-        const std::unique_ptr<XrGeneratedDispatchTable>& dispatch_table =
-            loader_instance->DispatchTable();
-        XrResult result = XR_SUCCESS;
-        result = dispatch_table->DestroySession(session);
-        return result;
-    } catch (...) {
-        LoaderLogger::LogErrorMessage("xrDestroySession",
-            "xrDestroySession trampoline encountered an unknown error");
-        // NOTE: Most calls only allow XR_SUCCESS as a return code
-        return XR_SUCCESS;
+    XrSession                                   session)
+    XRLOADER_ABI_TRY {
+    LoaderInstance *loader_instance = g_session_map.Get(session);
+    // Destroy the mapping entry for this item if it was valid.
+    if (nullptr != loader_instance) {
+        g_session_map.Erase(session);
     }
+    if (nullptr == loader_instance) {
+        LoaderLogger::LogValidationErrorMessage(
+            "VUID-xrDestroySession-session-parameter", "xrDestroySession",
+            "session is not a valid XrSession",
+            {XrSdkLogObjectInfo{session, XR_OBJECT_TYPE_SESSION}});
+        return XR_ERROR_HANDLE_INVALID;
+    }
+    const std::unique_ptr<XrGeneratedDispatchTable> &dispatch_table =
+        loader_instance->DispatchTable();
+    XrResult result = XR_SUCCESS;
+    result = dispatch_table->DestroySession(session);
+    return result;
 }
+XRLOADER_ABI_CATCH_FALLBACK
 ----
 ====
 

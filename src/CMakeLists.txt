@@ -119,9 +119,9 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/version.cmake)
 # Path separators ( : or ; ) are not handled well in CMake.
 # This seems like a reasonable approach.
 if(WIN32)
-    set(CODEGEN_PYTHON_PATH "${OPENXR_SOURCE_DIR}/specification/scripts;${OPENXR_SOURCE_DIR}/src/scripts;$ENV{PYTHONPATH}")
+    set(CODEGEN_PYTHON_PATH "${PROJECT_SOURCE_DIR}/specification/scripts;${PROJECT_SOURCE_DIR}/src/scripts;$ENV{PYTHONPATH}")
 else()
-    set(CODEGEN_PYTHON_PATH "${OPENXR_SOURCE_DIR}/specification/scripts:${OPENXR_SOURCE_DIR}/src/scripts:$ENV{PYTHONPATH}")
+    set(CODEGEN_PYTHON_PATH "${PROJECT_SOURCE_DIR}/specification/scripts:${PROJECT_SOURCE_DIR}/src/scripts:$ENV{PYTHONPATH}")
 endif()
 
 # General code generation macro used by several targets.
@@ -137,16 +137,16 @@ macro(run_xr_xml_generate dependency output)
         add_custom_command(OUTPUT ${output}
             COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=${CODEGEN_PYTHON_PATH}"
                 ${PYTHON_EXECUTABLE}
-                    ${OPENXR_SOURCE_DIR}/src/scripts/src_genxr.py
-                    -registry ${OPENXR_SOURCE_DIR}/specification/registry/xr.xml
+                    ${PROJECT_SOURCE_DIR}/src/scripts/src_genxr.py
+                    -registry ${PROJECT_SOURCE_DIR}/specification/registry/xr.xml
                     ${output}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             DEPENDS
-                    "${OPENXR_SOURCE_DIR}/specification/registry/xr.xml"
-                    "${OPENXR_SOURCE_DIR}/specification/scripts/generator.py"
-                    "${OPENXR_SOURCE_DIR}/specification/scripts/reg.py"
-                    "${OPENXR_SOURCE_DIR}/src/scripts/${dependency}"
-                    "${OPENXR_SOURCE_DIR}/src/scripts/src_genxr.py"
+                    "${PROJECT_SOURCE_DIR}/specification/registry/xr.xml"
+                    "${PROJECT_SOURCE_DIR}/specification/scripts/generator.py"
+                    "${PROJECT_SOURCE_DIR}/specification/scripts/reg.py"
+                    "${PROJECT_SOURCE_DIR}/src/scripts/${dependency}"
+                    "${PROJECT_SOURCE_DIR}/src/scripts/src_genxr.py"
                 ${ARGN}
             COMMENT "Generating ${output} using ${PYTHON_EXECUTABLE} on ${dependency}"
         )
@@ -161,15 +161,13 @@ macro(gen_xr_layer_json filename layername libfile version desc genbad)
     add_custom_command(OUTPUT ${filename}
         COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=${CODEGEN_PYTHON_PATH}"
             ${PYTHON_EXECUTABLE}
-                ${OPENXR_SOURCE_DIR}/src/scripts/generate_api_layer_manifest.py
+                ${PROJECT_SOURCE_DIR}/src/scripts/generate_api_layer_manifest.py
                     -f ${filename} -n ${layername} -l ${libfile} -a ${MAJOR}.${MINOR} -v ${version} ${genbad} -d ${desc}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        DEPENDS ${OPENXR_SOURCE_DIR}/src/scripts/generate_api_layer_manifest.py
+        DEPENDS ${PROJECT_SOURCE_DIR}/src/scripts/generate_api_layer_manifest.py
         COMMENT "Generating API Layer JSON ${filename} using -f ${filename} -n ${layername} -l ${libfile} -a ${MAJOR}.${MINOR} -v ${version} ${genbad} -d ${desc}"
     )
 endmacro()
-
-set(OPENXR_COMMON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/common)
 
 # Custom target for generated dispatch table sources, used by several targets.
 set(GENERATED_OUTPUT)

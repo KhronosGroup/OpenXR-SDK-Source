@@ -82,15 +82,15 @@ add_dependencies(hello_xr
 
 target_include_directories(hello_xr
     PRIVATE
-    ${OPENXR_SOURCE_DIR}/src
-    ${OPENXR_COMMON_DIR}
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/src/common
 
     # for OpenXR headers
-    ${OPENXR_SOURCE_DIR}/include
-    ${OPENXR_BINARY_DIR}/include
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_BINARY_DIR}/include
 
     # for helper headers
-    ${OPENXR_SOURCE_DIR}/external/include
+    ${PROJECT_SOURCE_DIR}/external/include
 )
 
 if(VulkanHeaders_INCLUDE_DIRS)

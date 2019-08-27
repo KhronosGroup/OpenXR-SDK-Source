@@ -110,14 +110,24 @@ void InitializeD3D11DeviceForAdapter(IDXGIAdapter1* adapter, const std::vector<D
 #endif
 
     // Create the Direct3D 11 API device object and a corresponding context.
-    const D3D_DRIVER_TYPE driverType = adapter == nullptr ? D3D_DRIVER_TYPE_HARDWARE : D3D_DRIVER_TYPE_UNKNOWN;
-    const HRESULT hr = D3D11CreateDevice(adapter, driverType, 0, creationFlags, featureLevels.data(), (UINT)featureLevels.size(),
-                                         D3D11_SDK_VERSION, device, nullptr, deviceContext);
+    D3D_DRIVER_TYPE driverType = ((adapter == nullptr) ? D3D_DRIVER_TYPE_HARDWARE : D3D_DRIVER_TYPE_UNKNOWN);
+
+TryAgain:
+    HRESULT hr = D3D11CreateDevice(adapter, driverType, 0, creationFlags, featureLevels.data(), (UINT)featureLevels.size(),
+                                   D3D11_SDK_VERSION, device, nullptr, deviceContext);
     if (FAILED(hr)) {
-        // If the initialization fails, fall back to the WARP device.
+        // If initialization failed, it may be because device debugging isn't supprted, so retry without that.
+        if ((creationFlags & D3D11_CREATE_DEVICE_DEBUG) && (hr == DXGI_ERROR_SDK_COMPONENT_MISSING)) {
+            creationFlags &= ~D3D11_CREATE_DEVICE_DEBUG;
+            goto TryAgain;
+        }
+
+        // If the initialization still fails, fall back to the WARP device.
         // For more information on WARP, see: http://go.microsoft.com/fwlink/?LinkId=286690
-        CHECK_HRCMD(D3D11CreateDevice(nullptr, D3D_DRIVER_TYPE_WARP, 0, creationFlags, featureLevels.data(),
-                                      (UINT)featureLevels.size(), D3D11_SDK_VERSION, device, nullptr, deviceContext));
+        if (driverType != D3D_DRIVER_TYPE_WARP) {
+            driverType = D3D_DRIVER_TYPE_WARP;
+            goto TryAgain;
+        }
     }
 }
 

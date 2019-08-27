@@ -154,6 +154,9 @@ class pageInfo:
         self.end      = None
         """index of last line of the page (heuristic validity include, or // refEnd)"""
 
+        self.alias    = ''
+        """aliases of this name, if supplied, or ''"""
+
         self.refs     = ''
         """cross-references on // refEnd line, if supplied"""
 
@@ -473,6 +476,7 @@ def findRefs(file, filename):
             refpage_type = None
             spec_type = None
             anchor = None
+            alias = None
             xrefs = None
 
             for (key,value) in matches:
@@ -487,6 +491,8 @@ def findRefs(file, filename):
                     spec_type = value
                 elif key == 'anchor':
                     anchor = value
+                elif key == 'alias':
+                    alias = value
                 elif key == 'xrefs':
                     xrefs = value
                 else:
@@ -503,11 +509,14 @@ def findRefs(file, filename):
                 pi.type = refpage_type
                 pi.spec = spec_type
                 pi.anchor = anchor
+                if alias:
+                    pi.alias = alias
                 if xrefs:
                     pi.refs = xrefs
                 logDiag('open block for', name, 'added DESC =', desc,
-                        'TYPE =', refpage_type, 'XREFS =', xrefs,
-                        'SPEC =', spec_type, 'ANCHOR =', anchor)
+                        'TYPE =', refpage_type, 'ALIAS =', alias,
+                        'XREFS =', xrefs, 'SPEC =', spec_type,
+                        'ANCHOR =', anchor)
 
             line = line + 1
             continue
