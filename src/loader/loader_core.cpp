@@ -251,16 +251,50 @@ LOADER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrCreateInstance(const XrInstanceCr
         return result;
     }
 
+    // Remove any loader-provided extensions (probably just debug_utils) from the instance_create_info
+    // before passing it on to the runtime. Remember any loader extensions removed, so we can enable
+    // them after instance creation.
+    std::vector<std::string> runtime_ext_names = {};
+    std::vector<std::string> loader_ext_names = {};
+    for (uint32_t i = 0; i < info->enabledExtensionCount; i++) {
+        bool is_loader_ext = false;
+        for (const XrExtensionProperties &loader_ext : LoaderInstance::LoaderSpecificExtensions()) {
+            if (0 == strcmp(info->enabledExtensionNames[i], loader_ext.extensionName)){
+                is_loader_ext = true;
+                loader_ext_names.push_back(loader_ext.extensionName);
+                break;
+            }
+        }
+        if (!is_loader_ext) {
+            runtime_ext_names.push_back(info->enabledExtensionNames[i]);
+        }
+    }
+
+    // Build a temporary instance create_info containing the purged list of extensions
+    const char* purged_ext_list[1024];  // Just make it absurdly large
+    uint32_t j = 0;
+    for (auto it = runtime_ext_names.begin(); it != runtime_ext_names.end(); ++it) {
+        purged_ext_list[j] = it->c_str();
+    }
+    XrInstanceCreateInfo purged_ci = {};
+    memcpy(&purged_ci, info, sizeof(XrInstanceCreateInfo));
+    purged_ci.enabledExtensionNames = purged_ext_list;
+    purged_ci.enabledExtensionCount = static_cast<uint32_t>(runtime_ext_names.size());
+    
     std::unique_lock<std::mutex> instance_lock(g_loader_instance_mutex);
 
     // Create the loader instance (only send down first runtime interface)
     XrInstance created_instance = XR_NULL_HANDLE;
-    result = LoaderInstance::CreateInstance(std::move(api_layer_interfaces), info, &created_instance);
+    result = LoaderInstance::CreateInstance(std::move(api_layer_interfaces), &purged_ci, &created_instance);
 
     if (XR_SUCCEEDED(result)) {
         *instance = created_instance;
 
+        // Mark as enabled any loader extensions we stripped out above
         LoaderInstance *loader_instance = g_instance_map.Get(created_instance);
+        for (const std::string loader_ext_name : loader_ext_names) {
+            loader_instance->AddEnabledExtension(loader_ext_name);
+        }
 
         // Create a debug utils messenger if the create structure is in the "next" chain
         const auto *next_header = reinterpret_cast<const XrBaseInStructure *>(info->next);
