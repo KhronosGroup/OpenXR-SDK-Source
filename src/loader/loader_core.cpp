@@ -15,6 +15,7 @@
 // limitations under the License.
 //
 // Author: Mark Young <marky@lunarg.com>
+// Author: Dave Houlton <daveh@lunarg.com>
 //
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
@@ -77,7 +78,7 @@ LOADER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrEnumerateApiLayerProperties(uint3
 
     XrResult result = ApiLayerInterface::GetApiLayerProperties("xrEnumerateApiLayerProperties", propertyCapacityInput,
                                                                propertyCountOutput, properties);
-    if (XR_SUCCESS != result) {
+    if (XR_FAILED(result)) {
         LoaderLogger::LogErrorMessage("xrEnumerateApiLayerProperties", "Failed ApiLayerInterface::GetApiLayerProperties");
     }
 
@@ -106,10 +107,10 @@ xrEnumerateInstanceExtensionProperties(const char *layerName, uint32_t propertyC
         // Get the layer extension properties
         result = ApiLayerInterface::GetInstanceExtensionProperties("xrEnumerateInstanceExtensionProperties", layerName,
                                                                    extension_properties);
-        if (XR_SUCCESS == result && !just_layer_properties) {
+        if (XR_SUCCEEDED(result) && !just_layer_properties) {
             // If not specific to a layer, get the runtime extension properties
             result = RuntimeInterface::LoadRuntime("xrEnumerateInstanceExtensionProperties");
-            if (XR_SUCCESS == result) {
+            if (XR_SUCCEEDED(result)) {
                 RuntimeInterface::GetRuntime().GetInstanceExtensionProperties(extension_properties);
                 RuntimeInterface::UnloadRuntime("xrEnumerateInstanceExtensionProperties");
             } else {
@@ -119,7 +120,7 @@ xrEnumerateInstanceExtensionProperties(const char *layerName, uint32_t propertyC
         }
     }
 
-    if (XR_SUCCESS != result) {
+    if (XR_FAILED(result)) {
         LoaderLogger::LogErrorMessage("xrEnumerateInstanceExtensionProperties", "Failed querying extension properties");
         return result;
     }
@@ -231,14 +232,14 @@ LOADER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrCreateInstance(const XrInstanceCr
         std::unique_lock<std::mutex> json_lock(g_loader_json_mutex);
         // Load the available runtime
         result = RuntimeInterface::LoadRuntime("xrCreateInstance");
-        if (XR_SUCCESS != result) {
+        if (XR_FAILED(result)) {
             LoaderLogger::LogErrorMessage("xrCreateInstance", "Failed loading runtime information");
         } else {
             runtime_loaded = true;
             // Load the appropriate layers
             result = ApiLayerInterface::LoadApiLayers("xrCreateInstance", info->enabledApiLayerCount, info->enabledApiLayerNames,
                                                       api_layer_interfaces);
-            if (XR_SUCCESS != result) {
+            if (XR_FAILED(result)) {
                 LoaderLogger::LogErrorMessage("xrCreateInstance", "Failed loading layer information");
             }
         }
@@ -271,7 +272,7 @@ LOADER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrCreateInstance(const XrInstanceCr
                 dbg_utils_create_info = reinterpret_cast<const XrDebugUtilsMessengerCreateInfoEXT *>(next_header);
                 XrDebugUtilsMessengerEXT messenger;
                 result = xrCreateDebugUtilsMessengerEXT(*instance, dbg_utils_create_info, &messenger);
-                if (XR_SUCCESS != result) {
+                if (XR_FAILED(result)) {
                     return XR_ERROR_VALIDATION_FAILURE;
                 }
                 loader_instance->SetDefaultDebugUtilsMessenger(messenger);
@@ -309,7 +310,7 @@ LOADER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrDestroyInstance(XrInstance instan
     }
 
     // Now destroy the instance
-    if (XR_SUCCESS != dispatch_table->DestroyInstance(instance)) {
+    if (XR_FAILED(dispatch_table->DestroyInstance(instance))) {
         LoaderLogger::LogErrorMessage("xrDestroyInstance", "Unknown error occurred calling down chain");
     }
 
@@ -366,7 +367,7 @@ static XrResult ValidateInstanceCreateInfo(LoaderInstance *loader_instance, cons
     }
     // ApplicationInfo struct must be valid
     XrResult result = ValidateApplicationInfo(loader_instance, info->applicationInfo);
-    if (XR_SUCCESS != result) {
+    if (XR_FAILED(result)) {
         LoaderLogger::LogValidationErrorMessage("VUID-XrInstanceCreateInfo-applicationInfo-parameter", "xrCreateInstance",
                                                 "info->applicationInfo is not valid.");
         return result;
@@ -384,7 +385,7 @@ XRAPI_ATTR XrResult XRAPI_CALL LoaderXrTermCreateInstance(const XrInstanceCreate
     LoaderLogger::LogVerboseMessage("xrCreateInstance", "Entering loader terminator");
     LoaderInstance *loader_instance = reinterpret_cast<LoaderInstance *>(*instance);
     XrResult result = ValidateInstanceCreateInfo(loader_instance, info);
-    if (XR_SUCCESS != result) {
+    if (XR_FAILED(result)) {
         LoaderLogger::LogValidationErrorMessage("VUID-xrCreateInstance-info-parameter", "xrCreateInstance",
                                                 "something wrong with XrInstanceCreateInfo contents");
         return result;
@@ -437,7 +438,7 @@ XRAPI_ATTR XrResult XRAPI_CALL xrCreateDebugUtilsMessengerEXT(XrInstance instanc
     const std::unique_ptr<XrGeneratedDispatchTable> &dispatch_table = loader_instance->DispatchTable();
     XrResult result = XR_SUCCESS;
     result = dispatch_table->CreateDebugUtilsMessengerEXT(instance, createInfo, messenger);
-    if (XR_SUCCESS == result && nullptr != messenger) {
+    if (XR_SUCCEEDED(result) && nullptr != messenger) {
         result = g_debugutilsmessengerext_map.Insert(*messenger, *loader_instance);
         if (XR_FAILED(result)) {
             LoaderLogger::LogErrorMessage("xrCreateDebugUtilsMessengerEXT",
@@ -505,7 +506,7 @@ XRAPI_ATTR XrResult XRAPI_CALL LoaderXrTermCreateDebugUtilsMessengerEXT(XrInstan
         char *temp_mess_ptr = new char;
         *messenger = reinterpret_cast<XrDebugUtilsMessengerEXT>(temp_mess_ptr);
     }
-    if (XR_SUCCESS == result) {
+    if (XR_SUCCEEDED(result)) {
         LoaderLogger::GetInstance().AddLogRecorder(MakeDebugUtilsLoaderLogRecorder(createInfo, *messenger));
         RuntimeInterface::GetRuntime().TrackDebugMessenger(instance, *messenger);
     }

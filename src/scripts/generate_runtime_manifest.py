@@ -45,16 +45,6 @@ def main(argv):
         elif opt in ("-b", "--bad"):
             generate_badjson_jsons = True
 
-    file_text  = '{\n'
-    file_text += '    "file_format_version": "%s",\n' % cur_runtime_json_version
-    file_text += '    "runtime": {\n'
-    file_text += '        "library_path": "%s"\n' % library_location
-    file_text += '    }\n'
-    file_text += '}\n'
-    f = open(output_file, 'w')
-    f.write(file_text)
-    f.close()
-
     if generate_badjson_jsons:
         # Bad File format versions
         ####################################

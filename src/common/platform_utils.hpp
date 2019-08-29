@@ -1,6 +1,6 @@
 // Copyright (c) 2017-2019 The Khronos Group Inc.
-// Copyright (c) 2017 Valve Corporation
-// Copyright (c) 2017 LunarG, Inc.
+// Copyright (c) 2017-2019 Valve Corporation
+// Copyright (c) 2017-2019 LunarG, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
 // limitations under the License.
 //
 // Author: Mark Young <marky@lunarg.com>
+// Author: Dave Houlton <daveh@lunarg.com>
 //
 
 #pragma once
@@ -27,6 +28,20 @@
 #include <fcntl.h>
 #include <iostream>
 #endif
+
+// OpenXR paths and registry key locations
+#define OPENXR_RELATIVE_PATH "openxr/"
+#define OPENXR_IMPLICIT_API_LAYER_RELATIVE_PATH "/api_layers/implicit.d"
+#define OPENXR_EXPLICIT_API_LAYER_RELATIVE_PATH "/api_layers/explicit.d"
+#ifdef XR_OS_WINDOWS
+#define OPENXR_REGISTRY_LOCATION "SOFTWARE\\Khronos\\OpenXR\\"
+#define OPENXR_IMPLICIT_API_LAYER_REGISTRY_LOCATION "\\ApiLayers\\Implicit"
+#define OPENXR_EXPLICIT_API_LAYER_REGISTRY_LOCATION "\\ApiLayers\\Explicit"
+#endif
+
+// OpenXR Loader environment variables of interest
+#define OPENXR_RUNTIME_JSON_ENV_VAR "XR_RUNTIME_JSON"
+#define OPENXR_API_LAYER_PATH_ENV_VAR "XR_API_LAYER_PATH"
 
 // This is a CMake generated file with #defines for any functions/includes
 // that it found present and build-time configuration.

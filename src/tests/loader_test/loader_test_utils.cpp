@@ -1,6 +1,6 @@
-// Copyright (c) 2017 The Khronos Group Inc.
-// Copyright (c) 2017 Valve Corporation
-// Copyright (c) 2017 LunarG, Inc.
+// Copyright (c) 2017-2019 The Khronos Group Inc.
+// Copyright (c) 2017-2019 Valve Corporation
+// Copyright (c) 2017-2019 LunarG, Inc.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -15,12 +15,14 @@
 // limitations under the License.
 //
 // Author: Mark Young <marky@lunarg.com>
+// Author: Dave Houlton <daveh@lunarg.com>
 //
 
+#ifdef XR_USE_GRAPHICS_API_OPENGL
 #include "gfxwrapper_opengl.h"  // for GL Extensions
-#include "loader_test_utils.hpp"
+#endif
 
-#define XR_USE_GRAPHICS_API_OPENGL 1
+#include "loader_test_utils.hpp"
 #include "xr_dependencies.h"
 #include <openxr/openxr.h>
 

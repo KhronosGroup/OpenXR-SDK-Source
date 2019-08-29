@@ -864,9 +864,9 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
 
                 if cur_cmd.name not in self.no_trampoline_or_terminator:
                     if cur_cmd.name == 'xrGetInstanceProcAddr':
-                        export_funcs += '    table->GetInstanceProcAddr = _get_instant_proc_addr;\n'
+                        export_funcs += '    table->GetInstanceProcAddr = _get_instance_proc_addr;\n'
                     else:
-                        export_funcs += '    _get_instant_proc_addr(instance, "%s", &cur_func_ptr);\n' % cur_cmd.name
+                        export_funcs += '    _get_instance_proc_addr(instance, "%s", &cur_func_ptr);\n' % cur_cmd.name
                         export_funcs += '    if (nullptr != cur_func_ptr) {\n'
                         export_funcs += '        table->%s = reinterpret_cast<PFN_%s>(cur_func_ptr);\n' % (
                             base_name, cur_cmd.name)

@@ -15,6 +15,7 @@
 // limitations under the License.
 //
 // Author: Mark Young <marky@lunarg.com>
+// Author: Dave Houlton <daveh@lunarg.com>
 //
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
@@ -47,20 +48,6 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
-
-// OpenXR paths and registry key locations
-#define OPENXR_RELATIVE_PATH "openxr/"
-#define OPENXR_IMPLICIT_API_LAYER_RELATIVE_PATH "/api_layers/implicit.d"
-#define OPENXR_EXPLICIT_API_LAYER_RELATIVE_PATH "/api_layers/explicit.d"
-#ifdef XR_OS_WINDOWS
-#define OPENXR_REGISTRY_LOCATION "SOFTWARE\\Khronos\\OpenXR\\"
-#define OPENXR_IMPLICIT_API_LAYER_REGISTRY_LOCATION "\\ApiLayers\\Implicit"
-#define OPENXR_EXPLICIT_API_LAYER_REGISTRY_LOCATION "\\ApiLayers\\Explicit"
-#endif
-
-// OpenXR Loader environment variables of interest
-#define OPENXR_RUNTIME_JSON_ENV_VAR "XR_RUNTIME_JSON"
-#define OPENXR_API_LAYER_PATH_ENV_VAR "XR_API_LAYER_PATH"
 
 #ifdef XRLOADER_DISABLE_EXCEPTION_HANDLING
 #if JSON_USE_EXCEPTIONS
