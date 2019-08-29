@@ -15,6 +15,7 @@
 // limitations under the License.
 //
 // Author: Mark Young <marky@lunarg.com>
+// Author: Dave Houlton <daveh@lunarg.com>
 //
 
 #include "hex_and_handles.h"
@@ -469,62 +470,50 @@ XrResult ApiDumpLayerXrCreateApiLayerInstance(const XrInstanceCreateInfo *info, 
         contents.emplace_back("XrResult", "xrCreateInstance", "");
         contents.emplace_back("const XrInstanceCreateInfo*", "info", PointerToHexString(info));
         if (nullptr != info) {
-            std::string prefix = "info->";
+            std::string info_prefix = "info->";
             contents.emplace_back("XrStructureType", "info->type", std::to_string(info->type));
-            std::string next_prefix = prefix;
+            std::string next_prefix = info_prefix;
             next_prefix += "next";
             // Decode the next chain if it exists
             if (!ApiDumpDecodeNextChain(nullptr, info->next, next_prefix, contents)) {
                 throw std::invalid_argument("Invalid Operation");
             }
-            std::string flags_prefix = prefix;
+            std::string flags_prefix = info_prefix;
             flags_prefix += "createFlags";
             contents.emplace_back("XrInstanceCreateFlags", flags_prefix, std::to_string(info->createFlags));
-            std::string applicationinfo_prefix = prefix;
+            std::string applicationinfo_prefix = info_prefix;
             applicationinfo_prefix += "applicationInfo";
             if (!ApiDumpOutputXrStruct(nullptr, &info->applicationInfo, applicationinfo_prefix, "XrApplicationInfo", true,
                                        contents)) {
                 throw std::invalid_argument("Invalid Operation");
             }
-            std::string enabledapilayercount_prefix = prefix;
+            std::string enabledapilayercount_prefix = info_prefix;
             enabledapilayercount_prefix += "enabledApiLayerCount";
             std::ostringstream oss_enabledApiLayerCount;
             oss_enabledApiLayerCount << "0x" << std::hex << (info->enabledApiLayerCount);
             contents.emplace_back("uint32_t", enabledapilayercount_prefix, oss_enabledApiLayerCount.str());
-            std::string enabledapilayernames_prefix = prefix;
+            std::string enabledapilayernames_prefix = info_prefix;
             enabledapilayernames_prefix += "enabledApiLayerNames";
             std::ostringstream oss_enabledApiLayerNames_array;
             oss_enabledApiLayerNames_array << "0x" << std::hex << (info->enabledApiLayerNames);
             contents.emplace_back("const char* const*", enabledapilayernames_prefix, oss_enabledApiLayerNames_array.str());
-            for (uint32_t info_enabledapilayernames_inc = 0; info_enabledapilayernames_inc < info->enabledApiLayerCount;
-                 ++info_enabledapilayernames_inc) {
-                std::string enabledapilayernames_array_prefix = enabledapilayernames_prefix;
-                enabledapilayernames_array_prefix += "[";
-                enabledapilayernames_array_prefix += std::to_string(info_enabledapilayernames_inc);
-                enabledapilayernames_array_prefix += "]";
-                std::ostringstream oss_enabledApiLayerNames;
-                oss_enabledApiLayerNames << "0x" << std::hex << (*info->enabledApiLayerNames[info_enabledapilayernames_inc]);
-                contents.emplace_back("const char* const*", enabledapilayernames_array_prefix, oss_enabledApiLayerNames.str());
+            for (uint32_t i = 0; i < info->enabledApiLayerCount; ++i) {
+                std::string prefix = enabledapilayernames_prefix + "[" + std::to_string(i) + "]";
+                contents.emplace_back("const char* const*", prefix, info->enabledApiLayerNames[i]);
             }
-            std::string enabledextensioncount_prefix = prefix;
+            std::string enabledextensioncount_prefix = info_prefix;
             enabledextensioncount_prefix += "enabledExtensionCount";
             std::ostringstream oss_enabledExtensionCount;
             oss_enabledExtensionCount << "0x" << std::hex << (info->enabledExtensionCount);
             contents.emplace_back("uint32_t", enabledextensioncount_prefix, oss_enabledExtensionCount.str());
-            std::string enabledextensionnames_prefix = prefix;
+            std::string enabledextensionnames_prefix = info_prefix;
             enabledextensionnames_prefix += "enabledExtensionNames";
             std::ostringstream oss_enabledExtensionNames_array;
             oss_enabledExtensionNames_array << "0x" << std::hex << (info->enabledExtensionNames);
             contents.emplace_back("const char* const*", enabledextensionnames_prefix, oss_enabledExtensionNames_array.str());
-            for (uint32_t info_enabledextensionnames_inc = 0; info_enabledextensionnames_inc < info->enabledExtensionCount;
-                 ++info_enabledextensionnames_inc) {
-                std::string enabledextensionnames_array_prefix = enabledextensionnames_prefix;
-                enabledextensionnames_array_prefix += "[";
-                enabledextensionnames_array_prefix += std::to_string(info_enabledextensionnames_inc);
-                enabledextensionnames_array_prefix += "]";
-                std::ostringstream oss_enabledExtensionNames;
-                oss_enabledExtensionNames << "0x" << std::hex << (*info->enabledExtensionNames[info_enabledextensionnames_inc]);
-                contents.emplace_back("const char* const*", enabledextensionnames_array_prefix, oss_enabledExtensionNames.str());
+            for (uint32_t ii = 0; ii < info->enabledExtensionCount; ++ii) {
+                std::string prefix = enabledextensionnames_prefix + "[" + std::to_string(ii) + "]";
+                contents.emplace_back("const char* const*", prefix, info->enabledExtensionNames[ii]);
             }
         }
 

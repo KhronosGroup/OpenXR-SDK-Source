@@ -180,7 +180,8 @@ bool LoaderLogger::LogDebugUtilsMessage(XrDebugUtilsMessageSeverityFlagsEXT mess
     XrLoaderLogMessageSeverityFlags log_message_severity = DebugUtilsSeveritiesToLoaderLogMessageSeverities(message_severity);
     XrLoaderLogMessageTypeFlags log_message_type = DebugUtilsMessageTypesToLoaderLogMessageTypes(message_type);
 
-    auto augmented = data_.AugmentCallbackData(*callback_data);
+    AugmentedCallbackData augmented_data;
+    data_.WrapCallbackData(&augmented_data, callback_data);
 
     // Loop through the recorders
     for (std::unique_ptr<LoaderLogRecorder>& recorder : _recorders) {
@@ -191,7 +192,7 @@ bool LoaderLogger::LogDebugUtilsMessage(XrDebugUtilsMessageSeverityFlagsEXT mess
             continue;
         }
 
-        exit_app |= recorder->LogDebugUtilsMessage(message_severity, message_type, augmented.callback_data_to_use);
+        exit_app |= recorder->LogDebugUtilsMessage(message_severity, message_type, augmented_data.exported_data);
     }
     return exit_app;
 }
