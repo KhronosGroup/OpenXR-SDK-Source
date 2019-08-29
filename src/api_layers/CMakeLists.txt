@@ -31,15 +31,10 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/api_layer_platform_defines.h ${CMAKE_
 
 # Basics for api_dump API Layer
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set(LAYER_LIB_NAME "XrApiLayer_api_dump")
-else()
-    set(LAYER_LIB_NAME "libXrApiLayer_api_dump")
-endif()
 gen_xr_layer_json(
     ${CMAKE_CURRENT_BINARY_DIR}/XrApiLayer_api_dump.json
     LUNARG_api_dump
-    ${LAYER_LIB_NAME}${CMAKE_SHARED_MODULE_SUFFIX}
+    $<TARGET_LINKER_FILE_NAME:XrApiLayer_api_dump>
     1
     "API Layer to record api calls as they occur"
     ""
@@ -101,15 +96,10 @@ endif()
 
 # Basics for core_validation API Layer
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    set(LAYER_LIB_NAME "XrApiLayer_core_validation")
-else()
-    set(LAYER_LIB_NAME "libXrApiLayer_core_validation")
-endif()
 gen_xr_layer_json(
     ${CMAKE_CURRENT_BINARY_DIR}/XrApiLayer_core_validation.json
     LUNARG_core_validation
-    ${LAYER_LIB_NAME}${CMAKE_SHARED_MODULE_SUFFIX}
+    $<TARGET_LINKER_FILE_NAME:XrApiLayer_core_validation>
     1
     "API Layer to perform validation of api calls and parameters as they occur"
     ""
