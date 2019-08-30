@@ -115,6 +115,11 @@ LoaderLogger::LoaderLogger() {
     // Add an error logger by default so that we at least get errors out to std::cerr.
     AddLogRecorder(MakeStdErrLoaderLogRecorder(nullptr));
 
+#if _WIN32
+    // Add an debugger logger by default so that we at least get errors out to the debugger.
+    AddLogRecorder(MakeDebuggerLoaderLogRecorder(nullptr));
+#endif
+
     // If the environment variable to enable loader debugging is set, then enable the
     // appropriate logging out to std::cout.
     std::string debug_string = PlatformUtilsGetEnv("XR_LOADER_DEBUG");
