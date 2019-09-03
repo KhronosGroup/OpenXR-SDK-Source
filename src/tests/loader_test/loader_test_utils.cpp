@@ -53,10 +53,7 @@ bool LoaderTestUnsetEnvironmentVariable(const std::string &variable) {
 #elif defined(XR_OS_LINUX)
 
 bool LoaderTestSetEnvironmentVariable(const std::string &variable, const std::string &value) {
-    if (0 == setenv(variable.c_str(), value.c_str(), 1)) {
-        return true;
-    }
-    return false;
+    return 0 == setenv(variable.c_str(), value.c_str(), 1);
 }
 
 bool LoaderTestGetEnvironmentVariable(const std::string &variable, std::string &value) {
@@ -68,12 +65,7 @@ bool LoaderTestGetEnvironmentVariable(const std::string &variable, std::string &
     return true;
 }
 
-bool LoaderTestUnsetEnvironmentVariable(const std::string &variable) {
-    if (0 == unsetenv(variable.c_str())) {
-        return true;
-    }
-    return false;
-}
+bool LoaderTestUnsetEnvironmentVariable(const std::string &variable) { return 0 == unsetenv(variable.c_str()); }
 
 #elif defined(XR_OS_APPLE)
 

@@ -77,7 +77,7 @@ bool DetectInstalledRuntime() {
         std::vector<XrExtensionProperties> properties;
         properties.resize(ext_count);
         for (uint32_t prop = 0; prop < ext_count; ++prop) {
-            properties[prop] = {XR_TYPE_EXTENSION_PROPERTIES, nullptr, 0, 0};
+            properties[prop] = {XR_TYPE_EXTENSION_PROPERTIES, nullptr, {0, 0}};
         }
         ret = xrEnumerateInstanceExtensionProperties(nullptr, ext_count, &ext_count, properties.data());
         if (XR_FAILED(ret)) {
@@ -93,14 +93,14 @@ bool DetectInstalledRuntime() {
 #endif  // XR_USE_GRAPHICS_API_D3D11
 
 #ifdef XR_USE_GRAPHICS_API_VULKAN
-            if (!strcmp(properties[ext].extensionName, XR_KHR_VULKAN_ENABLE_EXTENSION_NAME)) {
+            if (strcmp(properties[ext].extensionName, XR_KHR_VULKAN_ENABLE_EXTENSION_NAME) == 0) {
                 g_graphics_api_to_use = GRAPHICS_API_VULKAN;
                 break;
             }
 #endif  // XR_USE_GRAPHICS_API_VULKAN
 
 #ifdef XR_USE_GRAPHICS_API_OPENGL
-            if (!strcmp(properties[ext].extensionName, XR_KHR_OPENGL_ENABLE_EXTENSION_NAME)) {
+            if (strcmp(properties[ext].extensionName, XR_KHR_OPENGL_ENABLE_EXTENSION_NAME) == 0) {
                 g_graphics_api_to_use = GRAPHICS_API_OPENGL;
                 break;
             }
@@ -109,7 +109,7 @@ bool DetectInstalledRuntime() {
 
         // While we're here, also check for debug utils support
         for (uint32_t ext = 0; ext < ext_count; ext++) {
-            if (!strcmp(properties[ext].extensionName, XR_EXT_DEBUG_UTILS_EXTENSION_NAME)) {
+            if (strcmp(properties[ext].extensionName, XR_EXT_DEBUG_UTILS_EXTENSION_NAME) == 0) {
                 g_debug_utils_exists = true;
                 break;
             }
@@ -170,7 +170,7 @@ void TestEnumLayers(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32
             out_layer_value = 0;
             layer_props.resize(in_layer_value);
             for (uint32_t prop = 0; prop < in_layer_value; ++prop) {
-                layer_props[prop] = {XR_TYPE_API_LAYER_PROPERTIES, nullptr, 0, 0};
+                layer_props[prop] = {XR_TYPE_API_LAYER_PROPERTIES, nullptr, {0, 0}};
             }
             local_total++;
             cout << "        " << subtest_name << " layer props query: ";
@@ -215,7 +215,7 @@ void TestEnumLayers(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32
         out_layer_value = 0;
         layer_props.resize(in_layer_value);
         for (uint32_t prop = 0; prop < in_layer_value; ++prop) {
-            layer_props[prop] = {XR_TYPE_API_LAYER_PROPERTIES, nullptr, 0, 0};
+            layer_props[prop] = {XR_TYPE_API_LAYER_PROPERTIES, nullptr, {0, 0}};
         }
         local_total++;
         cout << "        " << subtest_name << " layer props query: ";
@@ -393,7 +393,7 @@ void TestEnumInstanceExtensions(uint32_t& total, uint32_t& passed, uint32_t& ski
                 // Get the properties
                 properties.resize(out_extension_value);
                 for (uint32_t prop = 0; prop < out_extension_value; ++prop) {
-                    properties[prop] = {XR_TYPE_EXTENSION_PROPERTIES, nullptr, 0, 0};
+                    properties[prop] = {XR_TYPE_EXTENSION_PROPERTIES, nullptr, {0, 0}};
                 }
                 in_extension_value = out_extension_value;
                 out_extension_value = 0;
@@ -408,7 +408,9 @@ void TestEnumInstanceExtensions(uint32_t& total, uint32_t& passed, uint32_t& ski
                     bool found_error = false;
                     for (XrExtensionProperties prop : properties) {
                         // Just check if extension name begins with "XR_"
-                        if (strlen(prop.extensionName) < 4 || 0 != strncmp(prop.extensionName, "XR_", 3)) found_error = true;
+                        if (strlen(prop.extensionName) < 4 || 0 != strncmp(prop.extensionName, "XR_", 3)) {
+                            found_error = true;
+                        }
                     }
 
                     if (found_error) {
@@ -764,7 +766,7 @@ DEFINE_TEST(TestCreateDestroySession) {
         XrSystemId systemId;
         TEST_EQUAL(xrGetSystem(instance, &system_get_info, &systemId), XR_SUCCESS, "xrGetSystem");
 
-        if (systemId) {
+        if (systemId != XR_NULL_SYSTEM_ID) {
             void* graphics_binding = nullptr;
 
 #ifdef XR_USE_GRAPHICS_API_VULKAN
@@ -885,7 +887,7 @@ DEFINE_TEST(TestCreateDestroySession) {
             }
 #endif  // XR_USE_GRAPHICS_API_D3D11
 
-            if (graphics_binding) {
+            if (graphics_binding != nullptr) {
                 // Create a session for us to begin
                 XrSession session;
                 XrSessionCreateInfo session_create_info = {};
@@ -919,7 +921,7 @@ static uint64_t object_handle;
 static char object_name[64];
 static uint32_t num_objects = 0;
 const char test_message[] = "This is a test message - 1 . 2! 3";
-static void* expected_user_value = NULL;
+static void* expected_user_value = nullptr;
 static bool captured_error = false;
 static bool captured_warning = false;
 static bool captured_info = false;
@@ -949,21 +951,17 @@ static bool g_captured_only_expected_labels = false;
 XrBool32 XRAPI_PTR TestDebugUtilsCallback(XrDebugUtilsMessageSeverityFlagsEXT messageSeverity,
                                           XrDebugUtilsMessageTypeFlagsEXT messageType,
                                           const XrDebugUtilsMessengerCallbackDataEXT* callbackData, void* userData) {
-    if (expected_user_value == userData) {
-        user_data_correct = true;
-    } else {
-        user_data_correct = false;
-    }
+    user_data_correct = (expected_user_value == userData);
 
-    if (!strcmp(callbackData->functionName, test_function_name)) {
+    if (strcmp(callbackData->functionName, test_function_name) == 0) {
         function_matches = true;
     }
 
-    if (!strcmp(callbackData->messageId, message_id)) {
+    if (strcmp(callbackData->messageId, message_id) == 0) {
         message_id_matches = true;
     }
 
-    if (!strcmp(callbackData->message, test_message)) {
+    if (strcmp(callbackData->message, test_message) == 0) {
         message_matches = true;
     }
 
@@ -1022,7 +1020,7 @@ XrBool32 XRAPI_PTR TestDebugUtilsCallback(XrDebugUtilsMessageSeverityFlagsEXT me
             if (callbackData->objects[0].type == XR_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT &&
                 callbackData->objects[0].next == nullptr && callbackData->objects[0].objectType == XR_OBJECT_TYPE_INSTANCE &&
                 callbackData->objects[0].objectHandle == object_handle &&
-                !strcmp(callbackData->objects[0].objectName, object_name)) {
+                (strcmp(callbackData->objects[0].objectName, object_name) == 0)) {
                 object_contents_match = true;
             }
         }
@@ -1036,8 +1034,8 @@ XrBool32 XRAPI_PTR TestDebugUtilsCallback(XrDebugUtilsMessageSeverityFlagsEXT me
                 // Should not have any label region in list
                 bool found_invalid = false;
                 for (uint32_t label_index = 0; label_index < callbackData->sessionLabelCount; ++label_index) {
-                    if (!strcmp(callbackData->sessionLabels[label_index].labelName, g_second_label_region_name) ||
-                        !strcmp(callbackData->sessionLabels[label_index].labelName, g_first_label_region_name)) {
+                    if ((strcmp(callbackData->sessionLabels[label_index].labelName, g_second_label_region_name) == 0) ||
+                        (strcmp(callbackData->sessionLabels[label_index].labelName, g_first_label_region_name) == 0)) {
                         found_invalid = true;
                     }
                 }
@@ -1048,19 +1046,19 @@ XrBool32 XRAPI_PTR TestDebugUtilsCallback(XrDebugUtilsMessageSeverityFlagsEXT me
                 // Should have g_second_label_region_name in list
                 // Should have g_first_label_region_name in list
                 if (callbackData->sessionLabelCount >= 2 &&
-                    (!strcmp(callbackData->sessionLabels[0].labelName, g_second_label_region_name) &&
-                     !strcmp(callbackData->sessionLabels[1].labelName, g_first_label_region_name))) {
+                    ((strcmp(callbackData->sessionLabels[0].labelName, g_second_label_region_name) == 0) &&
+                     (strcmp(callbackData->sessionLabels[1].labelName, g_first_label_region_name) == 0))) {
                     g_captured_only_expected_labels = true;
                 }
             } else if (g_in_region_num == 1) {
                 // Should not have g_second_label_region_name in list
                 // Should have g_first_label_region_name in list
                 if (callbackData->sessionLabelCount >= 2 &&
-                    (strcmp(callbackData->sessionLabels[0].labelName, g_second_label_region_name) &&
-                     !strcmp(callbackData->sessionLabels[1].labelName, g_first_label_region_name))) {
+                    (strcmp(callbackData->sessionLabels[0].labelName, g_second_label_region_name) != 0) &&
+                    (strcmp(callbackData->sessionLabels[1].labelName, g_first_label_region_name) == 0)) {
                     g_captured_only_expected_labels = true;
                 } else if (callbackData->sessionLabelCount >= 1 &&
-                           !strcmp(callbackData->sessionLabels[0].labelName, g_first_label_region_name)) {
+                           (strcmp(callbackData->sessionLabels[0].labelName, g_first_label_region_name) == 0)) {
                     g_captured_only_expected_labels = true;
                 }
             }
@@ -1069,9 +1067,9 @@ XrBool32 XRAPI_PTR TestDebugUtilsCallback(XrDebugUtilsMessageSeverityFlagsEXT me
                 // Should not have any individual label in list
                 bool found_invalid = false;
                 for (uint32_t label_index = 0; label_index < callbackData->sessionLabelCount; ++label_index) {
-                    if (!strcmp(callbackData->sessionLabels[label_index].labelName, g_first_individual_label_name) ||
-                        !strcmp(callbackData->sessionLabels[label_index].labelName, g_second_individual_label_name) ||
-                        !strcmp(callbackData->sessionLabels[label_index].labelName, g_third_individual_label_name)) {
+                    if ((strcmp(callbackData->sessionLabels[label_index].labelName, g_first_individual_label_name) == 0) ||
+                        (strcmp(callbackData->sessionLabels[label_index].labelName, g_second_individual_label_name) == 0) ||
+                        (strcmp(callbackData->sessionLabels[label_index].labelName, g_third_individual_label_name) == 0)) {
                         found_invalid = true;
                     }
                 }
@@ -1086,11 +1084,11 @@ XrBool32 XRAPI_PTR TestDebugUtilsCallback(XrDebugUtilsMessageSeverityFlagsEXT me
                 bool found_invalid = false;
                 bool found_valid = false;
                 for (uint32_t label_index = 0; label_index < callbackData->sessionLabelCount; ++label_index) {
-                    if (!strcmp(callbackData->sessionLabels[label_index].labelName, g_second_individual_label_name) ||
-                        !strcmp(callbackData->sessionLabels[label_index].labelName, g_third_individual_label_name)) {
+                    if ((strcmp(callbackData->sessionLabels[label_index].labelName, g_second_individual_label_name) == 0) ||
+                        (strcmp(callbackData->sessionLabels[label_index].labelName, g_third_individual_label_name) == 0)) {
                         found_invalid = true;
                     }
-                    if (!strcmp(callbackData->sessionLabels[label_index].labelName, g_first_individual_label_name)) {
+                    if (strcmp(callbackData->sessionLabels[label_index].labelName, g_first_individual_label_name) == 0) {
                         found_valid = true;
                     }
                 }
@@ -1104,11 +1102,11 @@ XrBool32 XRAPI_PTR TestDebugUtilsCallback(XrDebugUtilsMessageSeverityFlagsEXT me
                 bool found_invalid = false;
                 bool found_valid = false;
                 for (uint32_t label_index = 0; label_index < callbackData->sessionLabelCount; ++label_index) {
-                    if (!strcmp(callbackData->sessionLabels[label_index].labelName, g_first_individual_label_name) ||
-                        !strcmp(callbackData->sessionLabels[label_index].labelName, g_third_individual_label_name)) {
+                    if ((strcmp(callbackData->sessionLabels[label_index].labelName, g_first_individual_label_name) == 0) ||
+                        (strcmp(callbackData->sessionLabels[label_index].labelName, g_third_individual_label_name) == 0)) {
                         found_invalid = true;
                     }
-                    if (!strcmp(callbackData->sessionLabels[label_index].labelName, g_second_individual_label_name)) {
+                    if (strcmp(callbackData->sessionLabels[label_index].labelName, g_second_individual_label_name) == 0) {
                         found_valid = true;
                     }
                 }
@@ -1122,11 +1120,11 @@ XrBool32 XRAPI_PTR TestDebugUtilsCallback(XrDebugUtilsMessageSeverityFlagsEXT me
                 bool found_invalid = false;
                 bool found_valid = false;
                 for (uint32_t label_index = 0; label_index < callbackData->sessionLabelCount; ++label_index) {
-                    if (!strcmp(callbackData->sessionLabels[label_index].labelName, g_first_individual_label_name) ||
-                        !strcmp(callbackData->sessionLabels[label_index].labelName, g_second_individual_label_name)) {
+                    if ((strcmp(callbackData->sessionLabels[label_index].labelName, g_first_individual_label_name) == 0) ||
+                        (strcmp(callbackData->sessionLabels[label_index].labelName, g_second_individual_label_name) == 0)) {
                         found_invalid = true;
                     }
-                    if (!strcmp(callbackData->sessionLabels[label_index].labelName, g_third_individual_label_name)) {
+                    if (strcmp(callbackData->sessionLabels[label_index].labelName, g_third_individual_label_name) == 0) {
                         found_valid = true;
                     }
                 }
@@ -1725,7 +1723,7 @@ DEFINE_TEST(TestDebugUtils) {
         XrSystemId systemId;
         TEST_EQUAL(xrGetSystem(instance, &system_get_info, &systemId), XR_SUCCESS, "xrGetSystem");
 
-        if (systemId) {
+        if (systemId != XR_NULL_SYSTEM_ID) {
             void* graphics_binding = nullptr;
 
 #ifdef XR_USE_GRAPHICS_API_VULKAN
@@ -2118,8 +2116,7 @@ int main(int argc, char* argv[]) {
     if (total_failed > 0) {
         cout << "Failed" << endl;
         return -1;
-    } else {
-        cout << "Passed" << endl;
-        return 0;
     }
+    cout << "Passed" << endl;
+    return 0;
 }
