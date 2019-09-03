@@ -54,7 +54,7 @@ class ApiLayerInterface {
 
     // Generated methods
     void GenUpdateInstanceDispatchTable(XrInstance instance, std::unique_ptr<XrGeneratedDispatchTable>& table);
-    bool SupportsExtension(const std::string& extension_name);
+    bool SupportsExtension(const std::string& extension_name) const;
 
    private:
     std::string _layer_name;

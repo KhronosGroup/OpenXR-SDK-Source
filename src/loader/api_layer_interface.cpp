@@ -390,7 +390,7 @@ ApiLayerInterface::~ApiLayerInterface() {
     LoaderPlatformLibraryClose(_layer_library);
 }
 
-bool ApiLayerInterface::SupportsExtension(const std::string& extension_name) {
+bool ApiLayerInterface::SupportsExtension(const std::string& extension_name) const {
     bool found_prop = false;
     for (const std::string& supported_extension : _supported_extensions) {
         if (supported_extension == extension_name) {
