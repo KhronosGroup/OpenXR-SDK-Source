@@ -1229,6 +1229,8 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 
     std::vector<std::string> GetInstanceExtensions() const override { return {XR_KHR_VULKAN_ENABLE_EXTENSION_NAME}; }
 
+    // Note: The output must not outlive the input - this modifies the input and returns a collection of views into that modified
+    // input!
     std::vector<const char*> ParseExtensionString(char* names) {
         std::vector<const char*> list;
         while (*names != 0) {
@@ -1263,30 +1265,32 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         CHECK_XRCMD(
             pfnGetVulkanInstanceExtensionsKHR(instance, systemId, extensionNamesSize, &extensionNamesSize, &extensionNames[0]));
 
-        std::vector<const char*> extensions = ParseExtensionString(&extensionNames[0]);
-        extensions.push_back("VK_EXT_debug_report");
+        {
+            // Note: This cannot outlive the extensionNames above, since it's just a collection of views into that string!
+            std::vector<const char*> extensions = ParseExtensionString(&extensionNames[0]);
+            extensions.push_back("VK_EXT_debug_report");
 
-        std::vector<const char*> layers;
+            std::vector<const char*> layers;
 #if defined(_DEBUG)
-        layers.push_back("VK_LAYER_LUNARG_standard_validation");
+            layers.push_back("VK_LAYER_LUNARG_standard_validation");
 #endif
 
-        VkApplicationInfo appInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
-        appInfo.pApplicationName = "hello_xr";
-        appInfo.applicationVersion = 1;
-        appInfo.pEngineName = "hello_xr";
-        appInfo.engineVersion = 1;
-        appInfo.apiVersion = VK_API_VERSION_1_0;
+            VkApplicationInfo appInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
+            appInfo.pApplicationName = "hello_xr";
+            appInfo.applicationVersion = 1;
+            appInfo.pEngineName = "hello_xr";
+            appInfo.engineVersion = 1;
+            appInfo.apiVersion = VK_API_VERSION_1_0;
 
-        VkInstanceCreateInfo instInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
-        instInfo.pApplicationInfo = &appInfo;
-        instInfo.enabledLayerCount = (uint32_t)layers.size();
-        instInfo.ppEnabledLayerNames = layers.empty() ? nullptr : layers.data();
-        instInfo.enabledExtensionCount = (uint32_t)extensions.size();
-        instInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data();
+            VkInstanceCreateInfo instInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
+            instInfo.pApplicationInfo = &appInfo;
+            instInfo.enabledLayerCount = (uint32_t)layers.size();
+            instInfo.ppEnabledLayerNames = layers.empty() ? nullptr : layers.data();
+            instInfo.enabledExtensionCount = (uint32_t)extensions.size();
+            instInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data();
 
-        CHECK_VKCMD(vkCreateInstance(&instInfo, nullptr, &m_vkInstance));
-
+            CHECK_VKCMD(vkCreateInstance(&instInfo, nullptr, &m_vkInstance));
+        }
         vkCreateDebugReportCallbackEXT =
             (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(m_vkInstance, "vkCreateDebugReportCallbackEXT");
         vkDestroyDebugReportCallbackEXT =
