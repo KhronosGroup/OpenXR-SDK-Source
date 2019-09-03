@@ -236,7 +236,7 @@ void RuntimeInterface::GetInstanceExtensionProperties(std::vector<XrExtensionPro
     std::vector<XrExtensionProperties> runtime_extension_properties;
     PFN_xrEnumerateInstanceExtensionProperties rt_xrEnumerateInstanceExtensionProperties;
     _get_instance_proc_addr(XR_NULL_HANDLE, "xrEnumerateInstanceExtensionProperties",
-                           reinterpret_cast<PFN_xrVoidFunction*>(&rt_xrEnumerateInstanceExtensionProperties));
+                            reinterpret_cast<PFN_xrVoidFunction*>(&rt_xrEnumerateInstanceExtensionProperties));
     uint32_t count = 0;
     uint32_t count_output = 0;
     // Get the count from the runtime

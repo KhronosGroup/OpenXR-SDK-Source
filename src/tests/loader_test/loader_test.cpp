@@ -1637,7 +1637,7 @@ DEFINE_TEST(TestDebugUtils) {
 
         // Destroy what we created
         TEST_EQUAL(pfn_destroy_debug_utils_messager_ext(debug_utils_messenger), XR_SUCCESS,
-            "Destroying the debug utils messenger for number of objects testing")
+                   "Destroying the debug utils messenger for number of objects testing")
         xrDestroyInstance(instance);
 
         // Path 5 - Test object names
@@ -1660,10 +1660,10 @@ DEFINE_TEST(TestDebugUtils) {
                 TEST_REPORT(TestDebugUtils)
                 return;
         }
-        
+
         ext_name_array[0] = gfx_name.c_str();
         ext_name_array[1] = dbg_ext_name;
-        
+
         instance_ci.enabledExtensionNames = ext_name_array;
         instance_ci.enabledExtensionCount = 2;
 
@@ -1828,8 +1828,9 @@ DEFINE_TEST(TestDebugUtils) {
                 TEST_EQUAL(pfn_get_d3d11_graphics_requirements_khr(instance, systemId, &d3d11_graphics_requirements), XR_SUCCESS,
                            "TestDebugUtils calling xrGetD3D11GraphicsRequirementsKHR");
 
-                ID3D11Device *d3d_device;
-                HRESULT res = D3D11CreateDevice(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, NULL, 0, D3D11_SDK_VERSION, &d3d_device, NULL, NULL);
+                ID3D11Device* d3d_device;
+                HRESULT res =
+                    D3D11CreateDevice(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, NULL, 0, D3D11_SDK_VERSION, &d3d_device, NULL, NULL);
                 TEST_EQUAL(res, S_OK, "TestDebugUtils creating D3D11 reference device")
 
                 d3d11_graphics_binding.type = XR_TYPE_GRAPHICS_BINDING_D3D11_KHR;
@@ -2042,8 +2043,8 @@ DEFINE_TEST(TestDebugUtils) {
 
 #ifdef XR_USE_GRAPHICS_API_D3D11
             if (d3d11_graphics_binding.device) d3d11_graphics_binding.device->Release();
-#endif        
-}
+#endif
+        }
 
         // Destroy what we created
         TEST_EQUAL(pfn_destroy_debug_utils_messager_ext(debug_utils_messenger), XR_SUCCESS,
