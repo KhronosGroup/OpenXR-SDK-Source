@@ -69,18 +69,14 @@ class InstanceCreateInfoManager {
     // Remove extensions named in the parameter and return a pointer to the current state.
     const XrInstanceCreateInfo* FilterOutExtensions(const std::vector<const char*>& extensions_to_skip) {
         if (enabled_extensions_cstr.empty()) {
-            return &modified_create_info;
+            return Get();
         }
         if (extensions_to_skip.empty()) {
-            return &modified_create_info;
+            return Get();
         }
-        auto b = enabled_extensions_cstr.begin();
-        auto e = enabled_extensions_cstr.end();
-        auto shouldSkipExtension = [&](const char* extensionInQuestion) {
-            auto it = std::find_if(b, e, [&](const char* extension) { return strcmp(extensionInQuestion, extension) == 0; });
-            return it != extensions_to_skip.end();
-        };
-        vector_remove_if_and_erase(enabled_extensions_cstr, shouldSkipExtension);
+        for (auto& ext : extensions_to_skip) {
+            FilterOutExtension(ext);
+        }
         return Update();
     }
     // Remove the extension named in the parameter and return a pointer to the current state.
