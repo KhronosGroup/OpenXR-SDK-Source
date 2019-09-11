@@ -100,8 +100,19 @@ def generateErrorMessage(indent_level, vuid, cur_cmd, message, object_info):
 class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
     """Generate loader source using XML element attributes from registry"""
 
+    def getProto(self, cur_cmd, allow_export=True):
+        # Start by making it a C calling convention
+        func_proto = cur_cmd.cdecl.replace(
+            "XRAPI_ATTR", 'extern "C" XRAPI_ATTR')
+        if allow_export and self.isCoreExtensionName(cur_cmd.ext_name):
+            # Export core functions, if permitted.
+            func_proto = func_proto.replace(
+                "XRAPI_ATTR", 'LOADER_EXPORT XRAPI_ATTR')
+        return func_proto
+
     # Override the base class header warning so the comment indicates this file.
     #   self            the LoaderSourceOutputGenerator object
+
     def outputGeneratedHeaderWarning(self):
         generated_warning = '// *********** THIS FILE IS GENERATED - DO NOT EDIT ***********\n'
         generated_warning += '//     See loader_source_generator.py for modifications\n'
@@ -206,13 +217,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                     if cur_cmd.protect_value:
                         manual_funcs += '#if %s\n' % cur_cmd.protect_string
 
-                    # Use the Cdecl directly from the XML
-                    func_proto = cur_cmd.cdecl
-
-                    # Export only core functions
-                    if self.isCoreExtensionName(cur_cmd.ext_name):
-                        func_proto = func_proto.replace(
-                            "XRAPI_ATTR", "LOADER_EXPORT XRAPI_ATTR")
+                    func_proto = self.getProto(cur_cmd)
 
                     # Output the standard API form of the command
                     manual_funcs += func_proto
@@ -222,7 +227,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                     # loader, add a prototype for the terminator (unless it doesn't have a terminator)
                     if ((cur_cmd.name in MANUAL_LOADER_INSTANCE_FUNCS or cur_cmd.name in MANUAL_LOADER_INSTANCE_TERMINATOR_FUNCS)
                             and cur_cmd.name not in self.no_trampoline_or_terminator):
-                        manual_funcs += func_proto.replace(
+                        manual_funcs += self.getProto(cur_cmd, allow_export=False).replace(
                             "XRAPI_CALL xr", "XRAPI_CALL LoaderXrTerm")
                         manual_funcs += '\n'
 
@@ -493,12 +498,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
 
                 if cur_cmd.protect_value:
                     generated_funcs += '#if %s\n' % cur_cmd.protect_string
-                decl = cur_cmd.cdecl.replace(";", " XRLOADER_ABI_TRY {\n")
-
-                # Export only core functions
-                if self.isCoreExtensionName(cur_cmd.ext_name):
-                    decl = decl.replace(
-                        "XRAPI_ATTR", "LOADER_EXPORT XRAPI_ATTR")
+                decl = self.getProto(cur_cmd).replace(";", " XRLOADER_ABI_TRY {\n")
 
                 generated_funcs += decl
                 generated_funcs += tramp_variable_defines
