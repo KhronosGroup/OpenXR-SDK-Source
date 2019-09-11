@@ -763,11 +763,7 @@ inline static bool XrMatrix4x4f_CullBounds(const XrMatrix4x4f* mvp, const XrVect
             break;
         }
     }
-    if (i == 8) {
-        return true;
-    }
-
-    return false;
+    return i == 8;
 }
 
 #endif  // XR_LINEAR_H_
