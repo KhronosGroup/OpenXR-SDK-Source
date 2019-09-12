@@ -21,7 +21,9 @@ import io
 import os
 import pdb
 import re
+import shutil
 import sys
+import tempfile
 try:
     from pathlib import Path
 except ImportError:
@@ -559,14 +561,7 @@ class OutputGenerator:
         # Open specified output file. Not done in constructor since a
         # Generator can be used without writing to a file.
         if self.genOpts.filename is not None:
-            if sys.platform == 'win32':
-                directory = Path(self.genOpts.directory)
-                if not Path.exists(directory):
-                    os.makedirs(directory)
-                self.outFile = (directory / self.genOpts.filename).open('w', encoding='utf-8')
-            else:
-                filename = self.genOpts.directory + '/' + self.genOpts.filename
-                self.outFile = io.open(filename, 'w', encoding='utf-8')
+            self.outFile = tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', delete=False)
         else:
             self.outFile = sys.stdout
 
@@ -580,6 +575,12 @@ class OutputGenerator:
         self.outFile.flush()
         if self.outFile != sys.stdout and self.outFile != sys.stderr:
             self.outFile.close()
+        if self.genOpts.filename is not None:
+            if sys.platform == 'win32':
+                directory = Path(self.genOpts.directory)
+                if not Path.exists(directory):
+                    os.makedirs(directory)
+            shutil.copy(self.outFile.name, self.genOpts.directory + '/' + self.genOpts.filename)
         self.genOpts = None
 
     def beginFeature(self, interface, emit):
