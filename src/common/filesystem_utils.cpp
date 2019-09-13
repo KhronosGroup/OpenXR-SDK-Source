@@ -230,12 +230,11 @@ bool FileSysUtilsParsePathList(std::string& path_list, std::vector<std::string>&
 }
 
 bool FileSysUtilsFindFilesInPath(const std::string& path, std::vector<std::string>& files) {
-    // Append "\\*" to file name to list folder contents. This appears to contradict the
-    // MS documentation and example code, but verified empirically
-    std::string starred_path = path + DIRECTORY_SYMBOL + "*";
+    std::string searchPath;
+    FileSysUtilsCombinePaths(path, "*", searchPath);
 
     WIN32_FIND_DATAW file_data;
-    HANDLE file_handle = FindFirstFileW(utf8_to_wide(starred_path).c_str(), &file_data);
+    HANDLE file_handle = FindFirstFileW(utf8_to_wide(searchPath).c_str(), &file_data);
     if (file_handle != INVALID_HANDLE_VALUE) {
         do {
             if (!(file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
