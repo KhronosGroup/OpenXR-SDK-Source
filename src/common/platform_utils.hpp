@@ -226,10 +226,12 @@ static inline std::string PlatformUtilsGetEnv(const char* name) {
 
     // GetEnvironmentVariable returns string length, excluding null terminator for "get value" call.
     const int length = ::GetEnvironmentVariableW(wname.c_str(), wValueData, (DWORD)wValue.size());
-    if (!length) {
+    if (length == 0) {
         LogError("GetEnvironmentVariable get value error: " + std::to_string(::GetLastError()));
         return {};
     }
+
+    wValue.resize(length); // Strip the null terminator.
 
     return wide_to_utf8(wValue);
 }
@@ -237,7 +239,7 @@ static inline std::string PlatformUtilsGetEnv(const char* name) {
 static inline std::string PlatformUtilsGetSecureEnv(const char* name) {
     // Do not allow high integrity processes to act on data that can be controlled by medium integrity processes.
     if (IsHighIntegrityLevel()) {
-        return nullptr;
+        return {};
     }
 
     // No secure version for Windows so the above integrity check is needed.
