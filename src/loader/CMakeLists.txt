@@ -169,7 +169,6 @@ elseif(WIN32)
         endforeach()
     endif()
 
-    target_link_libraries(openxr_loader shlwapi)
     target_compile_options(openxr_loader PRIVATE)
     generate_export_header(openxr_loader)
     # set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS false)
