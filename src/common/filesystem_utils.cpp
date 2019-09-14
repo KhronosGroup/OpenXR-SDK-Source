@@ -152,6 +152,8 @@ bool FileSysUtilsFindFilesInPath(const std::string& path, std::vector<std::strin
 
 #elif defined(XR_OS_WINDOWS)
 
+// For pre C++17 compiler that doesn't support experimental filesystem
+
 bool FileSysUtilsIsRegularFile(const std::string& path) { 
     const DWORD attr = GetFileAttributesW(utf8_to_wide(path).c_str());
     return attr != INVALID_FILE_ATTRIBUTES && !(attr & FILE_ATTRIBUTE_DIRECTORY);
