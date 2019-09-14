@@ -152,7 +152,10 @@ bool FileSysUtilsFindFilesInPath(const std::string& path, std::vector<std::strin
 
 #elif defined(XR_OS_WINDOWS)
 
-bool FileSysUtilsIsRegularFile(const std::string& path) { return !FileSysUtilsIsDirectory(path); }
+bool FileSysUtilsIsRegularFile(const std::string& path) { 
+    const DWORD attr = GetFileAttributesW(utf8_to_wide(path).c_str());
+    return attr != INVALID_FILE_ATTRIBUTES && !(attr & FILE_ATTRIBUTE_DIRECTORY);
+}
 
 bool FileSysUtilsIsDirectory(const std::string& path) {
     const DWORD attr = GetFileAttributesW(utf8_to_wide(path).c_str());
