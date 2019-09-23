@@ -1759,17 +1759,21 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             param_member_contents += self.writeIndent(indent)
             param_member_contents += '}\n'
         elif self.isEnumType(param_member.type):
-            if is_array:
-                param_member_contents += loop_string
-                wrote_loop = True
-            param_member_contents += self.writeValidateInlineEnum(struct_command_name,
-                                                                  command_name_variable,
-                                                                  param_member.type,
-                                                                  param_member.name,
-                                                                  prefixed_param_member_name,
-                                                                  is_pointer,
-                                                                  is_command,
-                                                                  indent)
+            if is_array and not param_member.is_const:
+                param_member_contents += self.writeIndent(indent)
+                param_member_contents += '// NOTE: Can\'t validate "VUID-%s-%s-parameter" output enum buffer\n' % (struct_command_name, param_member.name)
+            else:
+                if is_array:
+                    param_member_contents += loop_string
+                    wrote_loop = True
+                param_member_contents += self.writeValidateInlineEnum(struct_command_name,
+                                                                    command_name_variable,
+                                                                    param_member.type,
+                                                                    param_member.name,
+                                                                    prefixed_param_member_name,
+                                                                    is_pointer,
+                                                                    is_command,
+                                                                    indent)
         elif self.isFlagType(param_member.type):
             param_member_contents += self.writeValidateInlineFlag(struct_command_name,
                                                                   command_name_variable,
