@@ -773,10 +773,7 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
     manifest_files.back()->ParseCommon(layer_root_node);
 }
 
-XrApiLayerProperties ApiLayerManifestFile::GetApiLayerProperties() const {
-    XrApiLayerProperties props = {};
-    props.type = XR_TYPE_API_LAYER_PROPERTIES;
-    props.next = nullptr;
+void ApiLayerManifestFile::PopulateApiLayerProperties(XrApiLayerProperties &props) const {
     props.layerVersion = _implementation_version;
     props.specVersion = XR_MAKE_VERSION(_api_version.major, _api_version.minor, _api_version.patch);
     strncpy(props.layerName, _layer_name.c_str(), XR_MAX_API_LAYER_NAME_SIZE - 1);
@@ -787,7 +784,6 @@ XrApiLayerProperties ApiLayerManifestFile::GetApiLayerProperties() const {
     if (_description.size() >= XR_MAX_API_LAYER_DESCRIPTION_SIZE - 1) {
         props.description[XR_MAX_API_LAYER_DESCRIPTION_SIZE - 1] = '\0';
     }
-    return props;
 }
 
 // Find all layer manifest files in the appropriate search paths/registries for the given type.
