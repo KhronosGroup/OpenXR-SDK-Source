@@ -88,39 +88,32 @@ XrResult ApiLayerInterface::GetApiLayerProperties(const std::string& openxr_comm
     }
 
     manifest_count = static_cast<uint32_t>(manifest_files.size());
-    if (0 == incoming_count) {
-        if (nullptr == outgoing_count) {
-            return XR_ERROR_VALIDATION_FAILURE;
-        }
-        *outgoing_count = manifest_count;
-    } else if (nullptr != api_layer_properties) {
-        if (incoming_count < manifest_count && nullptr != api_layer_properties) {
-            LoaderLogger::LogErrorMessage(
-                "xrEnumerateInstanceExtensionProperties",
-                "VUID-xrEnumerateApiLayerProperties-propertyCapacityInput-parameter: insufficient space in array");
-            *outgoing_count = manifest_count;
-            return XR_ERROR_SIZE_INSUFFICIENT;
-        }
+    if (nullptr == outgoing_count) {
+        LoaderLogger::LogErrorMessage("xrEnumerateInstanceExtensionProperties",
+                                      "VUID-xrEnumerateApiLayerProperties-propertyCountOutput-parameter: null propertyCountOutput");
+        return XR_ERROR_VALIDATION_FAILURE;
+    }
 
-        uint32_t prop = 0;
-        bool properties_valid = true;
-        for (; prop < incoming_count && prop < manifest_count; ++prop) {
-            if (nullptr != api_layer_properties[prop].next) {
-                LoaderLogger::LogErrorMessage(openxr_command, "VUID-XrApiLayerProperties-next-next: expected NULL");
-                properties_valid = false;
-            }
-            if (properties_valid) {
-                api_layer_properties[prop] = manifest_files[prop]->GetApiLayerProperties();
-            }
-        }
-        if (!properties_valid) {
-            LoaderLogger::LogErrorMessage(openxr_command,
-                                          "VUID-xrEnumerateApiLayerProperties-properties-parameter: invalid properties");
-            return XR_ERROR_VALIDATION_FAILURE;
-        }
-        if (nullptr != outgoing_count) {
-            *outgoing_count = prop;
-        }
+    *outgoing_count = manifest_count;
+    if (0 == incoming_count) {
+        // capacity check only
+        return XR_SUCCESS;
+    }
+    if (nullptr == api_layer_properties) {
+        // incoming_count is not 0 BUT the api_layer_properties is NULL
+        LoaderLogger::LogErrorMessage("xrEnumerateInstanceExtensionProperties",
+                                      "VUID-xrEnumerateApiLayerProperties-properties-parameter: non-zero capacity but null array");
+        return XR_ERROR_VALIDATION_FAILURE;
+    }
+    if (incoming_count < manifest_count) {
+        LoaderLogger::LogErrorMessage(
+            "xrEnumerateInstanceExtensionProperties",
+            "VUID-xrEnumerateApiLayerProperties-propertyCapacityInput-parameter: insufficient space in array");
+        return XR_ERROR_SIZE_INSUFFICIENT;
+    }
+
+    for (uint32_t prop = 0; prop < incoming_count && prop < manifest_count; ++prop) {
+        manifest_files[prop]->PopulateApiLayerProperties(api_layer_properties[prop]);
     }
     return XR_SUCCESS;
 }
