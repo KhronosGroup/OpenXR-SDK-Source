@@ -75,6 +75,12 @@ XrResult ApiLayerInterface::GetApiLayerProperties(const std::string& openxr_comm
         }
     }
 
+    // "Independent of elementCapacityInput or elements parameters, elementCountOutput must be a valid pointer,
+    // and the function sets elementCountOutput." - 2.11
+    if (nullptr == outgoing_count) {
+        return XR_ERROR_VALIDATION_FAILURE;
+    }
+
     // Find any implicit layers which we may need to report information for.
     XrResult result = ApiLayerManifestFile::FindManifestFiles(MANIFEST_TYPE_IMPLICIT_API_LAYER, manifest_files);
     if (XR_SUCCEEDED(result)) {

@@ -87,6 +87,12 @@ xrEnumerateInstanceExtensionProperties(const char *layerName, uint32_t propertyC
     bool just_layer_properties = false;
     LoaderLogger::LogVerboseMessage("xrEnumerateInstanceExtensionProperties", "Entering loader trampoline");
 
+    // "Independent of elementCapacityInput or elements parameters, elementCountOutput must be a valid pointer,
+    // and the function sets elementCountOutput." - 2.11
+    if (nullptr == propertyCountOutput) {
+        return XR_ERROR_VALIDATION_FAILURE;
+    }
+
     if (nullptr != layerName && 0 != strlen(layerName)) {
         // Application is only interested in layer's properties, not all of them.
         just_layer_properties = true;
@@ -144,9 +150,6 @@ xrEnumerateInstanceExtensionProperties(const char *layerName, uint32_t propertyC
 
     auto num_extension_properties = static_cast<uint32_t>(extension_properties.size());
     if (propertyCapacityInput == 0) {
-        if (nullptr == propertyCountOutput) {
-            return XR_ERROR_VALIDATION_FAILURE;
-        }
         *propertyCountOutput = num_extension_properties;
     } else if (nullptr != properties) {
         if (propertyCapacityInput < num_extension_properties) {
@@ -168,11 +171,6 @@ xrEnumerateInstanceExtensionProperties(const char *layerName, uint32_t propertyC
                 LoaderLogger::LogValidationErrorMessage("VUID-XrExtensionProperties-type-type",
                                                         "xrEnumerateInstanceExtensionProperties", "unknown type in properties");
             }
-            if (nullptr != properties[prop].next) {
-                LoaderLogger::LogValidationErrorMessage("VUID-XrExtensionProperties-next-next",
-                                                        "xrEnumerateInstanceExtensionProperties", "expected NULL");
-                properties_valid = false;
-            }
             if (properties_valid) {
                 properties[prop] = extension_properties[prop];
             }
@@ -185,6 +183,9 @@ xrEnumerateInstanceExtensionProperties(const char *layerName, uint32_t propertyC
         if (nullptr != propertyCountOutput) {
             *propertyCountOutput = num_to_copy;
         }
+    } else {
+        // incoming_count is not 0 BUT the properties is NULL
+        return XR_ERROR_VALIDATION_FAILURE;
     }
     LoaderLogger::LogVerboseMessage("xrEnumerateInstanceExtensionProperties", "Completed loader trampoline");
     return XR_SUCCESS;

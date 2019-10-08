@@ -146,7 +146,8 @@ getSDKSourceFilenames() {
         src/ \
         | grep -v "conformance" \
         | grep -v "catch2" \
-        | grep -v "function_info"
+        | grep -v "function_info" \
+        | grep -v "stb"
 }
 
 

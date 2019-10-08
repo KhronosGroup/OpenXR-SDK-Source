@@ -79,6 +79,7 @@ add_library(openxr_loader ${LIBRARY_TYPE}
     ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h
     ${PROJECT_SOURCE_DIR}/src/common/object_info.cpp
     ${PROJECT_SOURCE_DIR}/src/common/object_info.h
+    ${PROJECT_SOURCE_DIR}/src/common/platform_utils.hpp
     ${PROJECT_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_reader.cpp
     ${PROJECT_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_value.cpp
     ${PROJECT_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_writer.cpp
@@ -170,6 +171,9 @@ elseif(WIN32)
     endif()
 
     target_compile_options(openxr_loader PRIVATE)
+    if(MSVC)
+        target_compile_options(openxr_loader PRIVATE /wd6386)
+    endif()
     generate_export_header(openxr_loader)
     # set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS false)
 

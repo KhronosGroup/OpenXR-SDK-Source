@@ -208,16 +208,16 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
     }
 
     int64_t SelectColorSwapchainFormat(const std::vector<int64_t>& runtimeFormats) const override {
-        // List of supported color swapchain formats, in priority order.
+        // List of supported color swapchain formats.
         constexpr int64_t SupportedColorSwapchainFormats[] = {
             GL_RGBA8,
             GL_RGBA8_SNORM,
         };
 
         auto swapchainFormatIt =
-            std::find_first_of(std::begin(SupportedColorSwapchainFormats), std::end(SupportedColorSwapchainFormats),
-                               runtimeFormats.begin(), runtimeFormats.end());
-        if (swapchainFormatIt == std::end(SupportedColorSwapchainFormats)) {
+            std::find_first_of(runtimeFormats.begin(), runtimeFormats.end(), std::begin(SupportedColorSwapchainFormats),
+                               std::end(SupportedColorSwapchainFormats));
+        if (swapchainFormatIt == runtimeFormats.end()) {
             THROW("No runtime swapchain format supported for color swapchain");
         }
 

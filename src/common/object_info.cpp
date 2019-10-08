@@ -243,7 +243,7 @@ NamesAndLabels DebugUtilsData::PopulateNamesAndLabels(std::vector<XrSdkLogObject
 
 void DebugUtilsData::WrapCallbackData(AugmentedCallbackData* aug_data,
                                       const XrDebugUtilsMessengerCallbackDataEXT* callback_data) const {
-    // If there's nothing to add, just retun the original data as the augmented copy
+    // If there's nothing to add, just return the original data as the augmented copy
     aug_data->exported_data = callback_data;
     if (object_info_.Empty() || callback_data->objectCount == 0) {
         return;

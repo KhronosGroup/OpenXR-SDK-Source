@@ -352,7 +352,7 @@ struct OpenXrProgram : IOpenXrProgram {
         std::array<XrPath, Side::COUNT> handSubactionPath;
         std::array<XrSpace, Side::COUNT> handSpace;
         std::array<float, Side::COUNT> handScale;
-        std::array<XrBool32, Side::COUNT> renderHand;
+        std::array<XrBool32, Side::COUNT> handActive;
     };
 
     void InitializeActions() {
@@ -793,52 +793,51 @@ struct OpenXrProgram : IOpenXrProgram {
     bool IsSessionFocused() const override { return m_sessionState == XR_SESSION_STATE_FOCUSED; }
 
     void PollActions() override {
-        m_input.renderHand = {XR_FALSE, XR_FALSE};
-        if (IsSessionFocused()) {
-            // Sync actions
-            const XrActiveActionSet activeActionSet{m_input.actionSet, XR_NULL_PATH};
-            XrActionsSyncInfo syncInfo{XR_TYPE_ACTIONS_SYNC_INFO};
-            syncInfo.countActiveActionSets = 1;
-            syncInfo.activeActionSets = &activeActionSet;
-            CHECK_XRCMD(xrSyncActions(m_session, &syncInfo));
+        m_input.handActive = {XR_FALSE, XR_FALSE};
 
-            // Get pose and grab action state and start haptic vibrate when hand is 90% squeezed.
-            for (auto hand : {Side::LEFT, Side::RIGHT}) {
-                XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO};
-                getInfo.action = m_input.grabAction;
-                getInfo.subactionPath = m_input.handSubactionPath[hand];
+        // Sync actions
+        const XrActiveActionSet activeActionSet{m_input.actionSet, XR_NULL_PATH};
+        XrActionsSyncInfo syncInfo{XR_TYPE_ACTIONS_SYNC_INFO};
+        syncInfo.countActiveActionSets = 1;
+        syncInfo.activeActionSets = &activeActionSet;
+        CHECK_XRCMD(xrSyncActions(m_session, &syncInfo));
 
-                XrActionStateFloat grabValue{XR_TYPE_ACTION_STATE_FLOAT};
-                CHECK_XRCMD(xrGetActionStateFloat(m_session, &getInfo, &grabValue));
-                if (grabValue.isActive == XR_TRUE) {
-                    // Scale the rendered hand by 1.0f (open) to 0.5f (fully squeezed).
-                    m_input.handScale[hand] = 1.0f - 0.5f * grabValue.currentState;
-                    if (grabValue.currentState > 0.9f) {
-                        XrHapticVibration vibration{XR_TYPE_HAPTIC_VIBRATION};
-                        vibration.amplitude = 0.5;
-                        vibration.duration = XR_MIN_HAPTIC_DURATION;
-                        vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
+        // Get pose and grab action state and start haptic vibrate when hand is 90% squeezed.
+        for (auto hand : {Side::LEFT, Side::RIGHT}) {
+            XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO};
+            getInfo.action = m_input.grabAction;
+            getInfo.subactionPath = m_input.handSubactionPath[hand];
 
-                        XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
-                        hapticActionInfo.action = m_input.vibrateAction;
-                        hapticActionInfo.subactionPath = m_input.handSubactionPath[hand];
-                        CHECK_XRCMD(xrApplyHapticFeedback(m_session, &hapticActionInfo, (XrHapticBaseHeader*)&vibration));
-                    }
+            XrActionStateFloat grabValue{XR_TYPE_ACTION_STATE_FLOAT};
+            CHECK_XRCMD(xrGetActionStateFloat(m_session, &getInfo, &grabValue));
+            if (grabValue.isActive == XR_TRUE) {
+                // Scale the rendered hand by 1.0f (open) to 0.5f (fully squeezed).
+                m_input.handScale[hand] = 1.0f - 0.5f * grabValue.currentState;
+                if (grabValue.currentState > 0.9f) {
+                    XrHapticVibration vibration{XR_TYPE_HAPTIC_VIBRATION};
+                    vibration.amplitude = 0.5;
+                    vibration.duration = XR_MIN_HAPTIC_DURATION;
+                    vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
+
+                    XrHapticActionInfo hapticActionInfo{XR_TYPE_HAPTIC_ACTION_INFO};
+                    hapticActionInfo.action = m_input.vibrateAction;
+                    hapticActionInfo.subactionPath = m_input.handSubactionPath[hand];
+                    CHECK_XRCMD(xrApplyHapticFeedback(m_session, &hapticActionInfo, (XrHapticBaseHeader*)&vibration));
                 }
-
-                getInfo.action = m_input.quitAction;
-                XrActionStateBoolean quitValue{XR_TYPE_ACTION_STATE_BOOLEAN};
-                CHECK_XRCMD(xrGetActionStateBoolean(m_session, &getInfo, &quitValue));
-                if ((quitValue.isActive == XR_TRUE) && (quitValue.changedSinceLastSync == XR_TRUE) &&
-                    (quitValue.currentState == XR_TRUE)) {
-                    CHECK_XRCMD(xrRequestExitSession(m_session));
-                }
-
-                getInfo.action = m_input.poseAction;
-                XrActionStatePose poseState{XR_TYPE_ACTION_STATE_POSE};
-                CHECK_XRCMD(xrGetActionStatePose(m_session, &getInfo, &poseState));
-                m_input.renderHand[hand] = poseState.isActive;
             }
+
+            getInfo.action = m_input.quitAction;
+            XrActionStateBoolean quitValue{XR_TYPE_ACTION_STATE_BOOLEAN};
+            CHECK_XRCMD(xrGetActionStateBoolean(m_session, &getInfo, &quitValue));
+            if ((quitValue.isActive == XR_TRUE) && (quitValue.changedSinceLastSync == XR_TRUE) &&
+                (quitValue.currentState == XR_TRUE)) {
+                CHECK_XRCMD(xrRequestExitSession(m_session));
+            }
+
+            getInfo.action = m_input.poseAction;
+            XrActionStatePose poseState{XR_TYPE_ACTION_STATE_POSE};
+            CHECK_XRCMD(xrGetActionStatePose(m_session, &getInfo, &poseState));
+            m_input.handActive[hand] = poseState.isActive;
         }
     }
 
@@ -911,17 +910,18 @@ struct OpenXrProgram : IOpenXrProgram {
             // Render a 10cm cube scaled by grabAction for each hand. Note renderHand will only be true when the application has
             // focus.
             for (auto hand : {Side::LEFT, Side::RIGHT}) {
-                if (m_input.renderHand[hand] == XR_TRUE) {
-                    XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
-                    res = xrLocateSpace(m_input.handSpace[hand], m_appSpace, predictedDisplayTime, &spaceLocation);
-                    CHECK_XRRESULT(res, "xrLocateSpace");
-                    if (XR_UNQUALIFIED_SUCCESS(res)) {
-                        if ((spaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
-                            (spaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0) {
-                            float scale = 0.1f * m_input.handScale[hand];
-                            cubes.push_back(Cube{spaceLocation.pose, {scale, scale, scale}});
-                        }
-                    } else {
+                XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
+                res = xrLocateSpace(m_input.handSpace[hand], m_appSpace, predictedDisplayTime, &spaceLocation);
+                CHECK_XRRESULT(res, "xrLocateSpace");
+                if (XR_UNQUALIFIED_SUCCESS(res)) {
+                    if ((spaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
+                        (spaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0) {
+                        float scale = 0.1f * m_input.handScale[hand];
+                        cubes.push_back(Cube{spaceLocation.pose, {scale, scale, scale}});
+                    }
+                } else {
+                    // Tracking loss is expected when the hand is not active so only log a message if the hand is active.
+                    if (m_input.handActive[hand] == XR_TRUE) {
                         const char* handName[] = {"left", "right"};
                         Log::Write(Log::Level::Verbose,
                                    Fmt("Unable to locate %s hand action space in app space: %d", handName[hand], res));

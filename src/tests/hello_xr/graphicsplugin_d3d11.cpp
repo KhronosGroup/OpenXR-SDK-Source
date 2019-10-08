@@ -196,7 +196,7 @@ struct D3D11GraphicsPlugin : public IGraphicsPlugin {
     }
 
     int64_t SelectColorSwapchainFormat(const std::vector<int64_t>& runtimeFormats) const override {
-        // List of supported color swapchain formats, in priority order.
+        // List of supported color swapchain formats.
         constexpr DXGI_FORMAT SupportedColorSwapchainFormats[] = {
             DXGI_FORMAT_R8G8B8A8_UNORM,
             DXGI_FORMAT_B8G8R8A8_UNORM,
@@ -205,9 +205,9 @@ struct D3D11GraphicsPlugin : public IGraphicsPlugin {
         };
 
         auto swapchainFormatIt =
-            std::find_first_of(std::begin(SupportedColorSwapchainFormats), std::end(SupportedColorSwapchainFormats),
-                               runtimeFormats.begin(), runtimeFormats.end());
-        if (swapchainFormatIt == std::end(SupportedColorSwapchainFormats)) {
+            std::find_first_of(runtimeFormats.begin(), runtimeFormats.end(), std::begin(SupportedColorSwapchainFormats),
+                               std::end(SupportedColorSwapchainFormats));
+        if (swapchainFormatIt == runtimeFormats.end()) {
             THROW("No runtime swapchain format supported for color swapchain");
         }
 
@@ -242,7 +242,7 @@ struct D3D11GraphicsPlugin : public IGraphicsPlugin {
             return depthBufferIt->second;
         }
 
-        // This back-buffer has no cooresponding depth-stencil texture, so create one with matching dimensions.
+        // This back-buffer has no corresponding depth-stencil texture, so create one with matching dimensions.
         D3D11_TEXTURE2D_DESC colorDesc;
         colorTexture->GetDesc(&colorDesc);
 

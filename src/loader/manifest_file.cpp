@@ -425,11 +425,11 @@ bool ManifestFile::IsValidJson(const Json::Value &root_node, JsonVersion &versio
         return false;
     }
     std::string file_format = root_node["file_format_version"].asString();
-    sscanf(file_format.c_str(), "%d.%d.%d", &version.major, &version.minor, &version.patch);
+    const int num_fields = sscanf(file_format.c_str(), "%u.%u.%u", &version.major, &version.minor, &version.patch);
 
     // Only version 1.0.0 is defined currently.  Eventually we may have more version, but
     // some of the versions may only be valid for layers or runtimes specifically.
-    if (version.major != 1 || version.minor != 0 || version.patch != 0) {
+    if (num_fields != 3 || version.major != 1 || version.minor != 0 || version.patch != 0) {
         std::ostringstream error_ss;
         error_ss << "ManifestFile::IsValidJson - JSON \"file_format_version\" " << version.major << "." << version.minor << "."
                  << version.patch << " is not supported";
@@ -488,15 +488,15 @@ static void ParseExtension(Json::Value const &ext, std::vector<ExtensionListing>
     Json::Value ext_version = ext["extension_version"];
     Json::Value ext_entries = ext["entrypoints"];
     if (ext_name.isString() && ext_version.isUInt() && ext_entries.isArray()) {
-        ExtensionListing ext = {};
-        ext.name = ext_name.asString();
-        ext.extension_version = ext_version.asUInt();
+        ExtensionListing ext_listing = {};
+        ext_listing.name = ext_name.asString();
+        ext_listing.extension_version = ext_version.asUInt();
         for (const auto &entrypoint : ext_entries) {
             if (entrypoint.isString()) {
-                ext.entrypoints.push_back(entrypoint.asString());
+                ext_listing.entrypoints.push_back(entrypoint.asString());
             }
         }
-        extensions.push_back(ext);
+        extensions.push_back(ext_listing);
     }
 }
 
@@ -724,10 +724,11 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
     std::string layer_name = layer_root_node["name"].asString();
     std::string api_version_string = layer_root_node["api_version"].asString();
     JsonVersion api_version = {};
-    sscanf(api_version_string.c_str(), "%d.%d", &api_version.major, &api_version.minor);
+    const int num_fields = sscanf(api_version_string.c_str(), "%u.%u", &api_version.major, &api_version.minor);
     api_version.patch = 0;
 
-    if ((api_version.major == 0 && api_version.minor == 0) || api_version.major > XR_VERSION_MAJOR(XR_CURRENT_API_VERSION)) {
+    if ((num_fields != 2) || (api_version.major == 0 && api_version.minor == 0) ||
+        api_version.major > XR_VERSION_MAJOR(XR_CURRENT_API_VERSION)) {
         error_ss << "layer " << filename << " has invalid API Version.  Skipping layer.";
         LoaderLogger::LogWarningMessage("", error_ss.str());
         return;
