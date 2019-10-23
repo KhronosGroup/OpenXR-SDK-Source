@@ -140,7 +140,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     endif()
 
     set_target_properties(openxr_loader PROPERTIES SOVERSION "${MAJOR}" VERSION "${MAJOR}.${MINOR}.${PATCH}")
-    target_link_libraries(openxr_loader -lstdc++fs -ldl -lpthread -lm)
+    target_link_libraries(openxr_loader PRIVATE stdc++fs PUBLIC dl pthread m)
 
     add_custom_target(libopenxr_loader.so.${MAJOR}.${MINOR} ALL
         COMMAND ${CMAKE_COMMAND} -E create_symlink libopenxr_loader.so.${MAJOR}.${MINOR}.${PATCH} libopenxr_loader.so.${MAJOR}.${MINOR})
