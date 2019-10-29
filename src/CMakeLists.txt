@@ -99,6 +99,13 @@ elseif(BUILD_ALL_EXTENSIONS)
     message(FATAL_ERROR "OpenGL not found")
 endif()
 
+find_package(OpenGLES)
+if (OPENGLES_FOUND)
+    add_definitions(-DXR_USE_GRAPHICS_API_OPENGL_ES)
+elseif(BUILD_ALL_EXTENSIONS)
+    message(FATAL_ERROR "OpenGL ES not found")
+endif()
+
 if(WIN32)
     add_definitions(-DXR_USE_GRAPHICS_API_D3D11)
     add_definitions(-DXR_USE_GRAPHICS_API_D3D12)
