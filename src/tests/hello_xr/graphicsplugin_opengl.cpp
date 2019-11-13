@@ -115,13 +115,18 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
         m_graphicsBinding.hDC = window.context.hDC;
         m_graphicsBinding.hGLRC = window.context.hGLRC;
 #elif defined(XR_USE_PLATFORM_XLIB)
-        // TODO: Just need something other than NULL here for now (for validation).  Eventually need
-        //       to correctly put in a valid pointer to an Display
-        m_graphicsBinding.xDisplay = reinterpret_cast<Display*>(0xFFFFFFFF);
+        m_graphicsBinding.xDisplay = window.context.xDisplay;
+        m_graphicsBinding.visualid = window.context.visualid;
+        m_graphicsBinding.glxFBConfig = window.context.glxFBConfig;
+        m_graphicsBinding.glxDrawable = window.context.glxDrawable;
+        m_graphicsBinding.glxContext = window.context.glxContext;
 #elif defined(XR_USE_PLATFORM_XCB)
-        // TODO: Just need something other than NULL here for now (for validation).  Eventually need
-        //       to correctly put in a valid pointer to an xcb_connection_t
-        m_graphicsBinding.connection = reinterpret_cast<xcb_connection_t*>(0xFFFFFFFF);
+        m_graphicsBinding.connection = window.context.connection;
+        m_graphicsBinding.screenNumber = window.context.screenNumber;
+        m_graphicsBinding.fbconfigid = window.context.fbconfigid;
+        m_graphicsBinding.visualid = window.context.visualid;
+        m_graphicsBinding.glxDrawable = window.context.glxDrawable;
+        m_graphicsBinding.glxContext = window.context.glxContext;
 #elif defined(XR_USE_PLATFORM_WAYLAND)
         // TODO: Just need something other than NULL here for now (for validation).  Eventually need
         //       to correctly put in a valid pointer to an wl_display
