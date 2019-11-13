@@ -186,7 +186,7 @@ Platform headers / declarations
 #elif defined(OS_LINUX)
 
 #define OPENGL_VERSION_MAJOR 4
-#define OPENGL_VERSION_MINOR 3
+#define OPENGL_VERSION_MINOR 5
 #define GLSL_VERSION "430"
 #define SPIRV_VERSION "99"
 #define USE_SYNC_OBJECT 0  // 0 = GLsync, 1 = EGLSyncKHR, 2 = storage buffer
