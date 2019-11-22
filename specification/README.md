@@ -176,9 +176,6 @@ parts you don't use) completely before trying to install.
 * Asciidoctor Mathematical (asciidoctor-mathematical, version 0.2.2)
 * [Dependencies for asciidoctor-mathematical](https://github.com/asciidoctor/asciidoctor-mathematical#dependencies)
   (There are a lot of these! but, they will automatically come in with gem)
-* Bundled in this repo: KaTeX distribution (version 0.7.0 from <https://github.com/Khan/KaTeX> .
-  This is cached under `specifications/scripts/katex/`, and need not be
-  installed from GitHub.
 
 **Note:**
 > Asciidoctor-pdf versions before `1.5.0.alpha15` have issues with multi-page
@@ -210,7 +207,6 @@ Platform-specific toolchain instructions follow:
   * [Cygwin](#cygwin)
 * [Mac OS X](#mac-os-x)
 * [Linux](#linux)
-
 
 ### Windows
 

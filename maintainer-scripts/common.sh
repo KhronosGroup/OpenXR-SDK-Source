@@ -147,7 +147,9 @@ getSDKSourceFilenames() {
         | grep -v "conformance" \
         | grep -v "catch2" \
         | grep -v "function_info" \
-        | grep -v "stb"
+        | grep -v "stb" \
+        | grep -v "htmldiff" \
+        | grep -v "katex"
 }
 
 

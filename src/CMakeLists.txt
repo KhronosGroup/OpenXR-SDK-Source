@@ -15,8 +15,8 @@
 # Author:
 #
 
-# Entire project uses C++11
-set(CMAKE_CXX_STANDARD 11)
+# Entire project uses C++14
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 

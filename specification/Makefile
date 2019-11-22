@@ -23,7 +23,6 @@ MKDIR       = mkdir -p
 CP          = cp -p
 MV          = mv
 ECHO        = @echo
-KATEX      := katex
 
 # Use GENXR_OPTIONS to add arguments like -time to scripts/genxr.py invocations
 GENXR_ARGS += $(GENXR_OPTIONS) -registry $(REGISTRY)
@@ -43,7 +42,7 @@ ifneq (,$(strip $(VERY_STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level WARN
 endif
 
-SPECREVISION = 1.0.3
+SPECREVISION = 1.0.4
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
