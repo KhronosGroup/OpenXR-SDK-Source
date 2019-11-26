@@ -15,8 +15,8 @@ message(STATUS "Using presentation backend: ${PRESENTATION_BACKEND}")
 
 if( PRESENTATION_BACKEND MATCHES "xlib" )
     find_package(X11 REQUIRED)
-    if ((NOT X11_Xxf86vm_LIB) OR (NOT X11_Xrandr_LIB))
-        message(FATAL_ERROR "OpenXR xlib backend requires Xxf86vm and Xrandr")
+    if (BUILD_TESTS AND ((NOT X11_Xxf86vm_LIB) OR (NOT X11_Xrandr_LIB)))
+        message(FATAL_ERROR "OpenXR tests using xlib backend requires Xxf86vm and Xrandr")
     endif()
 
     add_definitions( -DSUPPORT_X )
