@@ -138,7 +138,7 @@ that includes each function selected by the layer. At `xrCreateInstance` time th
 loader initializes all enabled API layers and creates call
 chains for each OpenXR command, with each entry of the resulting dispatch table 
 pointing to the first element of that chain. The loader builds an individual 
-dispatch table for each `XrInstance` that is created.
+dispatch table for the `XrInstance` that is created.
 
 When an application calls an OpenXR command, this typically will first hit a
 _trampoline_ function in the loader.  These _trampoline_ functions are small,
@@ -149,7 +149,5 @@ process data before proceeding to the appropriate runtime.
 
 image::images/call_chain_example.svg[align="center", title="Example Call Chain"]
 
-The loader associates all OpenXR objects with their parent `XrInstance` on 
-creation. For OpenXR API commands which don't include an `XrInstance` explicitly, 
-the loader uses the stored parent information to identify the appropriate 
-call chain to be dispatched.
+The loader only allows a single outstanding `XrInstance` and uses the generated
+dispatch table for that `XrInstance` for all OpenXR API commands.
