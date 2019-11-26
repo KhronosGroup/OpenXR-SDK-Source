@@ -20,7 +20,6 @@ add_executable(loader_test
     loader_test.cpp
     ${PROJECT_SOURCE_DIR}/src/common/gfxwrapper_opengl.c
     ${PROJECT_SOURCE_DIR}/src/common/filesystem_utils.cpp
-    ${WAYLAND_PROTOCOL_SRC}
 )
 set_target_properties(loader_test PROPERTIES FOLDER ${TESTS_FOLDER})
 
@@ -45,10 +44,23 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     target_compile_options(loader_test PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
     target_link_libraries(loader_test openxr_loader opengl32 d3d11)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_compile_options(loader_test PRIVATE -Wall -Wno-unused-function -Wno-format-truncation)
-    target_link_libraries(loader_test -lstdc++fs openxr_loader m -lpthread GL ${XLIB_LIBRARIES} ${XCB_LIBRARIES} ${WAYLAND_LIBRARIES})
+    target_compile_options(
+        loader_test PRIVATE -Wall -Wno-unused-function -Wno-format-truncation
+    )
+
+    if(PRESENTATION_BACKEND MATCHES "xlib")
+        target_link_libraries(
+            loader_test ${X11_Xxf86vm_LIB} ${X11_Xrandr_LIB} ${X11_LIBRARIES}
+        )
+    elseif(PRESENTATION_BACKEND MATCHES "xcb")
+        target_link_libraries(loader_test ${XCB_LIBRARIES})
+    elseif(PRESENTATION_BACKEND MATCHES "wayland")
+        target_link_libraries(loader_test ${WAYLAND_LIBRARIES})
+        target_sources(loader_test PRIVATE ${WAYLAND_PROTOCOL_SRC})
+    endif()
+    target_link_libraries(loader_test -lstdc++fs openxr_loader m -lpthread GL)
 else()
-    MESSAGE(FATAL_ERROR "Unsupported Platform")
+    message(FATAL_ERROR "Unsupported Platform")
 endif()
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resources)
