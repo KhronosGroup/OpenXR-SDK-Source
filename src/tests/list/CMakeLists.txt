@@ -44,6 +44,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 set_target_properties(runtime_list PROPERTIES FOLDER ${TESTS_FOLDER})
+set_target_properties(runtime_list PROPERTIES OUTPUT_NAME openxr_runtime_list)
 
 
 install(TARGETS runtime_list
