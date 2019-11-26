@@ -228,6 +228,8 @@ set_target_properties(xr_global_generated_files PROPERTIES FOLDER ${CODEGEN_FOLD
 
 set(COMMON_GENERATED_OUTPUT ${GENERATED_OUTPUT})
 
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined")
+
 if(BUILD_LOADER)
     add_subdirectory(loader)
 endif()
