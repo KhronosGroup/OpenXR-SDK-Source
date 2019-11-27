@@ -161,7 +161,7 @@ void TestEnumLayers(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32
             local_failed++;
         } else {
             local_passed++;
-            cout << "Passed" << endl;
+            cout << "Passed: " << out_layer_value << " layers available." << endl;
         }
 
         // If any implicit layers are found, try property return
@@ -181,6 +181,9 @@ void TestEnumLayers(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32
             } else {
                 local_passed++;
                 cout << "Passed" << endl;
+                for (const auto& prop : layer_props) {
+                    cout << "           - " << prop.layerName << endl;
+                }
             }
         }
         num_before_explicit = out_layer_value;
@@ -204,8 +207,8 @@ void TestEnumLayers(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32
             local_failed++;
         } else {
             if (out_layer_value != num_before_explicit + num_valid_jsons) {
-                cout << "Failed, expected count " << std::to_string(num_before_explicit + num_valid_jsons) << ", got "
-                     << std::to_string(out_layer_value) << endl;
+                cout << "Failed, expected count " << (num_before_explicit + num_valid_jsons) << " (" << num_before_explicit
+                     << " seen earlier plus " << num_valid_jsons << " we added), got " << std::to_string(out_layer_value) << endl;
                 local_failed++;
             } else {
                 local_passed++;
@@ -267,6 +270,10 @@ void TestEnumLayers(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32
             } else if (!found_bad) {
                 cout << "Passed" << endl;
                 local_passed++;
+            }
+
+            for (const auto& prop : layer_props) {
+                cout << "           - " << prop.layerName << endl;
             }
         }
 
