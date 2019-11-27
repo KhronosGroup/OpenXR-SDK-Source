@@ -178,6 +178,9 @@ void TestEnumLayers(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32
             if (XR_FAILED(test_result)) {
                 cout << "Failed with return " << std::to_string(test_result) << endl;
                 local_failed++;
+            } else {
+                local_passed++;
+                cout << "Passed" << endl;
             }
         }
         num_before_explicit = out_layer_value;
