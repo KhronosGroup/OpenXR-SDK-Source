@@ -4,3 +4,4 @@
 | homogeneous   | homogenous     | More common
     if (timebase_info.numer == 0) mach_timebase_info(&timebase_info);
     return ((mach_absolute_time() * timebase_info.numer) / timebase_info.denom);
+    '\b[aA]nd [aA]nd\b'

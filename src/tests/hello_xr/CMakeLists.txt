@@ -31,53 +31,11 @@ set_target_properties(hello_xr PROPERTIES FOLDER ${SAMPLES_FOLDER})
 source_group("Headers" FILES ${LOCAL_HEADERS})
 source_group("Shaders" FILES ${VULKAN_SHADERS})
 
-# Find glslc shader compiler.
-# On Android, the NDK includes the binary, so no external dependency.
-if(ANDROID)
-    file(GLOB glslc-folders ${ANDROID_NDK}/shader-tools/*)
-else()
-    file(GLOB glslc-folders $ENV{VULKAN_SDK}/*)
-endif()
-find_program(CMAKE_GLSL_COMPILER glslc PATHS ${glslc-folders} NO_DEFAULT_PATH)
-if(CMAKE_GLSL_COMPILER)
-    message(STATUS "Found glslc: ${CMAKE_GLSL_COMPILER}")
-else()
-    message(STATUS "Could NOT find glslc, using precompiled .spv files")
-endif()
-
-function(compile_glsl)
-    set(glsl_output_files "")
-    foreach(in_file IN LISTS ARGN)
-        get_filename_component(glsl_stage ${in_file} NAME_WE)
-        set(out_file ${CMAKE_CURRENT_BINARY_DIR}/${glsl_stage}.spv)
-        if(CMAKE_GLSL_COMPILER)
-            # Run glslc if we can find it
-            add_custom_command(
-                OUTPUT ${out_file}
-                COMMAND ${CMAKE_GLSL_COMPILER} -mfmt=c -fshader-stage=${glsl_stage} ${in_file} -o ${out_file}
-                DEPENDS ${in_file}
-            )
-        else()
-            # Use the precompiled .spv files
-            get_filename_component(glsl_src_dir ${in_file} DIRECTORY)
-            set(precompiled_file ${glsl_src_dir}/${glsl_stage}.spv)
-            configure_file(${precompiled_file} ${out_file} COPYONLY)
-        endif()
-        list(APPEND glsl_output_files ${out_file})
-    endforeach()
-    add_custom_target(
-        run_glsl_compiles ALL
-        DEPENDS ${glsl_output_files}
-    )
-	set_target_properties(run_glsl_compiles PROPERTIES FOLDER ${HELPER_FOLDER})
-
-endfunction()
-
-compile_glsl(${VULKAN_SHADERS})
+compile_glsl(run_hello_xr_glsl_compiles ${VULKAN_SHADERS})
 
 add_dependencies(hello_xr
     generate_openxr_header
-    run_glsl_compiles
+    run_hello_xr_glsl_compiles
 )
 
 target_include_directories(hello_xr

@@ -44,7 +44,7 @@ IGNORE_WORDS="lod,LOD"
 # Add to this to exclude individual files or directories (comma-delimited)
 # - Skipping external code.
 # - Skipping binary files.
-SKIP="${ROOT}/src/external,${ROOT}/src/conformance/framework/catch2,*.pyc,*.png,*.jpg,*.svg"
+SKIP="${ROOT}/src/external,${ROOT}/src/conformance/framework/catch2,*.pyc,*.png,*.jpg,*.svg,*.otf"
 
 # Args that get passed if no args are provided to this script.
 # -q4 to silence "UINT  ==> UNIT  | disabled due to being a data type"
