@@ -20,7 +20,28 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-# All options defined here
+### Dependencies
+find_package(OpenGL)
+if(OPENGL_FOUND)
+    add_definitions(-DXR_USE_GRAPHICS_API_OPENGL)
+elseif(BUILD_ALL_EXTENSIONS)
+    message(FATAL_ERROR "OpenGL not found")
+endif()
+
+if(NOT CMAKE_VERSION VERSION_LESS 3.7.0)
+    # Find the Vulkan headers
+    find_package(VulkanHeaders)
+    find_package(Vulkan)
+endif()
+if(VulkanHeaders_FOUND)
+    add_definitions(-DXR_USE_GRAPHICS_API_VULKAN)
+elseif(BUILD_ALL_EXTENSIONS)
+    message(FATAL_ERROR "Vulkan headers not found")
+endif()
+
+find_package(JsonCpp)
+
+### All options defined here
 option(BUILD_LOADER "Build loader" ON)
 option(BUILD_ALL_EXTENSIONS "Build loader and layers with all extensions" OFF)
 option(BUILD_LOADER_WITH_EXCEPTION_HANDLING "Enable exception handling in the loader. Leave this on unless your standard library is built to not throw." ON)
@@ -40,7 +61,6 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/conformance" AND NOT CMAKE_SYSTEM_NAME ST
 endif()
 include(CMakeDependentOption)
 
-find_package(JsonCpp)
 cmake_dependent_option(BUILD_WITH_SYSTEM_JSONCPP "Use system jsoncpp instead of vendored source" ON
                        "JSONCPP_FOUND" OFF)
 
@@ -73,23 +93,6 @@ elseif( PRESENTATION_BACKEND MATCHES "wayland" )
 
     # TODO remove once conformance supports Wayland
     set(BUILD_CONFORMANCE_TESTS OFF)
-endif()
-
-# Enable graphics API available to the build.
-if (NOT CMAKE_VERSION VERSION_LESS 3.7.0)
-    # Find the Vulkan headers
-    find_package(VulkanHeaders)
-    if (VulkanHeaders_FOUND)
-        add_definitions(-DXR_USE_GRAPHICS_API_VULKAN)
-    endif()
-    # Find the Vulkan loader.
-    find_package(Vulkan)
-    # To use simply include ${Vulkan_LIBRARY} in your target_link_library or
-    # wherever you normally link your library files to your target.
-endif()
-
-if (BUILD_ALL_EXTENSIONS AND NOT VulkanHeaders_FOUND)
-    message(FATAL_ERROR "Vulkan headers not found")
 endif()
 
 # Find glslc shader compiler.
@@ -133,13 +136,6 @@ function(compile_glsl run_target_name)
 	set_target_properties(${run_target_name} PROPERTIES FOLDER ${HELPER_FOLDER})
 
 endfunction()
-
-find_package(OpenGL)
-if (OPENGL_FOUND)
-    add_definitions(-DXR_USE_GRAPHICS_API_OPENGL)
-elseif(BUILD_ALL_EXTENSIONS)
-    message(FATAL_ERROR "OpenGL not found")
-endif()
 
 if(WIN32)
     add_definitions(-DXR_USE_GRAPHICS_API_D3D11)
