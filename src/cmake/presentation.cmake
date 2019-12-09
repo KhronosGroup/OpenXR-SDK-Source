@@ -22,8 +22,29 @@ if(PKG_CONFIG_FOUND)
     pkg_search_module(WAYLAND_CLIENT wayland-client)
 endif()
 
+include(CMakeDependentOption)
+cmake_dependent_option(
+    BUILD_WITH_XLIB_HEADERS "Build with support for X11/Xlib-related features." ON "X11_FOUND" OFF
+)
+cmake_dependent_option(
+    BUILD_WITH_XCB_HEADERS "Build with support for XCB-related features." ON "X11_FOUND AND XCB_FOUND" OFF
+)
+cmake_dependent_option(
+    BUILD_WITH_WAYLAND_HEADERS "Build with support for Wayland-related features." ON "WAYLAND_CLIENT_FOUND"
+    OFF
+)
+
+message(STATUS "BUILD_WITH_XLIB_HEADERS: ${BUILD_WITH_XLIB_HEADERS}")
+message(STATUS "BUILD_WITH_XCB_HEADERS: ${BUILD_WITH_XCB_HEADERS}")
+message(STATUS "BUILD_WITH_WAYLAND_HEADERS: ${BUILD_WITH_WAYLAND_HEADERS}")
 
 if(PRESENTATION_BACKEND MATCHES "xlib")
+    if(NOT BUILD_WITH_XLIB_HEADERS)
+        message(
+            FATAL_ERROR
+                "xlib backend selected, but BUILD_WITH_XLIB_HEADERS either disabled or unavailable due to missing dependencies."
+        )
+    endif()
     if(BUILD_TESTS AND (NOT X11_Xxf86vm_LIB OR NOT X11_Xrandr_LIB))
         message(FATAL_ERROR "OpenXR tests using xlib backend requires Xxf86vm and Xrandr")
     endif()
@@ -40,6 +61,12 @@ if(PRESENTATION_BACKEND MATCHES "xlib")
         endif()
     endif()
 elseif(PRESENTATION_BACKEND MATCHES "xcb")
+    if(NOT BUILD_WITH_XCB_HEADERS)
+        message(
+            FATAL_ERROR
+                "xcb backend selected, but BUILD_WITH_XCB_HEADERS either disabled or unavailable due to missing dependencies."
+        )
+    endif()
     pkg_search_module(XCB_RANDR REQUIRED xcb-randr)
     pkg_search_module(XCB_KEYSYMS REQUIRED xcb-keysyms)
     pkg_search_module(XCB_GLX REQUIRED xcb-glx)
@@ -55,6 +82,12 @@ elseif(PRESENTATION_BACKEND MATCHES "xcb")
         target_link_libraries(openxr-gfxwrapper PRIVATE ${X11_X11_LIB} ${XCB_KEYSYMS_LIBRARIES} ${XCB_RANDR_LIBRARIES})
     endif()
 elseif(PRESENTATION_BACKEND MATCHES "wayland")
+    if(NOT BUILD_WITH_WAYLAND_HEADERS)
+        message(
+            FATAL_ERROR
+                "wayland backend selected, but BUILD_WITH_WAYLAND_HEADERS either disabled or unavailable due to missing dependencies."
+        )
+    endif()
 
     pkg_search_module(WAYLAND_EGL REQUIRED wayland-egl)
     pkg_search_module(WAYLAND_SCANNER REQUIRED wayland-scanner)

@@ -109,6 +109,19 @@ elseif( PRESENTATION_BACKEND MATCHES "wayland" )
     set(BUILD_CONFORMANCE_TESTS OFF)
 endif()
 
+add_library(openxr-all-supported INTERFACE)
+if(BUILD_WITH_XLIB_HEADERS)
+    target_compile_definitions(openxr-all-supported INTERFACE XR_USE_PLATFORM_XLIB)
+endif()
+
+if(BUILD_WITH_XCB_HEADERS)
+    target_compile_definitions(openxr-all-supported INTERFACE XR_USE_PLATFORM_XCB)
+endif()
+
+if(BUILD_WITH_WAYLAND_HEADERS)
+    target_compile_definitions(openxr-all-supported INTERFACE XR_USE_PLATFORM_WAYLAND)
+endif()
+
 # Find glslc shader compiler.
 # On Android, the NDK includes the binary, so no external dependency.
 if(ANDROID)

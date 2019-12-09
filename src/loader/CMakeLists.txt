@@ -131,6 +131,7 @@ if(NOT BUILD_LOADER_WITH_EXCEPTION_HANDLING)
         PRIVATE XRLOADER_DISABLE_EXCEPTION_HANDLING
     )
 endif()
+target_link_libraries(openxr_loader PRIVATE openxr-all-supported)
 
 target_compile_definitions(openxr_loader
     PRIVATE API_NAME="OpenXR"
