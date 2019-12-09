@@ -46,7 +46,11 @@ find_package(JsonCpp)
 ### All options defined here
 option(BUILD_LOADER "Build loader" ON)
 option(BUILD_ALL_EXTENSIONS "Build loader and layers with all extensions" OFF)
-option(BUILD_LOADER_WITH_EXCEPTION_HANDLING "Enable exception handling in the loader. Leave this on unless your standard library is built to not throw." ON)
+option(
+    BUILD_LOADER_WITH_EXCEPTION_HANDLING
+    "Enable exception handling in the loader. Leave this on unless your standard library is built to not throw."
+    ON
+)
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     option(DYNAMIC_LOADER "Build the loader as a .dll library" OFF)
 else()
@@ -63,9 +67,9 @@ if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/conformance" AND NOT CMAKE_SYSTEM_NAME ST
 endif()
 include(CMakeDependentOption)
 
-cmake_dependent_option(BUILD_WITH_SYSTEM_JSONCPP "Use system jsoncpp instead of vendored source" ON
-                       "JSONCPP_FOUND" OFF)
-
+cmake_dependent_option(
+    BUILD_WITH_SYSTEM_JSONCPP "Use system jsoncpp instead of vendored source" ON "JSONCPP_FOUND" OFF
+)
 
 # Several files use these compile-time OS switches
 if(WIN32)
@@ -95,16 +99,16 @@ endif()
 
 # Several files use these compile-time platform switches
 if(WIN32)
-    add_definitions( -DXR_USE_PLATFORM_WIN32 )
-elseif( PRESENTATION_BACKEND MATCHES "xlib" )
-    add_definitions( -DXR_USE_PLATFORM_XLIB )
-elseif( PRESENTATION_BACKEND MATCHES "xcb" )
-    add_definitions( -DXR_USE_PLATFORM_XCB )
+    add_definitions(-DXR_USE_PLATFORM_WIN32)
+elseif(PRESENTATION_BACKEND MATCHES "xlib")
+    add_definitions(-DXR_USE_PLATFORM_XLIB)
+elseif(PRESENTATION_BACKEND MATCHES "xcb")
+    add_definitions(-DXR_USE_PLATFORM_XCB)
 
     # TODO remove once conformance supports XCB
     set(BUILD_CONFORMANCE_TESTS OFF)
-elseif( PRESENTATION_BACKEND MATCHES "wayland" )
-    add_definitions( -DXR_USE_PLATFORM_WAYLAND )
+elseif(PRESENTATION_BACKEND MATCHES "wayland")
+    add_definitions(-DXR_USE_PLATFORM_WAYLAND)
 
     # TODO remove once conformance supports Wayland
     set(BUILD_CONFORMANCE_TESTS OFF)
@@ -162,11 +166,8 @@ function(compile_glsl run_target_name)
         endif()
         list(APPEND glsl_output_files ${out_file})
     endforeach()
-    add_custom_target(
-        ${run_target_name} ALL
-        DEPENDS ${glsl_output_files}
-    )
-	set_target_properties(${run_target_name} PROPERTIES FOLDER ${HELPER_FOLDER})
+    add_custom_target(${run_target_name} ALL DEPENDS ${glsl_output_files})
+    set_target_properties(${run_target_name} PROPERTIES FOLDER ${HELPER_FOLDER})
 
 endfunction()
 
@@ -184,8 +185,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/common_config.h.in ${CMAKE_CURRENT_BI
 add_definitions(-DOPENXR_HAVE_COMMON_CONFIG)
 
 # Be able to find pre-generated files, if used.
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include
-    ${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../include ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_definitions(-DXR_USE_TIMESPEC)
 
@@ -195,9 +195,13 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/version.cmake)
 # Path separators ( : or ; ) are not handled well in CMake.
 # This seems like a reasonable approach.
 if(WIN32)
-    set(CODEGEN_PYTHON_PATH "${PROJECT_SOURCE_DIR}/specification/scripts;${PROJECT_SOURCE_DIR}/src/scripts;$ENV{PYTHONPATH}")
+    set(CODEGEN_PYTHON_PATH
+        "${PROJECT_SOURCE_DIR}/specification/scripts;${PROJECT_SOURCE_DIR}/src/scripts;$ENV{PYTHONPATH}"
+    )
 else()
-    set(CODEGEN_PYTHON_PATH "${PROJECT_SOURCE_DIR}/specification/scripts:${PROJECT_SOURCE_DIR}/src/scripts:$ENV{PYTHONPATH}")
+    set(CODEGEN_PYTHON_PATH
+        "${PROJECT_SOURCE_DIR}/specification/scripts:${PROJECT_SOURCE_DIR}/src/scripts:$ENV{PYTHONPATH}"
+    )
 endif()
 
 # General code generation macro used by several targets.
@@ -208,22 +212,26 @@ macro(run_xr_xml_generate dependency output)
         list(APPEND GENERATED_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/${output}")
     else()
         if(NOT PYTHON_EXECUTABLE)
-            message(FATAL_ERROR "Python 3 not found, but pre-generated ${CMAKE_CURRENT_SOURCE_DIR}/${output} not found")
+            message(
+                FATAL_ERROR
+                    "Python 3 not found, but pre-generated ${CMAKE_CURRENT_SOURCE_DIR}/${output} not found"
+            )
         endif()
-        add_custom_command(OUTPUT ${output}
-            COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=${CODEGEN_PYTHON_PATH}"
+        add_custom_command(
+            OUTPUT ${output}
+            COMMAND
+                ${CMAKE_COMMAND} -E env "PYTHONPATH=${CODEGEN_PYTHON_PATH}"
                 ${PYTHON_EXECUTABLE}
-                    ${PROJECT_SOURCE_DIR}/src/scripts/src_genxr.py
-                    -registry ${PROJECT_SOURCE_DIR}/specification/registry/xr.xml
-                    ${output}
+                ${PROJECT_SOURCE_DIR}/src/scripts/src_genxr.py
+                -registry ${PROJECT_SOURCE_DIR}/specification/registry/xr.xml
+                ${output}
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-            DEPENDS
-                    "${PROJECT_SOURCE_DIR}/specification/registry/xr.xml"
+            DEPENDS "${PROJECT_SOURCE_DIR}/specification/registry/xr.xml"
                     "${PROJECT_SOURCE_DIR}/specification/scripts/generator.py"
                     "${PROJECT_SOURCE_DIR}/specification/scripts/reg.py"
                     "${PROJECT_SOURCE_DIR}/src/scripts/${dependency}"
                     "${PROJECT_SOURCE_DIR}/src/scripts/src_genxr.py"
-                ${ARGN}
+                    ${ARGN}
             COMMENT "Generating ${output} using ${PYTHON_EXECUTABLE} on ${dependency}"
         )
         set_source_files_properties(${output} PROPERTIES GENERATED TRUE)
@@ -234,14 +242,23 @@ endmacro()
 
 # Layer JSON generation macro used by several targets.
 macro(gen_xr_layer_json filename layername libfile version desc genbad)
-    add_custom_command(OUTPUT ${filename}
-        COMMAND ${CMAKE_COMMAND} -E env "PYTHONPATH=${CODEGEN_PYTHON_PATH}"
+    add_custom_command(
+        OUTPUT ${filename}
+        COMMAND
+            ${CMAKE_COMMAND} -E env "PYTHONPATH=${CODEGEN_PYTHON_PATH}"
             ${PYTHON_EXECUTABLE}
-                ${PROJECT_SOURCE_DIR}/src/scripts/generate_api_layer_manifest.py
-                    -f ${filename} -n ${layername} -l ${libfile} -a ${MAJOR}.${MINOR} -v ${version} ${genbad} -d ${desc}
+            ${PROJECT_SOURCE_DIR}/src/scripts/generate_api_layer_manifest.py
+            -f ${filename}
+            -n ${layername}
+            -l ${libfile}
+            -a ${MAJOR}.${MINOR}
+            -v ${version}
+            ${genbad}
+            -d ${desc}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DEPENDS ${PROJECT_SOURCE_DIR}/src/scripts/generate_api_layer_manifest.py
-        COMMENT "Generating API Layer JSON ${filename} using -f ${filename} -n ${layername} -l ${libfile} -a ${MAJOR}.${MINOR} -v ${version} ${genbad} -d ${desc}"
+        COMMENT
+            "Generating API Layer JSON ${filename} using -f ${filename} -n ${layername} -l ${libfile} -a ${MAJOR}.${MINOR} -v ${version} ${genbad} -d ${desc}"
     )
 endmacro()
 
@@ -250,9 +267,7 @@ set(GENERATED_OUTPUT)
 set(GENERATED_DEPENDS)
 run_xr_xml_generate(utility_source_generator.py xr_generated_dispatch_table.h)
 run_xr_xml_generate(utility_source_generator.py xr_generated_dispatch_table.c)
-add_custom_target(xr_global_generated_files DEPENDS
-    ${GENERATED_DEPENDS}
-)
+add_custom_target(xr_global_generated_files DEPENDS ${GENERATED_DEPENDS})
 set_target_properties(xr_global_generated_files PROPERTIES FOLDER ${CODEGEN_FOLDER})
 
 set(COMMON_GENERATED_OUTPUT ${GENERATED_OUTPUT})
@@ -274,6 +289,3 @@ endif()
 if(BUILD_CONFORMANCE_TESTS)
     add_subdirectory(conformance)
 endif()
-
-
-
