@@ -98,13 +98,18 @@ endif()
 # Find glslc shader compiler.
 # On Android, the NDK includes the binary, so no external dependency.
 if(ANDROID)
-    file(GLOB glslc-folders ${ANDROID_NDK}/shader-tools/*)
+    file(GLOB glslc_folders ${ANDROID_NDK}/shader-tools/*)
+    find_program(
+        GLSL_COMPILER glslc
+        PATHS ${glslc_folders}
+        NO_DEFAULT_PATH
+    )
 else()
-    file(GLOB glslc-folders $ENV{VULKAN_SDK}/*)
+    file(GLOB glslc_folders $ENV{VULKAN_SDK}/*)
+    find_program(GLSL_COMPILER glslc PATHS ${glslc_folders})
 endif()
-find_program(CMAKE_GLSL_COMPILER glslc PATHS ${glslc-folders} NO_DEFAULT_PATH)
-if(CMAKE_GLSL_COMPILER)
-    message(STATUS "Found glslc: ${CMAKE_GLSL_COMPILER}")
+if(GLSL_COMPILER)
+    message(STATUS "Found glslc: ${GLSL_COMPILER}")
 else()
     message(STATUS "Could NOT find glslc, using precompiled .spv files")
 endif()
@@ -114,11 +119,11 @@ function(compile_glsl run_target_name)
     foreach(in_file IN LISTS ARGN)
         get_filename_component(glsl_stage ${in_file} NAME_WE)
         set(out_file ${CMAKE_CURRENT_BINARY_DIR}/${glsl_stage}.spv)
-        if(CMAKE_GLSL_COMPILER)
+        if(GLSL_COMPILER)
             # Run glslc if we can find it
             add_custom_command(
                 OUTPUT ${out_file}
-                COMMAND ${CMAKE_GLSL_COMPILER} -mfmt=c -fshader-stage=${glsl_stage} ${in_file} -o ${out_file}
+                COMMAND ${GLSL_COMPILER} -mfmt=c -fshader-stage=${glsl_stage} ${in_file} -o ${out_file}
                 DEPENDS ${in_file}
             )
         else()
