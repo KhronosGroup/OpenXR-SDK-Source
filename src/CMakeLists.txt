@@ -21,6 +21,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 ### Dependencies
+set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL)
 if(OPENGL_FOUND)
     add_definitions(-DXR_USE_GRAPHICS_API_OPENGL)
@@ -70,6 +71,19 @@ if(WIN32)
     add_definitions(-DXR_OS_WINDOWS)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_definitions(-DXR_OS_LINUX)
+endif()
+
+# This is a little helper library for setting up OpenGL
+if(OPENGL_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/common/gfxwrapper_opengl.c")
+    add_library(openxr-gfxwrapper STATIC common/gfxwrapper_opengl.c common/gfxwrapper_opengl.h)
+    target_include_directories(openxr-gfxwrapper PUBLIC ${PROJECT_SOURCE_DIR}/external/include)
+    if(TARGET OpenGL::OpenGL)
+        target_link_libraries(openxr-gfxwrapper PUBLIC OpenGL::OpenGL)
+    elseif(TARGET OpenGL::GL)
+        target_link_libraries(openxr-gfxwrapper PUBLIC OpenGL::GL)
+    else()
+        target_link_libraries(openxr-gfxwrapper PUBLIC ${OPENGL_LIBRARIES})
+    endif()
 endif()
 
 # Determine the presentation backend for Linux systems.
