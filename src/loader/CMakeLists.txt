@@ -131,11 +131,13 @@ if(NOT BUILD_LOADER_WITH_EXCEPTION_HANDLING)
         PRIVATE XRLOADER_DISABLE_EXCEPTION_HANDLING
     )
 endif()
-target_link_libraries(openxr_loader PRIVATE openxr-all-supported)
-
-target_compile_definitions(openxr_loader
-    PRIVATE API_NAME="OpenXR"
+target_link_libraries(
+    openxr_loader
+    PRIVATE openxr-all-supported ${CMAKE_DL_LIBS}
+    PUBLIC ${CMAKE_THREAD_LIBS_INIT}
 )
+
+target_compile_definitions(openxr_loader PRIVATE API_NAME="OpenXR")
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_definitions(openxr_loader
         PRIVATE FALLBACK_CONFIG_DIRS="${FALLBACK_CONFIG_DIRS}"
@@ -147,12 +149,17 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     endif()
 
     set_target_properties(openxr_loader PROPERTIES SOVERSION "${MAJOR}" VERSION "${MAJOR}.${MINOR}.${PATCH}")
-    target_link_libraries(openxr_loader PRIVATE stdc++fs dl PUBLIC pthread m)
+    target_link_libraries(
+        openxr_loader
+        PRIVATE stdc++fs
+        PUBLIC m
+    )
 
     add_custom_target(libopenxr_loader.so.${MAJOR}.${MINOR} ALL
         COMMAND ${CMAKE_COMMAND} -E create_symlink libopenxr_loader.so.${MAJOR}.${MINOR}.${PATCH} libopenxr_loader.so.${MAJOR}.${MINOR})
 
     set(XR_API_VERSION "${MAJOR}.${MINOR}")
+    set(EXTRA_LIBS ${CMAKE_THREAD_LIBS_INIT})
     configure_file("openxr.pc.in" "openxr.pc" @ONLY)
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/openxr.pc" DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 elseif(WIN32)

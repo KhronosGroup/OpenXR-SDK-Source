@@ -40,6 +40,7 @@ elseif(BUILD_ALL_EXTENSIONS)
     message(FATAL_ERROR "Vulkan headers not found")
 endif()
 
+find_package(Threads REQUIRED)
 find_package(JsonCpp)
 
 ### All options defined here
