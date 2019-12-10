@@ -92,11 +92,13 @@ static inline void glGetFormatSize( const GLenum internalFormat, GlFormatSize * 
 #include <assert.h>
 
 #if defined(_WIN32)
+#ifndef NOMINMAX
 #define NOMINMAX
-#ifndef __cplusplus
+#endif
+#if defined(_MSC_VER) && !defined(__cplusplus)
 #undef inline
 #define inline __inline
-#endif // __cplusplus
+#endif // defined(_MSC_VER) && !defined(__cplusplus)
 #endif
 
 typedef unsigned int GLenum;
