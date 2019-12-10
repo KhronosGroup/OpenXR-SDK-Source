@@ -20,13 +20,14 @@
 add_executable(loader_test
     loader_test_utils.cpp
     loader_test.cpp
-    ${PROJECT_SOURCE_DIR}/src/common/filesystem_utils.cpp
 )
+openxr_add_filesystem_utils(loader_test)
 set_target_properties(loader_test PROPERTIES FOLDER ${TESTS_FOLDER})
+target_link_libraries(loader_test PRIVATE openxr_loader ${CMAKE_THREAD_LIBS_INIT})
 
 add_dependencies(loader_test generate_openxr_header)
 if(TARGET openxr-gfxwrapper)
-    target_link_libraries(loader_test openxr-gfxwrapper)
+    target_link_libraries(loader_test PRIVATE openxr-gfxwrapper)
 endif()
 target_include_directories(
     loader_test
@@ -47,13 +48,19 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         target_compile_definitions(loader_test PRIVATE _CRT_SECURE_NO_WARNINGS)
         target_compile_options(loader_test PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
     endif()
-    target_link_libraries(loader_test openxr_loader opengl32 d3d11)
+    if(OPENGL_FOUND)
+        target_link_libraries(loader_test opengl32)
+    endif()
+    if(D3D_D3D11_FOUND)
+        target_link_libraries(loader_test d3d11)
+    endif()
+
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_options(
         loader_test PRIVATE -Wall -Wno-unused-function -Wno-format-truncation
     )
 
-    target_link_libraries(loader_test -lstdc++fs openxr_loader m -lpthread)
+    target_link_libraries(loader_test PRIVATE m)
 else()
     message(FATAL_ERROR "Unsupported Platform")
 endif()

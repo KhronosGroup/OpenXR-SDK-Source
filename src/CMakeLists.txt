@@ -17,12 +17,17 @@
 # Author:
 #
 
+if(POLICY CMP0075)
+    cmake_policy(SET CMP0075 NEW)
+endif()
+
 # Entire project uses C++14
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 include(GNUInstallDirs)
+include(StdFilesystemFlags)
 
 ### Dependencies
 set(OpenGL_GL_PREFERENCE GLVND)
@@ -61,6 +66,7 @@ option(
     "Enable exception handling in the loader. Leave this on unless your standard library is built to not throw."
     ON
 )
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     option(DYNAMIC_LOADER "Build the loader as a .dll library" OFF)
 else()
@@ -80,6 +86,8 @@ include(CMakeDependentOption)
 cmake_dependent_option(
     BUILD_WITH_SYSTEM_JSONCPP "Use system jsoncpp instead of vendored source" ON "JSONCPP_FOUND" OFF
 )
+cmake_dependent_option(BUILD_WITH_STD_FILESYSTEM "Use std::[experimental::]filesystem." ON
+       "HAVE_FILESYSTEM_WITHOUT_LIB OR HAVE_FILESYSTEM_NEEDING_LIB" OFF)
 
 # Several files use these compile-time OS switches
 if(WIN32)
@@ -90,7 +98,7 @@ endif()
 
 # /EHsc (support for C++ exceptions) is default in most configurations but seems missing when building arm/arm64.
 if(MSVC)
-    set(CMAKE_CXX_FLAGS "/EHsc ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
 endif()
 
 # This is a little helper library for setting up OpenGL
