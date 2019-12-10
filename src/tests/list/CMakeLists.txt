@@ -35,14 +35,14 @@ if(VulkanHeaders_FOUND)
     )
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+target_link_libraries(runtime_list openxr_loader)
+if(MSVC)
     target_compile_options(runtime_list PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
-    target_link_libraries(runtime_list openxr_loader)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_options(runtime_list PRIVATE -Wall)
-    target_link_libraries(runtime_list openxr_loader pthread)
+    target_link_libraries(runtime_list pthread)
 endif()
 
 set_target_properties(runtime_list PROPERTIES FOLDER ${TESTS_FOLDER})
