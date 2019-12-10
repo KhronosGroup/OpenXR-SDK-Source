@@ -535,7 +535,8 @@ typedef struct
 // Note that on Android AttachCurrentThread will reset the thread name.
 static void ksThread_SetName( const char * name )
 {
-#if defined( OS_WINDOWS )
+	(void)name;
+#if defined( OS_WINDOWS ) && !defined(__MINGW32__)
 	static const unsigned int MS_VC_EXCEPTION = 0x406D1388;
 
 #pragma pack( push, 8 )
