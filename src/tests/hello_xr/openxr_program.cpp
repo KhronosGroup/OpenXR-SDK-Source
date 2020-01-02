@@ -351,7 +351,7 @@ struct OpenXrProgram : IOpenXrProgram {
         XrAction quitAction;
         std::array<XrPath, Side::COUNT> handSubactionPath;
         std::array<XrSpace, Side::COUNT> handSpace;
-        std::array<float, Side::COUNT> handScale;
+        std::array<float, Side::COUNT> handScale = {{1.0f, 1.0f}};
         std::array<XrBool32, Side::COUNT> handActive;
     };
 
