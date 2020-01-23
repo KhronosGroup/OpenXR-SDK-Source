@@ -40,10 +40,11 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_options(runtime_list PRIVATE -Wall)
-    target_link_libraries(runtime_list openxr_loader m pthread GL ${XLIB_LIBRARIES} ${XCB_LIBRARIES} ${WAYLAND_LIBRARIES})
+    target_link_libraries(runtime_list openxr_loader pthread)
 endif()
 
 set_target_properties(runtime_list PROPERTIES FOLDER ${TESTS_FOLDER})
+set_target_properties(runtime_list PROPERTIES OUTPUT_NAME openxr_runtime_list)
 
 
 install(TARGETS runtime_list

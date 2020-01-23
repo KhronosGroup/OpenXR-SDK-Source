@@ -57,14 +57,11 @@ if(VulkanHeaders_INCLUDE_DIRS)
         ${VulkanHeaders_INCLUDE_DIRS}
     )
 endif()
-if(OPENGL_FOUND)
-    target_sources(hello_xr
-        PRIVATE
-        ${PROJECT_SOURCE_DIR}/src/common/gfxwrapper_opengl.c
-    )
-endif()
 
 target_link_libraries(hello_xr openxr_loader)
+if(TARGET openxr-gfxwrapper)
+    target_link_libraries(hello_xr openxr-gfxwrapper)
+endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     if(MSVC)
         target_compile_definitions(hello_xr PRIVATE _CRT_SECURE_NO_WARNINGS)
@@ -73,8 +70,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     target_link_libraries(hello_xr d3d11 d3dcompiler dxgi ${OPENGL_gl_LIBRARY})
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_options(hello_xr PRIVATE -Wall)
-    target_link_libraries(hello_xr m pthread GL ${XLIB_LIBRARIES} ${XCB_LIBRARIES} ${WAYLAND_LIBRARIES})
-    target_sources(hello_xr PRIVATE ${WAYLAND_PROTOCOL_SRC})
+    target_link_libraries(hello_xr m pthread)
 endif()
 
 if(Vulkan_LIBRARY)

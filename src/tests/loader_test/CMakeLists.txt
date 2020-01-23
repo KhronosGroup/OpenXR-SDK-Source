@@ -18,16 +18,16 @@
 add_executable(loader_test
     loader_test_utils.cpp
     loader_test.cpp
-    ${PROJECT_SOURCE_DIR}/src/common/gfxwrapper_opengl.c
     ${PROJECT_SOURCE_DIR}/src/common/filesystem_utils.cpp
-    ${WAYLAND_PROTOCOL_SRC}
 )
 set_target_properties(loader_test PROPERTIES FOLDER ${TESTS_FOLDER})
 
-add_dependencies(loader_test
-    generate_openxr_header
-)
-target_include_directories(loader_test
+add_dependencies(loader_test generate_openxr_header)
+if(TARGET openxr-gfxwrapper)
+    target_link_libraries(loader_test openxr-gfxwrapper)
+endif()
+target_include_directories(
+    loader_test
     PRIVATE ${CMAKE_CURRENT_BINARY_DIR}
     PRIVATE ${PROJECT_BINARY_DIR}/src
     PRIVATE ${PROJECT_BINARY_DIR}/include
@@ -45,10 +45,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     target_compile_options(loader_test PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
     target_link_libraries(loader_test openxr_loader opengl32 d3d11)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_compile_options(loader_test PRIVATE -Wall -Wno-unused-function -Wno-format-truncation)
-    target_link_libraries(loader_test -lstdc++fs openxr_loader m -lpthread GL ${XLIB_LIBRARIES} ${XCB_LIBRARIES} ${WAYLAND_LIBRARIES})
+    target_compile_options(
+        loader_test PRIVATE -Wall -Wno-unused-function -Wno-format-truncation
+    )
+
+    target_link_libraries(loader_test -lstdc++fs openxr_loader m -lpthread)
 else()
-    MESSAGE(FATAL_ERROR "Unsupported Platform")
+    message(FATAL_ERROR "Unsupported Platform")
 endif()
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resources)
