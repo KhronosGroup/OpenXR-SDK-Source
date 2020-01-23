@@ -245,7 +245,6 @@ XrResult ApiLayerInterface::LoadApiLayers(const std::string& openxr_command, uin
                 if (enabled_api_layers[layer] == manifest_file->LayerName()) {
                     layer_found[layer] = true;
                     enabled = true;
-                    break;
                 }
             }
         }
