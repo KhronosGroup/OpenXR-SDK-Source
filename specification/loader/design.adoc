@@ -242,12 +242,7 @@ static XrResult ApiLayerInterface::LoadApiLayers(
 ==== The LoaderInstance Class ====
 
 The primary OpenXR object is the `XrInstance`, and from that most other data
-is either queried or created.  In many ways, the `XrInstance` object is a
-loader object that manages all the other underlying OpenXR objects/handles.
-Because of this, a large amount of data needs to be associated with it by
-the loader.
-In order to do this, the loader maps an internal `LoaderInstance` object
-pointer to the returned `XrInstance` value.
+is either queried or created.
 
 A `LoaderInstance` is created during the OpenXR `xrCreateInstance` call, and
 destroyed during the `xrDestroyInstance` call.
@@ -258,10 +253,19 @@ During `xrCreateInstance` the loader code calls
 [source,c++]
 ----
 static XrResult LoaderInstance::CreateInstance(
-        std::vector<std::unique_ptr<ApiLayerInterface>>& api_layer_interfaces,
-        const XrInstanceCreateInfo* info,
-        XrInstance* instance);
+        PFN_xrGetInstanceProcAddr get_instance_proc_addr_term,
+        PFN_xrCreateInstance create_instance_term,
+        PFN_xrCreateApiLayerInstance create_api_layer_instance_term,
+        std::vector<std::unique_ptr<ApiLayerInterface>> layer_interfaces,
+        const XrInstanceCreateInfo* createInfo,
+        std::unique_ptr<LoaderInstance>* loader_instance);
 ----
+  * pname:get_instance_proc_addr_term is the function pointer to the
+    terminator for xrGetInstanceProcAddr.
+  * pname:create_instance_term is the function pointer to the
+    terminator for xrCreateInstance.
+  * pname:create_api_layer_instance_term is the function pointer to the
+    terminator for xrCreateApiLayerInstance.
   * pname:api_layer_interfaces is a vector that contains a unique_ptr to all
     `ApiLayerInterface` objects that are valid and enabled.  All of these
     pointers will be moved to the `LoaderInstance` on successful completion
@@ -279,8 +283,8 @@ work:
   `xrGetInstanceProcAddr` that passes through all enabled API layers and the
   runtime.
 * Create the instance using the generated `xrCreateInstance` call chain.
-* Create a parallel `LoaderInstance*` associated with the returned
-  `XrInstance` using a C++ "unordered_map"
+* Create a parallel `LoaderInstance` associated with the returned
+  `XrInstance`.
 * Generate a top-level dispatch table containing all the supported commands.
 ** This table is built by using the generated `xrGetInstanceProcAddr`
    call chain
@@ -564,81 +568,10 @@ they can be referenced in the `xr_loader_generated.cpp` source file which
 is used for `xrGetInstanceProcAddr` as well as setting up the loader
 dispatch table.
 
-Also included is a utility function prototype that will initialize a
-`LoaderInstance` dispatch table:
-
-[[LoaderGenInitInstanceDispatchTable]]
-[source,c++]
-----
-void LoaderGenInitInstanceDispatchTable(
-        XrInstance runtime_instance,
-        std::unique_ptr<XrGeneratedDispatchTable>& table);
-----
-  * pname:runtime_instance is the `XrInstance` returned by the runtime
-    on the related call to fname:xrCreateInstance and that should be
-    used to initialize pname:table.
-  * pname:table is the dispatch table to initialize.
-
-Additionally, this file contains extern prototypes for instances of the
-`HandleLoaderMap<>` class template, containing mainly an `unordered_map`
-and a `mutex`, that are used for storing the created OpenXR Object handles
-and relating them to their parent `XrInstance`.  There should be one
-`HandleLoaderMap<>` instance for each OpenXR Object Handle type.  See the
-<<functional-flow, Functional Flow>> section for more information about
-the usage of these.
-
-This file also contains the prototype of a function that is used to
-clean up the OpenXR Object unordered_maps entries related to a
-`LoaderInstance` that is being deleted:
-
-[[LoaderCleanUpMapsForInstance]]
-[source,c++]
-----
-void LoaderCleanUpMapsForInstance(
-        class LoaderInstance *instance);
-----
-  * pname:loader_instance is a pointer to the `LoaderInstance`
-    that is going away and needs all references removed from all the
-    global state.
-
 ==== xr_loader_generated.cpp ====
 
 The `xr_loader_generated.cpp` source file contains the implementation
 of all generated OpenXR trampoline functions.
-
-For example, it contains the implementations of
-flink:LoaderGenInitInstanceDispatchTable and
-flink:LoaderCleanUpMapsForInstance.
-
-It also includes a function automatically generated for the `ApiLayerInterface`
-class that will update a dispatch table for that class,
-`ApiLayerInterface`::fname:GenUpdateInstanceDispatchTable.  The function
-calls the API layer's version of `xrGetInstanceProcAddr` to populate the various
-entries in a `XrGeneratedDispatchTable`.
-
-[source,c++]
-----
-void ApiLayerInterface::GenUpdateInstanceDispatchTable(
-        XrInstance instance,
-        std::unique_ptr<XrGeneratedDispatchTable>& table);
-----
-  * pname:instance is the instance returned by the next component in the call-chain
-    during fname:xrCreateInstance and is used with the next component's
-    fname:xrGetInstanceProcAddr call.
-  * pname:table is a reference to the table to update with the
-    `ApiLayerInterface` 's API layer version of the fname:xrGetInstanceProcAddr.
-
-Because this is an API layer, it will only populate the entry of a dispatch table if
-the API layer's `xrGetInstanceProcAddr` returns non-`NULL` for that command.  This is
-because the loader calls this command to generate the top-level dispatch table
-when setting up the <<openxr-call-chains,call chain>>.  The loader starts
-by creating a dispatch table pointing to the runtime commands.  It then
-reverse increments through all enabled API layers, calling `ApiLayerInterface`::
-fname:GenUpdateInstanceDispatchTable for each API layer, which replaces only
-the commands that the specific API layer implements.  This results in a
-dispatch table whose elements point to only the first implementation of each
-OpenXR command.
-
 
 [[manually-implemented-code]]
 === Manually Implemented Code ===
@@ -675,174 +608,14 @@ implemented in the loader.
       chain back to the standard `xrCreateInstance` path.
 |====
 
-
 [[functional-flow]]
 === Functional Flow ===
 
-The OpenXR loader makes all its decisions using OpenXR objects.
-The loader's main goal when dealing with OpenXR objects is to find the
-parent `LoaderInstance` for a given object.
-This parent `LoaderInstance` stores the dispatch table to use when calling any
-OpenXR command, so without the instance, the loader has no knowledge of where
-to send a command.
-This is because an application may create more than one `XrInstance`, with
-some of the instances having API layers enabled and some without.
-Without knowing which parent instance to use, the loader could end up calling
-an incorrect sequence of commands.
-
-
-==== Correlating an Object to Its Parent XrInstance ====
-
-The loader automatic generated code tracks all OpenXR Object Handle types
-using an `HandleLoaderMap<>` containing an
-https://en.cppreference.com/w/cpp/container/unordered_map[unordered_map]
-and a mutex.
-Each type has it's own `HandleLoaderMap<>` associated with it.
-This `HandleLoaderMap<>` correlates an object against its parent `LoaderInstance` pointer.
-
-[example]
-.HandleLoaderMap Correlating XrSession to LoaderInstance*
-====
-[source,c++]
-----
-HandleLoaderMap<XrSession> g_session_map;
-----
-====
-
-Automatic code generation is used by capturing every `xrCreate` call,
-determining the parent object type and then determining the created object
-type.
-When triggered, the call first proceeds normally down the call chain.
-However, upon returning, an entry is created in this `HandleLoaderMap`.
-When a handle is received, the loader first looks up the parent
-`LoaderInstance` pointer using the `HandleLoaderMap` associated with the handle
-type.
-Once we have the parent object's `LoaderInstance*`, we create an entry using
-this value in our new object type's `HandleLoaderMap`.
-
-[example]
-.HandleLoaderMap Creation examples
-====
-
-Here's an example of how the automatically generated code looks for both
-accessing and creating an object which receives the `LoaderInstance*` as its
-parent.
-To determine the `LoaderInstance*` associated with the incoming `XrInstance`,
-you can see the lookup using the `g_instance_map` HandleLoaderMap.
-Then, a new value associates the recently created `XrSession` with the
-same `LoaderInstance*`.
-
-[source,c++]
-----
-XRAPI_ATTR XrResult XRAPI_CALL xrCreateSession(
-    XrInstance                                  instance,
-    const XrSessionCreateInfo*                  createInfo,
-    XrSession*                                  session) XRLOADER_ABI_TRY {
-
-    LoaderInstance *loader_instance = g_instance_map.Get(instance);
-    if (nullptr == loader_instance) {
-        LoaderLogger::LogValidationErrorMessage(
-            "VUID-xrCreateSession-instance-parameter", "xrCreateSession",
-            "instance is not a valid XrInstance",
-            {XrSdkLogObjectInfo{instance, XR_OBJECT_TYPE_INSTANCE}});
-        return XR_ERROR_HANDLE_INVALID;
-    }
-    const std::unique_ptr<XrGeneratedDispatchTable> &dispatch_table =
-        loader_instance->DispatchTable();
-    XrResult result = XR_SUCCESS;
-    result = dispatch_table->CreateSession(instance, createInfo, session);
-    if (XR_SUCCESS == result && nullptr != session) {
-        XrResult insert_result =
-            g_session_map.Insert(*session, *loader_instance);
-        if (XR_FAILED(insert_result)) {
-            LoaderLogger::LogErrorMessage("xrCreateSession",
-                                          "Failed inserting new session into "
-                                          "map: may be null or not unique");
-        }
-    }
-    return result;
-}
-XRLOADER_ABI_CATCH_FALLBACK
-----
-====
-
-Of course, all this is cleaned up when the appropriate `xrDestroy` command
-is called.
-
-[example]
-====
-[source,c++]
-----
-XRAPI_ATTR XrResult XRAPI_CALL xrDestroySession(
-    XrSession                                   session)
-    XRLOADER_ABI_TRY {
-    LoaderInstance *loader_instance = g_session_map.Get(session);
-    // Destroy the mapping entry for this item if it was valid.
-    if (nullptr != loader_instance) {
-        g_session_map.Erase(session);
-    }
-    if (nullptr == loader_instance) {
-        LoaderLogger::LogValidationErrorMessage(
-            "VUID-xrDestroySession-session-parameter", "xrDestroySession",
-            "session is not a valid XrSession",
-            {XrSdkLogObjectInfo{session, XR_OBJECT_TYPE_SESSION}});
-        return XR_ERROR_HANDLE_INVALID;
-    }
-    const std::unique_ptr<XrGeneratedDispatchTable> &dispatch_table =
-        loader_instance->DispatchTable();
-    XrResult result = XR_SUCCESS;
-    result = dispatch_table->DestroySession(session);
-    return result;
-}
-XRLOADER_ABI_CATCH_FALLBACK
-----
-====
-
-If a call to `xrDestroyInstance` is made before any objects related to the
-`XrInstance` have been destroyed, they are still properly cleaned up by the
-loader.
-This is because the loader's `xrDestroyInstance` command calls
-flink:LoaderCleanUpMapsForInstance to clean up all unordered_maps entries
-associated with the instance before it's destroyed.
-
-
-==== Protecting the Unordered_Map Content ====
-
-In order to properly protect the contents of the unordered_map in a
-multithreading scenario, we use a std::mutex per unordered_map to
-control when the loader writes to, or reads from, the unordered_map.
-
-In general, use of these mutexes is handled automatically by the
-`HandleLoaderMap<>` class template.
-
-==== Potential Problems ====
-
-The OpenXR loader could run into issues, even with this design, under
-certain scenarios:
-
-.Loader Problem Scenario 1
-
-If an application creates its own OpenXR command dispatch table, but still
-also uses OpenXR commands exported directly from the loader, we could see an
-issue.  The issue arises if the application calls `xrCreate` for an object
-using the dispatch table it generated.  This would cause the `xrCreate`
-command to bypass the loader's trampoline call (which is where the
-unordered_map behavior exists). In this case, the loader would not create an
-entry in the unordered_map. The problem becomes obvious if the user calls a
-loader export which uses that command.  Now, the loader has no way of finding
-the parent instance.  The loader could make a logical guess, but it may choose
-the wrong parent instance if more than one has been created.
-
-[WARNING]
-.TODO (i/761)
-====
-* What do we do here?
-** I suggest we disallow mixing and matching using loader exports with
-   application generated dispatch tables.
-** At least where commands could take a different path for `xrCreate`
-   and usage.
-====
-
+The loader supports a single XrInstance at a time in order to avoid
+tracingk handle values and their relationship to the `LoaderInstance`. Every
+XR function call is assumed to be for the single XrInstance that has been
+created. This enables the loader to work with future extensions and handle types
+without change.
 
 [[platform-specific-behavior]]
 === Platform-Specific Behavior ===

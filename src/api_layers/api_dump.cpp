@@ -454,8 +454,7 @@ XrResult ApiDumpLayerXrCreateApiLayerInstance(const XrInstanceCreateInfo *info, 
         // Validate the API layer info and next API layer info structures before we try to use them
         if (nullptr == apiLayerInfo || XR_LOADER_INTERFACE_STRUCT_API_LAYER_CREATE_INFO != apiLayerInfo->structType ||
             XR_API_LAYER_CREATE_INFO_STRUCT_VERSION > apiLayerInfo->structVersion ||
-            sizeof(XrApiLayerCreateInfo) > apiLayerInfo->structSize || nullptr == apiLayerInfo->loaderInstance ||
-            nullptr == apiLayerInfo->nextInfo ||
+            sizeof(XrApiLayerCreateInfo) > apiLayerInfo->structSize || nullptr == apiLayerInfo->nextInfo ||
             XR_LOADER_INTERFACE_STRUCT_API_LAYER_NEXT_INFO != apiLayerInfo->nextInfo->structType ||
             XR_API_LAYER_NEXT_INFO_STRUCT_VERSION > apiLayerInfo->nextInfo->structVersion ||
             sizeof(XrApiLayerNextInfo) > apiLayerInfo->nextInfo->structSize ||

@@ -15,11 +15,15 @@ cooperate to ensure the correct sequencing of calls from one entity to the
 next. This group effort for call chain sequencing is hereinafter referred to as
 *distributed dispatch*.
 
+If an API layer does not wish to intercept a command, it must forward the
+request made to its `xrGetInstanceProcAddr` implementation (provided through
+pname:getInstanceProcAddr) down to the next `xrGetInstanceProcAddr`
+implementation in the call chain (provided to the API layer through
+pname:nextGetInstanceProcAddr).
+
 In distributed dispatch each API layer is responsible for properly calling the next
 entity in the call chain. This means that a dispatch mechanism is required for
-all OpenXR commands that an API layer intercepts. If an OpenXR command is not
-intercepted by an API layer, or if an API layer chooses to terminate the function by not
-calling down the chain, then no dispatch is needed for that particular function.
+all OpenXR commands that an API layer intercepts.
 
 For example, if the enabled API layers intercepted only certain functions,
 the call chain would look as follows:
@@ -872,7 +876,7 @@ struct XrApiLayerCreateInfo {
   * pname:structVersion is the version of the structure being supplied by the
     loader.
   * pname:structSize is the size of the structure supplied by the loader.
-  * pname:loaderInstance is the `XrInstance` used by the loader.
+  * pname:loaderInstance is deprecated and must be ignored.
   * pname:settings_file_location is the location of any API layer settings file
     that can be used.  This is currently unused.
   * pname:nextInfo is a pointer to the slink:XrApiLayerNextInfo structure which

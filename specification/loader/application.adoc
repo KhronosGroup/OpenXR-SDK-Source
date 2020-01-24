@@ -124,11 +124,6 @@ which could potentially increase performance.  In that case, most commands
 would use the following call chain:
 
 image::images/app_dispatch_table_call_chain.svg[align="center", title="Call Chain For Application Dispatch"]
- 
-Instance commands (i.e. those commands taking an `XrInstance` as its primary
-parameter), will always require a trampoline because they need to convert
-the instance to access the appropriate dispatch table, and to pass down the
-`XrInstance` value that was actually created in the API layers/runtime below it.
 
 
 [[openxr-loader-library-name]]
@@ -142,7 +137,7 @@ common OSs:
 |====
 | Operating System   | Loader Library Name
 | Windows
-    | openxr-loader-<major>_<minor>.lib/.dll
+    | openxr-loader.lib/.dll
 | Linux
     | libopenxr_loader.so.<major>
 |====
