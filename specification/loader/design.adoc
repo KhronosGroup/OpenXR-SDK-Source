@@ -612,7 +612,7 @@ implemented in the loader.
 === Functional Flow ===
 
 The loader supports a single XrInstance at a time in order to avoid
-tracingk handle values and their relationship to the `LoaderInstance`. Every
+tracking handle values and their relationship to the `LoaderInstance`. Every
 XR function call is assumed to be for the single XrInstance that has been
 created. This enables the loader to work with future extensions and handle types
 without change.

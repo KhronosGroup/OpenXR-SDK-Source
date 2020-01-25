@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Copyright (c) 2016-2019 The Khronos Group Inc.
+# Copyright (c) 2016-2020 The Khronos Group Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,6 +39,16 @@ def makeExtensionInclude(name):
         conventions.file_suffix)
 
 
+def makeAPIInclude(type, name):
+    """Return an include command for a generated API interface
+    - type - type of the API, e.g. 'flags', 'handles', etc
+    - name - name of the API"""
+
+    return 'include::{}/api/{}/{}{}\n'.format(
+            conventions.refpage_generated_include_path,
+            type, name, conventions.file_suffix)
+
+
 def isextension(name):
     """Return True if name is an API extension name (ends with an upper-case
     author ID).
@@ -52,7 +62,7 @@ def printCopyrightSourceComments(fp):
 
     Writes an asciidoc comment block, which copyrights the source
     file."""
-    print('// Copyright (c) 2014-2019 Khronos Group. This work is licensed under a', file=fp)
+    print('// Copyright (c) 2014-2020 The Khronos Group Inc. This work is licensed under a', file=fp)
     print('// Creative Commons Attribution 4.0 International License; see', file=fp)
     print('// http://creativecommons.org/licenses/by/4.0/', file=fp)
     print('', file=fp)
@@ -213,12 +223,6 @@ def refPageHead(pageName, pageDesc, specText, fieldName, fieldText, descText, fp
 
     refPageShell(pageName, pageDesc, fp, sections=sections)
 
-# specType is None or the 'spec' attribute from the refpage open block,
-#   identifying the specification name and URL this refpage links to.
-# specAnchor is None or the 'anchor' attribute from the refpage open block,
-#   identifying the anchor in the specification this refpage links to. If
-#   None, the pageName is assumed to be a valid anchor.
-
 
 def refPageTail(pageName,
                 specType=None,
@@ -226,6 +230,14 @@ def refPageTail(pageName,
                 seeAlso=None,
                 fp=None,
                 auto=False):
+    """Generate end boilerplate of a reference page.
+
+    - pageName - name of the page
+    - specType - None or the 'spec' attribute from the refpage block,
+      identifying the specification name and URL this refpage links to.
+    - specAnchor - None or the 'anchor' attribute from the refpage block,
+      identifying the anchor in the specification this refpage links to. If
+      None, the pageName is assumed to be a valid anchor."""
 
     specName = conventions.api_name(specType)
     specURL = conventions.specURL(specType)
@@ -449,7 +461,7 @@ def autoGenFlagsPage(baseDir, flagName):
 
     refPageHead(flagName,
                 desc,
-                'include::../api/flags/' + flagName + '.txt[]\n',
+                makeAPIInclude('flags', flagName),
                 None, None,
                 txt,
                 fp)
@@ -489,7 +501,7 @@ def autoGenHandlePage(baseDir, handleName):
 
     refPageHead(handleName,
                 desc,
-                'include::../api/handles/' + handleName + '.txt[]\n',
+                makeAPIInclude('handles', handleName),
                 None, None,
                 descText,
                 fp)

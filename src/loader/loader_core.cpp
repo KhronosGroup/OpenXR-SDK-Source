@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2019 The Khronos Group Inc.
+// Copyright (c) 2017-2020 The Khronos Group Inc.
 // Copyright (c) 2017-2019 Valve Corporation
 // Copyright (c) 2017-2019 LunarG, Inc.
 //
@@ -497,15 +497,6 @@ XRAPI_ATTR XrResult XRAPI_CALL xrCreateDebugUtilsMessengerEXT(XrInstance instanc
         return result;
     }
 
-    if (!loader_instance->ExtensionIsEnabled(XR_EXT_DEBUG_UTILS_EXTENSION_NAME)) {
-        std::string error_str = "The ";
-        error_str += XR_EXT_DEBUG_UTILS_EXTENSION_NAME;
-        error_str += " extension has not been enabled prior to calling xrCreateDebugUtilsMessengerEXT";
-        LoaderLogger::LogValidationErrorMessage("VUID-xrCreateDebugUtilsMessengerEXT-extension-notenabled",
-                                                "xrCreateDebugUtilsMessengerEXT", error_str);
-        return XR_ERROR_FUNCTION_UNSUPPORTED;
-    }
-
     result = loader_instance->DispatchTable()->CreateDebugUtilsMessengerEXT(instance, createInfo, messenger);
     LoaderLogger::LogVerboseMessage("xrCreateDebugUtilsMessengerEXT", "Completed loader trampoline");
     return result;
@@ -529,17 +520,114 @@ XRLOADER_ABI_CATCH_BAD_ALLOC_OOM XRLOADER_ABI_CATCH_FALLBACK
         return result;
     }
 
-    if (!loader_instance->ExtensionIsEnabled(XR_EXT_DEBUG_UTILS_EXTENSION_NAME)) {
-        std::string error_str = "The ";
-        error_str += XR_EXT_DEBUG_UTILS_EXTENSION_NAME;
-        error_str += " extension has not been enabled prior to calling xrDestroyDebugUtilsMessengerEXT";
-        LoaderLogger::LogValidationErrorMessage("VUID-xrDestroyDebugUtilsMessengerEXT-extension-notenabled",
-                                                "xrDestroyDebugUtilsMessengerEXT", error_str);
-        return XR_ERROR_FUNCTION_UNSUPPORTED;
-    }
-
     result = loader_instance->DispatchTable()->DestroyDebugUtilsMessengerEXT(messenger);
     LoaderLogger::LogVerboseMessage("xrDestroyDebugUtilsMessengerEXT", "Completed loader trampoline");
+    return result;
+}
+XRLOADER_ABI_CATCH_FALLBACK
+
+XRAPI_ATTR XrResult XRAPI_CALL xrSessionBeginDebugUtilsLabelRegionEXT(XrSession session,
+                                                                      const XrDebugUtilsLabelEXT *labelInfo) XRLOADER_ABI_TRY {
+    if (session == XR_NULL_HANDLE) {
+        LoaderLogger::LogErrorMessage("xrSessionBeginDebugUtilsLabelRegionEXT", "Session handle is XR_NULL_HANDLE.");
+        return XR_ERROR_HANDLE_INVALID;
+    }
+
+    if (nullptr == labelInfo) {
+        LoaderLogger::LogValidationErrorMessage("VUID-xrSessionBeginDebugUtilsLabelRegionEXT-labelInfo-parameter",
+                                                "xrSessionBeginDebugUtilsLabelRegionEXT", "labelInfo must be non-NULL",
+                                                {XrSdkLogObjectInfo{session, XR_OBJECT_TYPE_SESSION}});
+        return XR_ERROR_VALIDATION_FAILURE;
+    }
+
+    LoaderInstance *loader_instance;
+    XrResult result = ActiveLoaderInstance::Get(&loader_instance, "xrSessionBeginDebugUtilsLabelRegionEXT");
+    if (XR_FAILED(result)) {
+        return result;
+    }
+    LoaderLogger::GetInstance().BeginLabelRegion(session, labelInfo);
+    const std::unique_ptr<XrGeneratedDispatchTable> &dispatch_table = loader_instance->DispatchTable();
+    if (nullptr != dispatch_table->SessionBeginDebugUtilsLabelRegionEXT) {
+        return dispatch_table->SessionBeginDebugUtilsLabelRegionEXT(session, labelInfo);
+    }
+    return XR_SUCCESS;
+}
+XRLOADER_ABI_CATCH_FALLBACK
+
+XRAPI_ATTR XrResult XRAPI_CALL xrSessionEndDebugUtilsLabelRegionEXT(XrSession session) XRLOADER_ABI_TRY {
+    if (session == XR_NULL_HANDLE) {
+        LoaderLogger::LogErrorMessage("xrSessionEndDebugUtilsLabelRegionEXT", "Session handle is XR_NULL_HANDLE.");
+        return XR_ERROR_HANDLE_INVALID;
+    }
+
+    LoaderInstance *loader_instance;
+    XrResult result = ActiveLoaderInstance::Get(&loader_instance, "xrSessionEndDebugUtilsLabelRegionEXT");
+    if (XR_FAILED(result)) {
+        return result;
+    }
+
+    LoaderLogger::GetInstance().EndLabelRegion(session);
+    const std::unique_ptr<XrGeneratedDispatchTable> &dispatch_table = loader_instance->DispatchTable();
+    if (nullptr != dispatch_table->SessionEndDebugUtilsLabelRegionEXT) {
+        return dispatch_table->SessionEndDebugUtilsLabelRegionEXT(session);
+    }
+    return XR_SUCCESS;
+}
+XRLOADER_ABI_CATCH_FALLBACK
+
+XRAPI_ATTR XrResult XRAPI_CALL xrSessionInsertDebugUtilsLabelEXT(XrSession session,
+                                                                 const XrDebugUtilsLabelEXT *labelInfo) XRLOADER_ABI_TRY {
+    if (session == XR_NULL_HANDLE) {
+        LoaderLogger::LogErrorMessage("xrSessionInsertDebugUtilsLabelEXT", "Session handle is XR_NULL_HANDLE.");
+        return XR_ERROR_HANDLE_INVALID;
+    }
+
+    LoaderInstance *loader_instance;
+    XrResult result = ActiveLoaderInstance::Get(&loader_instance, "xrSessionInsertDebugUtilsLabelEXT");
+    if (XR_FAILED(result)) {
+        return result;
+    }
+
+    if (nullptr == labelInfo) {
+        LoaderLogger::LogValidationErrorMessage("VUID-xrSessionInsertDebugUtilsLabelEXT-labelInfo-parameter",
+                                                "xrSessionInsertDebugUtilsLabelEXT", "labelInfo must be non-NULL",
+                                                {XrSdkLogObjectInfo{session, XR_OBJECT_TYPE_SESSION}});
+        return XR_ERROR_VALIDATION_FAILURE;
+    }
+
+    LoaderLogger::GetInstance().InsertLabel(session, labelInfo);
+
+    const std::unique_ptr<XrGeneratedDispatchTable> &dispatch_table = loader_instance->DispatchTable();
+    if (nullptr != dispatch_table->SessionInsertDebugUtilsLabelEXT) {
+        return dispatch_table->SessionInsertDebugUtilsLabelEXT(session, labelInfo);
+    }
+
+    return XR_SUCCESS;
+}
+XRLOADER_ABI_CATCH_FALLBACK
+
+// No-op trampoline needed for xrGetInstanceProcAddr. Work done in terminator.
+XRAPI_ATTR XrResult XRAPI_CALL xrSetDebugUtilsObjectNameEXT(XrInstance instance,
+                                                            const XrDebugUtilsObjectNameInfoEXT *nameInfo) XRLOADER_ABI_TRY {
+    LoaderInstance *loader_instance;
+    XrResult result = ActiveLoaderInstance::Get(&loader_instance, "xrSetDebugUtilsObjectNameEXT");
+    if (XR_SUCCEEDED(result)) {
+        result = loader_instance->DispatchTable()->SetDebugUtilsObjectNameEXT(instance, nameInfo);
+    }
+    return result;
+}
+XRLOADER_ABI_CATCH_FALLBACK
+
+// No-op trampoline needed for xrGetInstanceProcAddr. Work done in terminator.
+XRAPI_ATTR XrResult XRAPI_CALL xrSubmitDebugUtilsMessageEXT(
+    XrInstance instance, XrDebugUtilsMessageSeverityFlagsEXT messageSeverity, XrDebugUtilsMessageTypeFlagsEXT messageTypes,
+    const XrDebugUtilsMessengerCallbackDataEXT *callbackData) XRLOADER_ABI_TRY {
+    LoaderInstance *loader_instance;
+    XrResult result = ActiveLoaderInstance::Get(&loader_instance, "xrSubmitDebugUtilsMessageEXT");
+    if (XR_SUCCEEDED(result)) {
+        result =
+            loader_instance->DispatchTable()->SubmitDebugUtilsMessageEXT(instance, messageSeverity, messageTypes, callbackData);
+    }
     return result;
 }
 XRLOADER_ABI_CATCH_FALLBACK
@@ -621,102 +709,6 @@ LoaderXrTermSetDebugUtilsObjectNameEXT(XrInstance instance, const XrDebugUtilsOb
     LoaderLogger::GetInstance().AddObjectName(nameInfo->objectHandle, nameInfo->objectType, nameInfo->objectName);
     LoaderLogger::LogVerboseMessage("xrSetDebugUtilsObjectNameEXT", "Completed loader terminator");
     return result;
-}
-XRLOADER_ABI_CATCH_FALLBACK
-
-XRAPI_ATTR XrResult XRAPI_CALL xrSessionBeginDebugUtilsLabelRegionEXT(XrSession session,
-                                                                      const XrDebugUtilsLabelEXT *labelInfo) XRLOADER_ABI_TRY {
-    if (session == XR_NULL_HANDLE) {
-        LoaderLogger::LogErrorMessage("xrSessionBeginDebugUtilsLabelRegionEXT", "Session handle is XR_NULL_HANDLE.");
-        return XR_ERROR_HANDLE_INVALID;
-    }
-
-    if (nullptr == labelInfo) {
-        LoaderLogger::LogValidationErrorMessage("VUID-xrSessionBeginDebugUtilsLabelRegionEXT-labelInfo-parameter",
-                                                "xrSessionBeginDebugUtilsLabelRegionEXT", "labelInfo must be non-NULL",
-                                                {XrSdkLogObjectInfo{session, XR_OBJECT_TYPE_SESSION}});
-        return XR_ERROR_VALIDATION_FAILURE;
-    }
-
-    LoaderInstance *loader_instance;
-    XrResult result = ActiveLoaderInstance::Get(&loader_instance, "xrSessionBeginDebugUtilsLabelRegionEXT");
-    if (XR_FAILED(result)) {
-        return result;
-    }
-    if (!loader_instance->ExtensionIsEnabled(XR_EXT_DEBUG_UTILS_EXTENSION_NAME)) {
-        LoaderLogger::LogValidationErrorMessage("TBD", "xrSessionBeginDebugUtilsLabelRegionEXT",
-                                                "Extension entrypoint called without enabling appropriate extension",
-                                                {XrSdkLogObjectInfo{session, XR_OBJECT_TYPE_SESSION}});
-        return XR_ERROR_FUNCTION_UNSUPPORTED;
-    }
-
-    LoaderLogger::GetInstance().BeginLabelRegion(session, labelInfo);
-    const std::unique_ptr<XrGeneratedDispatchTable> &dispatch_table = loader_instance->DispatchTable();
-    if (nullptr != dispatch_table->SessionBeginDebugUtilsLabelRegionEXT) {
-        return dispatch_table->SessionBeginDebugUtilsLabelRegionEXT(session, labelInfo);
-    }
-    return XR_SUCCESS;
-}
-XRLOADER_ABI_CATCH_FALLBACK
-
-XRAPI_ATTR XrResult XRAPI_CALL xrSessionEndDebugUtilsLabelRegionEXT(XrSession session) XRLOADER_ABI_TRY {
-    if (session == XR_NULL_HANDLE) {
-        LoaderLogger::LogErrorMessage("xrSessionEndDebugUtilsLabelRegionEXT", "Session handle is XR_NULL_HANDLE.");
-        return XR_ERROR_HANDLE_INVALID;
-    }
-
-    LoaderInstance *loader_instance;
-    XrResult result = ActiveLoaderInstance::Get(&loader_instance, "xrSessionEndDebugUtilsLabelRegionEXT");
-    if (XR_FAILED(result)) {
-        return result;
-    }
-
-    if (!loader_instance->ExtensionIsEnabled(XR_EXT_DEBUG_UTILS_EXTENSION_NAME)) {
-        return XR_ERROR_FUNCTION_UNSUPPORTED;
-    }
-    LoaderLogger::GetInstance().EndLabelRegion(session);
-    const std::unique_ptr<XrGeneratedDispatchTable> &dispatch_table = loader_instance->DispatchTable();
-    if (nullptr != dispatch_table->SessionEndDebugUtilsLabelRegionEXT) {
-        return dispatch_table->SessionEndDebugUtilsLabelRegionEXT(session);
-    }
-    return XR_SUCCESS;
-}
-XRLOADER_ABI_CATCH_FALLBACK
-
-XRAPI_ATTR XrResult XRAPI_CALL xrSessionInsertDebugUtilsLabelEXT(XrSession session,
-                                                                 const XrDebugUtilsLabelEXT *labelInfo) XRLOADER_ABI_TRY {
-    if (session == XR_NULL_HANDLE) {
-        LoaderLogger::LogErrorMessage("xrSessionInsertDebugUtilsLabelEXT", "Session handle is XR_NULL_HANDLE.");
-        return XR_ERROR_HANDLE_INVALID;
-    }
-
-    LoaderInstance *loader_instance;
-    XrResult result = ActiveLoaderInstance::Get(&loader_instance, "xrSessionInsertDebugUtilsLabelEXT");
-    if (XR_FAILED(result)) {
-        return result;
-    }
-
-    if (!loader_instance->ExtensionIsEnabled(XR_EXT_DEBUG_UTILS_EXTENSION_NAME)) {
-        LoaderLogger::LogValidationErrorMessage("TBD", "xrSessionInsertDebugUtilsLabelEXT",
-                                                "Extension entrypoint called without enabling appropriate extension",
-                                                {XrSdkLogObjectInfo{session, XR_OBJECT_TYPE_SESSION}});
-        return XR_ERROR_FUNCTION_UNSUPPORTED;
-    }
-    if (nullptr == labelInfo) {
-        LoaderLogger::LogValidationErrorMessage("VUID-xrSessionInsertDebugUtilsLabelEXT-labelInfo-parameter",
-                                                "xrSessionInsertDebugUtilsLabelEXT", "labelInfo must be non-NULL",
-                                                {XrSdkLogObjectInfo{session, XR_OBJECT_TYPE_SESSION}});
-        return XR_ERROR_VALIDATION_FAILURE;
-    }
-
-    LoaderLogger::GetInstance().InsertLabel(session, labelInfo);
-
-    const std::unique_ptr<XrGeneratedDispatchTable> &dispatch_table = loader_instance->DispatchTable();
-    if (nullptr != dispatch_table->SessionInsertDebugUtilsLabelEXT) {
-        return dispatch_table->SessionInsertDebugUtilsLabelEXT(session, labelInfo);
-    }
-
-    return XR_SUCCESS;
 }
 XRLOADER_ABI_CATCH_FALLBACK
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2013-2019 The Khronos Group Inc.
+# Copyright (c) 2013-2020 The Khronos Group Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -821,7 +821,7 @@ class ValidityOutputGenerator(OutputGenerator):
                     child_structs = self.keepOnlyRequired(self.struct_children.get(paramtype, []),
                                                           self.registry.typedict)
                     if child_structs:
-                        see_also = 'See also: {}'.format(', '.join(self.makeStructName(t) for t in child_structs))
+                        see_also = 'See also: {}'.format(', '.join(self.makeStructName(t) for t in sorted(child_structs)))
                 else:
                     typetext = '{} structure'.format(
                         self.makeStructName(paramtype))

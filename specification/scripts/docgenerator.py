@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2013-2019 The Khronos Group Inc.
+# Copyright (c) 2013-2020 The Khronos Group Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -113,6 +113,7 @@ class DocGeneratorOptions(GeneratorOptions):
 
         self.expandEnumerants = expandEnumerants
         """if True, add BEGIN/END_RANGE macros in enumerated type declarations"""
+
         self.extEnumerantAdditions = extEnumerantAdditions
         """if True, include enumerants added by extensions in comment tables for core enumeration types."""
 
@@ -138,6 +139,9 @@ class DocOutputGenerator(OutputGenerator):
 
     def beginFile(self, genOpts):
         OutputGenerator.beginFile(self, genOpts)
+
+        # This should be a separate conventions property rather than an
+        # inferred type name pattern for different APIs.
         self.result_type = genOpts.conventions.type_prefix + "Result"
 
     def endFile(self):
@@ -147,19 +151,20 @@ class DocOutputGenerator(OutputGenerator):
         # Start processing in superclass
         OutputGenerator.beginFeature(self, interface, emit)
 
-        # Decide if we're in core or an extension
-        name = interface.get('name')
-        self.in_core = name.startswith(self.conventions.api_version_prefix)
+        # Decide if we're in a core <feature> or an <extension>
+        self.in_core = (interface.tag == 'feature')
 
-        # Verify that each extension has a unique number during doc generation
+        # Verify that each <extension> has a unique number during doc
+        # generation
         # TODO move this to consistency_tools
-        extension_number = interface.get('number')
-        if extension_number is not None and extension_number != "0":
-            if extension_number in self.extension_numbers:
-                self.logMsg('error', 'Duplicate extension number ', extension_number, ' detected in feature ', interface.get('name'), '\n')
-                exit(1)
-            else:
-                self.extension_numbers.add(extension_number)
+        if not self.in_core:
+            extension_number = interface.get('number')
+            if extension_number is not None and extension_number != "0":
+                if extension_number in self.extension_numbers:
+                    self.logMsg('error', 'Duplicate extension number ', extension_number, ' detected in feature ', interface.get('name'), '\n')
+                    exit(1)
+                else:
+                    self.extension_numbers.add(extension_number)
 
     def endFeature(self):
         # Finish processing in superclass
@@ -183,15 +188,18 @@ class DocOutputGenerator(OutputGenerator):
         # Asciidoc anchor
         write(self.genOpts.conventions.warning_comment, file=fp)
         write('[[{0}]]'.format(basename), file=fp)
-        index_terms = []
-        if basename.startswith(self.conventions.command_prefix):
-            index_terms.append(basename[2:] + " (function)")
-        elif basename.startswith(self.conventions.type_prefix):
-            index_terms.append(basename[2:] + " (type)")
-        elif basename.startswith(self.conventions.api_prefix):
-            index_terms.append(basename[len(self.conventions.api_prefix):] + " (define)")
-        index_terms.append(basename)
-        write('indexterm:[{}]'.format(','.join(index_terms)), file=fp)
+
+        if self.genOpts.conventions.generate_index_terms:
+            index_terms = []
+            if basename.startswith(self.conventions.command_prefix):
+                index_terms.append(basename[2:] + " (function)")
+            elif basename.startswith(self.conventions.type_prefix):
+                index_terms.append(basename[2:] + " (type)")
+            elif basename.startswith(self.conventions.api_prefix):
+                index_terms.append(basename[len(self.conventions.api_prefix):] + " (define)")
+            index_terms.append(basename)
+            write('indexterm:[{}]'.format(','.join(index_terms)), file=fp)
+
         write('[source,c++]', file=fp)
         write('----', file=fp)
         write(contents, file=fp)
@@ -251,7 +259,7 @@ class DocOutputGenerator(OutputGenerator):
             write(FLAG_BLOCK_SUFFIX, file=fp)
 
     def genType(self, typeinfo, name, alias):
-        "Generate type."
+        """Generate type."""
         OutputGenerator.genType(self, typeinfo, name, alias)
         typeElem = typeinfo.elem
         # If the type is a struct type, traverse the embedded <member> tags
@@ -310,6 +318,9 @@ class DocOutputGenerator(OutputGenerator):
         self.writeInclude('structs', typeName, body)
 
     def genEnumTable(self, groupinfo, groupName):
+        """Generate tables of enumerant values and short descriptions from
+        the XML."""
+
         values = []
         got_comment = False
         missing_comments = []
@@ -386,8 +397,9 @@ class DocOutputGenerator(OutputGenerator):
             body = 'typedef ' + alias + ' ' + groupName + ';\n'
         else:
             expand = self.genOpts.expandEnumerants
-            self.genEnumTable(groupinfo, groupName)
             (_, body) = self.buildEnumCDecl(expand, groupinfo, groupName)
+            if self.genOpts.conventions.generate_enum_table:
+                self.genEnumTable(groupinfo, groupName)
 
         self.writeInclude('enums', groupName, body)
 

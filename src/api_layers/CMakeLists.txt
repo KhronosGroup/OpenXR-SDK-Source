@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2019 The Khronos Group Inc.
+# Copyright (c) 2017-2020 The Khronos Group Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -53,7 +53,6 @@ run_xr_xml_generate(api_dump_generator.py xr_generated_api_dump.cpp)
 
 add_library(XrApiLayer_api_dump SHARED
     api_dump.cpp
-    ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.cpp
     ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h
     # target-specific generated files
     ${GENERATED_OUTPUT}
@@ -113,7 +112,6 @@ run_xr_xml_generate(validation_layer_generator.py xr_generated_core_validation.c
 
 add_library(XrApiLayer_core_validation SHARED
     core_validation.cpp
-    ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.cpp
     ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h
     ${PROJECT_SOURCE_DIR}/src/common/object_info.cpp
     ${PROJECT_SOURCE_DIR}/src/common/object_info.h

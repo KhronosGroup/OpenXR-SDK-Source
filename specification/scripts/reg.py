@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2013-2019 The Khronos Group Inc.
+# Copyright (c) 2013-2020 The Khronos Group Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,7 +20,6 @@ import re
 import sys
 import xml.etree.ElementTree as etree
 from collections import defaultdict, namedtuple
-
 from generator import OutputGenerator, write
 
 
@@ -106,28 +105,44 @@ class BaseInfo:
         self.required = False
         self.declared = False
 
-    def compareElem(self, info):
-        """Return True if self.elem and info.elem have the
-        same definition."""
-        # Just compares the tag and attributes.
-        # @@ This should be virtualized. In particular, comparing <enum>
-        # tags requires special-casing on the attributes, as 'extnumber' is
-        # only relevant when 'offset' is present.
-        selfKeys = sorted(self.elem.keys())
-        infoKeys = sorted(info.elem.keys())
+    def compareKeys(self, info, key, required = False):
+        """Return True if self.elem and info.elem have the same attribute
+           value for key.
+           If 'required' is not True, also returns True if neither element
+           has an attribute value for key."""
 
-        if selfKeys != infoKeys:
+        if required and key not in self.elem.keys():
             return False
+        return self.elem.get(key) == info.elem.get(key)
 
-        # Ignore value of 'extname' and 'extnumber', as these will inherently
-        # be different when redefining the same interface in different feature
-        # and/or extension blocks.
-        for key in selfKeys:
-            if key not in ('extname', 'extnumber') and \
-                    (self.elem.get(key) != info.elem.get(key)):
+    def compareElem(self, info, infoName):
+        """Return True if self.elem and info.elem have the same definition.
+        info - the other object
+        infoName - 'type' / 'group' / 'enum' / 'command' / 'feature' /
+                   'extension'"""
+
+        if infoName == 'enum':
+            if self.compareKeys(info, 'extends'):
+                # Either both extend the same type, or no type
+                if (self.compareKeys(info, 'value', required = True) or
+                    self.compareKeys(info, 'bitpos', required = True)):
+                    # If both specify the same value or bit position,
+                    # they're equal
+                    return True
+                elif (self.compareKeys(info, 'extends') and
+                      self.compareKeys(info, 'extnumber') and
+                      self.compareKeys(info, 'offset') and
+                      self.compareKeys(info, 'dir')):
+                    # If both specify the same relative offset, they're equal
+                    return True
+                else:
+                    return False
+            else:
+                # The same enum can't extend two different types
                 return False
-
-        return True
+        else:
+            # Non-<enum>s should never be redefined
+            return False
 
 
 class TypeInfo(BaseInfo):
@@ -199,31 +214,36 @@ class FeatureInfo(BaseInfo):
         self.emit = False
         "has this feature been defined already?"
 
+        self.sortorder = int(elem.get('sortorder', 0))
+        """explicit numeric sort key within feature and extension groups.
+        Defaults to 0."""
+
         # Determine element category (vendor). Only works
         # for <extension> elements.
         if elem.tag == 'feature':
+            # Element category (vendor) is meaningless for <feature>
             self.category = 'VERSION'
-            "category, e.g. VERSION or khr/vendor tag"
+            """category, e.g. VERSION or khr/vendor tag"""
 
             self.version = elem.get('name')
-            """feature version number (e.g. 1.2). <extension>
-            features are unversioned and assigned version number 0.
-
-            - ** This is confusingly taken from the 'number' attribute of <feature>.
-              Needs fixing.
-            """
+            """feature name string"""
 
             self.versionNumber = elem.get('number')
+            """versionNumber - API version number, taken from the 'number'
+               attribute of <feature>. Extensions do not have API version
+               numbers and are assigned number 0."""
+
             self.number = "0"
             self.supported = None
         else:
+            # Extract vendor portion of <APIprefix>_<vendor>_<name>
             self.category = self.name.split('_', 2)[1]
             self.version = "0"
             self.versionNumber = "0"
             self.number = elem.get('number')
-            """extension number, used for ordering and for
-            assigning enumerant offsets. <feature> features do
-            not have extension numbers and are assigned number 0."""
+            """extension number, used for ordering and for assigning
+            enumerant offsets. <feature> features do not have extension
+            numbers and are assigned number 0."""
 
             # If there's no 'number' attribute, use 0, so sorting works
             if self.number is None:
@@ -273,7 +293,7 @@ class Registry:
         or False to just treat them as emitted"""
 
         self.breakPat = None
-        "regexp pattern to break on when generatng names"
+        "regexp pattern to break on when generating names"
         # self.breakPat     = re.compile('VkFenceImportFlagBits.*')
 
         self.requiredextensions = []  # Hack - can remove it after validity generator goes away
@@ -329,12 +349,11 @@ class Registry:
         else:
             key = elem.get('name')
         if key in dictionary:
-            if not dictionary[key].compareElem(info):
+            if not dictionary[key].compareElem(info, infoName):
                 self.gen.logMsg('warn', 'Attempt to redefine', key,
-                                'with different value (this may be benign)')
-            # else:
-            #    self.gen.logMsg('warn', 'Benign redefinition of', key,
-            #                    'with identical value')
+                                '(this should not happen)')
+            else:
+                True
         else:
             dictionary[key] = info
 
@@ -1098,7 +1117,7 @@ class Registry:
                 self.gen.logMsg('diag', 'NOT including extension',
                                 extName, '(does not match api attribute or explicitly requested extensions)')
 
-        # Sort the extension features list, if a sort procedure is defined
+        # Sort the features list, if a sort procedure is defined
         if self.genOpts.sortProcedure:
             self.genOpts.sortProcedure(features)
 

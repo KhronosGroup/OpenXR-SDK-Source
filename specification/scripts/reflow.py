@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Copyright (c) 2016-2019 The Khronos Group Inc.
+# Copyright (c) 2016-2020 The Khronos Group Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -100,9 +100,10 @@ blockPassthrough = re.compile(r'^(\|={3,}|[`]{3}|[-+./]{4,})$')
 #     ** bullet
 #     -- bullet
 #   . bullet
-#   :: bullet
+#   :: bullet (no longer supported by asciidoctor 2)
+#   {empty}:: bullet
 #   1. list item
-beginBullet = re.compile(r'^ *([*-.]+|::|[0-9]+[.]) ')
+beginBullet = re.compile(r'^ *([*-.]+|\{empty\}::|::|[0-9]+[.]) ')
 
 # Text that (may) not end sentences
 
@@ -213,6 +214,10 @@ class ReflowState:
     def vuidAnchor(self, word):
         """Return True if word is a Valid Usage ID Tag anchor."""
         return (word[0:7] == '[[VUID-')
+
+    def isOpenBlockDelimiter(self, line):
+        """Returns True if line is an open block delimiter."""
+        return line[0:2] == '--'
 
     def reflowPara(self):
         """Reflow the current paragraph, respecting the paragraph lead and
@@ -468,6 +473,15 @@ class ReflowState:
             logDiag('endBlock line', self.lineNumber,
                     ': popping block end depth:', len(self.blockStack),
                     ':', line, end='')
+
+            # Reset apiName at the end of an open block.
+            # Open blocks cannot be nested, so this is safe.
+            if self.isOpenBlockDelimiter(line):
+                logDiag('reset apiName to empty at line', self.lineNumber)
+                self.apiName = ''
+            else:
+                logDiag('NOT resetting apiName to empty at line', self.lineNumber)
+
             self.blockStack.pop()
             self.reflowStack.pop()
             self.vuStack.pop()
@@ -530,6 +544,11 @@ class ReflowState:
             if self.hangIndent == self.leadIndent:
                 self.hangIndent = indent
             self.para.append(line)
+
+def apiMatch(oldname, newname):
+    """Returns whether oldname and newname match, up to an API suffix."""
+    upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+    return oldname.rstrip(upper) == newname.rstrip(upper)
 
 def reflowFile(filename, args):
     logDiag('reflow: filename', filename)
@@ -599,9 +618,26 @@ def reflowFile(filename, args):
 
             matches = includePat.search(line)
             if matches is not None:
+                generated_type = matches.group('generated_type')
                 include_type = matches.group('category')
-                if include_type in ('protos', 'structs'):
-                    state.apiName = matches.group('entity_name')
+                if generated_type == 'api' and include_type in ('protos', 'structs'):
+                    apiName = matches.group('entity_name')
+                    if state.apiName != '':
+                        # This happens when there are multiple API include
+                        # lines in a single block. The style guideline is to
+                        # always place the API which others are promoted to
+                        # first. In virtually all cases, the promoted API
+                        # will differ solely in the vendor suffix (or
+                        # absence of it), which is benign.
+                        if not apiMatch(state.apiName, apiName):
+                            logWarn('Promoted API name mismatch at line',
+                                    state.lineNumber,
+                                    ':',
+                                    'apiName:', apiName,
+                                    'does not match state.apiName:',
+                                    state.apiName)
+                    else:
+                        state.apiName = apiName
 
         elif endParaContinue.match(line):
             # For now, always just end the paragraph.

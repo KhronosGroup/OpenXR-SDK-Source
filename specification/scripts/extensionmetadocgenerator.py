@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2013-2019 The Khronos Group Inc.
+# Copyright (c) 2013-2020 The Khronos Group Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -169,7 +169,7 @@ class Extension:
 
     def conditionalLinkExt(self, extName, indent = '    '):
         doc  = 'ifdef::' + extName + '[]\n'
-        doc +=  indent + '<<' + extName + '>>\n'
+        doc +=  indent + self.conventions.formatExtension(extName) + '\n'
         doc += 'endif::' + extName + '[]\n'
         doc += 'ifndef::' + extName + '[]\n'
         doc += indent + '`' + extName + '`\n'
@@ -231,7 +231,8 @@ class Extension:
         write('  * Requires ' + self.conventions.api_name() + ' ' + self.requiresCore, file=fp)
         if self.requires:
             for dep in self.requires.split(','):
-                write('  * Requires `<<' + dep + '>>`', file=fp)
+                write('  * Requires', self.conventions.formatExtension(dep),
+                      file=fp)
 
         if self.deprecationType:
             write('*Deprecation state*::', file=fp)
@@ -299,7 +300,8 @@ class Extension:
             write('  * Requires ' + self.conventions.api_name() + ' ' + self.requiresCore, file=fp)
             if self.requires:
                 for dep in self.requires.split(','):
-                    write('  * Requires `<<' + dep + '>>`', file=fp)
+                    write('  * Requires', self.conventions.formatExtension(dep),
+                          file=fp)
             write('', file=fp)
 
             if self.deprecationType:
@@ -413,10 +415,7 @@ class ExtensionMetaDocOutputGenerator(OutputGenerator):
         return doc
 
     def makeExtensionInclude(self, ext):
-        return 'include::../{vendor}/{vendor}_{barename}{suffix}[]'.format(
-            vendor=ext.vendor.lower(),
-            barename=ext.bare_name.lower(),
-            suffix=self.file_suffix)
+        return self.conventions.extension_include_string(ext)
 
     def endFile(self):
         self.extensions.sort()
@@ -506,7 +505,7 @@ class ExtensionMetaDocOutputGenerator(OutputGenerator):
 
             for ext in self.extensions:
                 include = self.makeExtensionInclude(ext)
-                link = '  * <<' + ext.name + '>>'
+                link = '  * ' + self.conventions.formatExtension(ext.name)
                 if ext.provisional == 'true':
                     write(self.conditionalExt(ext.name, include), file=provisional_extension_appendices_fp)
                     write(self.conditionalExt(ext.name, link), file=provisional_extension_appendices_toc_fp)

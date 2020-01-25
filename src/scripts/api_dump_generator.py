@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2017-2019 The Khronos Group Inc.
+# Copyright (c) 2017-2020 The Khronos Group Inc.
 # Copyright (c) 2017-2019 Valve Corporation
 # Copyright (c) 2017-2019 LunarG, Inc.
 #
@@ -522,7 +522,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
     #   has_prefix          Boolean indicates that there's an incoming C++ prefix that needs to be added to the variable.
     #   prefix_string1      The first prefix string to add prior to writing out the variable information
     #   prefix_string1      The second prefix string to add prior to writing out the variable information
-    #   expand              Boolean indicates whether or not to try to expand/derefernce the contents of this parameter
+    #   expand              Boolean indicates whether or not to try to expand/dereference the contents of this parameter
     #   indent              the number of "tabs" to space in for the resulting C+ code.
     def writeExpandedMember(self, base_type, is_pointer, pointer_count, member_param, member_param_prefix, member_param_name, has_prefix, prefix_string1, prefix_string2, expand, indent):
         member_string = ''

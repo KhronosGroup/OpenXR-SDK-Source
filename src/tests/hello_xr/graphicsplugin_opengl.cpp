@@ -258,7 +258,7 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
             return depthBufferIt->second;
         }
 
-        // This back-buffer has no cooresponding depth-stencil texture, so create one with matching dimensions.
+        // This back-buffer has no corresponding depth-stencil texture, so create one with matching dimensions.
 
         GLint width;
         GLint height;

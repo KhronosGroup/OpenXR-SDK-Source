@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2017-2019 The Khronos Group Inc.
+# Copyright (c) 2017-2020 The Khronos Group Inc.
 # Copyright (c) 2017-2019 Valve Corporation
 # Copyright (c) 2017-2019 LunarG, Inc.
 #
@@ -76,15 +76,9 @@ def generateErrorMessage(indent_level, vuid, cur_cmd, message, object_info):
 class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
     """Generate loader source using XML element attributes from registry"""
 
-    def getProto(self, cur_cmd, allow_export=True):
-        # Start by making it a C calling convention
-        func_proto = cur_cmd.cdecl.replace(
-            "XRAPI_ATTR", 'extern "C" XRAPI_ATTR')
-        if allow_export and self.isCoreExtensionName(cur_cmd.ext_name):
-            # Export core functions, if permitted.
-            func_proto = func_proto.replace(
-                "XRAPI_ATTR", 'LOADER_EXPORT XRAPI_ATTR')
-        return func_proto
+    def getProto(self, cur_cmd):
+        # Make it a C calling convention and exported.
+        return cur_cmd.cdecl.replace("XRAPI_ATTR", 'extern "C" LOADER_EXPORT XRAPI_ATTR')
 
     # Override the base class header warning so the comment indicates this file.
     #   self            the LoaderSourceOutputGenerator object
@@ -165,36 +159,21 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
     # so the generated code can call them.
     #   self            the LoaderSourceOutputGenerator object
     def outputLoaderManualFuncs(self):
-        commands = []
-        cur_extension_name = ''
         manual_funcs = '\n// Loader manually generated function prototypes\n\n'
-        for x in range(0, 2):
-            if x == 0:
-                commands = self.core_commands
-            else:
-                commands = self.ext_commands
 
-            for cur_cmd in commands:
-                if not cur_cmd.name in MANUAL_LOADER_FUNCS:
-                    if cur_cmd.ext_name != cur_extension_name:
-                        if self.isCoreExtensionName(cur_cmd.ext_name):
-                            manual_funcs += '\n// ---- Core %s loader manual functions\n' % cur_cmd.ext_name[11:].replace(
-                                "_", ".")
-                        else:
-                            manual_funcs += '\n// ---- %s loader manual functions\n' % cur_cmd.ext_name
-                        cur_extension_name = cur_cmd.ext_name
+        for cur_cmd in self.core_commands:
+            if not cur_cmd.name in MANUAL_LOADER_FUNCS:
+                if cur_cmd.protect_value:
+                    manual_funcs += '#if %s\n' % cur_cmd.protect_string
 
-                    if cur_cmd.protect_value:
-                        manual_funcs += '#if %s\n' % cur_cmd.protect_string
+                func_proto = self.getProto(cur_cmd)
 
-                    func_proto = self.getProto(cur_cmd)
+                # Output the standard API form of the command
+                manual_funcs += func_proto
+                manual_funcs += '\n'
 
-                    # Output the standard API form of the command
-                    manual_funcs += func_proto
-                    manual_funcs += '\n'
-
-                    if cur_cmd.protect_value:
-                        manual_funcs += '#endif // %s\n' % cur_cmd.protect_string
+                if cur_cmd.protect_value:
+                    manual_funcs += '#endif // %s\n' % cur_cmd.protect_string
 
         return manual_funcs
 
@@ -203,142 +182,114 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
     # and then remove that association in the delete.
     #   self            the LoaderSourceOutputGenerator object
     def outputLoaderGeneratedFuncs(self):
-        cur_extension_name = ''
         generated_funcs = '\n// Automatically generated instance trampolines and terminators\n'
-        count = 0
-        for x in range(0, 2):
-            if x == 0:
-                commands = self.core_commands
+
+        for cur_cmd in self.core_commands:
+
+            if cur_cmd.name in MANUAL_LOADER_FUNCS:
+                continue
+
+            # Remove 'xr' from proto name
+            base_name = cur_cmd.name[2:]
+
+            has_return = False
+
+            if cur_cmd.is_create_connect or cur_cmd.is_destroy_disconnect:
+                has_return = True
+            elif cur_cmd.return_type is not None:
+                has_return = True
+
+            tramp_variable_defines = ''
+            tramp_param_replace = []
+            base_handle_name = ''
+
+            for count, param in enumerate(cur_cmd.params):
+                param_cdecl = param.cdecl
+                is_const = False
+                const_check = param_cdecl.strip()
+                if const_check[:5].lower() == "const":
+                    is_const = True
+                pointer_count = self.paramPointerCount(
+                    param.cdecl, param.type, param.name)
+                array_dimen = self.paramArrayDimension(
+                    param.cdecl, param.type, param.name)
+
+                static_array_sizes = []
+                if param.is_static_array:
+                    static_array_sizes = param.static_array_sizes
+
+                cmd_tramp_param_name = param.name
+                cmd_tramp_is_handle = param.is_handle
+                if count == 0:
+                    if param.is_handle:
+                        base_handle_name = undecorate(param.type)
+                        first_handle_name = self.getFirstHandleName(param)
+
+                        tramp_variable_defines += '    LoaderInstance* loader_instance;\n'
+                        tramp_variable_defines += '    XrResult result = ActiveLoaderInstance::Get(&loader_instance, "%s");\n' % (cur_cmd.name)
+                        tramp_variable_defines += '    if (XR_SUCCEEDED(result)) {\n'
+
+                        # These should be mutually exclusive - verify it.
+                        assert((not cur_cmd.is_destroy_disconnect) or
+                                (pointer_count == 0))
+                    else:
+                        tramp_variable_defines += self.printCodeGenErrorMessage(
+                            'Command %s does not have an OpenXR Object handle as the first parameter.' % cur_cmd.name)
+
+                tramp_param_replace.append(
+                    self.MemberOrParam(type=param.type,
+                                        name=cmd_tramp_param_name,
+                                        is_const=is_const,
+                                        is_handle=cmd_tramp_is_handle,
+                                        is_bool=param.is_bool,
+                                        is_optional=param.is_optional,
+                                        no_auto_validity=param.no_auto_validity,
+                                        is_array=param.is_array,
+                                        is_static_array=param.is_static_array,
+                                        static_array_sizes=static_array_sizes,
+                                        array_dimen=array_dimen,
+                                        array_count_var=param.array_count_var,
+                                        array_length_for=param.array_length_for,
+                                        pointer_count=pointer_count,
+                                        pointer_count_var=param.pointer_count_var,
+                                        is_null_terminated=param.is_null_terminated,
+                                        valid_extension_structs=None,
+                                        cdecl=param.cdecl,
+                                        values=param.values))
+                count = count + 1
+
+            if cur_cmd.protect_value:
+                generated_funcs += '#if %s\n' % cur_cmd.protect_string
+            decl = self.getProto(cur_cmd).replace(";", " XRLOADER_ABI_TRY {\n")
+
+            generated_funcs += decl
+            generated_funcs += tramp_variable_defines
+
+            if has_return:
+                generated_funcs += '        result = '
             else:
-                commands = self.ext_commands
+                generated_funcs += '        '
 
-            for cur_cmd in commands:
-                if cur_cmd.ext_name != cur_extension_name:
-                    if self.isCoreExtensionName(cur_cmd.ext_name):
-                        generated_funcs += '\n// ---- Core %s commands\n' % cur_cmd.ext_name[11:].replace(
-                            "_", ".")
-                    else:
-                        generated_funcs += '\n// ---- %s extension commands\n' % cur_cmd.ext_name
-                    cur_extension_name = cur_cmd.ext_name
+            generated_funcs += 'loader_instance->DispatchTable()->'
+            generated_funcs += base_name
+            generated_funcs += '('
+            count = 0
+            for param in tramp_param_replace:
+                if count > 0:
+                    generated_funcs += ', '
+                generated_funcs += param.name
+                count = count + 1
+            generated_funcs += ');\n'
 
-                if cur_cmd.name in MANUAL_LOADER_FUNCS:
-                    continue
-
-                # Remove 'xr' from proto name
-                base_name = cur_cmd.name[2:]
-
-                has_return = False
-
-                if cur_cmd.is_create_connect or cur_cmd.is_destroy_disconnect:
-                    has_return = True
-                elif cur_cmd.return_type is not None:
-                    has_return = True
-
-                tramp_variable_defines = ''
-                tramp_param_replace = []
-                base_handle_name = ''
-
-                for count, param in enumerate(cur_cmd.params):
-                    param_cdecl = param.cdecl
-                    is_const = False
-                    const_check = param_cdecl.strip()
-                    if const_check[:5].lower() == "const":
-                        is_const = True
-                    pointer_count = self.paramPointerCount(
-                        param.cdecl, param.type, param.name)
-                    array_dimen = self.paramArrayDimension(
-                        param.cdecl, param.type, param.name)
-
-                    static_array_sizes = []
-                    if param.is_static_array:
-                        static_array_sizes = param.static_array_sizes
-
-                    cmd_tramp_param_name = param.name
-                    cmd_tramp_is_handle = param.is_handle
-                    if count == 0:
-                        if param.is_handle:
-                            base_handle_name = undecorate(param.type)
-                            first_handle_name = self.getFirstHandleName(param)
-
-                            tramp_variable_defines += '    LoaderInstance* loader_instance;\n'
-                            tramp_variable_defines += '    XrResult result = ActiveLoaderInstance::Get(&loader_instance, "%s");\n' % (cur_cmd.name)
-                            tramp_variable_defines += '    if (XR_SUCCEEDED(result)) {\n'
-
-                            # These should be mutually exclusive - verify it.
-                            assert((not cur_cmd.is_destroy_disconnect) or
-                                   (pointer_count == 0))
-                        else:
-                            tramp_variable_defines += self.printCodeGenErrorMessage(
-                                'Command %s does not have an OpenXR Object handle as the first parameter.' % cur_cmd.name)
-
-                    tramp_param_replace.append(
-                        self.MemberOrParam(type=param.type,
-                                           name=cmd_tramp_param_name,
-                                           is_const=is_const,
-                                           is_handle=cmd_tramp_is_handle,
-                                           is_bool=param.is_bool,
-                                           is_optional=param.is_optional,
-                                           no_auto_validity=param.no_auto_validity,
-                                           is_array=param.is_array,
-                                           is_static_array=param.is_static_array,
-                                           static_array_sizes=static_array_sizes,
-                                           array_dimen=array_dimen,
-                                           array_count_var=param.array_count_var,
-                                           array_length_for=param.array_length_for,
-                                           pointer_count=pointer_count,
-                                           pointer_count_var=param.pointer_count_var,
-                                           is_null_terminated=param.is_null_terminated,
-                                           valid_extension_structs=None,
-                                           cdecl=param.cdecl,
-                                           values=param.values))
-                    count = count + 1
-
-                if cur_cmd.protect_value:
-                    generated_funcs += '#if %s\n' % cur_cmd.protect_string
-                decl = self.getProto(cur_cmd).replace(";", " XRLOADER_ABI_TRY {\n")
-
-                generated_funcs += decl
-                generated_funcs += tramp_variable_defines
-
-                # If this is not core, but an extension, check to make sure the extension is enabled.
-                if x == 1:
-                    generated_funcs += '        if (!loader_instance->ExtensionIsEnabled("%s")) {\n' % (
-                        cur_cmd.ext_name)
-                    generated_funcs += '            LoaderLogger::LogValidationErrorMessage("VUID-%s-extension-notenabled",\n' % cur_cmd.name
-                    generated_funcs += '                                                    "%s",\n' % cur_cmd.name
-                    generated_funcs += '                                                    "The %s extension has not been enabled prior to calling %s");\n' % (
-                        cur_cmd.ext_name, cur_cmd.name)
-                    if has_return:
-                        generated_funcs += '            return XR_ERROR_FUNCTION_UNSUPPORTED;\n'
-                    else:
-                        generated_funcs += '            return;\n'
-                    generated_funcs += '        }\n\n'
-
-                if has_return:
-                    generated_funcs += '        result = '
-                else:
-                    generated_funcs += '        '
-
-                generated_funcs += 'loader_instance->DispatchTable()->'
-                generated_funcs += base_name
-                generated_funcs += '('
-                count = 0
-                for param in tramp_param_replace:
-                    if count > 0:
-                        generated_funcs += ', '
-                    generated_funcs += param.name
-                    count = count + 1
-                generated_funcs += ');\n'
-
-                generated_funcs += '    }\n'
+            generated_funcs += '    }\n'
 
 
-                if has_return:
-                    generated_funcs += '    return result;\n'
+            if has_return:
+                generated_funcs += '    return result;\n'
 
-                generated_funcs += '}\nXRLOADER_ABI_CATCH_FALLBACK\n'
+            generated_funcs += '}\nXRLOADER_ABI_CATCH_FALLBACK\n'
 
-                if cur_cmd.protect_value:
-                    generated_funcs += '#endif // %s\n' % cur_cmd.protect_string
-                generated_funcs += '\n'
+            if cur_cmd.protect_value:
+                generated_funcs += '#endif // %s\n' % cur_cmd.protect_string
+            generated_funcs += '\n'
         return generated_funcs

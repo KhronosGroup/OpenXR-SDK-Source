@@ -59,7 +59,6 @@ add_library(openxr_loader ${LIBRARY_TYPE}
     ${GENERATED_OUTPUT}
     ${PROJECT_SOURCE_DIR}/src/common/filesystem_utils.cpp
     ${PROJECT_SOURCE_DIR}/src/common/filesystem_utils.hpp
-    ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.cpp
     ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h
     ${PROJECT_SOURCE_DIR}/src/common/object_info.cpp
     ${PROJECT_SOURCE_DIR}/src/common/object_info.h

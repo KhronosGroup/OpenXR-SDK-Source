@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2013-2019 The Khronos Group Inc.
+# Copyright (c) 2013-2020 The Khronos Group Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -58,15 +58,13 @@ def enquote(s):
 
 
 def regSortCategoryKey(feature):
-    """Primary sort key for regSortFeatures.
-
+    """Sort key for regSortFeatures.
     Sorts by category of the feature name string:
 
     - Core API features (those defined with a `<feature>` tag)
     - ARB/KHR/OES (Khronos extensions)
-    - other       (EXT/vendor extensions)
+    - other       (EXT/vendor extensions)"""
 
-    This will need changing for Vulkan!"""
     if feature.elem.tag == 'feature':
         return 0
     if (feature.category == 'ARB'
@@ -77,24 +75,29 @@ def regSortCategoryKey(feature):
     return 2
 
 
-def regSortNameKey(feature):
-    """Secondary sort key for regSortFeatures.
+def regSortOrderKey(feature):
+    """Sort key for regSortFeatures - key is the sortorder attribute."""
 
-    Sorts by extension name."""
+    return feature.sortorder
+
+
+def regSortNameKey(feature):
+    """Sort key for regSortFeatures - key is the extension name."""
+
     return feature.name
 
 
 def regSortFeatureVersionKey(feature):
-    """Second sort key for regSortFeatures.
+    """Sort key for regSortFeatures - key is the feature version.
+    `<extension>` elements all have version number 0."""
 
-    Sorts by feature version. `<extension>` elements all have version number 0."""
     return float(feature.versionNumber)
 
 
 def regSortExtensionNumberKey(feature):
-    """Tertiary sort key for regSortFeatures.
+    """Sort key for regSortFeatures - key is the extension number.
+    `<feature>` elements all have extension number 0."""
 
-    Sorts by extension number. `<feature>` elements all have extension number 0."""
     return int(feature.number)
 
 
@@ -106,6 +109,7 @@ def regSortFeatures(featureList):
     - then by extension number (for extensions)"""
     featureList.sort(key=regSortExtensionNumberKey)
     featureList.sort(key=regSortFeatureVersionKey)
+    featureList.sort(key=regSortOrderKey)
     featureList.sort(key=regSortCategoryKey)
 
 
@@ -558,8 +562,7 @@ class OutputGenerator:
 
         self.conventions = genOpts.conventions
 
-        # Open specified output file. Not done in constructor since a
-        # Generator can be used without writing to a file.
+        # Open a temporary file for accumulating output.
         if self.genOpts.filename is not None:
             self.outFile = tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', delete=False)
         else:
@@ -575,6 +578,9 @@ class OutputGenerator:
         self.outFile.flush()
         if self.outFile != sys.stdout and self.outFile != sys.stderr:
             self.outFile.close()
+
+        # On successfully generating output, move the temporary file to the
+        # target file.
         if self.genOpts.filename is not None:
             if sys.platform == 'win32':
                 directory = Path(self.genOpts.directory)
@@ -707,6 +713,9 @@ class OutputGenerator:
         or structure/union member).
 
         - param - Element (`<param>` or `<member>`) to identify"""
+
+        # Allow for missing <name> tag
+        newLen = 0
         paramdecl = '    ' + noneStr(param.text)
         for elem in param:
             text = noneStr(elem.text)

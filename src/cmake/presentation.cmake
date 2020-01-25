@@ -10,7 +10,7 @@ if(index EQUAL -1)
     message(FATAL_ERROR "Presentation backend must be one of ${PRESENTATION_BACKENDS}")
 endif()
 
-message(STATUS "Using presentation backend: ${PRESENTATION_BACKEND}")
+message(STATUS "Presentation backend selected for hello_xr, loader_test, conformance: ${PRESENTATION_BACKEND}")
 
 find_package(X11)
 
@@ -80,6 +80,7 @@ elseif(PRESENTATION_BACKEND MATCHES "xcb")
         target_compile_definitions(openxr-gfxwrapper PUBLIC OS_LINUX_XCB_GLX)
 
         target_link_libraries(openxr-gfxwrapper PRIVATE ${X11_X11_LIB} ${XCB_KEYSYMS_LIBRARIES} ${XCB_RANDR_LIBRARIES})
+
     endif()
 elseif(PRESENTATION_BACKEND MATCHES "wayland")
     if(NOT BUILD_WITH_WAYLAND_HEADERS)
@@ -133,5 +134,15 @@ elseif(PRESENTATION_BACKEND MATCHES "wayland")
         )
         target_compile_definitions(openxr-gfxwrapper PUBLIC OS_LINUX_WAYLAND)
         target_link_libraries(openxr-gfxwrapper PRIVATE ${EGL_LIBRARIES} ${WAYLAND_CLIENT_LIBRARIES})
+    endif()
+endif()
+
+
+if(TARGET openxr-gfxwrapper AND NOT (PRESENTATION_BACKEND MATCHES "wayland"))
+    if(TARGET OpenGL::OpenGL AND TARGET OpenGL::GLX)
+        # OpenGL::OpenGL already linked, we just need to add GLX.
+        target_link_libraries(openxr-gfxwrapper PUBLIC OpenGL::GLX)
+    else()
+        target_link_libraries(openxr-gfxwrapper PUBLIC ${OPENGL_LIBRARIES} ${OPENGL_glx_LIBRARY})
     endif()
 endif()

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2019 The Khronos Group Inc.
+# Copyright (c) 2019-2020 The Khronos Group Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -160,6 +160,7 @@ getSDKFilenames() {
         CHANGELOG.SDK.md \
         CMakeLists.txt \
         LICENSE \
+        .azure_pipelines \
         specification/registry/*.xml \
         include/ \
         src/CMakeLists.txt \
@@ -171,7 +172,6 @@ getSDKFilenames() {
         src/external/CMakeLists.txt \
         src/external/jsoncpp \
         src/.clang-format \
-        .azure_pipelines \
         | grep -v "gfxwrapper" \
         | grep -v "include/.gitignore" \
         | grep -v "images"

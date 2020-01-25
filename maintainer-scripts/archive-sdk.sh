@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2019 The Khronos Group Inc.
+# Copyright (c) 2019-2020 The Khronos Group Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,9 +17,6 @@
 # generated files for OpenXR-SDK
 #
 # Usage: ./archive-sdk.sh
-#        Optionally, call ./archive-state.sh PREVIOUS_RELEASE_TAG_GOES_HERE
-#        to also get per-tarball changelogs to use as a starting place for
-#        the commit message/release notes.
 
 set -e
 
