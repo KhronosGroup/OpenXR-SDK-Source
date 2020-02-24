@@ -610,7 +610,7 @@ struct RenderTarget {
         m_vkDevice = nullptr;
     }
 
-    RenderTarget(RenderTarget&& other) : RenderTarget() {
+    RenderTarget(RenderTarget&& other) noexcept : RenderTarget() {
         using std::swap;
         swap(colorImage, other.colorImage);
         swap(depthImage, other.depthImage);
@@ -619,7 +619,7 @@ struct RenderTarget {
         swap(fb, other.fb);
         swap(m_vkDevice, other.m_vkDevice);
     }
-    RenderTarget& operator=(RenderTarget&& other) {
+    RenderTarget& operator=(RenderTarget&& other) noexcept {
         if (&other == this) {
             return *this;
         }
@@ -884,14 +884,14 @@ struct DepthBuffer {
         m_vkDevice = nullptr;
     }
 
-    DepthBuffer(DepthBuffer&& other) : DepthBuffer() {
+    DepthBuffer(DepthBuffer&& other) noexcept : DepthBuffer() {
         using std::swap;
 
         swap(depthImage, other.depthImage);
         swap(depthMemory, other.depthMemory);
         swap(m_vkDevice, other.m_vkDevice);
     }
-    DepthBuffer& operator=(DepthBuffer&& other) {
+    DepthBuffer& operator=(DepthBuffer&& other) noexcept {
         if (&other == this) {
             return *this;
         }

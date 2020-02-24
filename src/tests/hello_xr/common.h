@@ -43,10 +43,10 @@ template <typename T>
 struct ScopeGuard {
     // Needs C++17: static_assert(std::is_invocable_v<T>, "Type must be invocable function.");
 
-    ScopeGuard(T&& guard) : m_guard(std::move(guard)) {}
+    ScopeGuard(T&& guard) noexcept : m_guard(std::move(guard)) {}
 
-    ScopeGuard(ScopeGuard&&) = default;
-    ScopeGuard& operator=(ScopeGuard&&) = default;
+    ScopeGuard(ScopeGuard&&) noexcept = default;
+    ScopeGuard& operator=(ScopeGuard&&) noexcept = default;
 
     ScopeGuard(ScopeGuard&) = delete;
     ScopeGuard& operator=(ScopeGuard&) = delete;
