@@ -1,0 +1,31 @@
+{
+    "#": "This is a config file for proclamation, the changelog combiner: https://gitlab.com/ryanpavlik/proclamation",
+    "projects": [
+        {
+            "project_name": "OpenXR SDK",
+            "news_filename": "CHANGELOG.SDK.md",
+            "template": "changes/template.md",
+            "sections": {
+                "Registry": {
+                    "directory": "changes/registry"
+                },
+                "SDK": {
+                    "directory": "changes/sdk"
+                }
+            }
+        },
+        {
+            "project_name": "OpenXR Specification",
+            "news_filename": "CHANGELOG.Docs.md",
+            "template": "changes/template.md",
+            "sections": {
+                "Registry": {
+                    "directory": "changes/registry"
+                },
+                "Specification": {
+                    "directory": "changes/specification"
+                }
+            }
+        }
+    ]
+}
