@@ -1,6 +1,6 @@
 {% macro format_ref(ref) -%}
 {%- set service = ref.service_params[0] -%}
-{%- if ref.ref_service == "gh" -%}
+{%- if service == "gh" -%}
     {%- set project = ref.service_params[1] %}
     {%- set project_base = "https://github.com/KhronosGroup/" + project %}
     {%- set link_text %}{{ project }}/#{{ ref.number }}{% endset %}
@@ -22,7 +22,7 @@
 [{{ link_text }}]({{project_base}}/{{subdir}}/{{ ref.number }})
 {%- endmacro -%}
 {% macro format_refs(refs) -%}
-    {%- if (refs | length) > 0 -%}
+    {% if (refs | length) > 0 %}
         {%- set comma = joiner(", ") -%}
         {% for ref in refs -%}
             {{comma()}}{{format_ref(ref)}}
@@ -30,13 +30,12 @@
     {%- endif %}
 {%- endmacro -%}
 {% block title %}## {{ project_name }} {{project_version}} ({{date}}){% endblock %}
-
-{% for section in sections %}
+{% block sections_and_fragments -%}
+{%- for section in sections %}
 - {{ section.name }}
-{%- for chunk in section.chunks %}{% set rawtext %}{{ chunk.text }} ({{format_refs(chunk.refs)}}){% endset %}
-  - {{ rawtext | wordwrap | indent }}
+{%- for fragment in section.fragments %}
+  - {% set rawtext %}{{ fragment.text }} ({{format_refs(fragment.refs)}}){% endset %}{{ rawtext | wordwrap | indent }}
 {%- else %}
   - No significant changes
-{% endfor -%}
-{% endfor %}
-
+{%- endfor -%}
+{%- endfor %}{% endblock %}
