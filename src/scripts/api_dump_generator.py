@@ -881,6 +881,8 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             struct_union_check += '                          std::string prefix, std::string type_string, bool is_pointer,\n'
             struct_union_check += '                          std::vector<std::tuple<std::string, std::string, std::string>> &contents) {\n'
             struct_union_check += self.writeIndent(1)
+            struct_union_check += '(void)gen_dispatch_table;  // silence warning\n'
+            struct_union_check += self.writeIndent(1)
             struct_union_check += 'try {\n'
             struct_union_check += self.writeIndent(2)
             struct_union_check += 'contents.emplace_back(type_string, prefix, PointerToHexString(value));\n'
@@ -913,6 +915,8 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             struct_union_check += '                           std::string prefix, std::string type_string, bool is_pointer,\n'
             struct_union_check += '                           std::vector<std::tuple<std::string, std::string, std::string>> &contents) {\n'
             indent = 1
+            struct_union_check += self.writeIndent(indent)
+            struct_union_check += '(void)gen_dispatch_table;  // silence warning\n'
             struct_union_check += self.writeIndent(indent)
             struct_union_check += 'try {\n'
             indent = indent + 1
@@ -974,6 +978,8 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             struct_union_check += '\n'
         struct_union_check += 'bool ApiDumpDecodeNextChain(XrGeneratedDispatchTable* gen_dispatch_table, const void* value, std::string prefix,\n'
         struct_union_check += '                            std::vector<std::tuple<std::string, std::string, std::string>> &contents) {\n'
+        struct_union_check += self.writeIndent(1)
+        struct_union_check += '(void)gen_dispatch_table;  // silence warning\n'
         struct_union_check += '    try {\n'
         struct_union_check += '        contents.emplace_back("const void *", prefix, PointerToHexString(value));\n'
         struct_union_check += '        if (nullptr == value) {\n'

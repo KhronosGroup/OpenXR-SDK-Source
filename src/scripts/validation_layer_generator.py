@@ -261,6 +261,16 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             enum_value_validate += '                    std::vector<GenValidUsageXrObjectInfo>& objects_info,\n'
             enum_value_validate += '                    const %s value) {\n' % enum_tuple.name
             indent = 1
+            enum_value_validate += self.writeIndent(indent)
+            enum_value_validate += '(void)instance_info;  // quiet warnings\n'
+            enum_value_validate += self.writeIndent(indent)
+            enum_value_validate += '(void)command_name;  // quiet warnings\n'
+            enum_value_validate += self.writeIndent(indent)
+            enum_value_validate += '(void)validation_name;  // quiet warnings\n'
+            enum_value_validate += self.writeIndent(indent)
+            enum_value_validate += '(void)item_name;  // quiet warnings\n'
+            enum_value_validate += self.writeIndent(indent)
+            enum_value_validate += '(void)objects_info;  // quiet warnings\n'
             checked_extension = ''
             if enum_tuple.ext_name and not self.isCoreExtensionName(enum_tuple.ext_name):
                 checked_extension = enum_tuple.ext_name
@@ -2157,7 +2167,12 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 pre_validate_func += self.writeIndent(indent)
                 pre_validate_func += 'GenValidUsageXrHandleInfo *gen_%s_info = info_with_instance.first;\n' % undecorate(first_param_tuple.name)
                 pre_validate_func += self.writeIndent(indent)
+                pre_validate_func += '(void)gen_%s_info;  // quiet warnings\n' % undecorate(first_param_tuple.name)
+                pre_validate_func += self.writeIndent(indent)
                 pre_validate_func += 'GenValidUsageXrInstanceInfo *gen_instance_info = info_with_instance.second;\n'
+
+            pre_validate_func += self.writeIndent(indent)
+            pre_validate_func += '(void)gen_instance_info;  // quiet warnings\n'
 
         # If any of the associated handles has validation state tracking, get the
         # appropriate struct setup for validation later in the function
@@ -2401,6 +2416,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 next_validate_func += '        auto info_with_instance = %s.getWithInstanceInfo(%s);\n' % (
                     self.makeInfoName(handle_type_name=first_handle_tuple.name), first_handle_name)
                 next_validate_func += '        GenValidUsageXrHandleInfo *gen_%s_info = info_with_instance.first;\n' % base_handle_name
+                next_validate_func += '        (void)gen_%s_info;  // quiet warnings\n' % base_handle_name
                 next_validate_func += '        GenValidUsageXrInstanceInfo *gen_instance_info = info_with_instance.second;\n'
         else:
             next_validate_func += '#error("Bug")\n'
