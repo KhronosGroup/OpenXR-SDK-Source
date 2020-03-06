@@ -1,0 +1,35 @@
+.\" Composed by Ryan Pavlik <ryan.pavlik@collabora.com>
+.\" Copyright 2020, Collabora, Ltd.
+.\" SPDX-License-Identifier: Apache-2.0
+.Dd March 06, 2020
+.Dt OPENXR_RUNTIME_LIST 1
+.Os
+.Sh NAME                 \" Section Header - required - don't modify
+.Nm openxr_runtime_list
+.Nd A minimal OpenXR application that reports information about your OpenXR runtime
+.Sh SYNOPSIS             \" Section Header - required - don't modify
+.Nm
+.Sh DESCRIPTION          \" Section Header - required - don't modify
+.Nm
+is a minimal, command-line application written using the 
+.Tn OpenXR
+API.
+.Pp
+It accepts no arguments.
+At startup, it connects to your OpenXR runtime (if available) and reports the following data:
+.Bl -bullet
+.It
+System name
+.It
+System vendor ID
+.It
+System ID
+.It
+Available instance extensions and their versions.
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh SEE ALSO
+.Xr hello_xr 1 ,
+https://www.khronos.org/registry/OpenXR/ ,
+https://github.com/KhronosGroup/OpenXR-SDK-Source/tree/master/src/tests/list

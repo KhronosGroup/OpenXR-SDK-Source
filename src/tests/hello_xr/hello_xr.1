@@ -1,0 +1,99 @@
+.\" Composed by Ryan Pavlik <ryan.pavlik@collabora.com>
+.\" Copyright 2020, Collabora, Ltd.
+.\" SPDX-License-Identifier: Apache-2.0
+.Dd March 06, 2020
+.Dt HELLO_XR 1
+.Os
+.Sh NAME                 \" Section Header - required - don't modify
+.Nm hello_xr
+.Nd A sample OpenXR application.
+.Sh SYNOPSIS             \" Section Header - required - don't modify
+.Nm
+.Op Fl h | Fl -help
+.Nm
+.Fl g | Fl -graphics Ar graphics_api
+.Op Fl ff | Fl -formfactor Ar form_factor
+.Op Fl vc | Fl -viewconfig Ar view_config
+.Op Fl bm | Fl -blendmode Ar blend_mode
+.Op Fl s | Fl -space Ar space
+.Op Fl v | Fl -verbose
+.Sh DESCRIPTION          \" Section Header - required - don't modify
+.Nm
+is a sample application written using the 
+.Tn OpenXR
+API.
+.Pp
+The arguments are as follows: 
+.Bl -tag -width -indent
+.It Fl h | Fl -help
+Show brief usage instructions.
+.It g | Fl -graphics Ar graphics_api
+.Em Required:
+specify the graphics API to use.
+(Note that not that not all graphics APIs are necessarily available on all systems.)
+The parameter
+.Ar graphics_api
+must be one of the following (case-insensitive):
+.Bl -tag
+.It Ql D3D11
+Direct3D 11 (Windows-only)
+.It Ql D3D12
+Direct3D 12 (Windows-only)
+.It Ql OpenGLES
+.It Ql OpenGL
+.It Ql Vulkan
+.El
+.It Fl ff | Fl -formfactor Ar form_factor
+Specify the form factor to use.
+(Note that you need a suitable XR system and a runtime supporting a given form factor for it to work.)
+The parameter
+.Ar form_factor
+must be one of the following (case-insensitive):
+.Bl -tag
+.It Ql Hmd
+Head-mounted display (default)
+.It Ql Handheld
+.El
+.It Fl vc | Fl -viewconfig Ar view_config
+Specify the view configuration to use.
+(Note that you need a suitable XR system and a runtime supporting a given view configuration for it to work.)
+The parameter
+.Ar view_config
+must be one of the following (case-insensitive):
+.Bl -tag
+.It Ql Mono
+.It Ql Stereo
+(default)
+.El
+.It Fl bm | Fl -blendmode Ar blend_mode
+Specify the environment blend mode to use.
+(Note that you need a suitable XR system and a runtime supporting a given environment blend mode for it to work.)
+The parameter
+.Ar blend_mode
+must be one of the following (case-insensitive):
+.Bl -tag
+.It Ql Opaque
+.It Ql Additive
+.It Ql AlphaBlend
+.El
+.It Fl s | Fl -space Ar space
+Specify the space to use.
+The parameter
+.Ar space
+must be one of the following (case-insensitive):
+.Bl -tag
+.It Ql View
+.It Ql Local
+.It Ql Stage
+.El
+.It Fl v | Fl -verbose
+Enable verbose logging output from the
+.Nm
+application itself.
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh SEE ALSO
+.Xr openxr_runtime_list 1 ,
+https://www.khronos.org/registry/OpenXR/ ,
+https://github.com/KhronosGroup/OpenXR-SDK-Source/tree/master/src/tests/hello_xr
