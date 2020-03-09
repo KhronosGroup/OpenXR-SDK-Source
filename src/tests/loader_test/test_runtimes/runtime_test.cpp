@@ -35,12 +35,17 @@
 
 extern "C" {
 
-XrResult RuntimeTestXrCreateInstance(const XrInstanceCreateInfo *info, XrInstance *instance) { return XR_SUCCESS; }
+XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrCreateInstance(const XrInstanceCreateInfo *info, XrInstance *instance) {
+    *instance = (XrInstance)1;
+    return XR_SUCCESS;
+}
 
-XrResult RuntimeTestXrDestroyInstance(XrInstance instance) { return XR_SUCCESS; }
+XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrDestroyInstance(XrInstance instance) { return XR_SUCCESS; }
 
-XrResult RuntimeTestXrEnumerateInstanceExtensionProperties(const char *layerName, uint32_t propertyCapacityInput,
-                                                           uint32_t *propertyCountOutput, XrExtensionProperties *properties) {
+XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrEnumerateInstanceExtensionProperties(const char *layerName,
+                                                                                 uint32_t propertyCapacityInput,
+                                                                                 uint32_t *propertyCountOutput,
+                                                                                 XrExtensionProperties *properties) {
     if (nullptr != layerName) {
         return XR_ERROR_API_LAYER_NOT_PRESENT;
     }
@@ -55,7 +60,27 @@ XrResult RuntimeTestXrEnumerateInstanceExtensionProperties(const char *layerName
     return XR_SUCCESS;
 }
 
-XrResult RuntimeTestXrGetInstanceProcAddr(XrInstance instance, const char *name, PFN_xrVoidFunction *function) {
+XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetSystem(XrInstance instance, const XrSystemGetInfo *getInfo, XrSystemId *systemId) {
+    *systemId = 1;
+    return XR_SUCCESS;
+}
+
+XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetSystemProperties(XrInstance instance, XrSystemId systemId,
+                                                                XrSystemProperties *properties) {
+    if (systemId != 1) {
+        return XR_ERROR_SYSTEM_INVALID;
+    }
+    properties->graphicsProperties.maxLayerCount = 1;
+    properties->graphicsProperties.maxSwapchainImageHeight = 1;
+    properties->graphicsProperties.maxSwapchainImageWidth = 1;
+    properties->systemId = systemId;
+    strcpy(properties->systemName, "Dummy system");
+    properties->vendorId = 0x0;
+    return XR_SUCCESS;
+}
+
+XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetInstanceProcAddr(XrInstance instance, const char *name,
+                                                                PFN_xrVoidFunction *function) {
     if (0 == strcmp(name, "xrGetInstanceProcAddr")) {
         *function = reinterpret_cast<PFN_xrVoidFunction>(RuntimeTestXrGetInstanceProcAddr);
     } else if (0 == strcmp(name, "xrEnumerateInstanceExtensionProperties")) {
@@ -64,6 +89,10 @@ XrResult RuntimeTestXrGetInstanceProcAddr(XrInstance instance, const char *name,
         *function = reinterpret_cast<PFN_xrVoidFunction>(RuntimeTestXrCreateInstance);
     } else if (0 == strcmp(name, "xrDestroyInstance")) {
         *function = reinterpret_cast<PFN_xrVoidFunction>(RuntimeTestXrDestroyInstance);
+    } else if (0 == strcmp(name, "xrGetSystem")) {
+        *function = reinterpret_cast<PFN_xrVoidFunction>(RuntimeTestXrGetSystem);
+    } else if (0 == strcmp(name, "xrGetSystemProperties")) {
+        *function = reinterpret_cast<PFN_xrVoidFunction>(RuntimeTestXrGetSystemProperties);
     } else {
         *function = nullptr;
     }
@@ -72,8 +101,8 @@ XrResult RuntimeTestXrGetInstanceProcAddr(XrInstance instance, const char *name,
 }
 
 // Function used to negotiate an interface betewen the loader and a runtime.
-RUNTIME_EXPORT XrResult xrNegotiateLoaderRuntimeInterface(const XrNegotiateLoaderInfo *loaderInfo,
-                                                          XrNegotiateRuntimeRequest *runtimeRequest) {
+RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderRuntimeInterface(const XrNegotiateLoaderInfo *loaderInfo,
+                                                                                XrNegotiateRuntimeRequest *runtimeRequest) {
     if (nullptr == loaderInfo || nullptr == runtimeRequest || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
         loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo) ||
         runtimeRequest->structType != XR_LOADER_INTERFACE_STRUCT_RUNTIME_REQUEST ||
@@ -87,82 +116,49 @@ RUNTIME_EXPORT XrResult xrNegotiateLoaderRuntimeInterface(const XrNegotiateLoade
     }
 
     runtimeRequest->runtimeInterfaceVersion = XR_CURRENT_LOADER_RUNTIME_VERSION;
-    runtimeRequest->runtimeApiVersion = XR_MAKE_VERSION(0, 1, 0);
+    runtimeRequest->runtimeApiVersion = XR_CURRENT_API_VERSION;
     runtimeRequest->getInstanceProcAddr = reinterpret_cast<PFN_xrGetInstanceProcAddr>(RuntimeTestXrGetInstanceProcAddr);
 
     return XR_SUCCESS;
 }
 
 // Always fail
-RUNTIME_EXPORT XrResult TestRuntimeAlwaysFailNegotiateLoaderRuntimeInterface(const XrNegotiateLoaderInfo *loaderInfo,
-                                                                             XrNegotiateRuntimeRequest *runtimeRequest) {
+RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeAlwaysFailNegotiateLoaderRuntimeInterface(
+    const XrNegotiateLoaderInfo *loaderInfo, XrNegotiateRuntimeRequest *runtimeRequest) {
     return XR_ERROR_INITIALIZATION_FAILED;
 }
 
 // Pass, but return NULL for the runtime's xrGetInstanceProcAddr
-RUNTIME_EXPORT XrResult TestRuntimeNullGipaNegotiateLoaderRuntimeInterface(const XrNegotiateLoaderInfo *loaderInfo,
-                                                                           XrNegotiateRuntimeRequest *runtimeRequest) {
-    if (nullptr == loaderInfo || nullptr == runtimeRequest || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
-        loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo) ||
-        runtimeRequest->structType != XR_LOADER_INTERFACE_STRUCT_RUNTIME_REQUEST ||
-        runtimeRequest->structVersion != XR_RUNTIME_INFO_STRUCT_VERSION ||
-        runtimeRequest->structSize != sizeof(XrNegotiateRuntimeRequest) ||
-        loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_RUNTIME_VERSION ||
-        loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_RUNTIME_VERSION ||
-        loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_RUNTIME_VERSION ||
-        loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
-        return XR_ERROR_INITIALIZATION_FAILED;
+RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeNullGipaNegotiateLoaderRuntimeInterface(
+    const XrNegotiateLoaderInfo *loaderInfo, XrNegotiateRuntimeRequest *runtimeRequest) {
+    auto result = xrNegotiateLoaderRuntimeInterface(loaderInfo, runtimeRequest);
+    if (result == XR_SUCCESS) {
+        runtimeRequest->getInstanceProcAddr = nullptr;
     }
 
-    runtimeRequest->runtimeInterfaceVersion = XR_CURRENT_LOADER_RUNTIME_VERSION;
-    runtimeRequest->runtimeApiVersion = XR_MAKE_VERSION(0, 1, 0);
-    runtimeRequest->getInstanceProcAddr = nullptr;
-
-    return XR_SUCCESS;
+    return result;
 }
 
 // Pass, but return invalid interface version
-RUNTIME_EXPORT XrResult TestRuntimeInvalidInterfaceNegotiateLoaderRuntimeInterface(const XrNegotiateLoaderInfo *loaderInfo,
-                                                                                   XrNegotiateRuntimeRequest *runtimeRequest) {
-    if (nullptr == loaderInfo || nullptr == runtimeRequest || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
-        loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo) ||
-        runtimeRequest->structType != XR_LOADER_INTERFACE_STRUCT_RUNTIME_REQUEST ||
-        runtimeRequest->structVersion != XR_RUNTIME_INFO_STRUCT_VERSION ||
-        runtimeRequest->structSize != sizeof(XrNegotiateRuntimeRequest) ||
-        loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_RUNTIME_VERSION ||
-        loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_RUNTIME_VERSION ||
-        loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_RUNTIME_VERSION ||
-        loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
-        return XR_ERROR_INITIALIZATION_FAILED;
+RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeInvalidInterfaceNegotiateLoaderRuntimeInterface(
+    const XrNegotiateLoaderInfo *loaderInfo, XrNegotiateRuntimeRequest *runtimeRequest) {
+    auto result = xrNegotiateLoaderRuntimeInterface(loaderInfo, runtimeRequest);
+    if (result == XR_SUCCESS) {
+        runtimeRequest->runtimeInterfaceVersion = 0;
     }
 
-    runtimeRequest->runtimeInterfaceVersion = 0;
-    runtimeRequest->runtimeApiVersion = XR_MAKE_VERSION(0, 1, 0);
-    runtimeRequest->getInstanceProcAddr = reinterpret_cast<PFN_xrGetInstanceProcAddr>(RuntimeTestXrGetInstanceProcAddr);
-
-    return XR_SUCCESS;
+    return result;
 }
 
 // Pass, but return invalid API version
-RUNTIME_EXPORT XrResult TestRuntimeInvalidApiNegotiateLoaderRuntimeInterface(const XrNegotiateLoaderInfo *loaderInfo,
-                                                                             XrNegotiateRuntimeRequest *runtimeRequest) {
-    if (nullptr == loaderInfo || nullptr == runtimeRequest || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
-        loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo) ||
-        runtimeRequest->structType != XR_LOADER_INTERFACE_STRUCT_RUNTIME_REQUEST ||
-        runtimeRequest->structVersion != XR_RUNTIME_INFO_STRUCT_VERSION ||
-        runtimeRequest->structSize != sizeof(XrNegotiateRuntimeRequest) ||
-        loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_RUNTIME_VERSION ||
-        loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_RUNTIME_VERSION ||
-        loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_RUNTIME_VERSION ||
-        loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
-        return XR_ERROR_INITIALIZATION_FAILED;
+RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeInvalidApiNegotiateLoaderRuntimeInterface(
+    const XrNegotiateLoaderInfo *loaderInfo, XrNegotiateRuntimeRequest *runtimeRequest) {
+    auto result = xrNegotiateLoaderRuntimeInterface(loaderInfo, runtimeRequest);
+    if (result == XR_SUCCESS) {
+        runtimeRequest->runtimeApiVersion = 0;
     }
 
-    runtimeRequest->runtimeInterfaceVersion = XR_CURRENT_LOADER_RUNTIME_VERSION;
-    runtimeRequest->runtimeApiVersion = 0;
-    runtimeRequest->getInstanceProcAddr = reinterpret_cast<PFN_xrGetInstanceProcAddr>(RuntimeTestXrGetInstanceProcAddr);
-
-    return XR_SUCCESS;
+    return result;
 }
 
 }  // extern "C"
