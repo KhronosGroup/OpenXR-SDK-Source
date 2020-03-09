@@ -20,6 +20,8 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+include(GNUInstallDirs)
+
 ### Dependencies
 set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL)

@@ -79,3 +79,7 @@ endif()
 
 install(TARGETS hello_xr
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+if(NOT WIN32)
+    install(FILES hello_xr.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1/ COMPONENT ManPages)
+endif()

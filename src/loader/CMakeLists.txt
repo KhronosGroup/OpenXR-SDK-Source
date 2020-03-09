@@ -15,8 +15,6 @@
 # Author:
 #
 
-include(GNUInstallDirs)
-
 if(WIN32)
     set(openxr_loader_RESOURCE_FILE ${CMAKE_CURRENT_SOURCE_DIR}/loader.rc)
 endif()
