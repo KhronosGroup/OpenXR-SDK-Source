@@ -45,6 +45,19 @@ def main(argv):
         elif opt in ("-b", "--bad"):
             generate_badjson_jsons = True
 
+    file_text  = '{\n'
+    file_text += '    "file_format_version": "%s",\n' % cur_runtime_json_version
+    file_text += '    "runtime": {\n'
+    file_text += '        "library_path": "%s",\n' % library_location
+    file_text += '        "functions": {\n'
+    file_text += '           "xrNegotiateLoaderRuntimeInterface":\n'
+    file_text += '               "xrNegotiateLoaderRuntimeInterface"\n'
+    file_text += '       }\n'
+    file_text += '    }\n'
+    file_text += '}\n'
+    with open(output_file, 'w') as f:
+        f.write(file_text)
+
     if generate_badjson_jsons:
         # Bad File format versions
         ####################################
