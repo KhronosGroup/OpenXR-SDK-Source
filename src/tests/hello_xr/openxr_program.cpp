@@ -344,11 +344,11 @@ struct OpenXrProgram : IOpenXrProgram {
     }
 
     using InputState = struct {
-        XrActionSet actionSet;
-        XrAction grabAction;
-        XrAction poseAction;
-        XrAction vibrateAction;
-        XrAction quitAction;
+        XrActionSet actionSet{XR_NULL_HANDLE};
+        XrAction grabAction{XR_NULL_HANDLE};
+        XrAction poseAction{XR_NULL_HANDLE};
+        XrAction vibrateAction{XR_NULL_HANDLE};
+        XrAction quitAction{XR_NULL_HANDLE};
         std::array<XrPath, Side::COUNT> handSubactionPath;
         std::array<XrSpace, Side::COUNT> handSpace;
         std::array<float, Side::COUNT> handScale = {{1.0f, 1.0f}};
@@ -992,7 +992,7 @@ struct OpenXrProgram : IOpenXrProgram {
     bool m_sessionRunning{false};
 
     XrEventDataBuffer m_eventDataBuffer;
-    InputState m_input{XR_NULL_HANDLE};
+    InputState m_input;
 };
 }  // namespace
 
