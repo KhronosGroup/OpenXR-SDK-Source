@@ -34,7 +34,6 @@ set_target_properties(test_runtime PROPERTIES FOLDER ${TESTS_FOLDER})
 add_dependencies(test_runtime
     xr_global_generated_files
     generate_openxr_header
-    generated_rt_json_files
 )
 target_include_directories(test_runtime
     PRIVATE ${PROJECT_SOURCE_DIR}/src
@@ -85,8 +84,5 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     )
 endif()
 
-add_custom_target(generated_rt_json_files DEPENDS
-    ${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/runtimes/test_runtime.json
-)
-set_target_properties(generated_rt_json_files PROPERTIES FOLDER ${CODEGEN_FOLDER})
-
+# Add generated file to our sources so we depend on it, and thus trigger geenration.
+target_sources(test_runtime PRIVATE ${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/runtimes/test_runtime.json)

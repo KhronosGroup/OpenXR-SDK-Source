@@ -130,7 +130,6 @@ void TestEnumLayers(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32
 #endif
     try {
         XrResult test_result = XR_SUCCESS;
-        uint32_t num_before_explicit = 0;
         std::vector<XrApiLayerProperties> layer_props;
 
 #if FILTER_OUT_LOADER_ERRORS == 1
@@ -186,9 +185,8 @@ void TestEnumLayers(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32
                 }
             }
         }
-        num_before_explicit = out_layer_value;
 
-        // Tests with some explicit layers added
+        // Tests with some explicit layers instead
         in_layer_value = 0;
         out_layer_value = 0;
         subtest_name = "Simple explicit layers";
@@ -206,9 +204,8 @@ void TestEnumLayers(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32
             cout << "Failed with return " << std::to_string(test_result) << endl;
             local_failed++;
         } else {
-            if (out_layer_value != num_before_explicit + num_valid_jsons) {
-                cout << "Failed, expected count " << (num_before_explicit + num_valid_jsons) << " (" << num_before_explicit
-                     << " seen earlier plus " << num_valid_jsons << " we added), got " << std::to_string(out_layer_value) << endl;
+            if (out_layer_value != num_valid_jsons) {
+                cout << "Failed, expected count " << num_valid_jsons << ", got " << std::to_string(out_layer_value) << endl;
                 local_failed++;
             } else {
                 local_passed++;
@@ -463,6 +460,11 @@ void TestEnumInstanceExtensions(uint32_t& total, uint32_t& passed, uint32_t& ski
                 }
             }
         }
+    } catch (std::exception const& e) {
+        cout << "Exception triggered during test (" << e.what() << "), automatic failure" << endl;
+        local_failed++;
+        local_total++;
+
     } catch (...) {
         cout << "Exception triggered during test, automatic failure" << endl;
         local_failed++;
