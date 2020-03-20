@@ -49,3 +49,6 @@ set_target_properties(runtime_list PROPERTIES OUTPUT_NAME openxr_runtime_list)
 
 install(TARGETS runtime_list
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+if(NOT WIN32)
+    install(FILES openxr_runtime_list.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1/ COMPONENT ManPages)
+endif()
