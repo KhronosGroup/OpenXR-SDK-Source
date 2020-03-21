@@ -1337,10 +1337,10 @@ maintained in the master branch of the Khronos OpenXR GitHub project.
         <enum bitpos="3"     name="XR_DEBUG_UTILS_MESSAGE_TYPE_CONFORMANCE_BIT_EXT"  comment="Indicates the message is related to a non-conformant runtime result"/>
     </enums>
     <enums name="XrOverlayMainSessionFlagBitsEXTX" type="bitmask">
-        <enum bitpos="0"     name="XR_MAIN_SESSION_BIT_ENABLED_COMPOSITION_LAYER_INFO_DEPTH_EXTX"  comment="Indicates the main session enabled XR_KHR_extra_layer_info_depth"/>
+        <enum bitpos="0"     name="XR_OVERLAY_MAIN_SESSION_ENABLED_COMPOSITION_LAYER_INFO_DEPTH_BIT_EXTX"  comment="Indicates the main session enabled XR_KHR_extra_layer_info_depth"/>
     </enums>
     <enums name="XrOverlaySessionCreateFlagBitsEXTX" type="bitmask">
-        <enum bitpos="0"     name="XR_OVERLAY_SESSION_CREATE_RELAXED_DISPLAY_TIME_EXTX"  comment="Indicates the runtime does not need to attempt to lock the overlay session displayTime to the main session displayTime"/>
+        <enum bitpos="0"     name="XR_OVERLAY_SESSION_CREATE_RELAXED_DISPLAY_TIME_BIT_EXTX"  comment="Indicates the runtime does not need to attempt to lock the overlay session displayTime to the main session displayTime"/>
     </enums>
 
 
