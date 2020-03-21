@@ -576,7 +576,9 @@ class ReferencedTypes(RecursiveMemoize):
 
             else:
                 self._directly_referenced[type_name] = set()
-
+            children = self.db.childTypes(type_name)
+            if children:
+                self._directly_referenced[type_name].update(children)
             # Update graph
             self.graph.add_node(type_name)
             self.graph.add_edges_from((type_name, t)

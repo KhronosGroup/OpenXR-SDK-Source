@@ -68,8 +68,6 @@ ComPtr<ID3D12Resource> CreateBuffer(ID3D12Device* d3d12Device, uint32_t size, D3
 
 class SwapchainImageContext {
    public:
-    SwapchainImageContext() = default;
-
     std::vector<XrSwapchainImageBaseHeader*> Create(ID3D12Device* d3d12Device, uint32_t capacity) {
         m_d3d12Device = d3d12Device;
 
@@ -118,7 +116,6 @@ class SwapchainImageContext {
             clearValue.DepthStencil.Depth = 1.0f;
             clearValue.Format = DXGI_FORMAT_D32_FLOAT;
 
-            ComPtr<ID3D11Texture2D> depthTexture;
             CHECK_HRCMD(m_d3d12Device->CreateCommittedResource(
                 &heapProp, D3D12_HEAP_FLAG_NONE, &depthDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &clearValue,
                 __uuidof(ID3D12Resource), reinterpret_cast<void**>(m_depthStencilTexture.ReleaseAndGetAddressOf())));
@@ -497,7 +494,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
                                                 DXGI_FORMAT_R16_UINT};
         cmdList->IASetIndexBuffer(&indexBufferView);
 
-        cmdList->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         constexpr uint32_t cubeCBufferSize = AlignTo<D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT>(sizeof(ModelConstantBuffer));
         const uint32_t requiredSize = static_cast<uint32_t>(cubeCBufferSize * cubes.size());

@@ -3,13 +3,14 @@
 #include "pch.h"
 #include "common.h"
 #include "options.h"
+#include "platformdata.h"
 #include "graphicsplugin.h"
 
 // Graphics API factories are forward declared here.
-// #ifdef XR_USE_GRAPHICS_API_OPENGL_ES
-//     std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_OpenGLES(const std::shared_ptr<Options>& options,
-//                                                              std::shared_ptr<IPlatformPlugin> platformPlugin);
-// #endif
+#ifdef XR_USE_GRAPHICS_API_OPENGL_ES
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_OpenGLES(const std::shared_ptr<Options>& options,
+                                                               std::shared_ptr<IPlatformPlugin> platformPlugin);
+#endif
 #ifdef XR_USE_GRAPHICS_API_OPENGL
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_OpenGL(const std::shared_ptr<Options>& options,
                                                              std::shared_ptr<IPlatformPlugin> platformPlugin);
@@ -32,10 +33,12 @@ using GraphicsPluginFactory = std::function<std::shared_ptr<IGraphicsPlugin>(con
                                                                              std::shared_ptr<IPlatformPlugin> platformPlugin)>;
 
 std::map<std::string, GraphicsPluginFactory, IgnoreCaseStringLess> graphicsPluginMap = {
-// #ifdef XR_USE_GRAPHICS_API_OPENGL_ES
-//     { "OpenGLES", [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {
-//         return CreateGraphicsPlugin_OpenGLES(options, std::move(platformPlugin)); } },
-// #endif
+#ifdef XR_USE_GRAPHICS_API_OPENGL_ES
+    {"OpenGLES",
+     [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {
+         return CreateGraphicsPlugin_OpenGLES(options, std::move(platformPlugin));
+     }},
+#endif
 #ifdef XR_USE_GRAPHICS_API_OPENGL
     {"OpenGL",
      [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {

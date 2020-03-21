@@ -6,3 +6,9 @@ colorama
 
 # Optional but recommended for check spec links
 tabulate
+
+# Optional but recommended: needed for scripts/xml_consistency.py
+networkx
+
+# Optional: bundled copy may be in ../external/python
+jinja2

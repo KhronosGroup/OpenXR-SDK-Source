@@ -621,14 +621,14 @@ static void ksThread_SetAffinity( int mask )
 		unsigned int bestFrequency = 0;
 		for ( int i = 0; i < 16; i++ )
 		{
-			int maxFrequency = 0;
+			unsigned int maxFrequency = 0;
 			const char * files[] =
 			{
 				"scaling_available_frequencies",	// not available on all devices
 				"scaling_max_freq",					// no user read permission on all devices
 				"cpuinfo_max_freq",					// could be set lower than the actual max, but better than nothing
 			};
-			for ( int j = 0; j < ( sizeof(files) / sizeof(files[0]) ); j++ )
+			for ( unsigned int j = 0; j < ( sizeof(files) / sizeof(files[0]) ); j++ )
 			{
 				char fileName[1024];
 				sprintf( fileName, "/sys/devices/system/cpu/cpu%d/cpufreq/%s", i, files[j] );

@@ -30,7 +30,7 @@ TryAgain:
     HRESULT hr = D3D11CreateDevice(adapter, driverType, 0, creationFlags, featureLevels.data(), (UINT)featureLevels.size(),
                                    D3D11_SDK_VERSION, device, nullptr, deviceContext);
     if (FAILED(hr)) {
-        // If initialization failed, it may be because device debugging isn't supprted, so retry without that.
+        // If initialization failed, it may be because device debugging isn't supported, so retry without that.
         if ((creationFlags & D3D11_CREATE_DEVICE_DEBUG) && (hr == DXGI_ERROR_SDK_COMPONENT_MISSING)) {
             creationFlags &= ~D3D11_CREATE_DEVICE_DEBUG;
             goto TryAgain;

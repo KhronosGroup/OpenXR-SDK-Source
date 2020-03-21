@@ -42,7 +42,7 @@ ifneq (,$(strip $(VERY_STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level WARN
 endif
 
-SPECREVISION = 1.0.6
+SPECREVISION = 1.0.7
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -76,6 +76,10 @@ default:
 	    echo "manhtmlpages:     HTML separate per-feature reference pages"; \
 	    echo "build-examples:   try compiling all examples"; \
 	    echo "check-spec-links: run the checkMarkup and checkSpecLinks scripts"; \
+	fi
+
+	@if [ -d sources/extprocess ]; then \
+	    echo "extprocess:       HTML version of OpenXR extension process"; \
 	fi
 
 	@if [ -f sources/test.c ]; then \
@@ -218,8 +222,8 @@ generated: $(GENDEPENDS)
 SPECSRC = sources/openxr.adoc
 SPECFILES = $(wildcard sources/chapters/[A-Za-z]*.adoc)
 STYLEGUIDE = $(OUTDIR)/styleguide.html
-STYLESRC = sources/styleguide/styleguide.txt
-STYLEFILES = $(wildcard sources/styleguide/[A-Za-z]*.txt)
+STYLESRC = sources/styleguide/styleguide.adoc
+STYLEFILES = $(wildcard sources/styleguide/[A-Za-z]*.adoc)
 
 styleguide: $(STYLEGUIDE)
 
@@ -229,7 +233,7 @@ ASCIIDOCTOR_TARGETS += $(STYLEGUIDE)
 # Target-specific variables and deps customizing the AsciiDoctor rule
 $(STYLEGUIDE): SPECSRC=$(STYLESRC)
 $(STYLEGUIDE): LOGFILE=$(OUTDIR)/adoc_styleguide_stderr.txt
-$(STYLEGUIDE): $(STYLESRC) $(STYLEFILES) $(GENDIR)/api/apiinc
+$(STYLEGUIDE): $(STYLESRC) $(STYLEFILES) $(GENDIR)/validity/validinc $(GENDIR)/api/apiinc
 
 
 ################################################
@@ -249,6 +253,22 @@ $(LOADERGUIDE): SPECSRC=$(LOADERSRC)
 $(LOADERGUIDE): LOGFILE=$(OUTDIR)/adoc_loader_stderr.txt
 $(LOADERGUIDE): $(LOADERSRC) $(LOADERFILES)
 
+
+################################################
+# OpenXR Extension Process
+
+EXTPROCESSGUIDE = $(OUTDIR)/extprocess.html
+EXTPROCESSSRC = sources/extprocess/extension_process.adoc
+
+extprocess: $(EXTPROCESSGUIDE)
+
+# Use the AsciiDoctor rule
+ASCIIDOCTOR_TARGETS += $(EXTPROCESSGUIDE)
+
+$(EXTPROCESSGUIDE): SPECSRC=$(EXTPROCESSSRC)
+$(EXTPROCESSGUIDE): LOGFILE=$(OUTDIR)/adoc_extprocess_stderr.txt
+$(EXTPROCESSGUIDE): $(EXTPROCESSSRC)
+
 ################################################
 ## Specification targets
 
@@ -259,12 +279,13 @@ HTMLSPEC      := $(OUTDIR)/openxr.html
 html: $(HTMLSPEC)
 
 # Use the AsciiDoctor rule
-ASCIIDOCTOR_TARGETS += $(LOADERGUIDE)
+ASCIIDOCTOR_TARGETS += $(HTMLSPEC)
 
 # Target-specific variables and deps customizing the AsciiDoctor rule
 $(HTMLSPEC): LOGFILE=$(OUTDIR)/adoc_html_stderr.txt
-$(HTMLSPEC): EXTRA_ARGS=--backend html5
+$(HTMLSPEC): ATTRIBOPTS+=-a sectanchors
 $(HTMLSPEC): $(COMMONDOCS)
+$(HTMLSPEC): POSTPROCESS=$(QUIET)$(PYTHON) $(SCRIPTS)/genanchorlinks.py $@ $@
 
 ## PDF
 PDFSPEC       := $(OUTDIR)/openxr.pdf
@@ -321,7 +342,7 @@ ADOCOPTS = --doctype book -a data-uri -r $(CURDIR)/scripts/openxr-macros.rb $(AT
 BACKEND_ARGS=--backend html5
 
 # AsciiDoctor rule - customized by the places where these are described
-$(HTMLSPEC) $(PDFSPEC) $(PDFA4SPEC) $(STYLEGUIDE) $(LOADERGUIDE):
+$(ASCIIDOCTOR_TARGETS):
 	$(ECHO) "[asciidoctor] $(SPECSRC) -> $@"
 	$(QUIET)$(MKDIR) $(@D)
 	$(QUIET)if [ $$(uname -s | cut -c 1-6) == "CYGWIN" ]; then \
@@ -341,6 +362,9 @@ $(HTMLSPEC) $(PDFSPEC) $(PDFA4SPEC) $(STYLEGUIDE) $(LOADERGUIDE):
 		rm $(LOGFILE); \
 	fi; \
 	fi
+	$(POSTPROCESS)
+# TODO: Postprocess step(s) may have broken the Cygwin build. Not sure this matters anymore with WSL, though.
+
 
 ################################################
 # Reference "man" pages extracted from spec
@@ -461,7 +485,7 @@ all:
 	$(QUIET)$(MAKE) header
 	$(QUIET)if [ -f $(TESTSRC) ]; then $(MAKE) header-test; fi
 	$(QUIET)if [ -f $(SPECSRC) ]; then $(MAKE) html pdf build-examples; fi
-	$(QUIET)if [ -f $(STYLESRC) ]; then $(MAKE) styleguide; fi
+	$(QUIET)if [ -f $(STYLESRC) ]; then $(MAKE) styleguide extprocess; fi
 	$(QUIET)if [ -f $(LOADERSRC) ]; then $(MAKE) loader; fi
 	$(ECHO) ""
 	$(ECHO) "Target 'all': Completed specification build and basic checks successfully."
@@ -470,11 +494,12 @@ all:
 ################################################
 # Meta build for releases. Also copies into approximately the right layout for the OpenXR-Registry repo.
 REGISTRYOUTDIR = $(OUTDIR)/../registry-release/specs/$(MAJORMINORVER)
-release: header html pdf manhtmlpages loader
+release: header html pdf manhtmlpages loader styleguide extprocess
 	$(QUIET)$(MKDIR) $(REGISTRYOUTDIR)/pdf
 	$(QUIET)$(CP) $(PDFSPEC) $(REGISTRYOUTDIR)/pdf/xrspec.pdf
 	$(QUIET)$(MKDIR) $(REGISTRYOUTDIR)/html
 	$(QUIET)$(CP) $(HTMLSPEC) $(REGISTRYOUTDIR)/html/xrspec.html
+	$(QUIET)$(CP) $(OUTDIR)/styleguide.html $(OUTDIR)/extprocess.html $(REGISTRYOUTDIR)
 	$(QUIET)$(MKDIR) $(REGISTRYOUTDIR)/man
 	$(QUIET)$(CP) -R $(MANHTMLDIR) $(REGISTRYOUTDIR)/man/html
 

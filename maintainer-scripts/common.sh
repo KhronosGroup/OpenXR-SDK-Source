@@ -97,7 +97,7 @@ gzip_a_tar() {
 getDocsFilenames() {
     # Just the things required to build/maintain the spec text and registry.
     # Omitting the old version in submitted and its script
-    # TODO Omitting the style guide for now
+    # TODO omitting style guide VUID chapter for now
     git ls-files \
         $COMMON_FILES \
         CHANGELOG.Docs.md \
@@ -106,12 +106,13 @@ getDocsFilenames() {
         openxr-codespell.exclude \
         tox.ini \
         update_valid_usage_ids.sh \
+        maintainer-scripts/check-changelog-fragments.sh \
+        extprocess/ \
         include/ \
         specification/ \
         vuid_database/ \
         | grep -v "loader" \
-        | grep -v "styleguide" \
-        | grep -v "extension_process" \
+        | grep -v "vuid[.]adoc" \
         | grep -v "CMakeLists.txt" \
         | grep -v "ubmitted" \
         | grep -v "compare"
@@ -136,6 +137,7 @@ getSDKSourceFilenames() {
         include/ \
         maintainer-scripts/common.sh \
         maintainer-scripts/archive-sdk.sh \
+        maintainer-scripts/check-changelog-fragments.sh \
         specification/.gitignore \
         specification/registry/*.xml \
         specification/scripts \

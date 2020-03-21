@@ -265,6 +265,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         use_stream = False
         pointer_count = member_param.pointer_count
         is_array = member_param.is_array
+        is_external = self.isExternalGraphicsApiHandle(base_type)
 
         # If this is an array defined by a pointer, we need to drop the pointer count for it
         if is_array and not member_param.is_static_array and member_param.pointer_count_var:
@@ -279,7 +280,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         # NOTE: Structures/Unions should be handled in other utility calls.  This
         #       is only encountered if it can't extract the information through
         #       those if it's a type that could be expanded.
-        can_dereference = member_param.is_const or not pointer_count > 0
+        can_dereference = (member_param.is_const or not pointer_count > 0) and not is_external
         if not allow_deref:
             can_dereference = False
 
@@ -309,7 +310,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
 
         # If this is a pointer and not a character, or it's a handle, we also want to
         # use a stream.  This is because we can output hex values through a stream.
-        if (self.isHandle(base_type) or self.isExternalGraphicsApiHandle(base_type) or
+        if (self.isHandle(base_type) or is_external or
                 ((is_array or pointer_count > 0) and not is_char)):
             use_stream = True
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <cmath>
 #include <cstdarg>
 #include <cstdio>
 #include <exception>
@@ -40,7 +41,11 @@
 #endif
 
 #ifdef XR_USE_PLATFORM_ANDROID
+#include <android/log.h>
+#include <android_native_app_glue.h>
 #include <android/native_window.h>
+#include <jni.h>
+#include <sys/system_properties.h>
 #endif
 
 #ifdef XR_USE_PLATFORM_WAYLAND
@@ -87,6 +92,9 @@
 #ifdef XR_USE_GRAPHICS_API_VULKAN
 #ifdef XR_USE_PLATFORM_WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
+#endif
+#ifdef XR_USE_PLATFORM_ANDROID
+#define VK_USE_PLATFORM_ANDROID_KHR
 #endif
 #include <vulkan/vulkan.h>
 #endif

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "common.h"
 #include "options.h"
+#include "platformdata.h"
 #include "platformplugin.h"
 #include "graphicsplugin.h"
 #include "openxr_program.h"
@@ -325,7 +326,8 @@ struct OpenXrProgram : IOpenXrProgram {
 
         LogViewConfigurations();
 
-        // The graphics API can initialize the graphics device now that the systemId and instance handle are available.
+        // The graphics API can initialize the graphics device now that the systemId and instance
+        // handle are available.
         m_graphicsPlugin->InitializeDevice(m_instance, m_systemId);
     }
 
@@ -423,7 +425,6 @@ struct OpenXrProgram : IOpenXrProgram {
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/output/haptic", &hapticPath[Side::RIGHT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/input/menu/click", &menuClickPath[Side::LEFT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/menu/click", &menuClickPath[Side::RIGHT]));
-
         // Suggest bindings for KHR Simple.
         {
             XrPath khrSimpleInteractionProfilePath;
@@ -444,7 +445,6 @@ struct OpenXrProgram : IOpenXrProgram {
             suggestedBindings.countSuggestedBindings = (uint32_t)bindings.size();
             CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &suggestedBindings));
         }
-
         // Suggest bindings for the Oculus Touch.
         {
             XrPath oculusTouchInteractionProfilePath;
@@ -463,7 +463,6 @@ struct OpenXrProgram : IOpenXrProgram {
             suggestedBindings.countSuggestedBindings = (uint32_t)bindings.size();
             CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &suggestedBindings));
         }
-
         // Suggest bindings for the Vive Controller.
         {
             XrPath viveControllerInteractionProfilePath;
@@ -503,7 +502,6 @@ struct OpenXrProgram : IOpenXrProgram {
             suggestedBindings.countSuggestedBindings = (uint32_t)bindings.size();
             CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &suggestedBindings));
         }
-
         XrActionSpaceCreateInfo actionSpaceInfo{XR_TYPE_ACTION_SPACE_CREATE_INFO};
         actionSpaceInfo.action = m_input.poseAction;
         actionSpaceInfo.poseInActionSpace.orientation.w = 1.f;
@@ -580,8 +578,9 @@ struct OpenXrProgram : IOpenXrProgram {
                                          systemProperties.trackingProperties.orientationTracking == XR_TRUE ? "True" : "False",
                                          systemProperties.trackingProperties.positionTracking == XR_TRUE ? "True" : "False"));
 
-        // Note: No other view configurations exist at the time this code was written. If this condition
-        // is not met, the project will need to be audited to see how support should be added.
+        // Note: No other view configurations exist at the time this code was written. If this
+        // condition is not met, the project will need to be audited to see how support should be
+        // added.
         CHECK_MSG(m_viewConfigType == XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO, "Unsupported view configuration type");
 
         // Query and cache view configuration views.
@@ -660,7 +659,8 @@ struct OpenXrProgram : IOpenXrProgram {
 
     // Return event if one is available, otherwise return null.
     const XrEventDataBaseHeader* TryReadNextEvent() {
-        // It is sufficient to clear the just the XrEventDataBuffer header to XR_TYPE_EVENT_DATA_BUFFER
+        // It is sufficient to clear the just the XrEventDataBuffer header to
+        // XR_TYPE_EVENT_DATA_BUFFER
         XrEventDataBaseHeader* baseHeader = reinterpret_cast<XrEventDataBaseHeader*>(&m_eventDataBuffer);
         *baseHeader = {XR_TYPE_EVENT_DATA_BUFFER};
         const XrResult xr = xrPollEvent(m_instance, &m_eventDataBuffer);
@@ -907,8 +907,8 @@ struct OpenXrProgram : IOpenXrProgram {
                 }
             }
 
-            // Render a 10cm cube scaled by grabAction for each hand. Note renderHand will only be true when the application has
-            // focus.
+            // Render a 10cm cube scaled by grabAction for each hand. Note renderHand will only be
+            // true when the application has focus.
             for (auto hand : {Side::LEFT, Side::RIGHT}) {
                 XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
                 res = xrLocateSpace(m_input.handSpace[hand], m_appSpace, predictedDisplayTime, &spaceLocation);
@@ -920,7 +920,8 @@ struct OpenXrProgram : IOpenXrProgram {
                         cubes.push_back(Cube{spaceLocation.pose, {scale, scale, scale}});
                     }
                 } else {
-                    // Tracking loss is expected when the hand is not active so only log a message if the hand is active.
+                    // Tracking loss is expected when the hand is not active so only log a message
+                    // if the hand is active.
                     if (m_input.handActive[hand] == XR_TRUE) {
                         const char* handName[] = {"left", "right"};
                         Log::Write(Log::Level::Verbose,

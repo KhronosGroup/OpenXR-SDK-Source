@@ -220,13 +220,13 @@ struct CmdBuffer {
         return "(Unknown)";
     }
 
-#define CHECK_CBSTATE(s)                                                                                                        \
-    do                                                                                                                          \
-        if (state != (s)) {                                                                                                     \
-            Log::Write(Log::Level::Error, std::string(__FILE__) + "(" + std::to_string(__LINE__) +                              \
-                                              "): Expecting state " #s " from " + __FUNCTION__ + ", in " + StateString(state)); \
-            return false;                                                                                                       \
-        }                                                                                                                       \
+#define CHECK_CBSTATE(s)                                                                                           \
+    do                                                                                                             \
+        if (state != (s)) {                                                                                        \
+            Log::Write(Log::Level::Error,                                                                          \
+                       std::string("Expecting state " #s " from ") + __FUNCTION__ + ", in " + StateString(state)); \
+            return false;                                                                                          \
+        }                                                                                                          \
     while (0)
 
     bool Init(VkDevice device, uint32_t queueFamilyIndex) {

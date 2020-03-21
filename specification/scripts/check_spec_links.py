@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #
 # Copyright (c) 2018-2019 Collabora, Ltd.
 #
@@ -162,7 +162,8 @@ if __name__ == '__main__':
         DEFAULT_DISABLED_MESSAGES)
 
     all_docs = sorted((str(fn)
-                       for fn in (ROOT / 'specification/sources/').glob('**/*.adoc')))
+                       for fn in (ROOT / 'specification/sources/').glob('**/*.adoc')
+                       if "styleguide" not in str(fn)))
 
     checkerMain(default_enabled_messages, makeMacroChecker,
                 all_docs, available_messages=available_messages)

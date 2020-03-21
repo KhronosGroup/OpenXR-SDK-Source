@@ -3,6 +3,11 @@
 
 #include <sstream>
 
+#if defined(ANDROID)
+#define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, "hello_xr", __VA_ARGS__)
+#define ALOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, "hello_xr", __VA_ARGS__)
+#endif
+
 namespace {
 Log::Level g_minSeverity{Log::Level::Info};
 std::mutex g_logLock;
@@ -41,6 +46,12 @@ void Write(Level severity, const std::string& msg) {
     ((severity == Level::Error) ? std::clog : std::cout) << out.str();
 #if defined(_WIN32)
     OutputDebugStringA(out.str().c_str());
+#endif
+#if defined(ANDROID)
+    if (severity == Level::Error)
+        ALOGE("%s", out.str().c_str());
+    else
+        ALOGV("%s", out.str().c_str());
 #endif
 }
 }  // namespace Log

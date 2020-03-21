@@ -84,5 +84,5 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     )
 endif()
 
-# Add generated file to our sources so we depend on it, and thus trigger geenration.
+# Add generated file to our sources so we depend on it, and thus trigger generation.
 target_sources(test_runtime PRIVATE ${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/runtimes/test_runtime.json)

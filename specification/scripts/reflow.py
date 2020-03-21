@@ -73,11 +73,11 @@ pnamePat = re.compile(r'pname:(?P<param>\w+)')
 # Markup that's OK in a contiguous paragraph but otherwise passed through
 #   .anything
 #   === Section Titles
-endParaContinue = re.compile(r'^(\..*|=+ .*)$')
+endParaContinue = re.compile(r'^(\..*|=+ .+)$')
 
 # Markup for block delimiters whose contents *should* be reformatted
 #   --   (exactly two)  (open block)
-#   **** (4 or more)    (sidebar block - why do we have these?!)
+#   **** (4 or more)    (sidebar block - works best/only? in AsciiDoctor 2)
 #   ==== (4 or more)    (example block)
 #   ____ (4 or more)    (quote block)
 blockReflow = re.compile(r'^(--|[*=_]{4,})$')
@@ -92,8 +92,7 @@ blockCommonReflow = '// Common Valid Usage\n'
 #   //// (4 or more)  (comment block)
 #   ---- (4 or more)  (listing block)
 #   ```  (3 or more)  (listing block)
-#   **** (4 or more)  (sidebar block)
-blockPassthrough = re.compile(r'^(\|={3,}|[`]{3}|[-+./]{4,})$')
+blockPassthrough = re.compile(r'^(\|={3,}|[`]{3}|[-.+/]{4,})$')
 
 # Markup for introducing lists (hanging paragraphs)
 #   * bullet
@@ -103,7 +102,7 @@ blockPassthrough = re.compile(r'^(\|={3,}|[`]{3}|[-+./]{4,})$')
 #   :: bullet (no longer supported by asciidoctor 2)
 #   {empty}:: bullet
 #   1. list item
-beginBullet = re.compile(r'^ *([*-.]+|\{empty\}::|::|[0-9]+[.]) ')
+beginBullet = re.compile(r'^ *([-*.]+|\{empty\}::|::|[0-9]+[.]) ')
 
 # Text that (may) not end sentences
 

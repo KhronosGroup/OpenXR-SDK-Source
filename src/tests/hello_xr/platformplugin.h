@@ -12,4 +12,5 @@ struct IPlatformPlugin {
 };
 
 // Create a platform plugin for the platform specified at compile time.
-std::shared_ptr<IPlatformPlugin> CreatePlatformPlugin(const std::shared_ptr<struct Options>& options);
+std::shared_ptr<IPlatformPlugin> CreatePlatformPlugin(const std::shared_ptr<struct Options>& options,
+                                                      const std::shared_ptr<struct PlatformData>& data);

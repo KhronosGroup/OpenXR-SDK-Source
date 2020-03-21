@@ -800,7 +800,9 @@ PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC glFramebufferTexture2DMultisampleEXT
 // GL_OVR_multiview_multisampled_render_to_texture
 PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC glFramebufferTextureMultisampleMultiviewOVR;
 
+#ifndef GL_ES_VERSION_3_2
 PFNGLTEXSTORAGE3DMULTISAMPLEPROC glTexStorage3DMultisample;
+#endif
 
 #if !defined(EGL_OPENGL_ES3_BIT)
 #define EGL_OPENGL_ES3_BIT 0x0040
@@ -857,7 +859,9 @@ static void GlInitExtensions() {
     glFramebufferTextureMultisampleMultiviewOVR =
         (PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC)GetExtension("glFramebufferTextureMultisampleMultiviewOVR");
 
+#ifndef GL_ES_VERSION_3_2
     glTexStorage3DMultisample = (PFNGLTEXSTORAGE3DMULTISAMPLEPROC)GetExtension("glTexStorage3DMultisample");
+#endif
 
     glExtensions.timer_query = GlCheckExtension("GL_EXT_disjoint_timer_query");
     glExtensions.texture_clamp_to_border =
