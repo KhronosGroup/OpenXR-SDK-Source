@@ -1,3 +1,10 @@
+/*
+Copyright (c) 2016 Oculus VR, LLC.
+Portions of macOS, iOS, functionality copyright (c) 2016 The Brenwill Workshop Ltd.
+
+SPDX-License-Identifier: Apache-2.0
+*/
+
 #include "gfxwrapper_opengl.h"
 
 /*

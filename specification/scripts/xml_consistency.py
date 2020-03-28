@@ -2,6 +2,8 @@
 #
 # Copyright (c) 2019 Collabora, Ltd.
 #
+# SPDX-License-Identifier: Apache-2.0
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -56,6 +58,14 @@ def get_enum_value_names(reg, enum_type):
 DESTROY_PREFIX = "xrDestroy"
 TYPEENUM = "XrStructureType"
 
+# Enum type "names" whose value names don't fit the standard pattern.
+ENUM_NAMING_EXCEPTIONS = set((
+    # Intentional exceptions
+    TYPEENUM, "XrResult", "API Constants",
+    # See https://gitlab.khronos.org/openxr/openxr/issues/1317
+    "XrPerfSettingsNotificationLevelEXT",
+))
+
 SPECIFICATION_DIR = Path(__file__).parent.parent
 
 EXT_DECOMPOSE_RE = re.compile(r'XR_(?P<tag>[A-Z]+)_(?P<name>[\w_]+)')
@@ -82,6 +92,9 @@ def pluralize(s):
 class EntityDatabase(OrigEntityDatabase):
 
     def makeRegistry(self):
+        # This tries to override and use lxml instead of the built-in etree.
+        # lxml isn't suitable for generation, but it's fine for this checking,
+        # and it provides file line info which is useful in messages.
         try:
             import lxml.etree as etree
             HAS_LXML = True
@@ -163,6 +176,33 @@ class Checker(XMLChecker):
                          forward_only_types_to_codes=forward_only,
                          reverse_only_types_to_codes=reverse_only,
                          suppressions=suppressions)
+
+    def check(self):
+        # Our custom check happens before the rest of the checks.
+        # This is because the end of the super-class' check()
+        # does the printing of the results.
+        for name in self.db.registry.groupdict:
+            if name not in ENUM_NAMING_EXCEPTIONS:
+                self.set_error_context(entity=name, elem=self.db.registry.groupdict[name].elem)
+                self.check_enum_naming(name)
+        super().check()
+
+    def check_enum_naming(self, enum_type):
+        stripped_enum_type, tag = self.strip_extension_tag(enum_type)
+        end = "_{}".format(tag) if tag else ""
+        if stripped_enum_type.endswith("FlagBits"):
+            end = "_BIT" + end
+            stripped_enum_type = stripped_enum_type.replace("FlagBits", "")
+        start = self.conventions.generate_structure_type_from_name(stripped_enum_type).replace("XR_TYPE", "XR") + "_"
+
+        value_names = get_enum_value_names(self.db.registry, enum_type)
+        for name in value_names:
+            if not name.startswith(start):
+                self.record_error('Got an enum value whose name does not match the pattern: got', name,
+                                  'but expected something that started with', start, 'due to typename being', enum_type)
+            if end and not name.endswith(end):
+                self.record_error('Got an enum value whose name does not match the pattern: got', name,
+                                  'but expected something that ended with', end, 'due to typename being', enum_type)
 
     def add_extra_codes(self, types_to_codes):
         """Add any desired entries to the types-to-codes DictOfStringSets

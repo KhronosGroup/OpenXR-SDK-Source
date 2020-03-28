@@ -2,6 +2,8 @@
 #
 # Copyright (c) 2019 Collabora, Ltd.
 #
+# SPDX-License-Identifier: Apache-2.0
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -25,6 +27,11 @@ from .algo import RecursiveMemoize
 from .attributes import ExternSyncEntry, LengthEntry
 from .data_structures import DictOfStringSets
 from .util import findNamedElem, getElemName
+
+
+def _get_extension_tags(reg):
+    """Get a set of all author tags registered for use."""
+    return set(elt.get("name") for elt in reg.tree.findall("./tags/tag[@name]"))
 
 
 class XMLChecker:
@@ -114,6 +121,7 @@ class XMLChecker:
         if not suppressions:
             suppressions = {}
         self.suppressions = DictOfStringSets(suppressions)
+        self.tags = _get_extension_tags(self.db.registry)
 
     def is_api_type(self, member_elem):
         """Return true if the member/parameter ElementTree passed is from this API.
@@ -145,6 +153,20 @@ class XMLChecker:
             ret = False
 
         return ret
+
+    def strip_extension_tag(self, name):
+        """Remove a single author tag from the end of a name, if any.
+
+        Returns the stripped name and the tag, or the input and None if there was no tag.
+        """
+        for t in self.tags:
+            if name.endswith(t):
+                name = name[:-(len(t))]
+                if name[-1] == "_":
+                    # remove trailing underscore
+                    name = name[:-1]
+                return name, t
+        return name, None
 
     def add_extra_codes(self, types_to_codes):
         """Add any desired entries to the types-to-codes DictOfStringSets

@@ -1,6 +1,8 @@
 #!/bin/sh
 # Copyright (c) 2019-2020 The Khronos Group Inc.
 #
+# SPDX-License-Identifier: Apache-2.0
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -105,12 +107,14 @@ getDocsFilenames() {
         open-in-docker.sh \
         openxr-codespell.exclude \
         tox.ini \
-        update_valid_usage_ids.sh \
+        changes/README.md \
+        changes/template.md \
+        changes/specification \
+        changes/registry \
         maintainer-scripts/check-changelog-fragments.sh \
         extprocess/ \
         include/ \
         specification/ \
-        vuid_database/ \
         | grep -v "loader" \
         | grep -v "vuid[.]adoc" \
         | grep -v "CMakeLists.txt" \
@@ -132,6 +136,10 @@ getSDKSourceFilenames() {
         openxr-codespell.exclude \
         runClangFormat.sh \
         tox.ini \
+        changes/README.md \
+        changes/template.md \
+        changes/registry \
+        changes/sdk \
         external/ \
         github/sdk/ \
         include/ \
