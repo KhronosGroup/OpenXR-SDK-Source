@@ -66,8 +66,8 @@ class RuntimeInterface {
     void SetSupportedExtensions(std::vector<std::string>& supported_extensions);
 
     static std::unique_ptr<RuntimeInterface>& GetInstance() {
-      static std::unique_ptr<RuntimeInterface> instance;
-      return instance;
+        static std::unique_ptr<RuntimeInterface> instance;
+        return instance;
     }
 
     static uint32_t _single_runtime_count;

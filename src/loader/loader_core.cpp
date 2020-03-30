@@ -46,13 +46,13 @@
 #include <vector>
 
 // Global lock to prevent reading JSON manifest files at the same time.
-std::mutex& GetLoaderJsonMutex() {
+std::mutex &GetLoaderJsonMutex() {
     static std::mutex loader_json_mutex;
     return loader_json_mutex;
 }
- 
+
 // Global lock to prevent simultaneous instance creation/destruction
-std::mutex& GetInstanceCreateDestroyMutex() {
+std::mutex &GetInstanceCreateDestroyMutex() {
     static std::mutex instance_create_destroy_mutex;
     return instance_create_destroy_mutex;
 }
