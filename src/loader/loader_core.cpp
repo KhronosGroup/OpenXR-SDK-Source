@@ -664,7 +664,7 @@ XRAPI_ATTR XrResult XRAPI_CALL LoaderXrTermCreateDebugUtilsMessengerEXT(XrInstan
         *messenger = reinterpret_cast<XrDebugUtilsMessengerEXT>(temp_mess_ptr);
     }
     if (XR_SUCCEEDED(result)) {
-        LoaderLogger::GetInstance().AddLogRecorder(MakeDebugUtilsLoaderLogRecorder(createInfo, *messenger));
+        LoaderLogger::GetInstance().AddLogRecorderForXrInstance(instance, MakeDebugUtilsLoaderLogRecorder(createInfo, *messenger));
         RuntimeInterface::GetRuntime().TrackDebugMessenger(instance, *messenger);
     }
     LoaderLogger::LogVerboseMessage("xrCreateDebugUtilsMessengerEXT", "Completed loader terminator");
