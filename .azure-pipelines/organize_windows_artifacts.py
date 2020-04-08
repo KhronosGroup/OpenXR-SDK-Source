@@ -5,7 +5,7 @@ from itertools import product
 from pathlib import Path
 import sys
 
-from shared import BITS, TRUE_FALSE, VS_VERSIONS, make_win_artifact_name
+from shared import PLATFORMS, TRUE_FALSE, VS_VERSION, make_win_artifact_name
 
 CWD = Path.cwd()
 
@@ -22,22 +22,24 @@ if __name__ == "__main__":
     workspace = Path(sys.argv[1])
     outbase = Path(sys.argv[2])
 
-    for vsver, dynamic in product(VS_VERSIONS.keys(), TRUE_FALSE):
-        base = outbase / 'msvs{}_{}'.format(vsver,
-                                            'dynamic' if dynamic else 'static')
+
+    include_copied = False
+
+    for platform, uwp in product(PLATFORMS, TRUE_FALSE):
+        base = outbase / '{}{}'.format(platform,
+                                              '_uwp' if uwp else '')
         base.mkdir(parents=True, exist_ok=True)
-        name_64 = make_win_artifact_name(vsver, dynamic, 64)
-        name_32 = make_win_artifact_name(vsver, dynamic, 32)
-        artifact_64 = workspace / name_64
-        artifact_32 = workspace / name_32
-        # Move over one set of includes
-        move(artifact_32 / 'include', base / 'include')
+        name = make_win_artifact_name(platform, uwp)
+
+        artifact = workspace / name
+
+        if not include_copied:
+            # Move over one set of includes to the base
+            move(artifact / 'include', outbase / 'include')
+            include_copied = True            
 
         # lib files
-        move(artifact_32 / 'lib', base / 'lib32')
-        move(artifact_64 / 'lib', base / 'lib')
+        move(artifact / 'lib', base / 'lib')
 
-        if dynamic:
-            # dll files
-            move(artifact_32 / 'bin', base / 'bin32')
-            move(artifact_64 / 'bin', base / 'bin')
+        # dll files
+        move(artifact / 'bin', base / 'bin')

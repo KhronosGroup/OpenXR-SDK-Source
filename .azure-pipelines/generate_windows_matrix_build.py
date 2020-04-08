@@ -3,39 +3,31 @@
 
 from itertools import product
 
-from shared import (BITS, TRUE_FALSE, VS_VERSIONS, make_win_artifact_name,
+from shared import (PLATFORMS, TRUE_FALSE, VS_VERSION, make_win_artifact_name,
                     output_json)
 
 if __name__ == "__main__":
 
     configs = {}
-    for vsver, bits, debug, dynamic in product(VS_VERSIONS.keys(), BITS, (False,), TRUE_FALSE):
-        label = [str(vsver)]
+    for  platform, debug, uwp in product(PLATFORMS, (False,), TRUE_FALSE):
+        label = [platform]
         config = []
-        generator = VS_VERSIONS[vsver]
-        if bits == 64:
-            config.append('-A x64')
-        else:
-            config.append('-A Win32')
-        label.append(str(bits))
-        if dynamic:
-            label.append('dynamic')
-            config.append('-DDYNAMIC_LOADER=ON')
-        else:
-            label.append('static')
-            config.append('-DDYNAMIC_LOADER=OFF')
+        generator = VS_VERSION
+        config.append('-A ' + platform)
+        config.append('-DDYNAMIC_LOADER=ON')
         if debug:
             label.append('debug')
+        if uwp:
+            label.append('UWP')
+            config.append('-DCMAKE_SYSTEM_NAME=WindowsStore -DCMAKE_SYSTEM_VERSION=10.0')
         name = '_'.join(label)
         configs[name] = {
             'generator': generator,
             'buildType': 'Debug' if debug else 'RelWithDebInfo',
-            'cmakeArgs': ' '.join(config),
-            'dynamic': dynamic,
-            'bits': bits
+            'cmakeArgs': ' '.join(config)
         }
         if not debug:
             configs[name]['artifactName'] = make_win_artifact_name(
-                vsver, dynamic, bits)
+                platform, uwp)
 
     output_json(configs)

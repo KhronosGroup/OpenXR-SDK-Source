@@ -99,7 +99,7 @@ jobs:
       displayName: Download dynamic libraries
     - download: current
       patterns: "**/*.lib"
-      displayName: Download static libraries and link import libraries
+      displayName: Download link import libraries
     - download: current
       patterns: "**/*.h"
       displayName: Download headers
