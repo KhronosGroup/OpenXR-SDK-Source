@@ -11,7 +11,7 @@ if __name__ == "__main__":
     configs = {}
     for  platform, debug, uwp in product(PLATFORMS, (False,), TRUE_FALSE):
         # No need to support ARM/ARM64 except for UWP.
-        if uwp and (platform.lower() == 'arm' or platform.lower() == 'arm64'):
+        if not uwp and (platform.lower() == 'arm' or platform.lower() == 'arm64'):
             continue
 
         label = [platform]
