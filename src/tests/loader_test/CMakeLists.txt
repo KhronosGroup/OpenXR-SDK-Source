@@ -45,7 +45,12 @@ endif()
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     target_compile_definitions(loader_test PRIVATE _CRT_SECURE_NO_WARNINGS)
     target_compile_options(loader_test PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
-    target_link_libraries(loader_test openxr_loader opengl32 d3d11)
+    target_link_libraries(loader_test openxr_loader d3d11)
+
+    if(OPENGL_FOUND)
+        target_link_libraries(loader_test ${OPENGL_gl_LIBRARY})
+    endif()
+
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_options(
         loader_test PRIVATE -Wall -Wno-unused-function -Wno-format-truncation
