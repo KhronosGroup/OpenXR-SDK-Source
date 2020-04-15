@@ -553,7 +553,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                         validation_header_info += '\n// ---- %s extension commands\n' % cur_cmd.ext_name
                     cur_extension_name = cur_cmd.ext_name
 
-                prototype = self.replace_ATTR_CALL(cur_cmd.cdecl)
+                prototype = cur_cmd.cdecl
 
                 # We need to always export xrGetInstanceProcAddr, even though we automatically generate it.
                 # Also, we really only need the core function, not the others.
@@ -2362,9 +2362,6 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         pre_validate_func += '}\n\n'
         return pre_validate_func
 
-    def replace_ATTR_CALL(self, decl):
-        return decl.replace(self.genOpts.apicall, "").replace(self.genOpts.apientry, "")
-
     # Generate C++ code to call down to the next layer/loader terminator/runtime
     #   self            the ValidationSourceOutputGenerator object
     #   cur_command     the command generated in automatic_source_generator.py to validate
@@ -2379,7 +2376,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         # entry into the dispatch table so it's a special case all around.
         if 'xrCreateInstance' in cur_command.name:
             return ''
-        prototype = self.replace_ATTR_CALL(cur_command.cdecl.replace(" xr", " GenValidUsageNextXr"))
+        prototype = cur_command.cdecl.replace(" xr", " GenValidUsageNextXr")
         prototype = prototype.replace(";", " {")
         next_validate_func += '%s\n' % (prototype)
         if has_return:
@@ -2522,7 +2519,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
     #   has_return      Boolean indicating that the command must return a value (usually XrResult)
     def genAutoValidateFunc(self, cur_command, has_return):
         auto_validate_func = ''
-        prototype = self.replace_ATTR_CALL(cur_command.cdecl.replace(" xr", " GenValidUsageXr"))
+        prototype = cur_command.cdecl.replace(" xr", " GenValidUsageXr")
         prototype = prototype.replace(";", " {")
         auto_validate_func += '%s\n' % (prototype)
         auto_validate_func += self.writeIndent(1)
@@ -2682,7 +2679,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                     validation_source_funcs += '\n'
 
         validation_source_funcs += '\n// API Layer\'s xrGetInstanceProcAddr\n'
-        validation_source_funcs += 'XrResult GenValidUsageXrGetInstanceProcAddr(\n'
+        validation_source_funcs += 'XRAPI_ATTR XrResult XRAPI_CALL GenValidUsageXrGetInstanceProcAddr(\n'
         validation_source_funcs += '    XrInstance          instance,\n'
         validation_source_funcs += '    const char*         name,\n'
         validation_source_funcs += '    PFN_xrVoidFunction* function) {\n'
