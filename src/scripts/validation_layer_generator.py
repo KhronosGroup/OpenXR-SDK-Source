@@ -1007,35 +1007,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         validate_struct_next += self.writeIndent(indent + 1)
         validate_struct_next += 'error_message += "%s : ";\n' % struct_type
         validate_struct_next += self.writeIndent(indent + 1)
-        validate_struct_next += 'if (nullptr != instance_info) {\n'
-        validate_struct_next += self.writeIndent(indent + 2)
-        validate_struct_next += 'bool wrote_struct = false;\n'
-        validate_struct_next += self.writeIndent(indent + 2)
-        validate_struct_next += 'for (uint32_t dup = 0; dup < duplicate_ext_structs.size(); ++dup) {\n'
-        validate_struct_next += self.writeIndent(indent + 3)
-        validate_struct_next += 'if (XR_SUCCESS == instance_info->dispatch_table->StructureTypeToString(instance_info->instance,\n'
-        validate_struct_next += self.writeIndent(indent + 3)
-        validate_struct_next += '                                                                       duplicate_ext_structs[dup],\n'
-        validate_struct_next += self.writeIndent(indent + 3)
-        validate_struct_next += '                                                                       struct_type_buffer)) {\n'
-        validate_struct_next += self.writeIndent(indent + 4)
-        validate_struct_next += 'if (wrote_struct) {\n'
-        validate_struct_next += self.writeIndent(indent + 5)
-        validate_struct_next += 'error_message += ", ";\n'
-        validate_struct_next += self.writeIndent(indent + 4)
-        validate_struct_next += '} else {\n'
-        validate_struct_next += self.writeIndent(indent + 5)
-        validate_struct_next += 'wrote_struct = true;\n'
-        validate_struct_next += self.writeIndent(indent + 4)
-        validate_struct_next += '}\n'
-        validate_struct_next += self.writeIndent(indent + 4)
-        validate_struct_next += 'error_message += struct_type_buffer;\n'
-        validate_struct_next += self.writeIndent(indent + 3)
-        validate_struct_next += '}\n'
-        validate_struct_next += self.writeIndent(indent + 2)
-        validate_struct_next += '}\n'
-        validate_struct_next += self.writeIndent(indent + 1)
-        validate_struct_next += '}\n'
+        validate_struct_next += 'error_message += StructTypesToString(instance_info, duplicate_ext_structs);\n'
         validate_struct_next += self.writeIndent(indent + 1)
         validate_struct_next += 'CoreValidLogMessage(instance_info, "VUID-%s-next-unique",\n' % struct_type
         validate_struct_next += self.writeIndent(indent + 1)

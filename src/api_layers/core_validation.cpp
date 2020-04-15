@@ -426,6 +426,24 @@ void InvalidStructureType(GenValidUsageXrInstanceInfo *instance_info, const std:
     }
 }
 
+std::string StructTypesToString(GenValidUsageXrInstanceInfo *instance_info, const std::vector<XrStructureType> &structs) {
+    char struct_type_buffer[XR_MAX_STRUCTURE_NAME_SIZE];
+    std::string error_message;
+    if (nullptr == instance_info) {
+        error_message = "UNKNOWN - no instance info available";
+        return error_message;
+    }
+    bool wrote_struct = false;
+    for (auto &s : structs)
+        if (XR_SUCCESS == instance_info->dispatch_table->StructureTypeToString(instance_info->instance, s, struct_type_buffer)) {
+            if (wrote_struct) {
+                error_message += ", ";
+            }
+            wrote_struct = true;
+            error_message += struct_type_buffer;
+        }
+    return error_message;
+}
 // NOTE: Can't validate the following VUIDs since the command never enters a layer:
 // Command: xrEnumerateApiLayerProperties
 //      VUIDs:  "VUID-xrEnumerateApiLayerProperties-propertyCountOutput-parameter"
