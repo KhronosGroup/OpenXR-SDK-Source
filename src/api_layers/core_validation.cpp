@@ -453,7 +453,7 @@ std::string StructTypesToString(GenValidUsageXrInstanceInfo *instance_info, cons
 //              "VUID-xrEnumerateInstanceExtensionProperties-propertyCountOutput-parameter"
 //              "VUID-xrEnumerateInstanceExtensionProperties-properties-parameter"
 
-XrResult CoreValidationXrCreateInstance(const XrInstanceCreateInfo * /*info*/, XrInstance * /*instance*/) {
+XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrCreateInstance(const XrInstanceCreateInfo * /*info*/, XrInstance * /*instance*/) {
     // Shouldn't be called, coreValidationXrCreateApiLayerInstance should called instead
     return XR_SUCCESS;
 }
@@ -470,8 +470,9 @@ GenValidUsageXrInstanceInfo::~GenValidUsageXrInstanceInfo() { delete dispatch_ta
 
 // See if there is a debug utils create structure in the "next" chain
 
-XrResult CoreValidationXrCreateApiLayerInstance(const XrInstanceCreateInfo *info, const struct XrApiLayerCreateInfo *apiLayerInfo,
-                                                XrInstance *instance) {
+XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrCreateApiLayerInstance(const XrInstanceCreateInfo *info,
+                                                                      const struct XrApiLayerCreateInfo *apiLayerInfo,
+                                                                      XrInstance *instance) {
     try {
         XrApiLayerCreateInfo new_api_layer_info = {};
         XrResult validation_result = XR_SUCCESS;
@@ -580,7 +581,7 @@ void EraseAllInstanceTableMapElements(GenValidUsageXrInstanceInfo *search_value)
     map_erase_if(map, [=](value_t const &data) { return data.second.get() == search_value; });
 }
 
-XrResult CoreValidationXrDestroyInstance(XrInstance instance) {
+XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrDestroyInstance(XrInstance instance) {
     GenValidUsageInputsXrDestroyInstance(instance);
     if (XR_NULL_HANDLE != instance) {
         auto info_with_lock = g_instance_info.getWithLock(instance);
@@ -596,7 +597,8 @@ XrResult CoreValidationXrDestroyInstance(XrInstance instance) {
     return result;
 }
 
-XrResult CoreValidationXrCreateSession(XrInstance instance, const XrSessionCreateInfo *createInfo, XrSession *session) {
+XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrCreateSession(XrInstance instance, const XrSessionCreateInfo *createInfo,
+                                                             XrSession *session) {
     try {
         XrResult test_result = GenValidUsageInputsXrCreateSession(instance, createInfo, session);
         if (XR_SUCCESS != test_result) {
@@ -697,7 +699,8 @@ void CoreValidationDeleteSessionLabels(XrSession session) {
 }
 
 // ---- XR_EXT_debug_utils extension commands
-XrResult CoreValidationXrSetDebugUtilsObjectNameEXT(XrInstance instance, const XrDebugUtilsObjectNameInfoEXT *nameInfo) {
+XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrSetDebugUtilsObjectNameEXT(XrInstance instance,
+                                                                          const XrDebugUtilsObjectNameInfoEXT *nameInfo) {
     try {
         XrResult result = GenValidUsageInputsXrSetDebugUtilsObjectNameEXT(instance, nameInfo);
         if (!XR_UNQUALIFIED_SUCCESS(result)) {
@@ -718,8 +721,9 @@ XrResult CoreValidationXrSetDebugUtilsObjectNameEXT(XrInstance instance, const X
     }
 }
 
-XrResult CoreValidationXrCreateDebugUtilsMessengerEXT(XrInstance instance, const XrDebugUtilsMessengerCreateInfoEXT *createInfo,
-                                                      XrDebugUtilsMessengerEXT *messenger) {
+XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrCreateDebugUtilsMessengerEXT(XrInstance instance,
+                                                                            const XrDebugUtilsMessengerCreateInfoEXT *createInfo,
+                                                                            XrDebugUtilsMessengerEXT *messenger) {
     try {
         XrResult result = GenValidUsageInputsXrCreateDebugUtilsMessengerEXT(instance, createInfo, messenger);
         if (!XR_UNQUALIFIED_SUCCESS(result)) {
@@ -745,7 +749,7 @@ XrResult CoreValidationXrCreateDebugUtilsMessengerEXT(XrInstance instance, const
     }
 }
 
-XrResult CoreValidationXrDestroyDebugUtilsMessengerEXT(XrDebugUtilsMessengerEXT messenger) {
+XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrDestroyDebugUtilsMessengerEXT(XrDebugUtilsMessengerEXT messenger) {
     try {
         XrResult result = GenValidUsageInputsXrDestroyDebugUtilsMessengerEXT(messenger);
         if (!XR_UNQUALIFIED_SUCCESS(result)) {
@@ -773,7 +777,8 @@ XrResult CoreValidationXrDestroyDebugUtilsMessengerEXT(XrDebugUtilsMessengerEXT 
     }
 }
 
-XrResult CoreValidationXrSessionBeginDebugUtilsLabelRegionEXT(XrSession session, const XrDebugUtilsLabelEXT *labelInfo) {
+XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrSessionBeginDebugUtilsLabelRegionEXT(XrSession session,
+                                                                                    const XrDebugUtilsLabelEXT *labelInfo) {
     XrResult test_result = GenValidUsageInputsXrSessionBeginDebugUtilsLabelRegionEXT(session, labelInfo);
     if (XR_SUCCESS != test_result) {
         return test_result;
@@ -788,7 +793,7 @@ XrResult CoreValidationXrSessionBeginDebugUtilsLabelRegionEXT(XrSession session,
     return GenValidUsageNextXrSessionBeginDebugUtilsLabelRegionEXT(session, labelInfo);
 }
 
-XrResult CoreValidationXrSessionEndDebugUtilsLabelRegionEXT(XrSession session) {
+XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrSessionEndDebugUtilsLabelRegionEXT(XrSession session) {
     XrResult test_result = GenValidUsageInputsXrSessionEndDebugUtilsLabelRegionEXT(session);
     if (XR_SUCCESS != test_result) {
         return test_result;
@@ -803,7 +808,8 @@ XrResult CoreValidationXrSessionEndDebugUtilsLabelRegionEXT(XrSession session) {
     return GenValidUsageNextXrSessionEndDebugUtilsLabelRegionEXT(session);
 }
 
-XrResult CoreValidationXrSessionInsertDebugUtilsLabelEXT(XrSession session, const XrDebugUtilsLabelEXT *labelInfo) {
+XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrSessionInsertDebugUtilsLabelEXT(XrSession session,
+                                                                               const XrDebugUtilsLabelEXT *labelInfo) {
     XrResult test_result = GenValidUsageInputsXrSessionInsertDebugUtilsLabelEXT(session, labelInfo);
     if (XR_SUCCESS != test_result) {
         return test_result;

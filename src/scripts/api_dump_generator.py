@@ -119,15 +119,15 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
     #   self            the ApiDumpOutputGenerator object
     def outputLayerHeaderPrototypes(self):
         generated_prototypes = '// Layer\'s xrGetInstanceProcAddr\n'
-        generated_prototypes += 'XrResult ApiDumpLayerXrGetInstanceProcAddr(XrInstance instance,\n'
+        generated_prototypes += 'XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrGetInstanceProcAddr(XrInstance instance,\n'
         generated_prototypes += '                                          const char* name, PFN_xrVoidFunction* function);\n\n'
         generated_prototypes += '// Api Dump Log Command\n'
         generated_prototypes += 'bool ApiDumpLayerRecordContent(std::vector<std::tuple<std::string, std::string, std::string>> contents);\n\n'
         generated_prototypes += '// Api Dump Manual Functions\n'
         generated_prototypes += 'XrInstance FindInstanceFromDispatchTable(XrGeneratedDispatchTable* dispatch_table);\n'
-        generated_prototypes += 'XrResult ApiDumpLayerXrCreateInstance(const XrInstanceCreateInfo *info,\n'
+        generated_prototypes += 'XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrCreateInstance(const XrInstanceCreateInfo *info,\n'
         generated_prototypes += '                                      XrInstance *instance);\n'
-        generated_prototypes += 'XrResult ApiDumpLayerXrDestroyInstance(XrInstance instance);\n'
+        generated_prototypes += 'XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrDestroyInstance(XrInstance instance);\n'
         generated_prototypes += '\n//Dump utility functions\n'
         generated_prototypes += 'bool ApiDumpDecodeNextChain(XrGeneratedDispatchTable* gen_dispatch_table, const void* value, std::string prefix,\n'
         generated_prototypes += '                            std::vector<std::tuple<std::string, std::string, std::string>> &contents);\n'
@@ -1080,7 +1080,6 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                     generated_commands += '#if %s\n' % cur_cmd.protect_string
 
                 prototype = cur_cmd.cdecl.replace(" xr", " ApiDumpLayerXr")
-                prototype = prototype.replace(self.genOpts.apicall, "").replace(self.genOpts.apientry, "")
                 prototype = prototype.replace(";", " {\n")
                 generated_commands += prototype
 
@@ -1188,7 +1187,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
 
         # Output the xrGetInstanceProcAddr command for the API Dump layer.
         generated_commands += '\n// Layer\'s xrGetInstanceProcAddr\n'
-        generated_commands += 'XrResult ApiDumpLayerXrGetInstanceProcAddr(\n'
+        generated_commands += 'XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrGetInstanceProcAddr(\n'
         generated_commands += '    XrInstance                                  instance,\n'
         generated_commands += '    const char*                                 name,\n'
         generated_commands += '    PFN_xrVoidFunction*                         function) {\n'

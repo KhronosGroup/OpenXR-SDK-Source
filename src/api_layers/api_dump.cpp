@@ -404,7 +404,7 @@ bool ApiDumpLayerRecordContent(std::vector<std::tuple<std::string, std::string, 
     return success;
 }
 
-XrResult ApiDumpLayerXrCreateInstance(const XrInstanceCreateInfo * /*info*/, XrInstance * /*instance*/) {
+XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrCreateInstance(const XrInstanceCreateInfo * /*info*/, XrInstance * /*instance*/) {
     if (!g_record_info.initialized) {
         g_record_info.initialized = true;
         g_record_info.type = RECORD_TEXT_COUT;
@@ -412,8 +412,9 @@ XrResult ApiDumpLayerXrCreateInstance(const XrInstanceCreateInfo * /*info*/, XrI
     return XR_SUCCESS;
 }
 
-XrResult ApiDumpLayerXrCreateApiLayerInstance(const XrInstanceCreateInfo *info, const struct XrApiLayerCreateInfo *apiLayerInfo,
-                                              XrInstance *instance) {
+XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrCreateApiLayerInstance(const XrInstanceCreateInfo *info,
+                                                                    const struct XrApiLayerCreateInfo *apiLayerInfo,
+                                                                    XrInstance *instance) {
     try {
         PFN_xrGetInstanceProcAddr next_get_instance_proc_addr = nullptr;
         PFN_xrCreateApiLayerInstance next_create_api_layer_instance = nullptr;
@@ -548,7 +549,7 @@ XrResult ApiDumpLayerXrCreateApiLayerInstance(const XrInstanceCreateInfo *info, 
     }
 }
 
-XrResult ApiDumpLayerXrDestroyInstance(XrInstance instance) {
+XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrDestroyInstance(XrInstance instance) {
     // Generate output for this command
     std::vector<std::tuple<std::string, std::string, std::string>> contents;
     contents.emplace_back("XrResult", "xrDestroyInstance", "");

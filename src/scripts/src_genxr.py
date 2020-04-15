@@ -271,7 +271,10 @@ def makeGenOpts(args):
             defaultExtensions = 'openxr',
             addExtensions     = None,
             removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat)
+            emitExtensions    = emitExtensionsPat,
+            apicall           = 'XRAPI_ATTR ',
+            apientry          = 'XRAPI_CALL ',
+            apientryp         = 'XRAPI_PTR *')
         ]
 
     genOpts['xr_generated_api_dump.hpp'] = [
@@ -287,7 +290,10 @@ def makeGenOpts(args):
             defaultExtensions = 'openxr',
             addExtensions     = None,
             removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat)
+            emitExtensions    = emitExtensionsPat,
+            apicall           = 'XRAPI_ATTR ',
+            apientry          = 'XRAPI_CALL ',
+            apientryp         = 'XRAPI_PTR *')
         ]
 
     # Source files generated for the core validation layer
@@ -304,7 +310,10 @@ def makeGenOpts(args):
             defaultExtensions = 'openxr',
             addExtensions     = None,
             removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat)
+            emitExtensions    = emitExtensionsPat,
+            apicall           = 'XRAPI_ATTR ',
+            apientry          = 'XRAPI_CALL ',
+            apientryp         = 'XRAPI_PTR *')
         ]
 
     genOpts['xr_generated_core_validation.cpp'] = [
@@ -320,7 +329,10 @@ def makeGenOpts(args):
             defaultExtensions = 'openxr',
             addExtensions     = None,
             removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat)
+            emitExtensions    = emitExtensionsPat,
+            apicall           = 'XRAPI_ATTR ',
+            apientry          = 'XRAPI_CALL ',
+            apientryp         = 'XRAPI_PTR *')
         ]
 
 # Generate a target based on the options in the matching genOpts{} object.
