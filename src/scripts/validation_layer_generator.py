@@ -389,7 +389,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         validation_internal_protos += '                    XrObjectType handle2_type, const uint64_t handle2,\n'
         validation_internal_protos += '                    bool check_this);\n'
         validation_internal_protos += '\n// Function to check if an extension has been enabled\n'
-        validation_internal_protos += 'bool ExtensionEnabled(std::vector<std::string> &extensions, const char* const check_extension_name);\n'
+        validation_internal_protos += 'bool ExtensionEnabled(const std::vector<std::string> &extensions, const char* const check_extension_name);\n'
         validation_internal_protos += '\n// Functions to validate structures\n'
         for xr_struct in self.api_structures:
             if xr_struct.protect_value:
@@ -605,9 +605,9 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
     # Generate C++ utility functions to verify that all the required extensions have been enabled.
     #   self            the ValidationSourceOutputGenerator object
     def writeVerifyExtensions(self):
-        verify_extensions = 'bool ExtensionEnabled(std::vector<std::string> &extensions, const char* const check_extension_name) {\n'
+        verify_extensions = 'bool ExtensionEnabled(const std::vector<std::string> &extensions, const char* const check_extension_name) {\n'
         verify_extensions += self.writeIndent(1)
-        verify_extensions += 'for (auto enabled_extension: extensions) {\n'
+        verify_extensions += 'for (const auto& enabled_extension: extensions) {\n'
         verify_extensions += self.writeIndent(2)
         verify_extensions += 'if (enabled_extension == check_extension_name) {\n'
         verify_extensions += self.writeIndent(3)
