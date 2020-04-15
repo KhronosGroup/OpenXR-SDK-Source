@@ -19,6 +19,6 @@
 
 add_subdirectory(list)
 add_subdirectory(hello_xr)
-if(BUILD_LOADER)
-add_subdirectory(loader_test)
+if(BUILD_LOADER AND NOT ANDROID)
+    add_subdirectory(loader_test)
 endif()

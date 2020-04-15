@@ -9,6 +9,7 @@ public class MainActivity extends android.app.NativeActivity {
     // the shared library that depends on them is loaded, since there is not
     // currently a way to specify a shared library dependency for NativeActivity
     // via the manifest meta-data.
+    System.loadLibrary("openxr_loader");
     System.loadLibrary("hello_xr");
   }
 }
