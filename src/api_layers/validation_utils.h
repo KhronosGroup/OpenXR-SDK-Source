@@ -78,7 +78,7 @@ typedef std::unique_ptr<CoreValidationMessengerInfo, CoreValidationMessengerInfo
 struct GenValidUsageXrInstanceInfo {
     GenValidUsageXrInstanceInfo(XrInstance inst, PFN_xrGetInstanceProcAddr next_get_instance_proc_addr);
     ~GenValidUsageXrInstanceInfo();
-    const XrInstance instance;
+    XrInstance const instance;
     XrGeneratedDispatchTable *dispatch_table;
     std::vector<std::string> enabled_extensions;
     std::vector<UniqueCoreValidationMessengerInfo> debug_messengers;
