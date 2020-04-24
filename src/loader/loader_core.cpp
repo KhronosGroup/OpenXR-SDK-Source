@@ -135,7 +135,6 @@ xrEnumerateInstanceExtensionProperties(const char *layerName, uint32_t propertyC
             result = RuntimeInterface::LoadRuntime("xrEnumerateInstanceExtensionProperties");
             if (XR_SUCCEEDED(result)) {
                 RuntimeInterface::GetRuntime().GetInstanceExtensionProperties(extension_properties);
-                RuntimeInterface::UnloadRuntime("xrEnumerateInstanceExtensionProperties");
             } else {
                 LoaderLogger::LogErrorMessage("xrEnumerateInstanceExtensionProperties",
                                               "Failed to find default runtime with RuntimeInterface::LoadRuntime()");
