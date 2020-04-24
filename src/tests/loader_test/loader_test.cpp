@@ -67,7 +67,7 @@ void ForceLoaderUnloadRuntime() {
     XrInstanceCreateInfo instance_create_info{XR_TYPE_INSTANCE_CREATE_INFO};
     strcpy(instance_create_info.applicationInfo.applicationName, "Force Unload");
     instance_create_info.applicationInfo.applicationVersion = 688;
-    if (SUCCEEDED(xrCreateInstance(&instance_create_info, &instance))) {
+    if (XR_SUCCEEDED(xrCreateInstance(&instance_create_info, &instance))) {
         xrDestroyInstance(instance);
     }
 }
