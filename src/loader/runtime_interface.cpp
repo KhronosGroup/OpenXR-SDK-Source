@@ -179,8 +179,10 @@ XrResult RuntimeInterface::LoadRuntime(const std::string& openxr_command) {
 }
 
 void RuntimeInterface::UnloadRuntime(const std::string& openxr_command) {
-    LoaderLogger::LogInfoMessage(openxr_command, "RuntimeInterface being unloaded.");
-    GetInstance().reset();
+    if (GetInstance()) {
+        LoaderLogger::LogInfoMessage(openxr_command, "RuntimeInterface::UnloadRuntime - Unloading RuntimeInterface");
+        GetInstance().reset();
+    }
 }
 
 XrResult RuntimeInterface::GetInstanceProcAddr(XrInstance instance, const char* name, PFN_xrVoidFunction* function) {

@@ -24,7 +24,11 @@ add_executable(loader_test
 )
 set_target_properties(loader_test PROPERTIES FOLDER ${TESTS_FOLDER})
 
-add_dependencies(loader_test generate_openxr_header)
+add_dependencies(loader_test
+    generate_openxr_header
+    XrApiLayer_test
+    test_runtime
+)
 if(TARGET openxr-gfxwrapper)
     target_link_libraries(loader_test openxr-gfxwrapper)
 endif()

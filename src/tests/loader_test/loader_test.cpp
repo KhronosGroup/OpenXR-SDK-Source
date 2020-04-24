@@ -60,12 +60,26 @@ void CleanupEnvironmentVariables() {
     LoaderTestUnsetEnvironmentVariable("XR_RUNTIME_JSON");
 }
 
+// The loader will keep a runtime loaded after a successful xrEnumerateInstanceExtensionProperties call until an instance is created
+// and destroyed.
+void ForceLoaderUnloadRuntime() {
+    XrInstance instance;
+    XrInstanceCreateInfo instance_create_info{XR_TYPE_INSTANCE_CREATE_INFO};
+    strcpy(instance_create_info.applicationInfo.applicationName, "Force Unload");
+    instance_create_info.applicationInfo.applicationVersion = 688;
+    if (SUCCEEDED(xrCreateInstance(&instance_create_info, &instance))) {
+        xrDestroyInstance(instance);
+    }
+}
+
 bool DetectInstalledRuntime() {
     bool runtime_found = false;
     uint32_t ext_count = 0;
 
     // Disable any potential envar override - just looking for an installed runtime
     LoaderTestUnsetEnvironmentVariable("XR_RUNTIME_JSON");
+
+    ForceLoaderUnloadRuntime();
 
     // Enumerating available extensions requires loading the runtime
     XrResult ret = xrEnumerateInstanceExtensionProperties(nullptr, 0, &ext_count, nullptr);
@@ -364,6 +378,8 @@ void TestEnumInstanceExtensions(uint32_t& total, uint32_t& passed, uint32_t& ski
                         FileSysUtilsGetCurrentPath(full_name);
                         LoaderTestSetEnvironmentVariable("XR_RUNTIME_JSON", full_name);
 
+                        ForceLoaderUnloadRuntime();
+
                         in_extension_value = 0;
                         out_extension_value = 0;
                         local_total++;
@@ -372,10 +388,10 @@ void TestEnumInstanceExtensions(uint32_t& total, uint32_t& passed, uint32_t& ski
                             xrEnumerateInstanceExtensionProperties(nullptr, in_extension_value, &out_extension_value, nullptr);
                         if (XR_SUCCEEDED(test_result)) {
                             cout << "Failed" << endl;
-                            local_failed++;
+                            local_failed++;  // Success is unexpected.
                         } else {
                             cout << "Passed" << endl;
-                            local_passed++;
+                            local_passed++;  // Failure is expected.
                         }
                     }
                 }
@@ -384,6 +400,8 @@ void TestEnumInstanceExtensions(uint32_t& total, uint32_t& passed, uint32_t& ski
             // Test the active runtime, if installed
             if (g_has_installed_runtime) {
                 LoaderTestUnsetEnvironmentVariable("XR_RUNTIME_JSON");
+
+                ForceLoaderUnloadRuntime();
 
                 // Query the count (should return 2)
                 in_extension_value = 0;

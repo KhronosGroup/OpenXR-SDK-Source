@@ -215,8 +215,6 @@ XRLOADER_ABI_CATCH_FALLBACK
 
 LOADER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrCreateInstance(const XrInstanceCreateInfo *info,
                                                               XrInstance *instance) XRLOADER_ABI_TRY {
-    bool runtime_loaded = false;
-
     LoaderLogger::LogVerboseMessage("xrCreateInstance", "Entering loader trampoline");
     if (nullptr == info) {
         LoaderLogger::LogValidationErrorMessage("VUID-xrCreateInstance-info-parameter", "xrCreateInstance", "must be non-NULL");
@@ -264,7 +262,6 @@ LOADER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrCreateInstance(const XrInstanceCr
         if (XR_FAILED(result)) {
             LoaderLogger::LogErrorMessage("xrCreateInstance", "Failed loading runtime information");
         } else {
-            runtime_loaded = true;
             // Load the appropriate layers
             result = ApiLayerInterface::LoadApiLayers("xrCreateInstance", info->enabledApiLayerCount, info->enabledApiLayerNames,
                                                       api_layer_interfaces);
@@ -274,17 +271,9 @@ LOADER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrCreateInstance(const XrInstanceCr
         }
     }
 
-    if (XR_FAILED(result)) {
-        if (runtime_loaded) {
-            RuntimeInterface::UnloadRuntime("xrCreateInstance");
-        }
-        return result;
-    }
-
     // Create the loader instance (only send down first runtime interface)
-
     LoaderInstance *loader_instance = nullptr;
-    {
+    if (XR_SUCCEEDED(result)) {
         std::unique_ptr<LoaderInstance> owned_loader_instance;
         result = LoaderInstance::CreateInstance(LoaderXrTermGetInstanceProcAddr, LoaderXrTermCreateInstance,
                                                 LoaderXrTermCreateApiLayerInstance, std::move(api_layer_interfaces), info,
@@ -315,14 +304,16 @@ LOADER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrCreateInstance(const XrInstanceCr
         }
     }
 
-    if (XR_SUCCEEDED(result)) {
-        *instance = loader_instance->GetInstanceHandle();
-    } else {
-        // Ensure the global loader instance is destroyed if something went wrong.
+    if (XR_FAILED(result)) {
+        // Ensure the global loader instance and runtime are destroyed if something went wrong.
         ActiveLoaderInstance::Remove();
+        RuntimeInterface::UnloadRuntime("xrCreateInstance");
+        LoaderLogger::LogErrorMessage("xrCreateInstance", "xrCreateInstance failed");
+    } else {
+        *instance = loader_instance->GetInstanceHandle();
+        LoaderLogger::LogVerboseMessage("xrCreateInstance", "Completed loader trampoline");
     }
 
-    LoaderLogger::LogVerboseMessage("xrCreateInstance", "Completed loader trampoline");
     return result;
 }
 XRLOADER_ABI_CATCH_FALLBACK
