@@ -1181,6 +1181,7 @@ maintained in the master branch of the Khronos OpenXR GitHub project.
         <enum value="-47"   name="XR_ERROR_ACTIONSETS_ALREADY_ATTACHED" comment="The session already has attached action sets." />
         <enum value="-48"   name="XR_ERROR_LOCALIZED_NAME_DUPLICATED" comment="The localized name provided was a duplicate of an already-existing resource."/>
         <enum value="-49"   name="XR_ERROR_LOCALIZED_NAME_INVALID" comment="The localized name provided was invalid."/>
+        <enum value="-50"   name="XR_ERROR_RUNTIME_UNAVAILABLE" comment="The loader was unable to find or load a runtime."/>
         <unused start="-100"/>
     </enums>
     <enums name="XrObjectType" type="enum" comment="Enums to track objects of various types">
@@ -1372,14 +1373,14 @@ maintained in the master branch of the Khronos OpenXR GitHub project.
             <param><type>uint32_t</type>* <name>propertyCountOutput</name></param>
             <param optional="true" len="propertyCapacityInput"><type>XrApiLayerProperties</type>* <name>properties</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_OUT_OF_MEMORY,XR_ERROR_API_LAYER_NOT_PRESENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_SIZE_INSUFFICIENT">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_OUT_OF_MEMORY,XR_ERROR_API_LAYER_NOT_PRESENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_RUNTIME_UNAVAILABLE">
             <proto><type>XrResult</type> <name>xrEnumerateInstanceExtensionProperties</name></proto>
             <param optional="true" len="null-terminated">const <type>char</type>* <name>layerName</name></param>
             <param optional="true"><type>uint32_t</type> <name>propertyCapacityInput</name></param>
             <param><type>uint32_t</type>* <name>propertyCountOutput</name></param>
             <param optional="true" len="propertyCapacityInput"><type>XrExtensionProperties</type>* <name>properties</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_INITIALIZATION_FAILED,XR_ERROR_API_VERSION_UNSUPPORTED,XR_ERROR_API_LAYER_NOT_PRESENT,XR_ERROR_EXTENSION_NOT_PRESENT,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_NAME_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_INITIALIZATION_FAILED,XR_ERROR_API_VERSION_UNSUPPORTED,XR_ERROR_API_LAYER_NOT_PRESENT,XR_ERROR_EXTENSION_NOT_PRESENT,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_NAME_INVALID,XR_ERROR_RUNTIME_UNAVAILABLE">
             <proto><type>XrResult</type> <name>xrCreateInstance</name></proto>
             <param>const <type>XrInstanceCreateInfo</type>* <name>createInfo</name></param>
             <param><type>XrInstance</type>* <name>instance</name></param>

@@ -181,11 +181,9 @@ static void CopyIncludedPaths(bool is_directory_list, const std::string &cur_pat
     }
 }
 
-// Look for data files in the provided paths, but first check the environment override to determine if we should use that instead.
-static void ReadDataFilesInSearchPaths(ManifestFileType type, const std::string &override_env_var, const std::string &relative_path,
-                                       bool &override_active, std::vector<std::string> &manifest_files) {
-    bool is_directory_list = true;
-    bool is_runtime = (type == MANIFEST_TYPE_RUNTIME);
+// Find the runtime manifest file in the appropriate search paths/registries.
+static void ReadDataFilesInSearchPaths(const std::string &override_env_var, const std::string &relative_path, bool &override_active,
+                                       std::vector<std::string> &manifest_files) {
     std::string override_path;
     std::string search_path;
 
@@ -199,17 +197,11 @@ static void ReadDataFilesInSearchPaths(ManifestFileType type, const std::string 
 #endif
         if (permit_override) {
             override_path = PlatformUtilsGetSecureEnv(override_env_var.c_str());
-            if (!override_path.empty()) {
-                // The runtime override is actually a specific list of filenames, not directories
-                if (is_runtime) {
-                    is_directory_list = false;
-                }
-            }
         }
     }
 
     if (!override_path.empty()) {
-        CopyIncludedPaths(is_directory_list, override_path, "", search_path);
+        CopyIncludedPaths(true /* is_directory_list */, override_path, "", search_path);
         override_active = true;
     } else {
         override_active = false;
@@ -252,7 +244,7 @@ static void ReadDataFilesInSearchPaths(ManifestFileType type, const std::string 
     }
 
     // Now, parse the paths and add any manifest files found in them.
-    AddFilesInPath(search_path, is_directory_list, manifest_files);
+    AddFilesInPath(search_path, true /* is_directory_list */, manifest_files);
 }
 
 #ifdef XR_OS_LINUX
@@ -333,7 +325,7 @@ static bool FindXDGConfigFile(const std::string &relative_path, std::string &out
 
 // Look for runtime data files in the provided paths, but first check the environment override to determine
 // if we should use that instead.
-static void ReadRuntimeDataFilesInRegistry(ManifestFileType type, const std::string &runtime_registry_location,
+static void ReadRuntimeDataFilesInRegistry(const std::string &runtime_registry_location,
                                            const std::string &default_runtime_value_name,
                                            std::vector<std::string> &manifest_files) {
     HKEY hkey;
@@ -367,8 +359,7 @@ static void ReadRuntimeDataFilesInRegistry(ManifestFileType type, const std::str
 
 // Look for layer data files in the provided paths, but first check the environment override to determine
 // if we should use that instead.
-static void ReadLayerDataFilesInRegistry(ManifestFileType type, const std::string &registry_location,
-                                         std::vector<std::string> &manifest_files) {
+static void ReadLayerDataFilesInRegistry(const std::string &registry_location, std::vector<std::string> &manifest_files) {
     const std::wstring full_registry_location_w =
         utf8_to_wide(OPENXR_REGISTRY_LOCATION + std::to_string(XR_VERSION_MAJOR(XR_CURRENT_API_VERSION)) + registry_location);
 
@@ -604,13 +595,8 @@ void RuntimeManifestFile::CreateIfValid(std::string const &filename,
 }
 
 // Find all manifest files in the appropriate search paths/registries for the given type.
-XrResult RuntimeManifestFile::FindManifestFiles(ManifestFileType type,
-                                                std::vector<std::unique_ptr<RuntimeManifestFile>> &manifest_files) {
+XrResult RuntimeManifestFile::FindManifestFiles(std::vector<std::unique_ptr<RuntimeManifestFile>> &manifest_files) {
     XrResult result = XR_SUCCESS;
-    if (MANIFEST_TYPE_RUNTIME != type) {
-        LoaderLogger::LogErrorMessage("", "RuntimeManifestFile::FindManifestFiles - unknown manifest file requested");
-        return XR_ERROR_FILE_ACCESS_ERROR;
-    }
     std::string filename = PlatformUtilsGetSecureEnv(OPENXR_RUNTIME_JSON_ENV_VAR);
     if (!filename.empty()) {
         LoaderLogger::LogInfoMessage(
@@ -618,11 +604,11 @@ XrResult RuntimeManifestFile::FindManifestFiles(ManifestFileType type,
     } else {
 #ifdef XR_OS_WINDOWS
         std::vector<std::string> filenames;
-        ReadRuntimeDataFilesInRegistry(type, "", "ActiveRuntime", filenames);
+        ReadRuntimeDataFilesInRegistry("", "ActiveRuntime", filenames);
         if (filenames.size() == 0) {
             LoaderLogger::LogErrorMessage(
                 "", "RuntimeManifestFile::FindManifestFiles - failed to find active runtime file in registry");
-            return XR_ERROR_FILE_ACCESS_ERROR;
+            return XR_ERROR_RUNTIME_UNAVAILABLE;
         }
         if (filenames.size() > 1) {
             LoaderLogger::LogWarningMessage(
@@ -833,12 +819,12 @@ XrResult ApiLayerManifestFile::FindManifestFiles(ManifestFileType type,
 
     bool override_active = false;
     std::vector<std::string> filenames;
-    ReadDataFilesInSearchPaths(type, override_env_var, relative_path, override_active, filenames);
+    ReadDataFilesInSearchPaths(override_env_var, relative_path, override_active, filenames);
 
 #ifdef XR_OS_WINDOWS
     // Read the registry if the override wasn't active.
     if (!override_active) {
-        ReadLayerDataFilesInRegistry(type, registry_location, filenames);
+        ReadLayerDataFilesInRegistry(registry_location, filenames);
     }
 #endif
 

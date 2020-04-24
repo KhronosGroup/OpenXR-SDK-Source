@@ -50,16 +50,15 @@ XrResult RuntimeInterface::LoadRuntime(const std::string& openxr_command) {
     bool any_loaded = false;
 
     // Find the available runtimes which we may need to report information for.
-    XrResult last_error = RuntimeManifestFile::FindManifestFiles(MANIFEST_TYPE_RUNTIME, runtime_manifest_files);
+    XrResult last_error = RuntimeManifestFile::FindManifestFiles(runtime_manifest_files);
     if (XR_FAILED(last_error)) {
-        LoaderLogger::LogErrorMessage(openxr_command, "RuntimeInterface::LoadRuntimes - unknown error");
-        last_error = XR_ERROR_FILE_ACCESS_ERROR;
+        LoaderLogger::LogErrorMessage(openxr_command, "RuntimeInterface::LoadRuntimes - failed to find any runtime manifests");
     } else {
         for (std::unique_ptr<RuntimeManifestFile>& manifest_file : runtime_manifest_files) {
             LoaderPlatformLibraryHandle runtime_library = LoaderPlatformLibraryOpen(manifest_file->LibraryPath());
             if (nullptr == runtime_library) {
                 if (!any_loaded) {
-                    last_error = XR_ERROR_INSTANCE_LOST;
+                    last_error = XR_ERROR_FILE_ACCESS_ERROR;
                 }
                 std::string library_message = LoaderPlatformLibraryOpenError(manifest_file->LibraryPath());
                 std::string warning_message = "RuntimeInterface::LoadRuntime skipping manifest file ";
@@ -173,10 +172,10 @@ XrResult RuntimeInterface::LoadRuntime(const std::string& openxr_command) {
     // Always clear the manifest file list.  Either we use them or we don't.
     runtime_manifest_files.clear();
 
-    // We found no valid runtimes, throw the initialization failed message
+    // We found no valid runtimes, return the runtime unavailable error.
     if (!any_loaded) {
-        LoaderLogger::LogErrorMessage(openxr_command, "RuntimeInterface::LoadRuntimes - failed to find a valid runtime");
-        last_error = XR_ERROR_INSTANCE_LOST;
+        LoaderLogger::LogErrorMessage(openxr_command, "RuntimeInterface::LoadRuntimes - failed to load a runtime");
+        last_error = XR_ERROR_RUNTIME_UNAVAILABLE;
     }
 
     return last_error;
