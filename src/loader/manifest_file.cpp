@@ -828,15 +828,8 @@ XrResult ApiLayerManifestFile::FindManifestFiles(ManifestFileType type,
     }
 #endif
 
-    switch (type) {
-        case MANIFEST_TYPE_IMPLICIT_API_LAYER:
-        case MANIFEST_TYPE_EXPLICIT_API_LAYER:
-            for (std::string &cur_file : filenames) {
-                ApiLayerManifestFile::CreateIfValid(type, cur_file, manifest_files);
-            }
-            break;
-        default:
-            break;
+    for (std::string &cur_file : filenames) {
+        ApiLayerManifestFile::CreateIfValid(type, cur_file, manifest_files);
     }
 
     return XR_SUCCESS;
