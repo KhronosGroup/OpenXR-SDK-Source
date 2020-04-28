@@ -26,12 +26,18 @@ include(GNUInstallDirs)
 
 ### Dependencies
 set(OpenGL_GL_PREFERENCE GLVND)
+if (NOT CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+    # OpenGL package will be found for UWP apps but gl.h excludes UWP apps so it isn't actually usable.
 find_package(OpenGL)
+endif()
+
 if(OPENGL_FOUND)
     add_definitions(-DXR_USE_GRAPHICS_API_OPENGL)
     message(STATUS "Enabling OpenGL support")
 elseif(BUILD_ALL_EXTENSIONS)
-    message(FATAL_ERROR "OpenGL not found")
+    if (NOT CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+        message(FATAL_ERROR "OpenGL not found")
+    endif()
 endif()
 
 if(NOT CMAKE_VERSION VERSION_LESS 3.7.0)
@@ -84,6 +90,11 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_definitions(-DXR_OS_LINUX)
 endif()
 
+# /EHsc (support for C++ exceptions) is default in most configurations but seems missing when building arm/arm64.
+IF(MSVC)
+    SET(CMAKE_CXX_FLAGS "/EHsc")
+ENDIF(MSVC)
+
 # This is a little helper library for setting up OpenGL
 if(OPENGL_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/common/gfxwrapper_opengl.c")
     add_library(openxr-gfxwrapper STATIC common/gfxwrapper_opengl.c common/gfxwrapper_opengl.h)
@@ -107,6 +118,11 @@ endif()
 # Several files use these compile-time platform switches
 if(WIN32)
     add_definitions(-DXR_USE_PLATFORM_WIN32)
+    # TODO remove once work is done to get more stuff building for UWP.
+    if (CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+        set(BUILD_TESTS OFF)
+        set(BUILD_CONFORMANCE_TESTS OFF)
+    endif()
 elseif(PRESENTATION_BACKEND MATCHES "xlib")
     add_definitions(-DXR_USE_PLATFORM_XLIB)
 elseif(PRESENTATION_BACKEND MATCHES "xcb")
