@@ -89,8 +89,6 @@ jobs:
 - job: combine_artifacts
   dependsOn: windows_build
   displayName: "Organize artifacts"
-  # Only build this if we're succeeding and we're on the master branch
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
   pool:
     vmImage: 'windows-latest'
   steps:
