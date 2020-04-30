@@ -1634,9 +1634,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
     _(SURFACE_KHR)           \
     _(SWAPCHAIN_KHR)         \
     _(DISPLAY_KHR)           \
-    _(DISPLAY_MODE_KHR)      \
-    _(OBJECT_TABLE_NVX)      \
-    _(INDIRECT_COMMANDS_LAYOUT_NVX)
+    _(DISPLAY_MODE_KHR)
 
         switch (objectType) {
             default:
