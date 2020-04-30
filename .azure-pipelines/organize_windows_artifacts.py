@@ -26,6 +26,10 @@ if __name__ == "__main__":
     include_copied = False
 
     for platform, uwp in product(PLATFORMS, TRUE_FALSE):
+        # No need to support ARM/ARM64 except for UWP.
+        if not uwp and (platform.lower() == 'arm' or platform.lower() == 'arm64'):
+            continue
+
         base = outbase / '{}{}'.format(platform,
                                               '_uwp' if uwp else '')
         base.mkdir(parents=True, exist_ok=True)
