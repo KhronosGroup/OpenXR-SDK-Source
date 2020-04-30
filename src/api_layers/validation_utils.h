@@ -78,7 +78,7 @@ typedef std::unique_ptr<CoreValidationMessengerInfo, CoreValidationMessengerInfo
 struct GenValidUsageXrInstanceInfo {
     GenValidUsageXrInstanceInfo(XrInstance inst, PFN_xrGetInstanceProcAddr next_get_instance_proc_addr);
     ~GenValidUsageXrInstanceInfo();
-    const XrInstance instance;
+    XrInstance const instance;
     XrGeneratedDispatchTable *dispatch_table;
     std::vector<std::string> enabled_extensions;
     std::vector<UniqueCoreValidationMessengerInfo> debug_messengers;
@@ -207,6 +207,8 @@ void InvalidStructureType(GenValidUsageXrInstanceInfo *instance_info, const std:
                           std::vector<GenValidUsageXrObjectInfo> &objects_info, const char *structure_name, XrStructureType type,
                           const char *vuid = nullptr, XrStructureType expected = XrStructureType(0),
                           const char *expected_name = "");
+
+std::string StructTypesToString(GenValidUsageXrInstanceInfo *instance_info, const std::vector<XrStructureType> &structs);
 
 // -- Only implementations of templates follow --//
 
