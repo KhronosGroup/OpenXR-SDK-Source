@@ -26,7 +26,7 @@ if __name__ == "__main__":
     include_copied = False
 
     for platform, uwp in product(PLATFORMS, TRUE_FALSE):
-        # No need to support ARM/ARM64 except for UWP.
+        # ARM/ARM64 is only built for the UWP platform.
         if not uwp and (platform.lower() == 'arm' or platform.lower() == 'arm64'):
             continue
 
