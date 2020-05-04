@@ -345,7 +345,7 @@ struct OpenXrProgram : IOpenXrProgram {
         }
     }
 
-    using InputState = struct {
+    struct InputState {
         XrActionSet actionSet{XR_NULL_HANDLE};
         XrAction grabAction{XR_NULL_HANDLE};
         XrAction poseAction{XR_NULL_HANDLE};
