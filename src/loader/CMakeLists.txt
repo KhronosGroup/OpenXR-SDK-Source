@@ -238,8 +238,48 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
 endif()
 
 install(
-    TARGETS openxr_loader
+    TARGETS openxr_loader EXPORT openxr_loader_export
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+# openxr-all-supported is a dependency of openxr_loader so it should be added to the export set
+install(TARGETS openxr-all-supported EXPORT openxr_loader_export)
+
+export(
+    EXPORT openxr_loader_export
+    FILE ${CMAKE_CURRENT_BINARY_DIR}/OpenXRTargets.cmake
+    NAMESPACE xr::
+)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(TARGET_DESTINATION cmake)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set(TARGET_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/openxr/)
+endif()
+
+install(
+    EXPORT openxr_loader_export
+    FILE OpenXRTargets.cmake
+    NAMESPACE xr::
+    DESTINATION ${TARGET_DESTINATION}
+)
+
+include(CMakePackageConfigHelpers)
+set(INCLUDE_INSTALL_DIR include/)
+configure_package_config_file(
+    OpenXRConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/OpenXRConfig.cmake
+    INSTALL_DESTINATION ${TARGET_DESTINATION}
+    PATH_VARS INCLUDE_INSTALL_DIR
+)
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/OpenXRConfigVersion.cmake
+    VERSION "${MAJOR}.${MINOR}.${PATCH}"
+    COMPATIBILITY SameMajorVersion
+)
+install(
+    FILES ${CMAKE_CURRENT_BINARY_DIR}/OpenXRConfig.cmake
+          ${CMAKE_CURRENT_BINARY_DIR}/OpenXRConfigVersion.cmake
+    DESTINATION ${TARGET_DESTINATION}
 )
