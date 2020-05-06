@@ -215,7 +215,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/version.cmake)
 
 # Path separators ( : or ; ) are not handled well in CMake.
 # This seems like a reasonable approach.
-if(WIN32)
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL Windows)
     set(CODEGEN_PYTHON_PATH
         "${PROJECT_SOURCE_DIR}/specification/scripts;${PROJECT_SOURCE_DIR}/src/scripts;$ENV{PYTHONPATH}"
     )
