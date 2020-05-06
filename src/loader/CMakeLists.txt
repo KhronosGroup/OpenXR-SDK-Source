@@ -249,7 +249,7 @@ install(TARGETS openxr-all-supported EXPORT openxr_loader_export)
 export(
     EXPORT openxr_loader_export
     FILE ${CMAKE_CURRENT_BINARY_DIR}/OpenXRTargets.cmake
-    NAMESPACE xr::
+    NAMESPACE OpenXR::
 )
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -261,7 +261,7 @@ endif()
 install(
     EXPORT openxr_loader_export
     FILE OpenXRTargets.cmake
-    NAMESPACE xr::
+    NAMESPACE OpenXR::
     DESTINATION ${TARGET_DESTINATION}
 )
 
