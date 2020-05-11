@@ -288,6 +288,8 @@ static bool FindXDGConfigFile(const std::string &relative_path, std::string &out
     if (!out.empty()) {
         out += "/";
         out += relative_path;
+
+        LoaderLogger::LogInfoMessage("", "Looking for " + relative_path + " in XDG_CONFIG_HOME: " + out);
         if (FileSysUtilsPathExists(out)) {
             return true;
         }
@@ -302,6 +304,7 @@ static bool FindXDGConfigFile(const std::string &relative_path, std::string &out
         out = path;
         out += "/";
         out += relative_path;
+        LoaderLogger::LogInfoMessage("", "Looking for " + relative_path + " in an entry of XDG_CONFIG_DIRS: " + out);
         if (FileSysUtilsPathExists(out)) {
             return true;
         }
@@ -310,6 +313,7 @@ static bool FindXDGConfigFile(const std::string &relative_path, std::string &out
     out = SYSCONFDIR;
     out += "/";
     out += relative_path;
+    LoaderLogger::LogInfoMessage("", "Looking for " + relative_path + " in compiled-in SYSCONFDIR: " + out);
     if (FileSysUtilsPathExists(out)) {
         return true;
     }
@@ -318,6 +322,7 @@ static bool FindXDGConfigFile(const std::string &relative_path, std::string &out
     out = EXTRASYSCONFDIR;
     out += "/";
     out += relative_path;
+    LoaderLogger::LogInfoMessage("", "Looking for " + relative_path + " in compiled-in EXTRASYSCONFDIR: " + out);
     if (FileSysUtilsPathExists(out)) {
         return true;
     }
@@ -535,6 +540,7 @@ void RuntimeManifestFile::CreateIfValid(std::string const &filename,
                                         std::vector<std::unique_ptr<RuntimeManifestFile>> &manifest_files) {
     std::ifstream json_stream(filename, std::ifstream::in);
 
+    LoaderLogger::LogInfoMessage("", "RuntimeManifestFile::CreateIfValid - attempting to load " + filename);
     std::ostringstream error_ss("RuntimeManifestFile::CreateIfValid ");
     if (!json_stream.is_open()) {
         error_ss << "failed to open " << filename << ".  Does it exist?";
@@ -629,6 +635,8 @@ XrResult RuntimeManifestFile::FindManifestFiles(ManifestFileType type,
                 "", "RuntimeManifestFile::FindManifestFiles - found too many default runtime files in registry");
         }
         filename = filenames[0];
+        LoaderLogger::LogInfoMessage("",
+                                     "RuntimeManifestFile::FindManifestFiles - using registry-specified runtime file " + filename);
 #elif defined(XR_OS_LINUX)
         const std::string relative_path =
             "openxr/" + std::to_string(XR_VERSION_MAJOR(XR_CURRENT_API_VERSION)) + "/active_runtime.json";
@@ -644,9 +652,7 @@ XrResult RuntimeManifestFile::FindManifestFiles(ManifestFileType type,
             return XR_ERROR_FILE_ACCESS_ERROR;
         }
 #endif
-        std::string info_message = "RuntimeManifestFile::FindManifestFiles - using global runtime file ";
-        info_message += filename;
-        LoaderLogger::LogInfoMessage("", info_message);
+        LoaderLogger::LogInfoMessage("", "RuntimeManifestFile::FindManifestFiles - using global runtime file " + filename);
     }
     RuntimeManifestFile::CreateIfValid(filename, manifest_files);
     return result;
