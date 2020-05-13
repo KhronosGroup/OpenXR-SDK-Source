@@ -79,6 +79,10 @@ else()
         PRIVATE
         ${PROJECT_SOURCE_DIR}/src/external/jsoncpp/include
     )
+    if(SUPPORTS_Werrorunusedparameter)
+        # Don't error on this - triggered by jsoncpp
+        target_compile_options(openxr_loader PRIVATE -Wno-unused-parameter)
+    endif()
 endif()
 set_target_properties(openxr_loader PROPERTIES FOLDER ${LOADER_FOLDER})
 
