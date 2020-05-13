@@ -67,7 +67,7 @@ add_library(XrApiLayer_api_dump SHARED
 )
 set_target_properties(XrApiLayer_api_dump PROPERTIES FOLDER ${API_LAYERS_FOLDER})
 
-target_link_libraries(XrApiLayer_api_dump PRIVATE openxr-all-supported)
+target_link_libraries(XrApiLayer_api_dump PRIVATE openxr-all-supported ${CMAKE_THREAD_LIBS_INIT})
 add_dependencies(XrApiLayer_api_dump
     generate_openxr_header
     xr_global_generated_files
@@ -129,7 +129,7 @@ add_library(XrApiLayer_core_validation SHARED
 )
 set_target_properties(XrApiLayer_core_validation PROPERTIES FOLDER ${API_LAYERS_FOLDER})
 
-target_link_libraries(XrApiLayer_core_validation PRIVATE openxr-all-supported)
+target_link_libraries(XrApiLayer_core_validation PRIVATE openxr-all-supported ${CMAKE_THREAD_LIBS_INIT})
 add_dependencies(XrApiLayer_core_validation
     generate_openxr_header
     xr_global_generated_files
