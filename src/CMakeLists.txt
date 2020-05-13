@@ -201,8 +201,26 @@ function(compile_glsl run_target_name)
 endfunction()
 
 if(WIN32)
-    add_definitions(-DXR_USE_GRAPHICS_API_D3D11)
-    add_definitions(-DXR_USE_GRAPHICS_API_D3D12)
+    # This is too simple of detection to be worth separating into a find module
+    find_library(D3D_DXGI_LIBRARY dxgi)
+    find_library(D3D_COMPILER_LIBRARY d3dcompiler)
+    find_path(D3D_D3D11_INCLUDE_DIR d3d11.h)
+    find_library(D3D_D3D11_LIBRARY d3d11)
+    if(D3D_D3D11_INCLUDE_DIR AND D3D_D3D11_LIBRARY AND D3D_DXGI_LIBRARY AND D3D_COMPILER_LIBRARY)
+        set(D3D_D3D11_FOUND ON)
+        set(D3D_D3D11_LIBRARIES ${D3D_D3D11_LIBRARY} ${D3D_DXGI_LIBRARY} ${D3D_COMPILER_LIBRARY})
+        add_definitions(-DXR_USE_GRAPHICS_API_D3D11)
+    endif()
+
+    find_path(D3D_D3D12_INCLUDE_DIR d3d12.h)
+    find_library(D3D_D3D12_LIBRARY d3d12)
+    if(D3D_D3D12_INCLUDE_DIR AND D3D_D3D12_LIBRARY AND D3D_DXGI_LIBRARY)
+        set(D3D_D3D12_FOUND ON)
+        set(D3D_D3D12_LIBRARIES ${D3D_D3D12_LIBRARY} ${D3D_DXGI_LIBRARY} ${D3D_COMPILER_LIBRARY})
+        add_definitions(-DXR_USE_GRAPHICS_API_D3D12)
+    endif()
+
+    find_path(D3D_DIRECTXCOLORS_INCLUDE_DIR DirectXColors.h)
 endif()
 
 # Check for the existence of the secure_getenv or __secure_getenv commands
