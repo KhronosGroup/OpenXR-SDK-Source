@@ -69,7 +69,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     )
 	set_target_properties(copy-test-def-file PROPERTIES FOLDER ${HELPER_FOLDER})
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_compile_options(XrApiLayer_test PRIVATE -Wpointer-arith -Wno-unused-function -Wno-sign-compare)
     set_target_properties(XrApiLayer_test PROPERTIES LINK_FLAGS "-Wl,-Bsymbolic,--exclude-libs,ALL")
     gen_xr_layer_json(
         ${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/layers/XrApiLayer_test.json

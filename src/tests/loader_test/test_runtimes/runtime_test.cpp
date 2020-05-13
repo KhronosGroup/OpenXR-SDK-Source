@@ -37,12 +37,12 @@
 
 extern "C" {
 
-XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrCreateInstance(const XrInstanceCreateInfo *info, XrInstance *instance) {
+XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrCreateInstance(const XrInstanceCreateInfo * /* info */, XrInstance *instance) {
     *instance = (XrInstance)1;
     return XR_SUCCESS;
 }
 
-XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrDestroyInstance(XrInstance instance) { return XR_SUCCESS; }
+XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrDestroyInstance(XrInstance /* instance */) { return XR_SUCCESS; }
 
 XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrEnumerateInstanceExtensionProperties(const char *layerName,
                                                                                  uint32_t propertyCapacityInput,
@@ -62,13 +62,20 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrEnumerateInstanceExtensionProperties
     return XR_SUCCESS;
 }
 
-XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetSystem(XrInstance instance, const XrSystemGetInfo *getInfo, XrSystemId *systemId) {
+XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetSystem(XrInstance instance, const XrSystemGetInfo * /* getInfo */,
+                                                      XrSystemId *systemId) {
+    if (instance == XR_NULL_HANDLE) {
+        return XR_ERROR_HANDLE_INVALID;
+    }
     *systemId = 1;
     return XR_SUCCESS;
 }
 
 XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetSystemProperties(XrInstance instance, XrSystemId systemId,
                                                                 XrSystemProperties *properties) {
+    if (instance == XR_NULL_HANDLE) {
+        return XR_ERROR_HANDLE_INVALID;
+    }
     if (systemId != 1) {
         return XR_ERROR_SYSTEM_INVALID;
     }
@@ -89,7 +96,11 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetInstanceProcAddr(XrInstance insta
         *function = reinterpret_cast<PFN_xrVoidFunction>(RuntimeTestXrEnumerateInstanceExtensionProperties);
     } else if (0 == strcmp(name, "xrCreateInstance")) {
         *function = reinterpret_cast<PFN_xrVoidFunction>(RuntimeTestXrCreateInstance);
-    } else if (0 == strcmp(name, "xrDestroyInstance")) {
+    };
+    if (instance == XR_NULL_HANDLE) {
+        return XR_ERROR_HANDLE_INVALID;
+    }
+    if (0 == strcmp(name, "xrDestroyInstance")) {
         *function = reinterpret_cast<PFN_xrVoidFunction>(RuntimeTestXrDestroyInstance);
     } else if (0 == strcmp(name, "xrGetSystem")) {
         *function = reinterpret_cast<PFN_xrVoidFunction>(RuntimeTestXrGetSystem);
@@ -126,7 +137,7 @@ RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderRuntimeInterface(
 
 // Always fail
 RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeAlwaysFailNegotiateLoaderRuntimeInterface(
-    const XrNegotiateLoaderInfo *loaderInfo, XrNegotiateRuntimeRequest *runtimeRequest) {
+    const XrNegotiateLoaderInfo * /* loaderInfo */, XrNegotiateRuntimeRequest * /* runtimeRequest */) {
     return XR_ERROR_INITIALIZATION_FAILED;
 }
 

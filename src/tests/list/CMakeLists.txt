@@ -40,10 +40,6 @@ if(MSVC)
     target_compile_options(runtime_list PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_compile_options(runtime_list PRIVATE -Wall)
-endif()
-
 set_target_properties(runtime_list PROPERTIES FOLDER ${TESTS_FOLDER})
 set_target_properties(runtime_list PROPERTIES OUTPUT_NAME openxr_runtime_list)
 

@@ -77,7 +77,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     )
 	set_target_properties(copy-test_runtime-def-file PROPERTIES FOLDER ${HELPER_FOLDER})
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_compile_options(test_runtime PRIVATE -Wpointer-arith -Wno-unused-function -Wno-sign-compare)
     set_target_properties(test_runtime PROPERTIES LINK_FLAGS "-Wl,-Bsymbolic,--exclude-libs,ALL")
     gen_xr_runtime_json(
         ${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/runtimes/test_runtime.json

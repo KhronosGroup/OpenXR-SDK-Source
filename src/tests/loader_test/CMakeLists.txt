@@ -53,9 +53,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     endif()
 
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_compile_options(
-        loader_test PRIVATE -Wall -Wno-unused-function -Wno-format-truncation
-    )
+    # No special options needed.
 else()
     message(FATAL_ERROR "Unsupported Platform")
 endif()

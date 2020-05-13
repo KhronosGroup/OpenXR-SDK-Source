@@ -186,20 +186,16 @@ if(WIN32)
 	set_target_properties(copy-core_validation-def-file PROPERTIES FOLDER ${HELPER_FOLDER})
 elseif(APPLE)
     # Apple api_dump-specific information
-    target_compile_options(XrApiLayer_api_dump PRIVATE -Wpointer-arith -Wno-unused-function -Wno-sign-compare)
     set_target_properties(XrApiLayer_api_dump PROPERTIES LINK_FLAGS "-Wl")
 
     # Apple core_validation-specific information
-    target_compile_options(XrApiLayer_core_validation PRIVATE -Wpointer-arith -Wno-unused-function -Wno-sign-compare)
     set_target_properties(XrApiLayer_core_validation PROPERTIES LINK_FLAGS "-Wl")
 
 else()
     # Linux api_dump-specific information
-    target_compile_options(XrApiLayer_api_dump PRIVATE -Wpointer-arith -Wno-unused-function -Wno-sign-compare)
     set_target_properties(XrApiLayer_api_dump PROPERTIES LINK_FLAGS "-Wl,-Bsymbolic,--exclude-libs,ALL")
 
     # Linux core_validation-specific information
-    target_compile_options(XrApiLayer_core_validation PRIVATE -Wpointer-arith -Wno-unused-function -Wno-sign-compare)
     set_target_properties(XrApiLayer_core_validation PROPERTIES LINK_FLAGS "-Wl,-Bsymbolic,--exclude-libs,ALL")
 endif()
 

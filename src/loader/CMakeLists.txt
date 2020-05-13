@@ -213,11 +213,7 @@ endif()
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     target_compile_options(
         openxr_loader
-        PRIVATE -Wall
-                -Wextra
-                -Wno-unused-parameter
-                -Wno-missing-field-initializers
-                -Wpointer-arith
+        PRIVATE -Wextra
                 -fno-strict-aliasing
                 -fno-builtin-memcmp
                 "$<$<COMPILE_LANGUAGE:CXX>:-fno-rtti>"

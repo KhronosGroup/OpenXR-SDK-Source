@@ -81,8 +81,6 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     if(NOT D3D_DIRECTXCOLORS_INCLUDE_DIR)
         target_compile_definitions(hello_xr PRIVATE -DMISSING_DIRECTX_COLORS)
     endif()
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    target_compile_options(hello_xr PRIVATE -Wall)
 endif()
 
 if(Vulkan_LIBRARY)
