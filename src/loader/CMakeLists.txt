@@ -243,8 +243,6 @@ install(
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
-# openxr-all-supported is a dependency of openxr_loader so it should be added to the export set
-install(TARGETS openxr-all-supported EXPORT openxr_loader_export)
 
 export(
     EXPORT openxr_loader_export

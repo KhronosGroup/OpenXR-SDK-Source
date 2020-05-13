@@ -149,6 +149,8 @@ endif()
 if(BUILD_WITH_WAYLAND_HEADERS)
     target_compile_definitions(openxr-all-supported INTERFACE XR_USE_PLATFORM_WAYLAND)
 endif()
+# openxr-all-supported is a dependency of openxr_loader so it should be added to the export set
+install(TARGETS openxr-all-supported EXPORT openxr_loader_export)
 
 # Find glslc shader compiler.
 # On Android, the NDK includes the binary, so no external dependency.
