@@ -3,6 +3,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "pch.h"
+
+#ifdef __MINGW32__
+#define GL_ATTRIBUTE __attribute__((stdcall))
+#else
+#define GL_ATTRIBUTE
+#endif
 #include "common.h"
 #include "geometry.h"
 #include "graphicsplugin.h"
@@ -149,17 +155,15 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
 
 #if !defined(XR_USE_PLATFORM_MACOS)
         glEnable(GL_DEBUG_OUTPUT);
-        glDebugMessageCallback(
-            [](GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message,
-               const void* userParam) {
-                ((OpenGLGraphicsPlugin*)userParam)->DebugMessageCallback(source, type, id, severity, length, message);
-            },
-            this);
+        glDebugMessageCallback((GLDEBUGPROC)&OpenGLGraphicsPlugin::DebugMessageCallbackTrampoline, this);
 #endif  // !defined(XR_USE_PLATFORM_MACOS)
 
         InitializeResources();
     }
-
+    static void GL_ATTRIBUTE DebugMessageCallbackTrampoline(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length,
+                                                            const GLchar* message, const void* userParam) {
+        ((OpenGLGraphicsPlugin*)userParam)->DebugMessageCallback(source, type, id, severity, length, message);
+    }
     void InitializeResources() {
         glGenFramebuffers(1, &m_swapchainFramebuffer);
 
