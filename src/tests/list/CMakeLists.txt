@@ -42,7 +42,6 @@ endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_compile_options(runtime_list PRIVATE -Wall)
-    target_link_libraries(runtime_list pthread)
 endif()
 
 set_target_properties(runtime_list PROPERTIES FOLDER ${TESTS_FOLDER})
