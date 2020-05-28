@@ -19,11 +19,11 @@ std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_OpenGL(const std::shared_p
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Vulkan(const std::shared_ptr<Options>& options,
                                                              std::shared_ptr<IPlatformPlugin> platformPlugin);
 #endif
-#ifdef XR_USE_GRAPHICS_API_D3D11
+#if defined(XR_USE_GRAPHICS_API_D3D11) && !defined(MISSING_DIRECTX_COLORS)
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_D3D11(const std::shared_ptr<Options>& options,
                                                             std::shared_ptr<IPlatformPlugin> platformPlugin);
 #endif
-#ifdef XR_USE_GRAPHICS_API_D3D12
+#if defined(XR_USE_GRAPHICS_API_D3D12) && !defined(MISSING_DIRECTX_COLORS)
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_D3D12(const std::shared_ptr<Options>& options,
                                                             std::shared_ptr<IPlatformPlugin> platformPlugin);
 #endif
@@ -51,13 +51,13 @@ std::map<std::string, GraphicsPluginFactory, IgnoreCaseStringLess> graphicsPlugi
          return CreateGraphicsPlugin_Vulkan(options, std::move(platformPlugin));
      }},
 #endif
-#ifdef XR_USE_GRAPHICS_API_D3D11
+#if defined(XR_USE_GRAPHICS_API_D3D11) && !defined(MISSING_DIRECTX_COLORS)
     {"D3D11",
      [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {
          return CreateGraphicsPlugin_D3D11(options, std::move(platformPlugin));
      }},
 #endif
-#ifdef XR_USE_GRAPHICS_API_D3D12
+#if defined(XR_USE_GRAPHICS_API_D3D12) && !defined(MISSING_DIRECTX_COLORS)
     {"D3D12",
      [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {
          return CreateGraphicsPlugin_D3D12(options, std::move(platformPlugin));

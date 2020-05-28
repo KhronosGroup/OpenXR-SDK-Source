@@ -3190,6 +3190,10 @@ ksGpuWindowEvent ksGpuWindow_ProcessEvents(ksGpuWindow *window) {
 
 #elif defined(OS_LINUX_WAYLAND)
 
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
 static void _keyboard_keymap_cb(void *data, struct wl_keyboard *keyboard, uint32_t format, int fd, uint32_t size) { close(fd); }
 static void _keyboard_modifiers_cb(void *data, struct wl_keyboard *keyboard, uint32_t serial, uint32_t mods_depressed,
                                    uint32_t mods_latched, uint32_t mods_locked, uint32_t group) {}
@@ -3337,11 +3341,16 @@ static void _registry_cb(void *data, struct wl_registry *registry, uint32_t id, 
 
 static void _registry_remove_cb(void *data, struct wl_registry *registry, uint32_t id) {}
 
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
+
 const struct wl_registry_listener registry_listener = {_registry_cb, _registry_remove_cb};
 
 bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const ksGpuQueueInfo *queueInfo, const int queueIndex,
                         const ksGpuSurfaceColorFormat colorFormat, const ksGpuSurfaceDepthFormat depthFormat,
                         const ksGpuSampleCount sampleCount, const int width, const int height, const bool fullscreen) {
+    (void)queueIndex;
     memset(window, 0, sizeof(ksGpuWindow));
 
     window->display = NULL;

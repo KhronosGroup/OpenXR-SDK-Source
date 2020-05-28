@@ -247,7 +247,8 @@ static void ReadDataFilesInSearchPaths(ManifestFileType type, const std::string 
             relative_home_path += relative_path;
             CopyIncludedPaths(true, home, relative_home_path, search_path);
         }
-
+#else
+        (void)relative_path;
 #endif
     }
 
@@ -333,7 +334,7 @@ static bool FindXDGConfigFile(const std::string &relative_path, std::string &out
 
 // Look for runtime data files in the provided paths, but first check the environment override to determine
 // if we should use that instead.
-static void ReadRuntimeDataFilesInRegistry(ManifestFileType type, const std::string &runtime_registry_location,
+static void ReadRuntimeDataFilesInRegistry(const std::string &runtime_registry_location,
                                            const std::string &default_runtime_value_name,
                                            std::vector<std::string> &manifest_files) {
     HKEY hkey;
@@ -354,12 +355,13 @@ static void ReadRuntimeDataFilesInRegistry(ManifestFileType type, const std::str
     LONG open_value = RegOpenKeyExW(HKEY_LOCAL_MACHINE, full_registry_location_w.c_str(), 0, access_flags, &hkey);
 
     if (ERROR_SUCCESS != open_value) {
-        LoaderLogger::LogWarningMessage("", "ReadLayerDataFilesInRegistry - failed to open registry key " + full_registry_location);
+        LoaderLogger::LogWarningMessage("",
+                                        "ReadRuntimeDataFilesInRegistry - failed to open registry key " + full_registry_location);
     } else if (ERROR_SUCCESS != RegGetValueW(hkey, nullptr, default_runtime_value_name_w.c_str(),
                                              RRF_RT_REG_SZ | REG_EXPAND_SZ | RRF_ZEROONFAILURE, NULL,
                                              reinterpret_cast<LPBYTE>(&value_w), &value_size_w)) {
         LoaderLogger::LogWarningMessage(
-            "", "ReadLayerDataFilesInRegistry - failed to read registry value " + default_runtime_value_name);
+            "", "ReadRuntimeDataFilesInRegistry - failed to read registry value " + default_runtime_value_name);
     } else {
         AddFilesInPath(wide_to_utf8(value_w), false, manifest_files);
     }
@@ -367,8 +369,7 @@ static void ReadRuntimeDataFilesInRegistry(ManifestFileType type, const std::str
 
 // Look for layer data files in the provided paths, but first check the environment override to determine
 // if we should use that instead.
-static void ReadLayerDataFilesInRegistry(ManifestFileType type, const std::string &registry_location,
-                                         std::vector<std::string> &manifest_files) {
+static void ReadLayerDataFilesInRegistry(const std::string &registry_location, std::vector<std::string> &manifest_files) {
     const std::wstring full_registry_location_w =
         utf8_to_wide(OPENXR_REGISTRY_LOCATION + std::to_string(XR_VERSION_MAJOR(XR_CURRENT_API_VERSION)) + registry_location);
 
@@ -618,7 +619,7 @@ XrResult RuntimeManifestFile::FindManifestFiles(ManifestFileType type,
     } else {
 #ifdef XR_OS_WINDOWS
         std::vector<std::string> filenames;
-        ReadRuntimeDataFilesInRegistry(type, "", "ActiveRuntime", filenames);
+        ReadRuntimeDataFilesInRegistry("", "ActiveRuntime", filenames);
         if (filenames.size() == 0) {
             LoaderLogger::LogErrorMessage(
                 "", "RuntimeManifestFile::FindManifestFiles - failed to find active runtime file in registry");
@@ -838,7 +839,7 @@ XrResult ApiLayerManifestFile::FindManifestFiles(ManifestFileType type,
 #ifdef XR_OS_WINDOWS
     // Read the registry if the override wasn't active.
     if (!override_active) {
-        ReadLayerDataFilesInRegistry(type, registry_location, filenames);
+        ReadLayerDataFilesInRegistry(registry_location, filenames);
     }
 #endif
 

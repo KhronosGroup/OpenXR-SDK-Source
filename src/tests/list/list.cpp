@@ -32,6 +32,13 @@
 #include <inttypes.h>
 #include <vector>
 
+#ifndef PRIx32
+#define PRIx32 "x"
+#endif
+#ifndef PRIx64
+#define PRIx64 "x"
+#endif
+
 // Struct that does book keeping of what a
 // OpenXR application need to keep track of.
 struct Program {

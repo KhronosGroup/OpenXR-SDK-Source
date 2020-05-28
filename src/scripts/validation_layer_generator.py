@@ -589,6 +589,11 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         validation_header_info += '\n// Current API version of the Core Validation API Layer\n#define XR_CORE_VALIDATION_API_VERSION '
         validation_header_info += self.api_version_define
         validation_header_info += '\n'
+        validation_header_info += '#if defined(__GNUC__)\n'
+        validation_header_info += '#pragma GCC diagnostic push\n'
+        validation_header_info += '#pragma GCC diagnostic ignored "-Wunused-parameter"\n'
+        validation_header_info += '#pragma GCC diagnostic ignored "-Wunused-variable"\n'
+        validation_header_info += '#endif\n'
 
         validation_header_info += '\n// Externs for Core Validation\n'
         validation_header_info += self.outputInfoMapDeclarations(extern=True)
@@ -1000,8 +1005,6 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         validate_struct_next += 'xr_result = XR_ERROR_VALIDATION_FAILURE;\n'
         validate_struct_next += self.writeIndent(indent)
         validate_struct_next += '} else if (NEXT_CHAIN_RESULT_DUPLICATE_STRUCT == next_result) {\n'
-        validate_struct_next += self.writeIndent(indent + 1)
-        validate_struct_next += 'char struct_type_buffer[XR_MAX_STRUCTURE_NAME_SIZE];\n'
         validate_struct_next += self.writeIndent(indent + 1)
         validate_struct_next += 'std::string error_message = "Multiple structures of the same type(s) in \\"next\\" chain for ";\n'
         validate_struct_next += self.writeIndent(indent + 1)

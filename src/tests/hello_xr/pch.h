@@ -81,7 +81,7 @@
 #endif
 #ifdef XR_USE_PLATFORM_WIN32
 #include <wingdi.h>  // For HGLRC
-#include <gl/GL.h>
+#include <GL/gl.h>
 #endif
 #endif
 

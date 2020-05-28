@@ -39,7 +39,7 @@
 extern "C" {
 std::map<XrInstance, PFN_xrGetInstanceProcAddr> g_next_gipa_map;
 
-XRAPI_ATTR XrResult XRAPI_CALL LayerTestXrCreateInstance(const XrInstanceCreateInfo *info, XrInstance *instance) {
+XRAPI_ATTR XrResult XRAPI_CALL LayerTestXrCreateInstance(const XrInstanceCreateInfo * /* info */, XrInstance * /* instance */) {
     // In a layer, LayerTestXrCreateApiLayerInstance is called instead of this function. This should not be called.
     return XR_ERROR_FUNCTION_UNSUPPORTED;
 }
@@ -118,6 +118,7 @@ LAYER_EXPORT XrResult xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoader
         return XR_ERROR_INITIALIZATION_FAILED;
     }
 
+    (void)layerName;
     layerRequest->layerInterfaceVersion = XR_CURRENT_LOADER_API_LAYER_VERSION;
     layerRequest->layerApiVersion = XR_MAKE_VERSION(0, 1, 0);
     layerRequest->getInstanceProcAddr = LayerTestXrGetInstanceProcAddr;
@@ -127,9 +128,9 @@ LAYER_EXPORT XrResult xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoader
 }
 
 // Always fail
-LAYER_EXPORT XrResult TestlayerAlwaysFailNegotiateLoaderApiLayerInterface(const XrNegotiateLoaderInfo *loaderInfo,
-                                                                          const char *layerName,
-                                                                          XrNegotiateApiLayerRequest *layerRequest) {
+LAYER_EXPORT XrResult TestlayerAlwaysFailNegotiateLoaderApiLayerInterface(const XrNegotiateLoaderInfo * /* loaderInfo */,
+                                                                          const char * /* layerName */,
+                                                                          XrNegotiateApiLayerRequest * /* layerRequest */) {
     return XR_ERROR_INITIALIZATION_FAILED;
 }
 
@@ -148,7 +149,7 @@ LAYER_EXPORT XrResult TestLayerNullGipaNegotiateLoaderApiLayerInterface(const Xr
         loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
-
+    (void)layerName;
     layerRequest->layerInterfaceVersion = XR_CURRENT_LOADER_API_LAYER_VERSION;
     layerRequest->layerApiVersion = XR_MAKE_VERSION(0, 1, 0);
     layerRequest->getInstanceProcAddr = nullptr;
@@ -171,7 +172,7 @@ LAYER_EXPORT XrResult TestLayerInvalidInterfaceNegotiateLoaderApiLayerInterface(
         loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
-
+    (void)layerName;
     layerRequest->layerInterfaceVersion = 0;
     layerRequest->layerApiVersion = XR_MAKE_VERSION(0, 1, 0);
     layerRequest->getInstanceProcAddr = reinterpret_cast<PFN_xrGetInstanceProcAddr>(LayerTestXrGetInstanceProcAddr);
@@ -194,7 +195,7 @@ LAYER_EXPORT XrResult TestLayerInvalidApiNegotiateLoaderApiLayerInterface(const 
         loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
-
+    (void)layerName;
     layerRequest->layerInterfaceVersion = XR_CURRENT_LOADER_API_LAYER_VERSION;
     layerRequest->layerApiVersion = 0;
     layerRequest->getInstanceProcAddr = reinterpret_cast<PFN_xrGetInstanceProcAddr>(LayerTestXrGetInstanceProcAddr);
