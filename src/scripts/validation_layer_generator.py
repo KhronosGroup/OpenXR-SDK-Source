@@ -1411,6 +1411,9 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             if (param_member.is_handle or self.isEnumType(param_member.type) or
                     (self.isStruct(param_member.type) and not self.isStructAlwaysValid(param_member.type))):
                 loop_string += self.writeIndent(indent)
+                loop_string += 'if (%s) {\n' % (prefixed_param_member_name)
+                indent = indent + 1
+                loop_string += self.writeIndent(indent)
                 loop_string += 'for (uint32_t %s = 0; %s < %s; ++%s) {\n' % (loop_param_name,
                                                                              loop_param_name,
                                                                              long_count_name,
@@ -1454,7 +1457,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                         struct_command_name, param_member.name)
                 param_member_contents += ' is NULL, but %s is greater than 0");\n' % prefixed_param_member_name
                 param_member_contents += self.writeIndent(indent + 1)
-                param_member_contents += 'xr_result = XR_ERROR_VALIDATION_FAILURE;\n'
+                param_member_contents += 'return XR_ERROR_VALIDATION_FAILURE;\n'
                 param_member_contents += self.writeIndent(indent)
                 param_member_contents += '}\n'
             else:
@@ -1807,8 +1810,10 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 param_member_contents += self.writeIndent(indent)
                 param_member_contents += '}\n'
         if is_loop:
-            indent = indent - 1
+            indent = indent - 2
             if wrote_loop:
+                param_member_contents += self.writeIndent(indent + 1)
+                param_member_contents += '}\n'
                 param_member_contents += self.writeIndent(indent)
                 param_member_contents += '}\n'
 
@@ -2337,7 +2342,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                         undecorate(cur_state.type), cur_state.variable)
 
         pre_validate_func += self.writeIndent(indent)
-        pre_validate_func += 'return XR_SUCCESS;\n'
+        pre_validate_func += 'return xr_result;\n'
         indent = indent - 1
         pre_validate_func += self.writeIndent(indent)
         pre_validate_func += '} catch (...) {\n'

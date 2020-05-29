@@ -19,7 +19,7 @@ void InitializeD3D11DeviceForAdapter(IDXGIAdapter1* adapter, const std::vector<D
                                      ID3D11Device** device, ID3D11DeviceContext** deviceContext) {
     UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
-#ifdef _DEBUG
+#if !defined(NDEBUG)
     creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 

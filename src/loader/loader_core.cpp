@@ -321,6 +321,9 @@ LOADER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrCreateInstance(const XrInstanceCr
     } else {
         // Ensure the global loader instance is destroyed if something went wrong.
         ActiveLoaderInstance::Remove();
+        if (runtime_loaded) {
+            RuntimeInterface::UnloadRuntime("xrCreateInstance");
+        }
     }
 
     LoaderLogger::LogVerboseMessage("xrCreateInstance", "Completed loader trampoline");

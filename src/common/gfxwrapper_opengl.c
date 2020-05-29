@@ -214,7 +214,7 @@ static void ksFrameLog_BeginFrame() {
     ksFrameLog *l = ksFrameLog_Get();
     if (l != NULL && l->fp != NULL) {
         if (l->frame < l->frameCount) {
-#if defined(_DEBUG)
+#if !defined(NDEBUG)
             fprintf(l->fp, "================ BEGIN FRAME %d ================\r\n", l->frame);
 #endif
         }
@@ -227,7 +227,7 @@ static void ksFrameLog_EndFrame(const ksNanoseconds cpuTimeNanoseconds, const ks
     if (l != NULL && l->fp != NULL) {
         if (l->frame < l->frameCount) {
             l->frameCpuTimes[l->frame] = cpuTimeNanoseconds;
-#if defined(_DEBUG)
+#if !defined(NDEBUG)
             fprintf(l->fp, "================ END FRAME %d ================\r\n", l->frame);
 #endif
         }
@@ -260,7 +260,7 @@ OpenGL error checking.
 ================================================================================================================================
 */
 
-#if defined(_DEBUG)
+#if !defined(NDEBUG)
 #define GL(func)                                 \
     func;                                        \
     ksFrameLog_Write(__FILE__, __LINE__, #func); \
@@ -269,7 +269,7 @@ OpenGL error checking.
 #define GL(func) func;
 #endif
 
-#if defined(_DEBUG)
+#if !defined(NDEBUG)
 #define EGL(func)                                                  \
     ksFrameLog_Write(__FILE__, __LINE__, #func);                   \
     if (func == EGL_FALSE) {                                       \
@@ -846,7 +846,7 @@ PFNGLTEXSTORAGE3DMULTISAMPLEPROC glTexStorage3DMultisample;
 #define GL_TEXTURE_2D_MULTISAMPLE_ARRAY 0x9102
 #endif
 
-static void GlInitExtensions() {
+void GlInitExtensions() {
     eglCreateSyncKHR = (PFNEGLCREATESYNCKHRPROC)GetExtension("eglCreateSyncKHR");
     eglDestroySyncKHR = (PFNEGLDESTROYSYNCKHRPROC)GetExtension("eglDestroySyncKHR");
     eglClientWaitSyncKHR = (PFNEGLCLIENTWAITSYNCKHRPROC)GetExtension("eglClientWaitSyncKHR");

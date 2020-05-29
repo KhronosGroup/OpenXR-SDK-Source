@@ -145,11 +145,11 @@ def makeGenOpts(args):
                 alignFuncParam    = 48)
             ]
 
-        genOpts['xr_generated_conformance_dispatch_table.cpp'] = [
+        genOpts['gen_dispatch.cpp'] = [
             ConformanceLayerGenerator,
             AutomaticSourceGeneratorOptions(
                 conventions       = conventions,
-                filename          = 'xr_generated_conformance_dispatch_table.cpp',
+                filename          = 'gen_dispatch.cpp',
                 directory         = directory,
                 apiname           = 'openxr',
                 profile           = None,
@@ -161,11 +161,11 @@ def makeGenOpts(args):
                 emitExtensions    = emitExtensionsPat)
             ]
 
-        genOpts['xr_generated_conformance_dispatch_table.h'] = [
+        genOpts['gen_dispatch.h'] = [
             ConformanceLayerGenerator,
             AutomaticSourceGeneratorOptions(
                 conventions       = conventions,
-                filename          = 'xr_generated_conformance_dispatch_table.h',
+                filename          = 'gen_dispatch.h',
                 directory         = directory,
                 apiname           = 'openxr',
                 profile           = None,

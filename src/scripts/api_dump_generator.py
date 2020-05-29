@@ -502,7 +502,10 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                     write_string += 'std::to_string('
                 if can_dereference:
                     write_string += '*' * pointer_count
-                write_string += '%s' % full_name
+                if full_type == 'char*' and not member_param.is_static_array:
+                    write_string += '(%s ? %s : "(nullptr)")' % (full_name, full_name)
+                else:
+                    write_string += '%s' % full_name
                 # Close std::to_string
                 if not is_char:
                     write_string += ')'

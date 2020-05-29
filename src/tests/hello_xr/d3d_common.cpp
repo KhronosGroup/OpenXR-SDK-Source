@@ -28,7 +28,7 @@ ComPtr<ID3DBlob> CompileShader(const char* hlsl, const char* entrypoint, const c
     ComPtr<ID3DBlob> errMsgs;
     DWORD flags = D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR | D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_WARNINGS_ARE_ERRORS;
 
-#ifdef _DEBUG
+#if !defined(NDEBUG)
     flags |= D3DCOMPILE_SKIP_OPTIMIZATION | D3DCOMPILE_DEBUG;
 #else
     flags |= D3DCOMPILE_OPTIMIZATION_LEVEL3;

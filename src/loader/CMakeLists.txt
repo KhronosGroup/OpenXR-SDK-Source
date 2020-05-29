@@ -210,6 +210,13 @@ elseif(WIN32)
     endif()
 endif()
 
+# Copy loader to conformance_cli binary folder if built as dynamic
+if(DYNAMIC_LOADER AND BUILD_CONFORMANCE_TESTS)
+    add_custom_command(TARGET openxr_loader POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:openxr_loader> $<TARGET_PROPERTY:conformance_cli,BINARY_DIR>
+    )
+endif()
+
 if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     target_compile_options(
         openxr_loader

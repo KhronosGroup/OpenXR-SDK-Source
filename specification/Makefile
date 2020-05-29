@@ -44,7 +44,7 @@ ifneq (,$(strip $(VERY_STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level WARN
 endif
 
-SPECREVISION = 1.0.8
+SPECREVISION = 1.0.9
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -301,7 +301,7 @@ ASCIIDOCTOR_TARGETS += $(PDFSPEC) $(PDFA4SPEC)
 
 # Target-specific variables and deps customizing the AsciiDoctor rule
 $(PDFSPEC) $(PDFA4SPEC): LOGFILE=$(OUTDIR)/adoc_pdf_stderr.txt
-$(PDFSPEC) $(PDFA4SPEC): BACKEND_ARGS=--backend pdf --require asciidoctor-pdf
+$(PDFSPEC) $(PDFA4SPEC): BACKEND_ARGS=--backend pdf --require asciidoctor-pdf -a compress  -r ./scripts/pdf-index-customizer.rb
 $(PDFSPEC): PAGESIZE=LETTER
 $(PDFA4SPEC): PAGESIZE=A4
 $(PDFSPEC) $(PDFA4SPEC): $(COMMONDOCS)

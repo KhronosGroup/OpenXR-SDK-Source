@@ -533,7 +533,7 @@ struct RenderPass {
             at[colorRef.attachment].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             at[colorRef.attachment].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             at[colorRef.attachment].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            at[colorRef.attachment].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+            at[colorRef.attachment].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
             subpass.colorAttachmentCount = 1;
             subpass.pColorAttachments = &colorRef;
@@ -1245,6 +1245,28 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         return list;
     }
 
+    const char* const GetValidationLayerName() {
+        uint32_t layerCount;
+        vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+        std::vector<VkLayerProperties> availableLayers(layerCount);
+        vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+        std::vector<const char*> validationLayerNames;
+        validationLayerNames.push_back("VK_LAYER_KHRONOS_validation");
+        validationLayerNames.push_back("VK_LAYER_LUNARG_standard_validation");
+
+        // Enable only one validation layer from the list above. Prefer KHRONOS.
+        for (auto& validationLayerName : validationLayerNames) {
+            for (const auto& layerProperties : availableLayers) {
+                if (0 == strcmp(validationLayerName, layerProperties.layerName)) {
+                    return validationLayerName;
+                }
+            }
+        }
+
+        return nullptr;
+    }
+
     void InitializeDevice(XrInstance instance, XrSystemId systemId) override {
         // Create the Vulkan device for the adapter associated with the system.
         // Extension function must be loaded by name
@@ -1271,8 +1293,13 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
             extensions.push_back("VK_EXT_debug_report");
 
             std::vector<const char*> layers;
-#if defined(_DEBUG)
-            layers.push_back("VK_LAYER_LUNARG_standard_validation");
+#if !defined(NDEBUG)
+            const char* const validationLayerName = GetValidationLayerName();
+            if (validationLayerName) {
+                layers.push_back(validationLayerName);
+            } else {
+                Log::Write(Log::Level::Warning, "No validation layers found in the system, skipping");
+            }
 #endif
 
             VkApplicationInfo appInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
@@ -1297,7 +1324,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
             (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(m_vkInstance, "vkDestroyDebugReportCallbackEXT");
         VkDebugReportCallbackCreateInfoEXT debugInfo{VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT};
         debugInfo.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
-#if defined(_DEBUG)
+#if !defined(NDEBUG)
         debugInfo.flags |=
             VK_DEBUG_REPORT_INFORMATION_BIT_EXT | VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT | VK_DEBUG_REPORT_DEBUG_BIT_EXT;
 #endif
@@ -1667,9 +1694,9 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         return VK_FALSE;
     }
 
-    static VkBool32 VKAPI_CALL debugReportThunk(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType, uint64_t object,
-                                                size_t location, int32_t messageCode, const char* pLayerPrefix,
-                                                const char* pMessage, void* pUserData) {
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugReportThunk(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT objectType,
+                                                           uint64_t object, size_t location, int32_t messageCode,
+                                                           const char* pLayerPrefix, const char* pMessage, void* pUserData) {
         return static_cast<VulkanGraphicsPlugin*>(pUserData)->debugReport(flags, objectType, object, location, messageCode,
                                                                           pLayerPrefix, pMessage);
     }

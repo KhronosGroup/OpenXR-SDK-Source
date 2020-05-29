@@ -26,7 +26,7 @@ import networkx as nx
 from .algo import RecursiveMemoize
 from .attributes import ExternSyncEntry, LengthEntry
 from .data_structures import DictOfStringSets
-from .util import findNamedElem, getElemName
+from .util import findNamedElem, getElemName, getElemType
 
 
 def _get_extension_tags(reg):
@@ -246,6 +246,21 @@ class XMLChecker:
 
         May extend."""
         param_name = getElemName(param)
+        # Make sure there's something between the type and the name
+        # Can't just look at the .tail of <type> for some reason,
+        # so instead we look to see if anything's between
+        # type's text and name's text in the itertext.
+        # If there's no text between the tags, there will be no string
+        # between those tags' text in itertext()
+        text_parts = list(param.itertext())
+        type_idx = text_parts.index(getElemType(param))
+        name_idx = text_parts.index(param_name)
+        if name_idx - type_idx == 1:
+            self.record_error(
+                "Space (or other delimiter text) missing between </type> and <name> for param/member named",
+                param_name)
+
+        # Check external sync entries
         externsyncs = ExternSyncEntry.parse_externsync_from_param(param)
         if externsyncs:
             for entry in externsyncs:

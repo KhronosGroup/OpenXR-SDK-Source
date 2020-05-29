@@ -29,7 +29,7 @@ from conventions import ConventionsBase
 # Note that while Vulkan is listed as a special case,
 # it doesn't actually break the rules, so it's not treated specially
 MAIN_RE = re.compile(
-    r'(?P<d3d>D3D[0-9]*)|(?P<gl>OpenGL(ES)?)|(?P<word>([A-Z][a-z]+[a-z0-9]*)|([A-Z][A-Z0-9]+))')
+    r'(?P<d3d>D3D[0-9]*)|(?P<egl>EGL)|(?P<gl>OpenGL(ES)?)|(?P<word>([A-Z][a-z]+[a-z0-9]*)|([A-Z][A-Z0-9]+))')
 
 
 class OpenXRConventions(ConventionsBase):
@@ -85,6 +85,9 @@ class OpenXRConventions(ConventionsBase):
         for elem in MAIN_RE.finditer(structname):
             if elem.group('d3d'):
                 # D3D ⇒ _D3D
+                structure_type_parts.append(elem.group())
+            elif elem.group('egl'):
+                # EGL ⇒ _EGL
                 structure_type_parts.append(elem.group())
             elif elem.group('gl'):
                 # OpenGL ⇒ _OPENGL

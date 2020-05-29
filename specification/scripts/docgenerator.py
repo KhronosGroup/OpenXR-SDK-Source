@@ -192,15 +192,15 @@ class DocOutputGenerator(OutputGenerator):
         write('[[{0}]]'.format(basename), file=fp)
 
         if self.genOpts.conventions.generate_index_terms:
-            index_terms = []
             if basename.startswith(self.conventions.command_prefix):
-                index_terms.append(basename[2:] + " (function)")
+                index_term = basename + " (function)"
             elif basename.startswith(self.conventions.type_prefix):
-                index_terms.append(basename[2:] + " (type)")
+                index_term = basename + " (type)"
             elif basename.startswith(self.conventions.api_prefix):
-                index_terms.append(basename[len(self.conventions.api_prefix):] + " (define)")
-            index_terms.append(basename)
-            write('indexterm:[{}]'.format(','.join(index_terms)), file=fp)
+                index_term = basename + " (define)"
+            else:
+                index_term = basename
+            write('indexterm:[{}]'.format(index_term), file=fp)
 
         write('[source,c++]', file=fp)
         write('----', file=fp)

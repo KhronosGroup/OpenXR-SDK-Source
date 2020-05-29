@@ -16,7 +16,7 @@ using namespace DirectX;
 
 namespace {
 void InitializeD3D12DeviceForAdapter(IDXGIAdapter1* adapter, D3D_FEATURE_LEVEL minimumFeatureLevel, ID3D12Device** device) {
-#ifdef _DEBUG
+#if !defined(NDEBUG)
     ComPtr<ID3D12Debug> debugCtrl;
     if (SUCCEEDED(D3D12GetDebugInterface(__uuidof(ID3D12Debug), &debugCtrl))) {
         debugCtrl->EnableDebugLayer();
@@ -81,6 +81,8 @@ class SwapchainImageContext {
         CHECK_HRCMD(m_d3d12Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, __uuidof(ID3D12CommandAllocator),
                                                           reinterpret_cast<void**>(m_commandAllocator.ReleaseAndGetAddressOf())));
 
+        m_viewProjectionCBuffer = CreateBuffer(m_d3d12Device, sizeof(ViewProjectionConstantBuffer), D3D12_HEAP_TYPE_UPLOAD);
+
         return bases;
     }
 
@@ -126,12 +128,27 @@ class SwapchainImageContext {
 
     ID3D12CommandAllocator* GetCommandAllocator() const { return m_commandAllocator.Get(); }
 
+    uint64_t GetFrameFenceValue() const { return m_fenceValue; }
+    void SetFrameFenceValue(uint64_t fenceValue) { m_fenceValue = fenceValue; }
+
+    void RequestModelCBuffer(uint32_t requiredSize) {
+        if (!m_modelCBuffer || (requiredSize > m_modelCBuffer->GetDesc().Width)) {
+            m_modelCBuffer = CreateBuffer(m_d3d12Device, requiredSize, D3D12_HEAP_TYPE_UPLOAD);
+        }
+    }
+
+    ID3D12Resource* GetModelCBuffer() const { return m_modelCBuffer.Get(); }
+    ID3D12Resource* GetViewProjectionCBuffer() const { return m_viewProjectionCBuffer.Get(); }
+
    private:
     ID3D12Device* m_d3d12Device{nullptr};
 
     std::vector<XrSwapchainImageD3D12KHR> m_swapchainImages;
     ComPtr<ID3D12CommandAllocator> m_commandAllocator;
     ComPtr<ID3D12Resource> m_depthStencilTexture;
+    ComPtr<ID3D12Resource> m_modelCBuffer;
+    ComPtr<ID3D12Resource> m_viewProjectionCBuffer;
+    uint64_t m_fenceValue = 0;
 };
 
 struct D3D12GraphicsPlugin : public IGraphicsPlugin {
@@ -209,8 +226,6 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         CHECK_HRCMD(m_device->CreateRootSignature(0, rootSignatureBlob->GetBufferPointer(), rootSignatureBlob->GetBufferSize(),
                                                   __uuidof(ID3D12RootSignature),
                                                   reinterpret_cast<void**>(m_rootSignature.ReleaseAndGetAddressOf())));
-
-        m_viewProjectionCBuffer = CreateBuffer(m_device.Get(), sizeof(ViewProjectionConstantBuffer), D3D12_HEAP_TYPE_UPLOAD);
 
         SwapchainImageContext initializeContext;
         std::vector<XrSwapchainImageBaseHeader*> dummy = initializeContext.Create(m_device.Get(), 1);
@@ -391,6 +406,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
 
         auto& swapchainContext = *m_swapchainImageContextMap[swapchainImage];
+        CpuWaitForFence(swapchainContext.GetFrameFenceValue());
 
         ComPtr<ID3D12GraphicsCommandList> cmdList;
         CHECK_HRCMD(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, swapchainContext.GetCommandAllocator(), nullptr,
@@ -473,17 +489,18 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         XrMatrix4x4f_CreateProjectionFov(&projectionMatrix, GRAPHICS_D3D, layerView.fov, 0.05f, 100.0f);
 
         // Set shaders and constant buffers.
+        ID3D12Resource* viewProjectionCBuffer = swapchainContext.GetViewProjectionCBuffer();
         ViewProjectionConstantBuffer viewProjection;
         XMStoreFloat4x4(&viewProjection.ViewProjection, XMMatrixTranspose(spaceToView * LoadXrMatrix(projectionMatrix)));
         {
             void* data;
             const D3D12_RANGE readRange{0, 0};
-            CHECK_HRCMD(m_viewProjectionCBuffer->Map(0, &readRange, &data));
+            CHECK_HRCMD(viewProjectionCBuffer->Map(0, &readRange, &data));
             memcpy(data, &viewProjection, sizeof(viewProjection));
-            m_viewProjectionCBuffer->Unmap(0, nullptr);
+            viewProjectionCBuffer->Unmap(0, nullptr);
         }
 
-        cmdList->SetGraphicsRootConstantBufferView(1, m_viewProjectionCBuffer->GetGPUVirtualAddress());
+        cmdList->SetGraphicsRootConstantBufferView(1, viewProjectionCBuffer->GetGPUVirtualAddress());
 
         // Set cube primitive data.
         const D3D12_VERTEX_BUFFER_VIEW vertexBufferView[] = {
@@ -497,10 +514,8 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         constexpr uint32_t cubeCBufferSize = AlignTo<D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT>(sizeof(ModelConstantBuffer));
-        const uint32_t requiredSize = static_cast<uint32_t>(cubeCBufferSize * cubes.size());
-        if (!m_modelCBuffer || (requiredSize > m_modelCBuffer->GetDesc().Width)) {
-            m_modelCBuffer = CreateBuffer(m_device.Get(), requiredSize, D3D12_HEAP_TYPE_UPLOAD);
-        }
+        swapchainContext.RequestModelCBuffer(static_cast<uint32_t>(cubeCBufferSize * cubes.size()));
+        ID3D12Resource* modelCBuffer = swapchainContext.GetModelCBuffer();
 
         // Render each cube
         uint32_t offset = 0;
@@ -512,13 +527,13 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
             {
                 uint8_t* data;
                 const D3D12_RANGE readRange{0, 0};
-                CHECK_HRCMD(m_modelCBuffer->Map(0, &readRange, reinterpret_cast<void**>(&data)));
+                CHECK_HRCMD(modelCBuffer->Map(0, &readRange, reinterpret_cast<void**>(&data)));
                 memcpy(data + offset, &model, sizeof(model));
                 const D3D12_RANGE writeRange{offset, offset + cubeCBufferSize};
-                m_modelCBuffer->Unmap(0, &writeRange);
+                modelCBuffer->Unmap(0, &writeRange);
             }
 
-            cmdList->SetGraphicsRootConstantBufferView(0, m_modelCBuffer->GetGPUVirtualAddress() + offset);
+            cmdList->SetGraphicsRootConstantBufferView(0, modelCBuffer->GetGPUVirtualAddress() + offset);
 
             // Draw the cube.
             cmdList->DrawIndexedInstanced((UINT)ArraySize(Geometry::c_cubeIndices), 1, 0, 0, 0);
@@ -530,20 +545,28 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         ID3D12CommandList* cmdLists[] = {cmdList.Get()};
         m_cmdQueue->ExecuteCommandLists((UINT)ArraySize(cmdLists), cmdLists);
 
-        // XXX Should triple-buffer the command buffers, for now just flush
-        WaitForGpu();
+        SignalFence();
+        swapchainContext.SetFrameFenceValue(m_fenceValue);
     }
 
-    void WaitForGpu() {
+    void SignalFence() {
         ++m_fenceValue;
         CHECK_HRCMD(m_cmdQueue->Signal(m_fence.Get(), m_fenceValue));
-        if (m_fence->GetCompletedValue() < m_fenceValue) {
-            CHECK_HRCMD(m_fence->SetEventOnCompletion(m_fenceValue, m_fenceEvent));
+    }
+
+    void CpuWaitForFence(uint64_t fenceValue) {
+        if (m_fence->GetCompletedValue() < fenceValue) {
+            CHECK_HRCMD(m_fence->SetEventOnCompletion(fenceValue, m_fenceEvent));
             const uint32_t retVal = WaitForSingleObjectEx(m_fenceEvent, INFINITE, FALSE);
             if (retVal != WAIT_OBJECT_0) {
                 CHECK_HRCMD(E_FAIL);
             }
         }
+    }
+
+    void WaitForGpu() {
+        SignalFence();
+        CpuWaitForFence(m_fenceValue);
     }
 
    private:
@@ -559,8 +582,6 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
     XrGraphicsBindingD3D12KHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_D3D12_KHR};
     ComPtr<ID3D12RootSignature> m_rootSignature;
     std::map<DXGI_FORMAT, ComPtr<ID3D12PipelineState>> m_pipelineStates;
-    ComPtr<ID3D12Resource> m_modelCBuffer;
-    ComPtr<ID3D12Resource> m_viewProjectionCBuffer;
     ComPtr<ID3D12Resource> m_cubeVertexBuffer;
     ComPtr<ID3D12Resource> m_cubeIndexBuffer;
     ComPtr<ID3D12DescriptorHeap> m_rtvHeap;

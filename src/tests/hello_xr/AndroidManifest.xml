@@ -11,7 +11,8 @@
 	<uses-feature android:name="android.hardware.vr.headtracking" android:required="true" />
 
 	<application android:allowBackup="false" android:label="Hello XR">
-    <!-- The activity is the built-in NativeActivity framework class. -->
+    
+<!-- The activity is the built-in NativeActivity framework class. -->
 		<!-- launchMode is set to singleTask because there should never be multiple copies of the app running. -->
 		<!-- Theme.Black.NoTitleBar.Fullscreen gives solid black instead of a (bad stereoscopic) gradient on app transition. -->
         <!-- If targeting API level 24+, configChanges should additionally include 'density'. -->

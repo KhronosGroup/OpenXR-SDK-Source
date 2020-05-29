@@ -6,3 +6,35 @@ changelogs.
 
 See the README.md in the parent directory for information on the format and
 naming of changelog fragment files.
+
+## Common entries
+
+During a patch release series, the only thing that should happen to the
+registry aside from extensions is "fix" - so include that in your fragment if
+applicable.
+
+The most common entries in the registry changelog involve extensions. Use the
+following as templates.
+
+For adding/enabling a vendor/multi-vendor extension:
+
+> Add `XR_MYVENDOR_myextension` vendor extension.
+
+- Add "provisional" before "vendor" if required.
+- If this is an EXT multi-vendor extension, change "vendor" to "multi-vendor".
+
+For adding/enabling a KHR or KHX extension:
+
+> Add ratified `XR_KHR_myextension` Khronos extension.
+
+- Add "provisional" before "Khronos" if it is a KHX extension.
+- Note that these all require the review period and board ratification!
+
+For reserving one or more extensions:
+
+> Reserve a vendor extension for VendorName.
+
+- Pluralize if reserving multiple extensions
+- May pre-pend "Register author ID and" if applicable.
+- You may optionally provide information about your plans for those extensions,
+  but this is not required, just permitted.

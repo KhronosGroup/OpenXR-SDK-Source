@@ -42,7 +42,8 @@ CODESPELL_IGNORE=${CODESPELL_IGNORE:-${DEFAULT_CODESPELL_IGNORE}}
 # Add to this list when codespell mis-identifies a term actually used as a misspelling
 # (comma-delimited)
 # .Nd is used for a description in a mandoc manpage.
-IGNORE_WORDS="lod,LOD,nd"
+# Wee and Ser are names
+IGNORE_WORDS="lod,LOD,nd,wee,ser"
 
 # Add to this to exclude individual files or directories (comma-delimited)
 # - Skipping external code.

@@ -113,7 +113,7 @@ def make_jinja_environment(file_with_templates_as_sibs=None, search_path=None):
     search_paths = []
     if file_with_templates_as_sibs:
         search_paths.append(
-            str(Path(file_with_templates_as_sibs).resolve().parent))
+            str(Path(file_with_templates_as_sibs).parent))
     if search_path:
         search_paths.extend(search_path)
     env = Environment(keep_trailing_newline=True,
