@@ -409,6 +409,7 @@ struct OpenXrProgram : IOpenXrProgram {
 
         std::array<XrPath, Side::COUNT> selectPath;
         std::array<XrPath, Side::COUNT> squeezeValuePath;
+        std::array<XrPath, Side::COUNT> squeezeForcePath;
         std::array<XrPath, Side::COUNT> squeezeClickPath;
         std::array<XrPath, Side::COUNT> posePath;
         std::array<XrPath, Side::COUNT> hapticPath;
@@ -419,6 +420,8 @@ struct OpenXrProgram : IOpenXrProgram {
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/select/click", &selectPath[Side::RIGHT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/input/squeeze/value", &squeezeValuePath[Side::LEFT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/squeeze/value", &squeezeValuePath[Side::RIGHT]));
+        CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/input/squeeze/force", &squeezeForcePath[Side::LEFT]));
+        CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/squeeze/force", &squeezeForcePath[Side::RIGHT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/input/squeeze/click", &squeezeClickPath[Side::LEFT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/squeeze/click", &squeezeClickPath[Side::RIGHT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/input/grip/pose", &posePath[Side::LEFT]));
@@ -494,8 +497,8 @@ struct OpenXrProgram : IOpenXrProgram {
             XrPath indexControllerInteractionProfilePath;
             CHECK_XRCMD(
                 xrStringToPath(m_instance, "/interaction_profiles/valve/index_controller", &indexControllerInteractionProfilePath));
-            std::vector<XrActionSuggestedBinding> bindings{{{m_input.grabAction, squeezeValuePath[Side::LEFT]},
-                                                            {m_input.grabAction, squeezeValuePath[Side::RIGHT]},
+            std::vector<XrActionSuggestedBinding> bindings{{{m_input.grabAction, squeezeForcePath[Side::LEFT]},
+                                                            {m_input.grabAction, squeezeForcePath[Side::RIGHT]},
                                                             {m_input.poseAction, posePath[Side::LEFT]},
                                                             {m_input.poseAction, posePath[Side::RIGHT]},
                                                             {m_input.quitAction, bClickPath[Side::LEFT]},
