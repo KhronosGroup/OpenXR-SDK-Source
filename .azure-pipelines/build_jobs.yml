@@ -113,3 +113,24 @@ jobs:
       inputs:
         path: $(System.DefaultWorkingDirectory)/openxr_loader
         artifact: openxr_loader_windows
+
+    - task: PowerShell@2
+      displayName: Stage loader and headers for NuGet
+      inputs:
+        filePath: $(System.DefaultWorkingDirectory)/.azure-pipelines/nuget/stage_nuget.ps1
+        arguments:
+          $(System.DefaultWorkingDirectory)/openxr_loader `
+          $(Build.SourcesDirectory)/specification/Makefile `
+          $(System.DefaultWorkingDirectory)/openxr_loader_staging
+    - task: NuGetCommand@2
+      displayName: Package for NuGet
+      inputs:
+        command: pack
+        packagesToPack: $(System.DefaultWorkingDirectory)/openxr_loader_staging/OpenXR.Loader.nuspec
+        packDestination: $(System.DefaultWorkingDirectory)/nuget
+    - task: PublishPipelineArtifact@1
+      displayName: Publish NuGet Package
+      condition: succeeded()
+      inputs:
+        path: $(System.DefaultWorkingDirectory)/nuget
+        artifact: NuGet
