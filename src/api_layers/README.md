@@ -1,5 +1,11 @@
 # OpenXR API Layers
 
+<!--
+Copyright (c) 2017-2020 The Khronos Group Inc.
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 ## Overview
 
 API Layers can be written to intercept or hook OpenXR commands for various

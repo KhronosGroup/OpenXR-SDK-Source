@@ -3,18 +3,6 @@
 # Copyright (c) 2016-2020 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 # genRef.py - create API ref pages from spec source files
 #
@@ -64,15 +52,30 @@ def printCopyrightSourceComments(fp):
 
     Writes an asciidoc comment block, which copyrights the source
     file."""
-    print('// Copyright (c) 2014-2020 The Khronos Group Inc. This work is licensed under a', file=fp)
-    print('// Creative Commons Attribution 4.0 International License; see', file=fp)
-    print('// http://creativecommons.org/licenses/by/4.0/', file=fp)
+    print('// Copyright (c) 2014-2020 Khronos Group.', file=fp)
+    print('//', file=fp)
+    # This works around constraints of the 'reuse' tool
+    print('// SPDX' + '-License-Identifier: CC-BY-4.0', file=fp)
     print('', file=fp)
 
 
 def printFooter(fp):
-    print('include::footer.txt[]', file=fp)
-    print('', file=fp)
+    """Print footer material at the end of each refpage on open file fp.
+
+    If generating separate refpages, adds the copyright.
+    If generating the single combined refpage, just add a separator."""
+
+    print('ifdef::doctype-manpage[]',
+          '== Copyright',
+          '',
+          'include::{config}/copyright-ccby.txt[]',
+          'endif::doctype-manpage[]',
+          '',
+          'ifndef::doctype-manpage[]',
+          '<<<',
+          'endif::doctype-manpage[]',
+          '',
+          sep='\n', file=fp)
 
 
 def macroPrefix(name):

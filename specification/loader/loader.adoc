@@ -1,5 +1,7 @@
 // Copyright (c) 2017-2020 The Khronos Group Inc.
 // Copyright notice at https://www.khronos.org/registry/speccopyright.html
+//
+// SPDX-License-Identifier: CC-BY-4.0
 
 = OpenXR^(R)^  Loader - Design and Operation [DRAFT] {apititle}
 Copyright (c) 2017-2020 The Khronos Group Inc.

@@ -43,7 +43,7 @@ CODESPELL_IGNORE=${CODESPELL_IGNORE:-${DEFAULT_CODESPELL_IGNORE}}
 # (comma-delimited)
 # .Nd is used for a description in a mandoc manpage.
 # Wee and Ser are names
-IGNORE_WORDS="lod,LOD,nd,wee,ser"
+IGNORE_WORDS="lod,LOD,nd,wee,ser,nuber"
 
 # Add to this to exclude individual files or directories (comma-delimited)
 # - Skipping external code.

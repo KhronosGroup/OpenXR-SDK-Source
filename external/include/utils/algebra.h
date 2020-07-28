@@ -63,52 +63,52 @@ ksMatrix4x2f
 ksMatrix4x3f
 ksMatrix4x4f
 
-static void ksVector3f_Set( ksVector3f * v, const float value );
-static void ksVector3f_Add( ksVector3f * result, const ksVector3f * a, const ksVector3f * b );
-static void ksVector3f_Sub( ksVector3f * result, const ksVector3f * a, const ksVector3f * b );
-static void ksVector3f_Min( ksVector3f * result, const ksVector3f * a, const ksVector3f * b );
-static void ksVector3f_Max( ksVector3f * result, const ksVector3f * a, const ksVector3f * b );
-static void ksVector3f_Decay( ksVector3f * result, const ksVector3f * a, const float value );
-static void ksVector3f_Lerp( ksVector3f * result, const ksVector3f * a, const ksVector3f * b, const float fraction );
-static void ksVector3f_Normalize( ksVector3f * v );
-static float ksVector3f_Length( const ksVector3f * v );
+static inline void ksVector3f_Set( ksVector3f * v, const float value );
+static inline void ksVector3f_Add( ksVector3f * result, const ksVector3f * a, const ksVector3f * b );
+static inline void ksVector3f_Sub( ksVector3f * result, const ksVector3f * a, const ksVector3f * b );
+static inline void ksVector3f_Min( ksVector3f * result, const ksVector3f * a, const ksVector3f * b );
+static inline void ksVector3f_Max( ksVector3f * result, const ksVector3f * a, const ksVector3f * b );
+static inline void ksVector3f_Decay( ksVector3f * result, const ksVector3f * a, const float value );
+static inline void ksVector3f_Lerp( ksVector3f * result, const ksVector3f * a, const ksVector3f * b, const float fraction );
+static inline void ksVector3f_Normalize( ksVector3f * v );
+static inline float ksVector3f_Length( const ksVector3f * v );
 
-static void ksQuatf_Lerp( ksQuatf * result, const ksQuatf * a, const ksQuatf * b, const float fraction );
+static inline void ksQuatf_Lerp( ksQuatf * result, const ksQuatf * a, const ksQuatf * b, const float fraction );
 
-static void ksMatrix3x3f_CreateTransposeFromMatrix4x4f( ksMatrix3x3f * result, const ksMatrix4x4f * src );
-static void ksMatrix3x4f_CreateFromMatrix4x4f( ksMatrix3x4f * result, const ksMatrix4x4f * src );
+static inline void ksMatrix3x3f_CreateTransposeFromMatrix4x4f( ksMatrix3x3f * result, const ksMatrix4x4f * src );
+static inline void ksMatrix3x4f_CreateFromMatrix4x4f( ksMatrix3x4f * result, const ksMatrix4x4f * src );
 
-static void ksMatrix4x4f_CreateIdentity( ksMatrix4x4f * result );
-static void ksMatrix4x4f_CreateTranslation( ksMatrix4x4f * result, const float x, const float y, const float z );
-static void ksMatrix4x4f_CreateRotation( ksMatrix4x4f * result, const float degreesX, const float degreesY, const float degreesZ );
-static void ksMatrix4x4f_CreateScale( ksMatrix4x4f * result, const float x, const float y, const float z );
-static void ksMatrix4x4f_CreateTranslationRotationScale( ksMatrix4x4f * result, const ksVector3f * translation, const ksQuatf * rotation, const ksVector3f * scale );
-static void ksMatrix4x4f_CreateProjection( ksMatrix4x4f * result, const float tanAngleLeft, const float tanAngleRight,
-											const float tanAngleUp, float const tanAngleDown, const float nearZ, const float farZ );
-static void ksMatrix4x4f_CreateProjectionFov( ksMatrix4x4f * result, const float fovDegreesLeft, const float fovDegreesRight,
-											const float fovDegreeUp, const float fovDegreesDown, const float nearZ, const float farZ );
-static void ksMatrix4x4f_CreateFromQuaternion( ksMatrix3x4f * result, const ksQuatf * src );
-static void ksMatrix4x4f_CreateOffsetScaleForBounds( ksMatrix4x4f * result, const ksMatrix4x4f * matrix, const ksVector3f * mins, const ksVector3f * maxs );
+static inline void ksMatrix4x4f_CreateIdentity( ksMatrix4x4f * result );
+static inline void ksMatrix4x4f_CreateTranslation( ksMatrix4x4f * result, const float x, const float y, const float z );
+static inline void ksMatrix4x4f_CreateRotation( ksMatrix4x4f * result, const float degreesX, const float degreesY, const float degreesZ );
+static inline void ksMatrix4x4f_CreateScale( ksMatrix4x4f * result, const float x, const float y, const float z );
+static inline void ksMatrix4x4f_CreateTranslationRotationScale( ksMatrix4x4f * result, const ksVector3f * translation, const ksQuatf * rotation, const ksVector3f * scale );
+static inline void ksMatrix4x4f_CreateProjection( ksMatrix4x4f * result, const float tanAngleLeft, const float tanAngleRight,
+													const float tanAngleUp, float const tanAngleDown, const float nearZ, const float farZ );
+static inline void ksMatrix4x4f_CreateProjectionFov( ksMatrix4x4f * result, const float fovDegreesLeft, const float fovDegreesRight,
+													const float fovDegreeUp, const float fovDegreesDown, const float nearZ, const float farZ );
+static inline void ksMatrix4x4f_CreateFromQuaternion( ksMatrix3x4f * result, const ksQuatf * src );
+static inline void ksMatrix4x4f_CreateOffsetScaleForBounds( ksMatrix4x4f * result, const ksMatrix4x4f * matrix, const ksVector3f * mins, const ksVector3f * maxs );
 
-static bool ksMatrix4x4f_IsAffine( const ksMatrix4x4f * matrix, const float epsilon );
-static bool ksMatrix4x4f_IsOrthogonal( const ksMatrix4x4f * matrix, const float epsilon );
-static bool ksMatrix4x4f_IsOrthonormal( const ksMatrix4x4f * matrix, const float epsilon );
-static bool ksMatrix4x4f_IsHomogeneous( const ksMatrix4x4f * matrix, const float epsilon );
+static inline bool ksMatrix4x4f_IsAffine( const ksMatrix4x4f * matrix, const float epsilon );
+static inline bool ksMatrix4x4f_IsOrthogonal( const ksMatrix4x4f * matrix, const float epsilon );
+static inline bool ksMatrix4x4f_IsOrthonormal( const ksMatrix4x4f * matrix, const float epsilon );
+static inline bool ksMatrix4x4f_IsHomogeneous( const ksMatrix4x4f * matrix, const float epsilon );
 
-static void ksMatrix4x4f_GetTranslation( ksVector3f * result, const ksMatrix4x4f * src );
-static void ksMatrix4x4f_GetRotation( ksQuatf * result, const ksMatrix4x4f * src );
-static void ksMatrix4x4f_GetScale( ksVector3f * result, const ksMatrix4x4f * src );
+static inline void ksMatrix4x4f_GetTranslation( ksVector3f * result, const ksMatrix4x4f * src );
+static inline void ksMatrix4x4f_GetRotation( ksQuatf * result, const ksMatrix4x4f * src );
+static inline void ksMatrix4x4f_GetScale( ksVector3f * result, const ksMatrix4x4f * src );
 
-static void ksMatrix4x4f_Multiply( ksMatrix4x4f * result, const ksMatrix4x4f * a, const ksMatrix4x4f * b );
-static void ksMatrix4x4f_Transpose( ksMatrix4x4f * result, const ksMatrix4x4f * src );
-static void ksMatrix4x4f_Invert( ksMatrix4x4f * result, const ksMatrix4x4f * src );
-static void ksMatrix4x4f_InvertHomogeneous( ksMatrix4x4f * result, const ksMatrix4x4f * src );
+static inline void ksMatrix4x4f_Multiply( ksMatrix4x4f * result, const ksMatrix4x4f * a, const ksMatrix4x4f * b );
+static inline void ksMatrix4x4f_Transpose( ksMatrix4x4f * result, const ksMatrix4x4f * src );
+static inline void ksMatrix4x4f_Invert( ksMatrix4x4f * result, const ksMatrix4x4f * src );
+static inline void ksMatrix4x4f_InvertHomogeneous( ksMatrix4x4f * result, const ksMatrix4x4f * src );
 
-static void ksMatrix4x4f_TransformVector3f( ksVector3f * result, const ksMatrix4x4f * m, const ksVector3f * v );
-static void ksMatrix4x4f_TransformVector4f( ksVector4f * result, const ksMatrix4x4f * m, const ksVector4f * v );
+static inline void ksMatrix4x4f_TransformVector3f( ksVector3f * result, const ksMatrix4x4f * m, const ksVector3f * v );
+static inline void ksMatrix4x4f_TransformVector4f( ksVector4f * result, const ksMatrix4x4f * m, const ksVector4f * v );
 
-static void ksMatrix4x4f_TransformBounds( ksVector3f * resultMins, ksVector3f * resultMaxs, const ksMatrix4x4f * matrix, const ksVector3f * mins, const ksVector3f * maxs );
-static bool ksMatrix4x4f_CullBounds( const ksMatrix4x4f * mvp, const ksVector3f * mins, const ksVector3f * maxs );
+static inline void ksMatrix4x4f_TransformBounds( ksVector3f * resultMins, ksVector3f * resultMaxs, const ksMatrix4x4f * matrix, const ksVector3f * mins, const ksVector3f * maxs );
+static inline bool ksMatrix4x4f_CullBounds( const ksMatrix4x4f * mvp, const ksVector3f * mins, const ksVector3f * maxs );
 
 ================================================================================================
 */
@@ -244,63 +244,63 @@ static const ksVector4f ksColorCyan			= { 0.0f, 1.0f, 1.0f, 1.0f };
 static const ksVector4f ksColorLightGrey	= { 0.7f, 0.7f, 0.7f, 1.0f };
 static const ksVector4f ksColorDarkGrey		= { 0.3f, 0.3f, 0.3f, 1.0f };
 
-static float ksRcpSqrt( const float x )
+static inline float ksRcpSqrt( const float x )
 {
 	const float SMALLEST_NON_DENORMAL = 1.1754943508222875e-038f;	// ( 1U << 23 )
 	const float rcp = ( x >= SMALLEST_NON_DENORMAL ) ? 1.0f / sqrtf( x ) : 1.0f;
 	return rcp;
 }
 
-static void ksVector3f_Set( ksVector3f * v, const float value )
+static inline void ksVector3f_Set( ksVector3f * v, const float value )
 {
 	v->x = value;
 	v->y = value;
 	v->z = value;
 }
 
-static void ksVector3f_Add( ksVector3f * result, const ksVector3f * a, const ksVector3f * b )
+static inline void ksVector3f_Add( ksVector3f * result, const ksVector3f * a, const ksVector3f * b )
 {
 	result->x = a->x + b->x;
 	result->y = a->y + b->y;
 	result->z = a->z + b->z;
 }
 
-static void ksVector3f_Sub( ksVector3f * result, const ksVector3f * a, const ksVector3f * b )
+static inline void ksVector3f_Sub( ksVector3f * result, const ksVector3f * a, const ksVector3f * b )
 {
 	result->x = a->x - b->x;
 	result->y = a->y - b->y;
 	result->z = a->z - b->z;
 }
 
-static void ksVector3f_Min( ksVector3f * result, const ksVector3f * a, const ksVector3f * b )
+static inline void ksVector3f_Min( ksVector3f * result, const ksVector3f * a, const ksVector3f * b )
 {
 	result->x = ( a->x < b->x ) ? a->x : b->x;
 	result->y = ( a->y < b->y ) ? a->y : b->y;
 	result->z = ( a->z < b->z ) ? a->z : b->z;
 }
 
-static void ksVector3f_Max( ksVector3f * result, const ksVector3f * a, const ksVector3f * b )
+static inline void ksVector3f_Max( ksVector3f * result, const ksVector3f * a, const ksVector3f * b )
 {
 	result->x = ( a->x > b->x ) ? a->x : b->x;
 	result->y = ( a->y > b->y ) ? a->y : b->y;
 	result->z = ( a->z > b->z ) ? a->z : b->z;
 }
 
-static void ksVector3f_Decay( ksVector3f * result, const ksVector3f * a, const float value )
+static inline void ksVector3f_Decay( ksVector3f * result, const ksVector3f * a, const float value )
 {
 	result->x = ( fabsf( a->x ) > value ) ? ( ( a->x > 0.0f ) ? ( a->x - value ) : ( a->x + value ) ) : 0.0f;
 	result->y = ( fabsf( a->y ) > value ) ? ( ( a->y > 0.0f ) ? ( a->y - value ) : ( a->y + value ) ) : 0.0f;
 	result->z = ( fabsf( a->z ) > value ) ? ( ( a->z > 0.0f ) ? ( a->z - value ) : ( a->z + value ) ) : 0.0f;
 }
 
-static void ksVector3f_Lerp( ksVector3f * result, const ksVector3f * a, const ksVector3f * b, const float fraction )
+static inline void ksVector3f_Lerp( ksVector3f * result, const ksVector3f * a, const ksVector3f * b, const float fraction )
 {
 	result->x = a->x + fraction * ( b->x - a->x );
 	result->y = a->y + fraction * ( b->y - a->y );
 	result->z = a->z + fraction * ( b->z - a->z );
 }
 
-static void ksVector3f_Normalize( ksVector3f * v )
+static inline void ksVector3f_Normalize( ksVector3f * v )
 {
 	const float lengthRcp = ksRcpSqrt( v->x * v->x + v->y * v->y + v->z * v->z );
 	v->x *= lengthRcp;
@@ -308,12 +308,12 @@ static void ksVector3f_Normalize( ksVector3f * v )
 	v->z *= lengthRcp;
 }
 
-static float ksVector3f_Length( const ksVector3f * v )
+static inline float ksVector3f_Length( const ksVector3f * v )
 {
 	return sqrtf( v->x * v->x + v->y * v->y + v->z * v->z );
 }
 
-static void ksQuatf_Lerp( ksQuatf * result, const ksQuatf * a, const ksQuatf * b, const float fraction )
+static inline void ksQuatf_Lerp( ksQuatf * result, const ksQuatf * a, const ksQuatf * b, const float fraction )
 {
 	const float s = a->x * b->x + a->y * b->y + a->z * b->z + a->w * b->w;
 	const float fa = 1.0f - fraction;
@@ -329,7 +329,7 @@ static void ksQuatf_Lerp( ksQuatf * result, const ksQuatf * a, const ksQuatf * b
 	result->w = w * lengthRcp;
 }
 
-static void ksMatrix3x3f_CreateTransposeFromMatrix4x4f( ksMatrix3x3f * result, const ksMatrix4x4f * src )
+static inline void ksMatrix3x3f_CreateTransposeFromMatrix4x4f( ksMatrix3x3f * result, const ksMatrix4x4f * src )
 {
 	result->m[0][0] = src->m[0][0];
 	result->m[0][1] = src->m[1][0];
@@ -344,7 +344,7 @@ static void ksMatrix3x3f_CreateTransposeFromMatrix4x4f( ksMatrix3x3f * result, c
 	result->m[2][2] = src->m[2][2];
 }
 
-static void ksMatrix3x4f_CreateFromMatrix4x4f( ksMatrix3x4f * result, const ksMatrix4x4f * src )
+static inline void ksMatrix3x4f_CreateFromMatrix4x4f( ksMatrix3x4f * result, const ksMatrix4x4f * src )
 {
 	result->m[0][0] = src->m[0][0];
 	result->m[0][1] = src->m[1][0];
@@ -361,7 +361,7 @@ static void ksMatrix3x4f_CreateFromMatrix4x4f( ksMatrix3x4f * result, const ksMa
 }
 
 // Use left-multiplication to accumulate transformations.
-static void ksMatrix4x4f_Multiply( ksMatrix4x4f * result, const ksMatrix4x4f * a, const ksMatrix4x4f * b )
+static inline void ksMatrix4x4f_Multiply( ksMatrix4x4f * result, const ksMatrix4x4f * a, const ksMatrix4x4f * b )
 {
 	result->m[0][0] = a->m[0][0] * b->m[0][0] + a->m[1][0] * b->m[0][1] + a->m[2][0] * b->m[0][2] + a->m[3][0] * b->m[0][3];
 	result->m[0][1] = a->m[0][1] * b->m[0][0] + a->m[1][1] * b->m[0][1] + a->m[2][1] * b->m[0][2] + a->m[3][1] * b->m[0][3];
@@ -385,7 +385,7 @@ static void ksMatrix4x4f_Multiply( ksMatrix4x4f * result, const ksMatrix4x4f * a
 }
 
 // Creates the transpose of the given matrix.
-static void ksMatrix4x4f_Transpose( ksMatrix4x4f * result, const ksMatrix4x4f * src )
+static inline void ksMatrix4x4f_Transpose( ksMatrix4x4f * result, const ksMatrix4x4f * src )
 {
 	result->m[0][0] = src->m[0][0];
 	result->m[0][1] = src->m[1][0];
@@ -409,7 +409,7 @@ static void ksMatrix4x4f_Transpose( ksMatrix4x4f * result, const ksMatrix4x4f * 
 }
 
 // Returns a 3x3 minor of a 4x4 matrix.
-static float ksMatrix4x4f_Minor( const ksMatrix4x4f * matrix, int r0, int r1, int r2, int c0, int c1, int c2 )
+static inline float ksMatrix4x4f_Minor( const ksMatrix4x4f * matrix, int r0, int r1, int r2, int c0, int c1, int c2 )
 {
 	return	matrix->m[r0][c0] * ( matrix->m[r1][c1] * matrix->m[r2][c2] - matrix->m[r2][c1] * matrix->m[r1][c2] ) -
 			matrix->m[r0][c1] * ( matrix->m[r1][c0] * matrix->m[r2][c2] - matrix->m[r2][c0] * matrix->m[r1][c2] ) +
@@ -417,7 +417,7 @@ static float ksMatrix4x4f_Minor( const ksMatrix4x4f * matrix, int r0, int r1, in
 }
  
 // Calculates the inverse of a 4x4 matrix.
-static void ksMatrix4x4f_Invert( ksMatrix4x4f * result, const ksMatrix4x4f * src )
+static inline void ksMatrix4x4f_Invert( ksMatrix4x4f * result, const ksMatrix4x4f * src )
 {
 	const float rcpDet = 1.0f / (	src->m[0][0] * ksMatrix4x4f_Minor( src, 1, 2, 3, 1, 2, 3 ) -
 									src->m[0][1] * ksMatrix4x4f_Minor( src, 1, 2, 3, 0, 2, 3 ) +
@@ -443,7 +443,7 @@ static void ksMatrix4x4f_Invert( ksMatrix4x4f * result, const ksMatrix4x4f * src
 }
 
 // Calculates the inverse of a 4x4 homogeneous matrix.
-static void ksMatrix4x4f_InvertHomogeneous( ksMatrix4x4f * result, const ksMatrix4x4f * src )
+static inline void ksMatrix4x4f_InvertHomogeneous( ksMatrix4x4f * result, const ksMatrix4x4f * src )
 {
 	result->m[0][0] = src->m[0][0];
 	result->m[0][1] = src->m[1][0];
@@ -464,7 +464,7 @@ static void ksMatrix4x4f_InvertHomogeneous( ksMatrix4x4f * result, const ksMatri
 }
 
 // Creates an identity matrix.
-static void ksMatrix4x4f_CreateIdentity( ksMatrix4x4f * result )
+static inline void ksMatrix4x4f_CreateIdentity( ksMatrix4x4f * result )
 {
 	result->m[0][0] = 1.0f; result->m[0][1] = 0.0f; result->m[0][2] = 0.0f; result->m[0][3] = 0.0f;
 	result->m[1][0] = 0.0f; result->m[1][1] = 1.0f; result->m[1][2] = 0.0f; result->m[1][3] = 0.0f;
@@ -473,7 +473,7 @@ static void ksMatrix4x4f_CreateIdentity( ksMatrix4x4f * result )
 }
 
 // Creates a translation matrix.
-static void ksMatrix4x4f_CreateTranslation( ksMatrix4x4f * result, const float x, const float y, const float z )
+static inline void ksMatrix4x4f_CreateTranslation( ksMatrix4x4f * result, const float x, const float y, const float z )
 {
 	result->m[0][0] = 1.0f; result->m[0][1] = 0.0f; result->m[0][2] = 0.0f; result->m[0][3] = 0.0f;
 	result->m[1][0] = 0.0f; result->m[1][1] = 1.0f; result->m[1][2] = 0.0f; result->m[1][3] = 0.0f;
@@ -483,7 +483,7 @@ static void ksMatrix4x4f_CreateTranslation( ksMatrix4x4f * result, const float x
 
 // Creates a rotation matrix.
 // If -Z=forward, +Y=up, +X=right, then degreesX=pitch, degreesY=yaw, degreesZ=roll.
-static void ksMatrix4x4f_CreateRotation( ksMatrix4x4f * result, const float degreesX, const float degreesY, const float degreesZ )
+static inline void ksMatrix4x4f_CreateRotation( ksMatrix4x4f * result, const float degreesX, const float degreesY, const float degreesZ )
 {
 	const float sinX = sinf( degreesX * ( MATH_PI / 180.0f ) );
 	const float cosX = cosf( degreesX * ( MATH_PI / 180.0f ) );
@@ -518,7 +518,7 @@ static void ksMatrix4x4f_CreateRotation( ksMatrix4x4f * result, const float degr
 }
 
 // Creates a scale matrix.
-static void ksMatrix4x4f_CreateScale( ksMatrix4x4f * result, const float x, const float y, const float z )
+static inline void ksMatrix4x4f_CreateScale( ksMatrix4x4f * result, const float x, const float y, const float z )
 {
 	result->m[0][0] =    x; result->m[0][1] = 0.0f; result->m[0][2] = 0.0f; result->m[0][3] = 0.0f;
 	result->m[1][0] = 0.0f; result->m[1][1] =    y; result->m[1][2] = 0.0f; result->m[1][3] = 0.0f;
@@ -527,7 +527,7 @@ static void ksMatrix4x4f_CreateScale( ksMatrix4x4f * result, const float x, cons
 }
 
 // Creates a matrix from a quaternion.
-static void ksMatrix4x4f_CreateFromQuaternion( ksMatrix4x4f * result, const ksQuatf * quat )
+static inline void ksMatrix4x4f_CreateFromQuaternion( ksMatrix4x4f * result, const ksQuatf * quat )
 {
 	const float x2 = quat->x + quat->x;
 	const float y2 = quat->y + quat->y;
@@ -566,7 +566,7 @@ static void ksMatrix4x4f_CreateFromQuaternion( ksMatrix4x4f * result, const ksQu
 }
 
 // Creates a combined translation(rotation(scale(object))) matrix.
-static void ksMatrix4x4f_CreateTranslationRotationScale( ksMatrix4x4f * result, const ksVector3f * translation, const ksQuatf * rotation, const ksVector3f * scale )
+static inline void ksMatrix4x4f_CreateTranslationRotationScale( ksMatrix4x4f * result, const ksVector3f * translation, const ksQuatf * rotation, const ksVector3f * scale )
 {
 	ksMatrix4x4f scaleMatrix;
 	ksMatrix4x4f_CreateScale( &scaleMatrix, scale->x, scale->y, scale->z );
@@ -590,7 +590,7 @@ static void ksMatrix4x4f_CreateTranslationRotationScale( ksMatrix4x4f * result, 
 //		"Tightening the Precision of Perspective Rendering"
 //		Paul Upchurch, Mathieu Desbrun
 //		Journal of Graphics Tools, Volume 16, Issue 1, 2012
-static void ksMatrix4x4f_CreateProjection( ksMatrix4x4f * result, const float tanAngleLeft, const float tanAngleRight,
+static inline void ksMatrix4x4f_CreateProjection( ksMatrix4x4f * result, const float tanAngleLeft, const float tanAngleRight,
 											const float tanAngleUp, float const tanAngleDown, const float nearZ, const float farZ )
 {
 	const float tanAngleWidth = tanAngleRight - tanAngleLeft;
@@ -660,7 +660,7 @@ static void ksMatrix4x4f_CreateProjection( ksMatrix4x4f * result, const float ta
 }
 
 // Creates a projection matrix based on the specified FOV.
-static void ksMatrix4x4f_CreateProjectionFov( ksMatrix4x4f * result, const float fovDegreesLeft, const float fovDegreesRight,
+static inline void ksMatrix4x4f_CreateProjectionFov( ksMatrix4x4f * result, const float fovDegreesLeft, const float fovDegreesRight,
 												const float fovDegreesUp, const float fovDegreesDown, const float nearZ, const float farZ )
 {
 	const float tanLeft = - tanf( fovDegreesLeft * ( MATH_PI / 180.0f ) );
@@ -673,7 +673,7 @@ static void ksMatrix4x4f_CreateProjectionFov( ksMatrix4x4f * result, const float
 }
 
 // Creates a matrix that transforms the -1 to 1 cube to cover the given 'mins' and 'maxs' transformed with the given 'matrix'.
-static void ksMatrix4x4f_CreateOffsetScaleForBounds( ksMatrix4x4f * result, const ksMatrix4x4f * matrix, const ksVector3f * mins, const ksVector3f * maxs )
+static inline void ksMatrix4x4f_CreateOffsetScaleForBounds( ksMatrix4x4f * result, const ksMatrix4x4f * matrix, const ksVector3f * mins, const ksVector3f * maxs )
 {
 	const ksVector3f offset = { ( maxs->x + mins->x ) * 0.5f, ( maxs->y + mins->y ) * 0.5f, ( maxs->z + mins->z ) * 0.5f };
 	const ksVector3f scale = { ( maxs->x - mins->x ) * 0.5f, ( maxs->y - mins->y ) * 0.5f, ( maxs->z - mins->z ) * 0.5f };
@@ -700,7 +700,7 @@ static void ksMatrix4x4f_CreateOffsetScaleForBounds( ksMatrix4x4f * result, cons
 }
 
 // Returns true if the given matrix is affine.
-static bool ksMatrix4x4f_IsAffine( const ksMatrix4x4f * matrix, const float epsilon )
+static inline bool ksMatrix4x4f_IsAffine( const ksMatrix4x4f * matrix, const float epsilon )
 {
 	return	fabsf( matrix->m[0][3] ) <= epsilon &&
 			fabsf( matrix->m[1][3] ) <= epsilon &&
@@ -709,7 +709,7 @@ static bool ksMatrix4x4f_IsAffine( const ksMatrix4x4f * matrix, const float epsi
 }
 
 // Returns true if the given matrix is orthogonal.
-static bool ksMatrix4x4f_IsOrthogonal( const ksMatrix4x4f * matrix, const float epsilon )
+static inline bool ksMatrix4x4f_IsOrthogonal( const ksMatrix4x4f * matrix, const float epsilon )
 {
 	for ( int i = 0; i < 3; i++ )
 	{
@@ -732,7 +732,7 @@ static bool ksMatrix4x4f_IsOrthogonal( const ksMatrix4x4f * matrix, const float 
 }
 
 // Returns true if the given matrix is orthonormal.
-static bool ksMatrix4x4f_IsOrthonormal( const ksMatrix4x4f * matrix, const float epsilon )
+static inline bool ksMatrix4x4f_IsOrthonormal( const ksMatrix4x4f * matrix, const float epsilon )
 {
 	for ( int i = 0; i < 3; i++ )
 	{
@@ -753,13 +753,13 @@ static bool ksMatrix4x4f_IsOrthonormal( const ksMatrix4x4f * matrix, const float
 }
 
 // Returns true if the given matrix is homogeneous.
-static bool ksMatrix4x4f_IsHomogeneous( const ksMatrix4x4f * matrix, const float epsilon )
+static inline bool ksMatrix4x4f_IsHomogeneous( const ksMatrix4x4f * matrix, const float epsilon )
 {
 	return ksMatrix4x4f_IsAffine( matrix, epsilon ) && ksMatrix4x4f_IsOrthonormal( matrix, epsilon );
 }
 
 // Get the translation from a combined translation(rotation(scale(object))) matrix.
-static void ksMatrix4x4f_GetTranslation( ksVector3f * result, const ksMatrix4x4f * src )
+static inline void ksMatrix4x4f_GetTranslation( ksVector3f * result, const ksMatrix4x4f * src )
 {
 	assert( ksMatrix4x4f_IsAffine( src, 1e-4f ) );
 	assert( ksMatrix4x4f_IsOrthogonal( src, 1e-4f ) );
@@ -770,7 +770,7 @@ static void ksMatrix4x4f_GetTranslation( ksVector3f * result, const ksMatrix4x4f
 }
 
 // Get the rotation from a combined translation(rotation(scale(object))) matrix.
-static void ksMatrix4x4f_GetRotation( ksQuatf * result, const ksMatrix4x4f * src )
+static inline void ksMatrix4x4f_GetRotation( ksQuatf * result, const ksMatrix4x4f * src )
 {
 	assert( ksMatrix4x4f_IsAffine( src, 1e-4f ) );
 	assert( ksMatrix4x4f_IsOrthogonal( src, 1e-4f ) );
@@ -823,7 +823,7 @@ static void ksMatrix4x4f_GetRotation( ksQuatf * result, const ksMatrix4x4f * src
 }
 
 // Get the scale from a combined translation(rotation(scale(object))) matrix.
-static void ksMatrix4x4f_GetScale( ksVector3f * result, const ksMatrix4x4f * src )
+static inline void ksMatrix4x4f_GetScale( ksVector3f * result, const ksMatrix4x4f * src )
 {
 	assert( ksMatrix4x4f_IsAffine( src, 1e-4f ) );
 	assert( ksMatrix4x4f_IsOrthogonal( src, 1e-4f ) );
@@ -834,7 +834,7 @@ static void ksMatrix4x4f_GetScale( ksVector3f * result, const ksMatrix4x4f * src
 }
 
 // Transforms a 3D vector.
-static void ksMatrix4x4f_TransformVector3f( ksVector3f * result, const ksMatrix4x4f * m, const ksVector3f * v )
+static inline void ksMatrix4x4f_TransformVector3f( ksVector3f * result, const ksMatrix4x4f * m, const ksVector3f * v )
 {
 	const float w = m->m[0][3] * v->x + m->m[1][3] * v->y + m->m[2][3] * v->z + m->m[3][3];
 	const float rcpW = 1.0f / w;
@@ -844,7 +844,7 @@ static void ksMatrix4x4f_TransformVector3f( ksVector3f * result, const ksMatrix4
 }
 
 // Transforms a 4D vector.
-static void ksMatrix4x4f_TransformVector4f( ksVector4f * result, const ksMatrix4x4f * m, const ksVector4f * v )
+static inline void ksMatrix4x4f_TransformVector4f( ksVector4f * result, const ksMatrix4x4f * m, const ksVector4f * v )
 {
 	result->x = m->m[0][0] * v->x + m->m[1][0] * v->y + m->m[2][0] * v->z + m->m[3][0];
 	result->y = m->m[0][1] * v->x + m->m[1][1] * v->y + m->m[2][1] * v->z + m->m[3][1];
@@ -853,7 +853,7 @@ static void ksMatrix4x4f_TransformVector4f( ksVector4f * result, const ksMatrix4
 }
 
 // Transforms the 'mins' and 'maxs' bounds with the given 'matrix'.
-static void ksMatrix4x4f_TransformBounds( ksVector3f * resultMins, ksVector3f * resultMaxs, const ksMatrix4x4f * matrix, const ksVector3f * mins, const ksVector3f * maxs )
+static inline void ksMatrix4x4f_TransformBounds( ksVector3f * resultMins, ksVector3f * resultMaxs, const ksMatrix4x4f * matrix, const ksVector3f * mins, const ksVector3f * maxs )
 {
 	assert( ksMatrix4x4f_IsAffine( matrix, 1e-4f ) );
 
@@ -876,7 +876,7 @@ static void ksMatrix4x4f_TransformBounds( ksVector3f * resultMins, ksVector3f * 
 }
 
 // Returns true if the 'mins' and 'maxs' bounds is completely off to one side of the projection matrix.
-static bool ksMatrix4x4f_CullBounds( const ksMatrix4x4f * mvp, const ksVector3f * mins, const ksVector3f * maxs )
+static inline bool ksMatrix4x4f_CullBounds( const ksMatrix4x4f * mvp, const ksVector3f * mins, const ksVector3f * maxs )
 {
 	if ( maxs->x <= mins->x && maxs->y <= mins->y && maxs->z <= mins->z )
 	{

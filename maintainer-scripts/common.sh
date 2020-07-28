@@ -119,13 +119,13 @@ getDocsFilenames() {
         | grep -v "vuid[.]adoc" \
         | grep -v "CMakeLists.txt" \
         | grep -v "ubmitted" \
-        | grep -v "compare"
+        | grep -v "compare" \
+        | grep -v "JP\.jpg"
 }
 
 getSDKSourceFilenames() {
     # The src directory, plus the minimum subset of the specification directory
     # required to build those tools
-    # TODO need a mention in the spec folder about how it's not under the same license (?)
     git ls-files \
         $COMMON_FILES \
         BUILDING.md \
@@ -155,6 +155,7 @@ getSDKSourceFilenames() {
         specification/requirements.txt \
         src/ \
         | grep -v "conformance" \
+        | grep -v "template_gen_dispatch" \
         | grep -v "catch2" \
         | grep -v "function_info" \
         | grep -v "stb" \
@@ -185,4 +186,48 @@ getSDKFilenames() {
         | grep -v "gfxwrapper" \
         | grep -v "include/.gitignore" \
         | grep -v "images"
+}
+
+getConformanceFilenames() {
+    # The src/conformance directory, plus the minimum subset of the other files required.
+    # TODO need a mention in the spec folder about how it's not under the same license (?)
+    git ls-files \
+        $COMMON_FILES \
+        BUILDING.md \
+        CHANGELOG.CTS.md \
+        checkCodespell \
+        CMakeLists.txt \
+        LICENSE \
+        openxr-codespell.exclude \
+        runClangFormat.sh \
+        tox.ini \
+        changes/README.md \
+        changes/template.md \
+        changes/registry \
+        changes/conformance \
+        external/ \
+        github/conformance/ \
+        include/ \
+        maintainer-scripts/common.sh \
+        maintainer-scripts/archive-conformance.sh \
+        maintainer-scripts/check-changelog-fragments.sh \
+        specification/.gitignore \
+        specification/registry/*.xml \
+        specification/scripts \
+        specification/Makefile \
+        specification/README.md \
+        specification/requirements.txt \
+        src/cmake \
+        src/common \
+        src/conformance \
+        src/external \
+        src/loader \
+        src/scripts \
+        src/.clang-format \
+        src/.gitignore \
+        src/CMakeLists.txt \
+        src/common_config.h.in \
+        src/version.cmake \
+        | grep -v "htmldiff" \
+        | grep -v "katex"
 }

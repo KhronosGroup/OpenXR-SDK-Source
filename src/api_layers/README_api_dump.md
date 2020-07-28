@@ -1,5 +1,11 @@
 # The API Dump API Layer
 
+<!--
+Copyright (c) 2017-2020 The Khronos Group Inc.
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 ## Layer Name
 
 XR\_APILAYER\_LUNARG\_api\_dump

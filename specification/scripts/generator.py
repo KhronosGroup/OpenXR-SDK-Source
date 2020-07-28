@@ -3,18 +3,6 @@
 # Copyright (c) 2013-2020 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 """Base class for source/header/doc generators, as well as some utility functions."""
 
 from __future__ import unicode_literals
@@ -218,6 +206,9 @@ class GeneratorOptions:
         them in place to a preferred order in the generated output.
         Default is core API versions, ARB/KHR/OES extensions, all
         other extensions, alphabetically within each group."""
+
+        self.codeGenerator = False
+        """True if this generator makes compilable code"""
 
     def emptyRegex(self, pat):
         """Substitute a regular expression which matches no version
@@ -569,7 +560,7 @@ class OutputGenerator:
 
         # Open a temporary file for accumulating output.
         if self.genOpts.filename is not None:
-            self.outFile = tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', delete=False)
+            self.outFile = tempfile.NamedTemporaryFile(mode='w', encoding='utf-8', newline='\n', delete=False)
         else:
             self.outFile = sys.stdout
 
@@ -591,7 +582,8 @@ class OutputGenerator:
                 directory = Path(self.genOpts.directory)
                 if not Path.exists(directory):
                     os.makedirs(directory)
-            shutil.move(self.outFile.name, self.genOpts.directory + '/' + self.genOpts.filename)
+            shutil.copy(self.outFile.name, self.genOpts.directory + '/' + self.genOpts.filename)
+            os.remove(self.outFile.name)
         self.genOpts = None
 
     def beginFeature(self, interface, emit):

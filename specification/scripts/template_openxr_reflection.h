@@ -4,19 +4,7 @@
 /*
 ** Copyright (c) 2017-2020 The Khronos Group Inc.
 **
-** SPDX-License-Identifier: Apache-2.0
-**
-** Licensed under the Apache License, Version 2.0 (the "License");
-** you may not use this file except in compliance with the License.
-** You may obtain a copy of the License at
-**
-**     http://www.apache.org/licenses/LICENSE-2.0
-**
-** Unless required by applicable law or agreed to in writing, software
-** distributed under the License is distributed on an "AS IS" BASIS,
-** WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-** See the License for the specific language governing permissions and
-** limitations under the License.
+** SPDX-License-Identifier: Apache-2.0 OR MIT
 */
 
 /*
@@ -56,31 +44,60 @@ XR_ENUM_STR(XrResult);
 
 #define XR_LIST_BITS_/*{bitmask.typeName}*/(_)/*{" \\" if bitmask.maskTuples else ""}*/
 //# for member in bitmask.maskTuples
-    _(/*{", ".join(member)}*/)/*{ " \\" if member != bitmask.maskTuples[-1] else ""}*/
+    _(/*{", ".join(member)}*/) \
 //# endfor
-//## Intentionally left blank.
+
+//## Preceding line intentionally left blank to absorb the trailing backslash
 //# endfor
 
 //# for struct in structs
 
 #define XR_LIST_STRUCT_/*{struct.typeName}*/(_) \
 //# for member in struct.members
-    _(/*{member}*/)/*{" \\" if member != struct.members[-1] else ""}*/
+    _(/*{member}*/) \
 //# endfor
 
-//## Intentionally left blank.
+//## Preceding line intentionally left blank to absorb the trailing backslash
+//# endfor
+
+//## Used when making structure type macros
+/*% macro makeStructTypes(typedStructs) -%*/
+//# for struct in typedStructs
+    _(/*{struct.typeName}*/, /*{struct.structTypeName}*/) \
+//# endfor
+
+//## Preceding line intentionally left blank to absorb the trailing backslash
+/*% endmacro %*/
+
+#define XR_LIST_STRUCTURE_TYPES_CORE(_) \
+/*{ makeStructTypes(unprotectedStructs) }*/
+
+
+//# for protect, structTypes in protectedStructs
+
+/*{ protect_begin(structTypes[0]) }*/
+#define XR_LIST_STRUCTURE_TYPES_/*{protect | join("_")}*/(_) \
+/*{ makeStructTypes(structTypes) }*/
+#else
+#define XR_LIST_STRUCTURE_TYPES_/*{protect | join("_")}*/(_)
+#endif
+
 //# endfor
 
 
-//## XR_LIST_STRUCTURE_TYPES is excluded because it is not ready to include.
-//## It must make sure to not include structures which are disabled due to undefined "protected"
-{#
 #define XR_LIST_STRUCTURE_TYPES(_) \
-//# for struct in structs
-//#     if struct.structTypeName is not none
-    _(/*{struct.structTypeName}*/, /*{struct.typeName}*/)/*{" \\" if struct != structs[:-1] else ""}*/
-//#     endif
+    XR_LIST_STRUCTURE_TYPES_CORE(_) \
+//# for protect, structTypes in protectedStructs
+    XR_LIST_STRUCTURE_TYPES_/*{protect | join("_")}*/(_) \
 //# endfor
-#}
+
+//## Preceding line intentionally left blank to absorb the trailing backslash
+
+#define XR_LIST_EXTENSIONS(_) \
+//# for extname, extdata in extensions
+    _(/*{extname}*/, /*{extdata.number}*/) \
+//# endfor
+
+//## Preceding line intentionally left blank to absorb the trailing backslash
 
 #endif

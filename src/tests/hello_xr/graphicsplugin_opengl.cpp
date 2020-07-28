@@ -1,3 +1,7 @@
+// Copyright (c) 2017-2020 The Khronos Group Inc.
+//
+// SPDX-License-Identifier: Apache-2.0
+
 #include "pch.h"
 #include "common.h"
 #include "geometry.h"
@@ -216,6 +220,10 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
     int64_t SelectColorSwapchainFormat(const std::vector<int64_t>& runtimeFormats) const override {
         // List of supported color swapchain formats.
         constexpr int64_t SupportedColorSwapchainFormats[] = {
+            GL_RGB10_A2,
+            GL_RGBA16F,
+            // The two below should only be used as a fallback, as they are linear color formats without enough bits for color
+            // depth, thus leading to banding.
             GL_RGBA8,
             GL_RGBA8_SNORM,
         };

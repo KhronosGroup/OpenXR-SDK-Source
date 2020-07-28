@@ -44,7 +44,7 @@ ifneq (,$(strip $(VERY_STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level WARN
 endif
 
-SPECREVISION = 1.0.9
+SPECREVISION = 1.0.10
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -98,6 +98,7 @@ default:
 	@if [ -d sources/chapters ] && [ -d loader ]; then \
 	    echo "release:          build header html pdf manhtmlpages and copy output to an OpenXR-Registry-like layout"; fi
 
+	$(ECHO) "reflow:           reflow AsciiDoctor source files in-place"
 	$(ECHO) "clean_dirt:       remove intermediate files"
 	$(ECHO) "clean:            remove targets and intermediate files"
 	$(ECHO) ""
@@ -333,12 +334,19 @@ ATTRIBOPTS   = -a revnumber="$(SPECREVISION)" \
                -a revremark="$(SPECREMARK)" \
                -a apititle="$(APITITLE)" \
                -a stem=latexmath \
+               -a config=$(CURDIR)/man \
                -a pdf-page-size=$(PAGESIZE) \
                -a pdf-stylesdir=config \
                -a pdf-style=pdf \
                $(EXTATTRIBS)
 
 ADOCOPTS = --doctype book -a data-uri -r $(CURDIR)/scripts/openxr-macros.rb $(ATTRIBOPTS)
+
+ifneq (,$(strip $(KHRONOS_SPEC_LICENSED)))
+# Enable photo of JP in dedication: not CC-BY-4.0,
+# so only used in generated docs now.
+ATTRIBOPTS   += -a include-dedication-photo
+endif
 
 # Default to html5
 BACKEND_ARGS=--backend html5
@@ -479,6 +487,14 @@ check-spec-links:
 .PHONY: check-spec-links
 
 ################################################
+# Reflow all specification source text
+
+reflow:
+	$(QUIET)$(PYTHON) $(CURDIR)/scripts/reflow.py -overwrite
+
+.PHONY: reflow
+
+################################################
 # Meta "build approximately everything spec-specific required to pass CI" target
 
 # recursive to cause csl to run first for better errors messages, without adding bogus depends.
@@ -492,6 +508,7 @@ all:
 	$(ECHO) ""
 	$(ECHO) "Target 'all': Completed specification build and basic checks successfully."
 .PHONY: all
+
 
 ################################################
 # Meta build for releases. Also copies into approximately the right layout for the OpenXR-Registry repo.

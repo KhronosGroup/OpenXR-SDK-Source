@@ -4,18 +4,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
 # Author(s):    Ryan Pavlik <ryan.pavlik@collabora.com>
 #
 # Purpose:      This script checks some "business logic" in the XML registry.
@@ -147,7 +135,8 @@ class Checker(XMLChecker):
                           "XR_SESSION_NOT_FOCUSED",
                           "XR_FRAME_DISCARDED"),
             "XrReferenceSpaceType": "XR_SPACE_BOUNDS_UNAVAILABLE",
-            "XrDuration": "XR_TIMEOUT_EXPIRED"
+            "XrDuration": "XR_TIMEOUT_EXPIRED",
+            "uint32_t": "XR_ERROR_SIZE_INSUFFICIENT",
         }
 
         # Some return codes are related in that only one of a set
@@ -190,19 +179,31 @@ class Checker(XMLChecker):
     def check_enum_naming(self, enum_type):
         stripped_enum_type, tag = self.strip_extension_tag(enum_type)
         end = "_{}".format(tag) if tag else ""
+        bare_end = None
         if stripped_enum_type.endswith("FlagBits"):
-            end = "_BIT" + end
+            bare_end = "_BIT"
+            end = bare_end + end
             stripped_enum_type = stripped_enum_type.replace("FlagBits", "")
         start = self.conventions.generate_structure_type_from_name(stripped_enum_type).replace("XR_TYPE", "XR") + "_"
 
         value_names = get_enum_value_names(self.db.registry, enum_type)
         for name in value_names:
+            stripped_name, tag = self.strip_extension_tag(name)
             if not name.startswith(start):
                 self.record_error('Got an enum value whose name does not match the pattern: got', name,
                                   'but expected something that started with', start, 'due to typename being', enum_type)
-            if end and not name.endswith(end):
-                self.record_error('Got an enum value whose name does not match the pattern: got', name,
-                                  'but expected something that ended with', end, 'due to typename being', enum_type)
+
+            if bare_end:
+                # If bare_end is set, end is always non-empty because it means it's a bitmask.
+                assert(end)
+                if not name.endswith(end) and not stripped_name.endswith(bare_end):
+                    self.record_error('Got an enum value whose name does not match the pattern: got', name,
+                                      'but expected something that ended with', end, ', or', bare_end,
+                                      'plus a vendor/author tag, due to typename being', enum_type)
+            elif end:
+                if not name.endswith(end):
+                    self.record_error('Got an enum value whose name does not match the pattern: got', name,
+                                    'but expected something that ended with', end, 'due to typename being', enum_type)
 
     def add_extra_codes(self, types_to_codes):
         """Add any desired entries to the types-to-codes DictOfStringSets
@@ -412,6 +413,17 @@ class Checker(XMLChecker):
             if COUNT_OUTPUT_RE.match(param_name) or CAPACITY_INPUT_RE.match(param_name):
                 self.check_two_call_command(name, info, params)
                 break
+
+        return_type = info.elem.find('proto/type')
+        if self.conventions.requires_error_validation(return_type):
+            # This command returns an API result code, so check that it
+            # returns at least the required errors.
+            required_errors = set(self.conventions.required_errors)
+            errorcodes = info.elem.get('errorcodes').split(',')
+            if not required_errors.issubset(set(errorcodes)):
+                self.record_error('Missing required error code')
+                exit(1)
+
         super().check_command(name, info)
 
     def check_type(self, name, info, category):
@@ -442,10 +454,14 @@ class Checker(XMLChecker):
                                       "but expected", expected_bitvalues)
         super().check_type(name, info, category)
 
-    def check_extension(self, name, info):
+    def check_extension(self, name, info, supported):
         """Check an extension's XML data for consistency.
 
         Called from check."""
+        super().check_extension(name, info, supported)
+        if not supported:
+            return
+
         elem = info.elem
         name_upper = name.upper()
         version_name = "{}_SPEC_VERSION".format(name)
@@ -468,7 +484,7 @@ class Checker(XMLChecker):
                     ver_from_text = str(max(revisions))
                     if ver_from_xml != ver_from_text:
                         self.record_error("Version enum mismatch: spec text indicates", ver_from_text,
-                                        "but XML says", ver_from_xml)
+                                          "but XML says", ver_from_xml)
                 else:
                     if ver_from_xml == '1':
                         self.record_warning(
@@ -476,8 +492,8 @@ class Checker(XMLChecker):
                             filename=fn)
                     else:
                         self.record_error("Cannot find version history in spec text, but XML reports a non-1 version number", ver_from_xml,
-                                        " - make sure the spec text has lines starting exactly like '* Revision 1, ....'",
-                                        filename=fn)
+                                          " - make sure the spec text has lines starting exactly like '* Revision 1, ....'",
+                                          filename=fn)
             except FileNotFoundError:
                 # This is OK: just means we can't check against the spec text.
                 pass
@@ -494,11 +510,12 @@ class Checker(XMLChecker):
                 self.record_error("Incorrect name enum: expected", expected_name,
                                   "got", name_val)
 
-        super().check_extension(name, elem)
 
 
-ckr = Checker()
-ckr.check()
+if __name__ == "__main__":
 
-if ckr.fail:
-    sys.exit(1)
+    ckr = Checker()
+    ckr.check()
+
+    if ckr.fail:
+        sys.exit(1)

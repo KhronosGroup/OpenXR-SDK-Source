@@ -1552,6 +1552,11 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                     param_member_contents += self.writeIndent(indent)
                     param_member_contents += '// Validate if %s is a child structure of type %s and it is valid\n' % (
                         param_member.type, child)
+
+                    param_member_contents += self.writeIndent(indent)
+                    param_member_contents += '{\n'
+                    indent = indent + 1
+
                     param_member_contents += self.writeIndent(indent)
 
                     base_child_struct_name = undecorate(child)
@@ -1662,6 +1667,10 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                         param_member_contents += self.writeIndent(indent)
                         param_member_contents += '}\n'
                         indent = indent - 1
+
+                    indent = indent - 1
+                    param_member_contents += self.writeIndent(indent)
+                    param_member_contents += '}\n'
 
                     indent = indent - 1
                     param_member_contents += self.writeIndent(indent)

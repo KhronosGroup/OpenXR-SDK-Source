@@ -3,18 +3,6 @@
 # Copyright (c) 2013-2020 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 from pathlib import Path
 
@@ -155,18 +143,6 @@ class DocOutputGenerator(OutputGenerator):
 
         # Decide if we're in a core <feature> or an <extension>
         self.in_core = (interface.tag == 'feature')
-
-        # Verify that each <extension> has a unique number during doc
-        # generation
-        # TODO move this to consistency_tools
-        if not self.in_core:
-            extension_number = interface.get('number')
-            if extension_number is not None and extension_number != "0":
-                if extension_number in self.extension_numbers:
-                    self.logMsg('error', 'Duplicate extension number ', extension_number, ' detected in feature ', interface.get('name'), '\n')
-                    exit(1)
-                else:
-                    self.extension_numbers.add(extension_number)
 
     def endFeature(self):
         # Finish processing in superclass
@@ -413,17 +389,6 @@ class DocOutputGenerator(OutputGenerator):
     def genCmd(self, cmdinfo, name, alias):
         "Generate command."
         OutputGenerator.genCmd(self, cmdinfo, name, alias)
-
-        return_type = cmdinfo.elem.find('proto/type')
-        if self.genOpts.conventions.requires_error_validation(return_type):
-            # This command returns an API result code, so check that it
-            # returns at least the required errors.
-            # TODO move this to consistency_tools
-            required_errors = set(self.genOpts.conventions.required_errors)
-            errorcodes = cmdinfo.elem.get('errorcodes').split(',')
-            if not required_errors.issubset(set(errorcodes)):
-                self.logMsg('error', 'Missing required error code for command: ', name, '\n')
-                exit(1)
 
         decls = self.makeCDecls(cmdinfo.elem)
         self.writeInclude('protos', name, decls[0])

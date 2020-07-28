@@ -1,5 +1,11 @@
 # Building the Specification
 
+<!--
+Copyright (c) 2014-2020 The Khronos Group Inc.
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 Before building the specification, install the necessary prerequisite tools as described later in this document.
 
 You may instead choose to use the `open-in-docker.sh` script,

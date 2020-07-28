@@ -1,3 +1,7 @@
+// Copyright (c) 2017-2020 The Khronos Group Inc.
+//
+// SPDX-License-Identifier: Apache-2.0
+
 #include "pch.h"
 #include "common.h"
 #include "geometry.h"
@@ -15,6 +19,15 @@
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
 // Define USE_MIRROR_WINDOW to open a dummy window for e.g. RenderDoc
 #define USE_MIRROR_WINDOW
+#endif
+
+// glslangValidator doesn't wrap its output in brackets if you don't have it define the whole array.
+#if defined(USE_GLSLANGVALIDATOR)
+#define SPV_PREFIX {
+#define SPV_SUFFIX }
+#else
+#define SPV_PREFIX
+#define SPV_SUFFIX
 #endif
 
 namespace {
@@ -1245,7 +1258,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         return list;
     }
 
-    const char* const GetValidationLayerName() {
+    const char* GetValidationLayerName() {
         uint32_t layerCount;
         vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
         std::vector<VkLayerProperties> availableLayers(layerCount);
@@ -1372,6 +1385,10 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         // Setting this quiets down a validation error triggered by the Oculus runtime
         // features.shaderStorageImageMultisample = VK_TRUE;
 
+#if defined(USE_MIRROR_WINDOW)
+        deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+#endif
+
         VkDeviceCreateInfo deviceInfo{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
         deviceInfo.queueCreateInfoCount = 1;
         deviceInfo.pQueueCreateInfos = &queueInfo;
@@ -1420,12 +1437,12 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         auto vertexSPIRV = CompileGlslShader("vertex", shaderc_glsl_default_vertex_shader, VertexShaderGlsl);
         auto fragmentSPIRV = CompileGlslShader("fragment", shaderc_glsl_default_fragment_shader, FragmentShaderGlsl);
 #else
-        std::vector<uint32_t> vertexSPIRV =
+        std::vector<uint32_t> vertexSPIRV = SPV_PREFIX
 #include "vert.spv"
-            ;
-        std::vector<uint32_t> fragmentSPIRV =
+            SPV_SUFFIX;
+        std::vector<uint32_t> fragmentSPIRV = SPV_PREFIX
 #include "frag.spv"
-            ;
+            SPV_SUFFIX;
 #endif
         if (vertexSPIRV.empty()) THROW("Failed to compile vertex shader");
         if (fragmentSPIRV.empty()) THROW("Failed to compile fragment shader");
@@ -1577,6 +1594,8 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         }
 #endif
     }
+
+    uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return VK_SAMPLE_COUNT_1_BIT; }
 
    private:
     XrGraphicsBindingVulkanKHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR};

@@ -3,18 +3,6 @@
 # Copyright (c) 2013-2020 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 import re
 import sys
@@ -25,23 +13,8 @@ class ExtensionMetaDocGeneratorOptions(GeneratorOptions):
     """ExtensionMetaDocGeneratorOptions - subclass of GeneratorOptions.
 
     Represents options during extension metainformation generation for Asciidoc"""
-    def __init__(self,
-                 conventions = None,
-                 filename = None,
-                 directory = '.',
-                 apiname = None,
-                 profile = None,
-                 versions = '.*',
-                 emitversions = '.*',
-                 defaultExtensions = None,
-                 addExtensions = None,
-                 removeExtensions = None,
-                 emitExtensions = None,
-                 sortProcedure = regSortFeatures):
-        GeneratorOptions.__init__(self, conventions, filename, directory, apiname, profile,
-                                  versions, emitversions, defaultExtensions,
-                                  addExtensions, removeExtensions,
-                                  emitExtensions, sortProcedure)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
 
 EXT_NAME_DECOMPOSE_RE = re.compile(r'[A-Z]+_(?P<tag>[A-Z]+)_(?P<name>[\w_]+)')
@@ -576,16 +549,16 @@ class ExtensionMetaDocOutputGenerator(OutputGenerator):
         return attrib
 
     def numbersToWords(self, name):
-        whitelist = ['WIN32', 'INT16', 'D3D1']
+        allowlist = ['WIN32', 'INT16', 'D3D1']
 
-        # temporarily replace whitelist items
-        for i, w in enumerate(whitelist):
+        # temporarily replace allowlist items
+        for i, w in enumerate(allowlist):
             name = re.sub(w, '{' + str(i) + '}', name)
 
         name = re.sub(r'(?<=[A-Z])(\d+)(?![A-Z])', r'_\g<1>', name)
 
-        # undo whitelist substitution
-        for i, w in enumerate(whitelist):
+        # undo allowlist substitution
+        for i, w in enumerate(allowlist):
             name = re.sub('\\{' + str(i) + '}', w, name)
 
         return name

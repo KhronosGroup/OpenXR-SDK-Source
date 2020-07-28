@@ -1,3 +1,7 @@
+// Copyright (c) 2017-2020 The Khronos Group Inc
+//
+// SPDX-License-Identifier: Apache-2.0
+
 #pragma once
 
 struct Cube {
@@ -29,6 +33,12 @@ struct IGraphicsPlugin {
     // Render to a swapchain image for a projection view.
     virtual void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
                             int64_t swapchainFormat, const std::vector<Cube>& cubes) = 0;
+
+    // Get recommended number of sub-data element samples in view (recommendedSwapchainSampleCount)
+    // if supported by the graphics plugin. A supported value otherwise.
+    virtual uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView& view) {
+        return view.recommendedSwapchainSampleCount;
+    }
 };
 
 // Create a graphics plugin for the graphics API specified in the options.

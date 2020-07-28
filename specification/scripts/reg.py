@@ -1,20 +1,8 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2013-2020 The Khronos Group Inc.
+# Copyright 2013-2020 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 """Types and classes for manipulating an API registry."""
 
 import copy
@@ -22,7 +10,17 @@ import re
 import sys
 import xml.etree.ElementTree as etree
 from collections import defaultdict, namedtuple
-from generator import OutputGenerator, write
+from generator import OutputGenerator, GeneratorOptions, write
+
+
+def apiNameMatch(str, supported):
+    """Return whether a required api name matches a pattern specified for an
+    XML <feature> 'api' attribute or <extension> 'supported' attribute.
+
+    - str - api name such as 'vulkan' or 'openxr'
+    - supported - comma-separated list of XML API names"""
+
+    return (str is not None and str in supported.split(','))
 
 
 def matchAPIProfile(api, profile, elem):
@@ -131,11 +129,13 @@ class BaseInfo:
                     # If both specify the same value or bit position,
                     # they're equal
                     return True
-                elif (self.compareKeys(info, 'extends') and
-                      self.compareKeys(info, 'extnumber') and
+                elif (self.compareKeys(info, 'extnumber') and
                       self.compareKeys(info, 'offset') and
                       self.compareKeys(info, 'dir')):
                     # If both specify the same relative offset, they're equal
+                    return True
+                elif (self.compareKeys(info, 'alias')):
+                    # If both are aliases of the same value
                     return True
                 else:
                     return False
@@ -256,7 +256,24 @@ class FeatureInfo(BaseInfo):
 class Registry:
     """Object representing an API registry, loaded from an XML file."""
 
-    def __init__(self):
+    def __init__(self, gen=None, genOpts=None):
+        if gen is None:
+            # If not specified, give a default object so messaging will work
+            self.gen = OutputGenerator()
+        else:
+            self.gen = gen
+        "Output generator used to write headers / messages"
+
+        if genOpts is None:
+            self.genOpts = GeneratorOptions()
+        else:
+            self.genOpts = genOpts
+        "Options controlling features to write and how to format them"
+
+        self.gen.registry = self
+        self.gen.genOpts = self.genOpts
+        self.gen.genOpts.registry = self
+
         self.tree = None
         "ElementTree containing the root `<registry>`"
 
@@ -280,15 +297,6 @@ class Registry:
 
         self.extdict = {}
         "dictionary of FeatureInfo objects for `<extension>` elements keyed by extension name"
-
-        # A default output generator, so commands prior to apiGen can report
-        # errors via the generator object.
-        self.gen = OutputGenerator()
-        "OutputGenerator object used to write headers / messages"
-
-        self.genOpts = None
-        """GeneratorOptions object used to control which
-        features to write and how to format them"""
 
         self.emitFeatures = False
         """True to actually emit features for a version / extension,
@@ -455,7 +463,6 @@ class Registry:
         # name - if it exists.
         for (name, alias, cmd) in cmdAlias:
             if alias in self.cmddict:
-                # @ pdb.set_trace()
                 aliasInfo = self.cmddict[alias]
                 cmdElem = copy.deepcopy(aliasInfo.elem)
                 cmdElem.find('proto/name').text = name
@@ -825,9 +832,6 @@ class Registry:
         - fname - name of feature (`<type>`/`<enum>`/`<command>`)
         - ftype - type of feature, 'type' | 'enum' | 'command'
         - dictionary - of *Info objects - self.{type|enum|cmd}dict"""
-        # @ # Break to debugger on matching name pattern
-        # @ if self.breakPat and re.match(self.breakPat, fname):
-        # @    pdb.set_trace()
 
         self.gen.logMsg('diag', 'generateFeature: generating', ftype, fname)
         f = self.lookupElementInfo(fname, dictionary)
@@ -1036,7 +1040,7 @@ class Registry:
         for key in self.apidict:
             fi = self.apidict[key]
             api = fi.elem.get('api')
-            if api == self.genOpts.apiname:
+            if apiNameMatch(self.genOpts.apiname, api):
                 apiMatch = True
                 if regVersions.match(fi.name):
                     # Matches API & version #s being generated. Mark for
@@ -1073,13 +1077,10 @@ class Registry:
             extName = ei.name
             include = False
 
-            # Include extension if defaultExtensions is not None and if the
-            # 'supported' attribute matches defaultExtensions. The regexp in
-            # 'supported' must exactly match defaultExtensions, so bracket
-            # it with ^(pat)$.
-            pat = '^(' + ei.elem.get('supported') + ')$'
-            if (self.genOpts.defaultExtensions
-                    and re.match(pat, self.genOpts.defaultExtensions)):
+            # Include extension if defaultExtensions is not None and is
+            # exactly matched by the 'supported' attribute.
+            if apiNameMatch(self.genOpts.defaultExtensions,
+                            ei.elem.get('supported')):
                 self.gen.logMsg('diag', 'Including extension',
                                 extName, "(defaultExtensions matches the 'supported' attribute)")
                 include = True

@@ -1,5 +1,11 @@
 # OpenXR™ Software Development Kit (SDK) Sources Project
 
+<!--
+Copyright (c) 2017-2020 The Khronos Group Inc
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 This repository contains source code and build scripts for implementations
 of the OpenXR loader, validation layers, and code samples.
 

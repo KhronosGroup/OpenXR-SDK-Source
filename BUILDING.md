@@ -1,5 +1,11 @@
 # How to Build
 
+<!--
+Copyright (c) 2014-2020 The Khronos Group Inc.
+
+SPDX-License-Identifier: CC-BY-4.0
+-->
+
 ## Python v3.6+ required
 
 Certain source files are generated at build time from the `xr.xml` file, utilizing 

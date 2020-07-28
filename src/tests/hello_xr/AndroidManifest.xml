@@ -3,7 +3,11 @@
 		package="com.khronos.hello_xr"
 		android:versionCode="1"
 		android:versionName="1.0" android:installLocation="auto" >
+<!--
+Copyright (c) 2017-2020 The Khronos Group Inc.
 
+SPDX-License-Identifier: Apache-2.0
+-->
 	<uses-sdk android:minSdkVersion="24" android:targetSdkVersion="24" />
 	<!-- Tell the system this app requires OpenGL ES 3.2. -->
 	<uses-feature android:glEsVersion="0x00030002" android:required="true"/>
@@ -29,7 +33,8 @@
       <!-- This filter lets the apk show up as a launchable icon. -->
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
+				
+<category android:name="android.intent.category.LAUNCHER" />
 			</intent-filter>
 		</activity>
 	</application>

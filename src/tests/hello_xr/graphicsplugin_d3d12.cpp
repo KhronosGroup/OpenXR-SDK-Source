@@ -1,3 +1,7 @@
+// Copyright (c) 2017-2020 The Khronos Group Inc.
+//
+// SPDX-License-Identifier: Apache-2.0
+
 #include "pch.h"
 #include "common.h"
 #include "geometry.h"
@@ -130,6 +134,8 @@ class SwapchainImageContext {
 
     uint64_t GetFrameFenceValue() const { return m_fenceValue; }
     void SetFrameFenceValue(uint64_t fenceValue) { m_fenceValue = fenceValue; }
+
+    void ResetCommandAllocator() { CHECK_HRCMD(m_commandAllocator->Reset()); }
 
     void RequestModelCBuffer(uint32_t requiredSize) {
         if (!m_modelCBuffer || (requiredSize > m_modelCBuffer->GetDesc().Width)) {
@@ -407,6 +413,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
 
         auto& swapchainContext = *m_swapchainImageContextMap[swapchainImage];
         CpuWaitForFence(swapchainContext.GetFrameFenceValue());
+        swapchainContext.ResetCommandAllocator();
 
         ComPtr<ID3D12GraphicsCommandList> cmdList;
         CHECK_HRCMD(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, swapchainContext.GetCommandAllocator(), nullptr,

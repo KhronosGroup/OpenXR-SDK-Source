@@ -79,7 +79,7 @@ static void Error(const char *format, ...) {
 
     OutputDebugStringA(buffer);
 
-    MessageBoxA(NULL, buffer, "ERROR", MB_OK | MB_ICONINFORMATION);
+    // MessageBoxA(NULL, buffer, "ERROR", MB_OK | MB_ICONINFORMATION);
 #elif defined(OS_LINUX)
     va_list args;
     va_start(args, format);
@@ -459,6 +459,7 @@ PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC glFramebufferTexture2DMultisampleEXT
 PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC glFramebufferTextureMultiviewOVR;
 PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC glFramebufferTextureMultisampleMultiviewOVR;
 PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
+PFNGLCHECKNAMEDFRAMEBUFFERSTATUSPROC glCheckNamedFramebufferStatus;
 
 PFNGLGENBUFFERSPROC glGenBuffers;
 PFNGLDELETEBUFFERSPROC glDeleteBuffers;
@@ -612,6 +613,7 @@ void GlInitExtensions() {
     glFramebufferTextureMultisampleMultiviewOVR =
         (PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC)GetExtension("glFramebufferTextureMultisampleMultiviewOVR");
     glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC)GetExtension("glCheckFramebufferStatus");
+    glCheckNamedFramebufferStatus = (PFNGLCHECKNAMEDFRAMEBUFFERSTATUSPROC)GetExtension("glCheckNamedFramebufferStatus");
 
     glGenBuffers = (PFNGLGENBUFFERSPROC)GetExtension("glGenBuffers");
     glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)GetExtension("glDeleteBuffers");
@@ -1042,7 +1044,7 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
         // an OpenGL context. However, once a pixel format is set on a device context it is final.
         // Therefore a pixel format is set on the device context of a temporary window to create a context
         // to get the extensions for multi-sampling.
-        localWnd = CreateWindow(APPLICATION_NAME, "temp", 0, 0, 0, 0, 0, NULL, NULL, hInstance, NULL);
+        localWnd = CreateWindowA(APPLICATION_NAME, "temp", 0, 0, 0, 0, 0, NULL, NULL, hInstance, NULL);
         localDC = GetDC(localWnd);
     }
 

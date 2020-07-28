@@ -1,3 +1,6 @@
+// Copyright (c) 2017-2020 The Khronos Group Inc
+//
+// SPDX-License-Identifier: Apache-2.0
 package com.khronos.hello_xr;
 
 public class MainActivity extends android.app.NativeActivity {

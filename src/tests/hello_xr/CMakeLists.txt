@@ -53,6 +53,10 @@ target_include_directories(hello_xr
     ${PROJECT_SOURCE_DIR}/external/include
 )
 
+if(GLSLANG_VALIDATOR AND NOT GLSLC_COMMAND)
+    target_compile_definitions(hello_xr PRIVATE USE_GLSLANGVALIDATOR)
+endif()
+
 if(VulkanHeaders_INCLUDE_DIRS)
     target_include_directories(hello_xr
         PRIVATE
@@ -70,16 +74,11 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         target_compile_options(hello_xr PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
     endif()
     target_link_libraries(hello_xr ole32)
-    if(D3D_D3D11_FOUND AND D3D_DIRECTXCOLORS_INCLUDE_DIR)
-        target_link_libraries(hello_xr ${D3D_D3D11_LIBRARIES})
-        target_include_directories(hello_xr PRIVATE ${D3D_D3D11_INCLUDE_DIR} ${D3D_DIRECTXCOLORS_INCLUDE_DIR})
-    endif()
-    if(D3D_D3D12_FOUND AND D3D_DIRECTXCOLORS_INCLUDE_DIR)
-        target_link_libraries(hello_xr ${D3D_D3D12_LIBRARIES})
-        target_include_directories(hello_xr PRIVATE ${D3D_D3D12_INCLUDE_DIR} ${D3D_DIRECTXCOLORS_INCLUDE_DIR})
-    endif()
-    if(NOT D3D_DIRECTXCOLORS_INCLUDE_DIR)
-        target_compile_definitions(hello_xr PRIVATE -DMISSING_DIRECTX_COLORS)
+    if(MSVC)
+        # Right now can't build this on MinGW because of directxcolors, etc.
+        target_link_libraries(hello_xr d3d11 d3d12 d3dcompiler dxgi)
+    else()
+        target_compile_definitions(hello_xr PRIVATE MISSING_DIRECTX_COLORS)
     endif()
 endif()
 

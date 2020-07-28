@@ -1,3 +1,7 @@
+// Copyright (c) 2017-2020 The Khronos Group Inc.
+//
+// SPDX-License-Identifier: Apache-2.0
+
 #include "pch.h"
 #include "common.h"
 #include "options.h"
@@ -188,8 +192,8 @@ struct OpenXrProgram : IOpenXrProgram {
             Log::Write(Log::Level::Info, Fmt("Available Layers: (%d)", layerCount));
             for (const XrApiLayerProperties& layer : layers) {
                 Log::Write(Log::Level::Verbose,
-                           Fmt("  Name=%s SpecVersion=%d LayerVersion=%s Description=%s", layer.layerName, layer.specVersion,
-                               GetXrVersionString(layer.layerVersion).c_str(), layer.description));
+                           Fmt("  Name=%s SpecVersion=%s LayerVersion=%d Description=%s", layer.layerName,
+                               GetXrVersionString(layer.specVersion).c_str(), layer.layerVersion, layer.description));
                 logExtensions(layer.layerName, 4);
             }
         }
@@ -665,7 +669,7 @@ struct OpenXrProgram : IOpenXrProgram {
                 swapchainCreateInfo.height = vp.recommendedImageRectHeight;
                 swapchainCreateInfo.mipCount = 1;
                 swapchainCreateInfo.faceCount = 1;
-                swapchainCreateInfo.sampleCount = vp.recommendedSwapchainSampleCount;
+                swapchainCreateInfo.sampleCount = m_graphicsPlugin->GetSupportedSwapchainSampleCount(vp);
                 swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_SAMPLED_BIT | XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
                 Swapchain swapchain;
                 swapchain.width = swapchainCreateInfo.width;
