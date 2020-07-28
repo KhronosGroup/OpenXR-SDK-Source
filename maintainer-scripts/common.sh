@@ -33,7 +33,7 @@ makeSubset() {
 
 }
 
-COMMON_FILES=".gitignore .gitattributes CODE_OF_CONDUCT.md"
+COMMON_FILES=".gitignore .gitattributes CODE_OF_CONDUCT.md LICENSES .reuse"
 export COMMON_FILES
 
 add_to_tar() {
@@ -102,6 +102,8 @@ getDocsFilenames() {
     # TODO omitting style guide VUID chapter for now
     git ls-files \
         $COMMON_FILES \
+        .proclamation.json \
+        .proclamation.json.license \
         CHANGELOG.Docs.md \
         checkCodespell \
         open-in-docker.sh \
@@ -128,6 +130,8 @@ getSDKSourceFilenames() {
     # required to build those tools
     git ls-files \
         $COMMON_FILES \
+        .proclamation.json \
+        .proclamation.json.license \
         BUILDING.md \
         CHANGELOG.SDK.md \
         checkCodespell \
@@ -193,6 +197,8 @@ getConformanceFilenames() {
     # TODO need a mention in the spec folder about how it's not under the same license (?)
     git ls-files \
         $COMMON_FILES \
+        .proclamation.json \
+        .proclamation.json.license \
         BUILDING.md \
         CHANGELOG.CTS.md \
         checkCodespell \
