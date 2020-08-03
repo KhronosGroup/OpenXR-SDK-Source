@@ -1,0 +1,1 @@
+Replace usage of std::filesystem::canonical with PathCchCanonicalize on Windows platform to work around bug on UWP platforms. This also replaces PathCanonicalize with PathCchCanonicalize and adds the appropriate library for linking in.
