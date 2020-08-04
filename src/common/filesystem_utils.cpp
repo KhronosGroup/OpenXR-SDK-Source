@@ -231,7 +231,7 @@ bool FileSysUtilsGetAbsolutePath(const std::string& path, std::string& absolute)
 
 bool FileSysUtilsGetCanonicalPath(const std::string& path, std::string& absolute) {
     wchar_t tmp_path[MAX_PATH];
-    if (SUCCEEDED(PathCchCanonicalize(tmp_path, MAX_PATH, utf8_to_wide(path)))) {
+    if (SUCCEEDED(PathCchCanonicalize(tmp_path, MAX_PATH, utf8_to_wide(path).c_str()))) {
         absolute = wide_to_utf8(tmp_path);
         return true;
     }
