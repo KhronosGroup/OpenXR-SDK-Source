@@ -34,12 +34,12 @@
 #if defined(XR_OS_WINDOWS)
 
 bool LoaderTestSetEnvironmentVariable(const std::string &variable, const std::string &value) {
-    return TRUE == SetEnvironmentVariable(variable.c_str(), value.c_str());
+    return TRUE == SetEnvironmentVariableA(variable.c_str(), value.c_str());
 }
 
 bool LoaderTestGetEnvironmentVariable(const std::string &variable, std::string &value) {
     char buf_data[4096];
-    uint32_t num_chars = GetEnvironmentVariable(variable.c_str(), buf_data, 4095);
+    uint32_t num_chars = GetEnvironmentVariableA(variable.c_str(), buf_data, 4095);
     if (0 == num_chars) {
         return false;
     }
@@ -49,7 +49,7 @@ bool LoaderTestGetEnvironmentVariable(const std::string &variable, std::string &
 }
 
 bool LoaderTestUnsetEnvironmentVariable(const std::string &variable) {
-    return TRUE == SetEnvironmentVariable(variable.c_str(), "");
+    return TRUE == SetEnvironmentVariableA(variable.c_str(), "");
 }
 
 #elif defined(XR_OS_LINUX)

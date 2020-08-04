@@ -18,10 +18,6 @@
 #
 
 add_subdirectory(list)
-if(OPENGL_FOUND AND NOT TARGET openxr-gfxwrapper)
-    return()
-endif()
-
 add_subdirectory(hello_xr)
 if(BUILD_LOADER)
 add_subdirectory(loader_test)
