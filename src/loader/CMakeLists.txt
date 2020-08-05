@@ -183,7 +183,7 @@ elseif(WIN32)
         target_compile_options(openxr_loader PRIVATE /wd6386)
     endif()
 
-    target_link_libraries(openxr_loader PRIVATE advapi32)
+    target_link_libraries(openxr_loader PUBLIC advapi32 pathcch)
 
     # Need to copy DLL to client directories so clients can easily load it.
     if(DYNAMIC_LOADER AND (CMAKE_GENERATOR MATCHES "^Visual Studio.*"))
