@@ -17,32 +17,32 @@
 # Author:
 #
 
-add_executable(runtime_list
+add_executable(openxr_runtime_list
     list.cpp
 )
-add_dependencies(runtime_list
+add_dependencies(openxr_runtime_list
     generate_openxr_header
 )
-target_include_directories(runtime_list
+target_include_directories(openxr_runtime_list
     PRIVATE ${PROJECT_SOURCE_DIR}/src
     PRIVATE ${PROJECT_SOURCE_DIR}/src/common
     PRIVATE ${PROJECT_BINARY_DIR}/include
     PRIVATE ${PROJECT_SOURCE_DIR}/external/include
 )
 if(VulkanHeaders_FOUND)
-    target_include_directories(runtime_list
+    target_include_directories(openxr_runtime_list
         PRIVATE ${VulkanHeaders_INCLUDE_DIRS}
     )
 endif()
 
-target_link_libraries(runtime_list openxr_loader)
+target_link_libraries(openxr_runtime_list openxr_loader)
 if(MSVC)
-    target_compile_options(runtime_list PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
+    target_compile_options(openxr_runtime_list PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
 endif()
 
-set_target_properties(runtime_list PROPERTIES FOLDER ${TESTS_FOLDER})
+set_target_properties(openxr_runtime_list PROPERTIES FOLDER ${TESTS_FOLDER})
 
-install(TARGETS runtime_list
+install(TARGETS openxr_runtime_list
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 if(NOT WIN32)
     install(FILES openxr_runtime_list.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1/ COMPONENT ManPages)
