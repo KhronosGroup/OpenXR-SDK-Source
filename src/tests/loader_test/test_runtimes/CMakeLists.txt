@@ -60,7 +60,7 @@ macro(gen_xr_runtime_json filename libfile)
     )
 endmacro()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if(WIN32)
     target_compile_definitions(test_runtime PRIVATE _CRT_SECURE_NO_WARNINGS)
     # Turn off transitional "changed behavior" warning message for Visual Studio versions prior to 2015.
     # The changed behavior is that constructor initializers are now fixed to clear the struct members.

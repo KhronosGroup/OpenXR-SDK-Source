@@ -47,7 +47,7 @@ if(VulkanHeaders_FOUND)
     )
 endif()
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+if(WIN32)
     if(MSVC)
         target_compile_definitions(loader_test PRIVATE _CRT_SECURE_NO_WARNINGS)
         target_compile_options(loader_test PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
