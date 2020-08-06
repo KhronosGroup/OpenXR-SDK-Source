@@ -1,0 +1,4 @@
+rootProject.name = "hello_xr"
+rootProject.dir = new File(settingsDir, '../../..')
+
+include ':src:tests:hello_xr'

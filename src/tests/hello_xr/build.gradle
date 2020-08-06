@@ -1,0 +1,48 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "30.0.0"
+
+    defaultConfig {
+        applicationId "com.khronos.openxr." + rootProject.name
+        minSdkVersion 23
+        targetSdkVersion 25
+        compileSdkVersion 26
+
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_shared', '-DBUILD_API_LAYERS=OFF', '-DBUILD_TESTS=ON', '-DBUILD_LOADER=ON'
+            }
+        }
+    }
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDir 'java'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            // proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "../../../CMakeLists.txt"
+        }
+    }
+
+    lintOptions {
+        disable 'ExpiredTargetSdkVersion'
+    }
+}
+
+dependencies {
+    // implementation fileTree(dir: "libs", include: ["*.jar"])
+    // implementation 'androidx.appcompat:appcompat:1.1.0'
+    // implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+}
