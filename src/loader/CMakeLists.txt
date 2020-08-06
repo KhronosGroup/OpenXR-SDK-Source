@@ -253,7 +253,7 @@ export(
 
 if((CMAKE_SYSTEM_NAME STREQUAL "Windows") OR (CMAKE_SYSTEM_NAME STREQUAL "WindowsStore"))
     set(TARGET_DESTINATION cmake)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+else()
     set(TARGET_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/openxr/)
 endif()
 
