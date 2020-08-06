@@ -96,8 +96,11 @@ include(CMakeDependentOption)
 cmake_dependent_option(
     BUILD_WITH_SYSTEM_JSONCPP "Use system jsoncpp instead of vendored source" ON "JSONCPP_FOUND" OFF
 )
-cmake_dependent_option(BUILD_WITH_STD_FILESYSTEM "Use std::[experimental::]filesystem." ON
-       "HAVE_FILESYSTEM_WITHOUT_LIB OR HAVE_FILESYSTEM_NEEDING_LIB" OFF)
+cmake_dependent_option(
+    BUILD_WITH_STD_FILESYSTEM "Use std::[experimental::]filesystem." ON
+    "HAVE_FILESYSTEM_WITHOUT_LIB OR HAVE_FILESYSTEM_NEEDING_LIBSTDCXXFS OR HAVE_FILESYSTEM_NEEDING_LIBCXXFS"
+    OFF
+)
 
 # Several files use these compile-time OS switches
 if(WIN32)
