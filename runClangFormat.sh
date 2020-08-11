@@ -22,7 +22,7 @@ set -e
     cd "$(dirname $0)"
     if [ ! "${CLANGFORMAT}" ]; then
         for tool in ${ACCEPTABLE_CLANG_FORMATS}; do
-            if which $tool > /dev/null; then
+            if which $tool > /dev/null 2> /dev/null; then
                 CLANGFORMAT=$tool
                 break
             fi
