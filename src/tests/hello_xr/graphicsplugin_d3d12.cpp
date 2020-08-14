@@ -234,7 +234,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
                                                   reinterpret_cast<void**>(m_rootSignature.ReleaseAndGetAddressOf())));
 
         SwapchainImageContext initializeContext;
-        std::vector<XrSwapchainImageBaseHeader*> dummy = initializeContext.Create(m_device.Get(), 1);
+        std::vector<XrSwapchainImageBaseHeader*> _ = initializeContext.Create(m_device.Get(), 1);
 
         ComPtr<ID3D12GraphicsCommandList> cmdList;
         CHECK_HRCMD(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, initializeContext.GetCommandAllocator(), nullptr,

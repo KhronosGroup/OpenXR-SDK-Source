@@ -1532,14 +1532,9 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         elif self.isStruct(param_member.type) and not self.isStructAlwaysValid(param_member.type):
             param_member_contents += loop_string
             wrote_loop = True
-            is_relation_group = False
-            relation_group = None
             # Check to see if this struct is the base of a relation group
-            for cur_rel_group in self.struct_relation_groups:
-                if cur_rel_group.generic_struct_name == param_member.type:
-                    relation_group = cur_rel_group
-                    is_relation_group = True
-                    break
+            relation_group = self.getRelationGroupForBaseStruct(param_member.type)
+            is_relation_group = (relation_group is not None)
 
             # If this struct is the base of a relation group, check to see if this call really should go to any one of
             # it's children instead of itself.
@@ -1828,6 +1823,8 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
 
         return param_member_contents
 
+
+
     # Write the validation function for every struct we know about.
     #   self            the ValidationSourceOutputGenerator object
     def writeValidateStructFuncs(self):
@@ -1838,7 +1835,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 continue
 
             indent = 1
-            is_relation_group = False
+            is_base_type = False
             relation_group = None
 
             if xr_struct.protect_value:
@@ -1850,15 +1847,13 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             struct_check += '    XrResult xr_result = XR_SUCCESS;\n'
 
             # Check to see if this struct is the base of a relation group
-            for cur_rel_group in self.struct_relation_groups:
-                if cur_rel_group.generic_struct_name == xr_struct.name:
-                    relation_group = cur_rel_group
-                    is_relation_group = True
-                    break
+            relation_group = self.getRelationGroupForBaseStruct(xr_struct.name)
+            if relation_group is not None:
+                is_base_type = True
 
             # If this struct is the base of a relation group, check to see if this call really should go to any one of
             # it's children instead of itself.
-            if is_relation_group:
+            if is_base_type:
                 for member in xr_struct.members:
                     if member.name == 'next':
                         struct_check += self.writeIndent(indent)

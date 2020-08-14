@@ -723,7 +723,7 @@ void ksDriverInstance_Destroy( ksDriverInstance * instance );
 */
 
 typedef struct {
-    int dummy;
+    int placeholder;
 } ksDriverInstance;
 
 bool ksDriverInstance_Create(ksDriverInstance *instance);

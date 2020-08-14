@@ -1,1 +1,0 @@
-Support for building more projects when targeting UWP, and support for all architectures when targeting Win32.

@@ -83,7 +83,7 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetSystemProperties(XrInstance insta
     properties->graphicsProperties.maxSwapchainImageHeight = 1;
     properties->graphicsProperties.maxSwapchainImageWidth = 1;
     properties->systemId = systemId;
-    strcpy(properties->systemName, "Dummy system");
+    strcpy(properties->systemName, "Test system");
     properties->vendorId = 0x0;
     return XR_SUCCESS;
 }

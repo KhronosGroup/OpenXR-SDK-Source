@@ -606,9 +606,10 @@ class Registry:
                 disabled_types.append(type_elem.get('name'))
         for type_elem in self.reg.findall('types/type'):
             if type_elem.get('name') not in disabled_types:
-                parentStructs = type_elem.get('structextends')
-                if parentStructs is not None:
-                    for parent in parentStructs.split(','):
+                # The structure type this may be chained to.
+                struct_extends = type_elem.get('structextends')
+                if struct_extends is not None:
+                    for parent in struct_extends.split(','):
                         # self.gen.logMsg('diag', type.get('name'), 'extends', parent)
                         self.validextensionstructs[parent].append(type_elem.get('name'))
         # Sort the lists so they don't depend on the XML order

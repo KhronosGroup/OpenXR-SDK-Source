@@ -6,24 +6,24 @@ set -e
 
 if [ $# -eq 0 ]; then
     TOPIC=HEAD
-    MASTER=origin/master
+    MAINLINE=origin/master
 elif [ $# -eq 1 ]; then
     TOPIC=$1
-    MASTER=origin/master
+    MAINLINE=origin/master
 elif [ $# -eq 2 ]; then
     TOPIC=$1
-    MASTER=$2
+    MAINLINE=$2
 else
-    echo "$0 [<topic_branch> [<master_branch>]]" >&2
+    echo "$0 [<topic_branch> [<main_branch>]]" >&2
     exit 1
 fi
 
-BASE=$(git merge-base "${MASTER}" "${TOPIC}")
+BASE=$(git merge-base "${MAINLINE}" "${TOPIC}")
 export TOPIC
 export BASE
 
 echo "Topic branch: $TOPIC"
-echo "Compared against target branch: $MASTER"
+echo "Compared against target branch: $MAINLINE"
 echo "Merge base: $BASE"
 echo ""
 echo ""

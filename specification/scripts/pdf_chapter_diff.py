@@ -185,7 +185,7 @@ class PdfSpec:
                              if x.level == level]
 
         sections = []
-        # Add a dummy section taking up all front-matter pages
+        # Add a placeholder section taking up all front-matter pages
         first_bookmark = bookmarks[0]
         if first_bookmark.page_number != 1:
             sections.append(Section(title="0. Front Matter",

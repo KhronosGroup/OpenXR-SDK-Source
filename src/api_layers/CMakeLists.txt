@@ -50,8 +50,10 @@ set_source_files_properties(
 
 set(GENERATED_OUTPUT)
 set(GENERATED_DEPENDS)
-run_xr_xml_generate(api_dump_generator.py xr_generated_api_dump.hpp)
-run_xr_xml_generate(api_dump_generator.py xr_generated_api_dump.cpp)
+run_xr_xml_generate(api_dump_generator.py xr_generated_api_dump.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/automatic_source_generator.py)
+run_xr_xml_generate(api_dump_generator.py xr_generated_api_dump.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/automatic_source_generator.py)
 
 add_library(XrApiLayer_api_dump SHARED
     api_dump.cpp
@@ -109,8 +111,10 @@ gen_xr_layer_json(
 
 set(GENERATED_OUTPUT)
 set(GENERATED_DEPENDS)
-run_xr_xml_generate(validation_layer_generator.py xr_generated_core_validation.hpp)
-run_xr_xml_generate(validation_layer_generator.py xr_generated_core_validation.cpp)
+run_xr_xml_generate(validation_layer_generator.py xr_generated_core_validation.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/automatic_source_generator.py)
+run_xr_xml_generate(validation_layer_generator.py xr_generated_core_validation.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/automatic_source_generator.py)
 
 add_library(XrApiLayer_core_validation SHARED
     core_validation.cpp

@@ -18,7 +18,7 @@ if(MSVC AND MSVC_VERSION GREATER 1890)
 else()
     include(CheckCXXSourceCompiles)
 
-    # This is just dummy code that is known to not compile if std::filesystem isn't working right
+    # This is just example code that is known to not compile if std::filesystem isn't working right
     set(_stdfs_test_source
         "int main() {
         (void)is_regular_file(\"/\");

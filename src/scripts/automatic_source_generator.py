@@ -30,6 +30,8 @@ from inspect import currentframe, getframeinfo
 
 from generator import (GeneratorOptions, OutputGenerator, noneStr,
                        regSortFeatures, write)
+from spec_tools.attributes import LengthEntry
+from spec_tools.util import getElemName
 
 
 def undecorate(name):
@@ -41,6 +43,7 @@ def undecorate(name):
 
 class AutomaticSourceGeneratorOptions(GeneratorOptions):
     """AutomaticSourceGeneratorOptions - subclass of GeneratorOptions."""
+
     def __init__(self,
                  conventions=None,
                  filename=None,
@@ -340,8 +343,8 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         self.api_result_types = []
         # A list of all structure types
         self.api_structure_types = []
-        # A list of all struct relation groups
-        self.struct_relation_groups = []
+        # A dictionary of all base types to struct relation groups
+        self._struct_relation_groups = {}
         # A list of all the API states
         self.api_states = []
         # Max lengths for various items
@@ -726,24 +729,6 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                 enum = noneStr(elem.text)
         return (typename, name, enum)
 
-    # Retrieve the value of the len tag
-    #   self            the AutomaticSourceOutputGenerator object
-    #   param           the XML parameter information to access
-    def getLen(self, param):
-        result = None
-        len_attrib = param.get('len')
-        if len_attrib and len_attrib != 'null-terminated':
-            # For string arrays, 'len' can look like 'count,null-terminated',
-            # indicating that we have a null terminated array of strings.  We
-            # strip the null-terminated from the 'len' field and only return
-            # the parameter specifying the string count
-            if 'null-terminated' in len_attrib:
-                result = len_attrib.split(',')[0]
-            else:
-                result = len_attrib
-            result = str(result).replace('::', '->')
-        return result
-
     # Override base class genType command so we can grab more information about the
     # necessary types.
     #   self            the AutomaticSourceOutputGenerator object
@@ -862,6 +847,23 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             else:
                 protect_str += 'defined(%s)' % protect_type
         return (protect_type, protect_str)
+
+    def getRelationGroupForBaseStruct(self, type_name):
+        """Get the relation group that has the given type_name as the base type.
+
+        Returns None if there is no relation group based on this type."""
+        return self._struct_relation_groups.get(type_name)
+
+    def updateArrayLengthsForMember(self, arraylengthsdict, member):
+        membername = getElemName(member)
+        # Get the array length for this parameter
+        lengths = LengthEntry.parse_len_from_param(member)
+        if lengths:
+            arraylengthsdict.update({length.other_param_name: membername
+                                     for length in lengths
+                                     if length.other_param_name})
+        return lengths
+
     # Struct/Union member generation.
     # This is a special case of the <type> tag where the contents are interpreted as a set of <member> tags instead of freeform C
     # type declarations. The <member> tags are just like <param> tags - they are a declaration of a struct or union member.
@@ -881,54 +883,36 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         if type_info.elem.get('extname'):
             ext_names = type_info.elem.get('extname')
             required_exts.extend(ext_names.split(','))
-        returned_only = False
-        if type_info.elem.get('returnedonly') is not None and type_info.elem.get('returnedonly') == "true":
-            returned_only = True
+        returned_only = (type_info.elem.get('returnedonly') == "true")
 
         # Search through the members to determine all the array lengths
-        arraylengths = []
+        arraylengths = dict()
         for member in members:
-            membername = member.find('name')
-            arraylength = member.get('len')
-            if arraylength is not None:
-                arraylengths = [self.LengthMember(array_name=membername.text,length_name=onelength)
-                    for onelength in arraylength.split(',')
-                    if 'null-terminated' not in onelength]
+            self.updateArrayLengthsForMember(arraylengths, member)
 
         # Generate member info
         members_info = []
         for member in members:
             # Get the member's type, enum and name
-            member_info = self.getTypeNameEnumTuple(member)
-            member_type = member_info[0]
-            member_name = member_info[1]
-            member_enum = member_info[2]
+            member_type, member_name, member_enum = self.getTypeNameEnumTuple(member)
 
             # Initialize some flags about this member
             static_array_sizes = []
             no_auto_validity = True if member.get(
                 'noautovalidity') else False
-            is_optional = True if (self.paramIsOptional(
-                member) or (member_name == 'next')) else False
+            is_optional = (self.paramIsOptional(member) or (member_name == 'next'))
             is_handle = self.isHandle(member_type)
             is_static_array = self.paramIsStaticArray(member)
             is_array = is_static_array
             array_count_var = ''
-            array_name_for_length = ''
+            # Determine if this is an array length member
+            array_name_for_length = arraylengths.get(member_name, '')
             pointer_count_var = ''
             is_null_terminated = False
             member_values = member.get('values')
 
-            # Determine if this is an array length member
-            for arraylength in arraylengths:
-                if member_name == arraylength.length_name:
-                    array_name_for_length = arraylength.array_name
-                    break
-            # Determine if this is a null-terminated array
-            if member is not None and member.get('len'):
-                is_null_terminated = 'null-terminated' in member.get('len')
             cdecl = self.makeCParamDecl(member, 0)
-            is_const = True if 'const' in cdecl else False
+            is_const = ('const' in cdecl)
             pointer_count = self.paramPointerCount(
                 cdecl, member_type, member_name)
             array_dimen = self.paramArrayDimension(
@@ -946,30 +930,20 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
 
             # If this member has a "len" tag, then it is a pointer to an array
             # with a restricted length.
-            if member.get('len'):
+
+            lengths = LengthEntry.parse_len_from_param(member)
+            if lengths is not None:
                 is_array = True
+                is_null_terminated = any(elt.null_terminated for elt in lengths)
+                assert( ('null-terminated' in member.get('len')) == is_null_terminated)
 
-                # Get the name of the variable to use for the count.  Many times,
-                # the length also includes a "null-terminated" descriptor which
-                # we want to strip here.
-                pointer_count_var = noneStr(member.get('len'))
-                null_term_loc = pointer_count_var.lower().rfind('null-terminated')
-                if null_term_loc == 0:
-                    null_term_len = len("null-terminated")
-                    pointer_count_var = pointer_count_var[null_term_len - 1:]
-                elif null_term_loc > 0:
-                    pointer_count_var = pointer_count_var[0:null_term_loc]
-
-                # If there's a comma, only grab up to the comma
-                comma_loc = pointer_count_var.rfind(',')
-                if comma_loc == 0:
-                    pointer_count_var = pointer_count_var[1:]
-                elif comma_loc > 0:
-                    pointer_count_var = pointer_count_var[0:comma_loc]
-
-                # If there's not much useful data, just set it to empty
-                if len(pointer_count_var) <= 1:
-                    pointer_count_var = ''
+                # Get the name of the (first) variable to use for the count.
+                for length in lengths:
+                    if not length.other_param_name:
+                        # don't care about constants or "null-terminated"
+                        continue
+                    pointer_count_var = length.other_param_name
+                    break
 
             # Append this member to the list of current members
             members_info.append(
@@ -998,21 +972,15 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         if type_info.elem.get('parentstruct'):
             generic_struct_name = type_info.elem.get('parentstruct')
             if self.isStruct(generic_struct_name):
-                found = False
-                relation_group = None
-
                 # First, determine if it is or is not already a relation group
-                for cur_relation_group in self.struct_relation_groups:
-                    if cur_relation_group.generic_struct_name == generic_struct_name:
-                        found = True
-                        relation_group = cur_relation_group
-                        break
+                relation_group = self.getRelationGroupForBaseStruct(generic_struct_name)
+                found = (relation_group is not None)
                 if not found:
                     # Create with an empty child list for now
                     child_list = []
                     relation_group = self.StructRelationGroup(generic_struct_name=generic_struct_name,
                                                               child_struct_names=child_list)
-                    self.struct_relation_groups.append(relation_group)
+                    self._struct_relation_groups[generic_struct_name] = relation_group
 
                 # Get the structure information for the group's generic structure
                 generic_struct = self.getStruct(generic_struct_name)
@@ -1094,15 +1062,9 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             is_destroy_disconnect = True
 
         # Search through the parameters to determine all the array lengths
-        arraylengths = []
+        arraylengthparams = dict()
         for param in params:
-            paramname = param.find('name')
-            arraylength = param.get('len')
-            if arraylength is not None:
-                for onelength in arraylength.split(','):
-                    if 'null-terminated' not in onelength:
-                        arraylengths.append(self.LengthMember(array_name=paramname.text,
-                                                              length_name=onelength))
+            self.updateArrayLengthsForMember(arraylengthparams, param)
 
         # See if this command adjusts any state
         begin_valid_state = cmd_info.elem.get('beginvalidstate')
@@ -1133,12 +1095,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             param_len = ''
             array_count_var = ''
             pointer_count_var = ''
-            array_name_for_length = ''
             is_null_terminated = False
-            if param is not None and param.get('len'):
-                is_null_terminated = 'null-terminated' in param.get(
-                    'len')
-
             # Get the basics of the parameter that we need (type and name) and
             # any info about pointers and arrays we can grab.
             paramInfo = self.getTypeNameTuple(param)
@@ -1150,15 +1107,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                 param_cdecl, param_type, param_name)
 
             # Determine if this is an array length parameter
-            for arraylength in arraylengths:
-                if param_name == arraylength.length_name:
-                    array_name_for_length = arraylength.array_name
-                    break
-
-            # Determine if this is a null-terminated array
-            if param is not None and param.get('len'):
-                is_null_terminated = 'null-terminated' in param.get(
-                    'len')
+            array_name_for_length = arraylengthparams.get(param_name, '')
 
             # If this is an instance, remember it since we have to treat instance cases
             # special
@@ -1166,11 +1115,18 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                 cmd_has_instance = True
 
             # Determine if this is a pointer array with a length variable
-            if self.getLen(param):
-                param_len = self.getLen(param)
-                if param_len:
-                    is_array = True
-                    pointer_count_var = param_len
+            lengths = LengthEntry.parse_len_from_param(param)
+            if lengths:
+                is_array = any(not elt.null_terminated for elt in lengths)
+                is_null_terminated = any(elt.null_terminated for elt in lengths)
+                # assert(is_null_terminated == new_is_null_terminated)
+                # Get the name of the (first) variable to use for the count.
+                length_params = tuple(length.other_param_name
+                                      for length in lengths
+                                      # don't care about constants or "null-terminated"
+                                      if length.other_param_name)
+                if length_params:
+                    pointer_count_var = ','.join(length_params).replace('::', '->')
 
             # If this is a handle, and it is a pointer, it really must also be an array unless it is a create command
             if self.isHandle(param_type) and pointer_count > 0 and not (
@@ -1480,7 +1436,6 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         array_dimen = past_type_string.count('[')
         return array_dimen
 
-
     # Determine if the provided name is really part of the API core
     #   self            the AutomaticSourceOutputGenerator object
     #   ext_name        the name of the "extension" to determine if it really is core
@@ -1781,7 +1736,6 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     def writeIndent(self, indent_cnt):
         return '    ' * indent_cnt
 
-    
     def iterateCoreThenExtensions(self, iterable):
         self.cur_extension_name = ''
         for isCore in [True, False]:

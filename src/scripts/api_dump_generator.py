@@ -825,11 +825,8 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             # that isn't a pointer
             if member_param_struct and pointer_count == 0:
                 # Check to see if this struct is the base of a relation group
-                for cur_rel_group in self.struct_relation_groups:
-                    if cur_rel_group.generic_struct_name == member_param_struct.name:
-                        relation_group = cur_rel_group
-                        is_relation_group = True
-                        break
+                relation_group = self.getRelationGroupForBaseStruct(member_param_struct.name)
+                is_relation_group = (relation_group is not None)
             # If this struct is the base of a relation group, check to see if this call really should go to any one of
             # it's children instead of itself.
             if is_relation_group:
@@ -926,14 +923,10 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             struct_union_check += self.writeIndent(indent)
             struct_union_check += 'try {\n'
             indent = indent + 1
-            is_relation_group = False
-            relation_group = None
+
             # Check to see if this struct is the base of a relation group
-            for cur_rel_group in self.struct_relation_groups:
-                if cur_rel_group.generic_struct_name == xr_struct.name:
-                    relation_group = cur_rel_group
-                    is_relation_group = True
-                    break
+            relation_group = self.getRelationGroupForBaseStruct(xr_struct.name)
+            is_relation_group = (relation_group is not None)
             # If this struct is the base of a relation group, check to see if this call really should go to any one of
             # it's children instead of itself.
             if is_relation_group:

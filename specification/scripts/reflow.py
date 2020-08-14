@@ -659,7 +659,7 @@ def reflowFile(filename, args):
     # Cleanup at end of file
     state.endPara(None)
 
-    # Sanity check on block nesting
+    # Check block nesting
     if len(state.blockStack) > 1:
         logWarn('file', filename,
                 'mismatched asciidoc block delimiters at EOF:',

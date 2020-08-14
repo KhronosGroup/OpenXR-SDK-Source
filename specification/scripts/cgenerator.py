@@ -304,9 +304,9 @@ class COutputGenerator(OutputGenerator):
                                  if data.elem.get('mayalias') == 'true')
 
             # Every type mentioned in some other type's parentstruct attribute.
-            parent_structs = (otherType.elem.get('parentstruct')
-                              for otherType in self.registry.typedict.values())
-            self.may_alias.update(set(x for x in parent_structs
+            polymorphic_bases = (otherType.elem.get('parentstruct')
+                                 for otherType in self.registry.typedict.values())
+            self.may_alias.update(set(x for x in polymorphic_bases
                                       if x is not None))
         return typeName in self.may_alias
 
