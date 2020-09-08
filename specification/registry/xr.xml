@@ -1161,7 +1161,7 @@ maintained in the master branch of the Khronos OpenXR GitHub project.
             <member><type>uint32_t</type> <name>maxHandMeshIndexCount</name></member>
             <member><type>uint32_t</type> <name>maxHandMeshVertexCount</name></member>
         </type>
-        <type category="struct" name="XrHandPoseTypeInfoMSFT" structextends="XrHandTrackerCreateInfoMSFT">
+        <type category="struct" name="XrHandPoseTypeInfoMSFT" structextends="XrHandTrackerCreateInfoEXT">
             <member values="XR_TYPE_HAND_POSE_TYPE_INFO_MSFT"><type>XrStructureType</type> <name>type</name></member>
             <member>const <type>void</type>* <name>next</name></member> <!-- Pointer to next structure -->
             <member><type>XrHandPoseTypeMSFT</type> <name>handPoseType</name></member>
