@@ -8,8 +8,8 @@ SPDX-License-Identifier: CC-BY-4.0
 
 ## Python v3.6+ required
 
-Certain source files are generated at build time from the `xr.xml` file, utilizing 
-python scripts. The scripts make use of the python `pathlib` module, which is 
+Certain source files are generated at build time from the `xr.xml` file, utilizing
+python scripts. The scripts make use of the python `pathlib` module, which is
 fully supported in python version 3.6 or later.
 
 You will also need the python `jinja2` package, available from your package
@@ -88,7 +88,7 @@ cmake -DCMAKE_BUILD_TYPE=Release ../..
 make
 ```
 
-## (Optional) Building the OpenXR Loader as a DLL  
+## (Optional) Building the OpenXR Loader as a DLL
 
 The OpenXR loader is built as a static library by default. To instead build as a dynamic link library, define
 the cmake option `DYNAMIC_LOADER=ON`.  e.g. for Win64, replace the cmake line shown above with:
@@ -103,15 +103,15 @@ cmake -DDYNAMIC_LOADER=ON -G "Visual Studio [Version Number] Win64" ../..
 
 An OpenXR _runtime_ must first be installed before running the hello_xr sample. The runtime is an
 implementation of the OpenXR API, typically tailed to a specific device and distributed by the
-device manufacturer. To allow experimentation with the API in the absence of a specific device runtime, 
-several organizations have made available prototype OpenXR runtimes, linked from the main OpenXR landing 
+device manufacturer. To allow experimentation with the API in the absence of a specific device runtime,
+several organizations have made available prototype OpenXR runtimes, linked from the main OpenXR landing
 page at https://www.khronos.org/openxr
 
 ## Configuring the OpenXR Loader
 ### XR\_RUNTIME\_JSON environment variable
 
 The OpenXR loader looks in system-specific locations for the JSON file `active_runtime.json`, which describes the
-default installed OpenXR runtime. To override the default selection, you may define an environment variable 
+default installed OpenXR runtime. To override the default selection, you may define an environment variable
 `XR_RUNTIME_JSON` to select a different runtime, or a runtime which has not been installed in the default
 location.
 

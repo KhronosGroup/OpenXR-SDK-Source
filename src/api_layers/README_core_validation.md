@@ -77,7 +77,7 @@ to stdout.  However, it supports two environmental variables:
 export XR_CORE_VALIDATION_EXPORT_TYPE=text
 export XR_CORE_VALIDATION_FILE_NAME=my_api_dump.txt
 ```
- 
+
 When the XR\_APILAYER\_LUNARG\_core\_validation layer is enabled, the
 output (whether to stdout or a file) should look like the following:
 

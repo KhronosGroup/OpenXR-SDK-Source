@@ -68,9 +68,9 @@ stages:
       - script: ls -la sdk-tarball || true
       - task: ExtractFiles@1
         inputs:
-          archiveFilePatterns: '$(Pipeline.Workspace)/*.tar.gz' 
+          archiveFilePatterns: '$(Pipeline.Workspace)/*.tar.gz'
           destinationFolder: $(Pipeline.Workspace)/pregen
-          cleanDestinationFolder: true 
+          cleanDestinationFolder: true
       - script: ls -la $(Pipeline.Workspace)/pregen
       - template: build_linux.yml
         parameters:
@@ -89,9 +89,9 @@ stages:
 
     - task: ExtractFiles@1
       inputs:
-        archiveFilePatterns: '$(Pipeline.Workspace)/*.tar.gz' 
+        archiveFilePatterns: '$(Pipeline.Workspace)/*.tar.gz'
         destinationFolder: $(Pipeline.Workspace)/pregen
-        cleanDestinationFolder: true 
+        cleanDestinationFolder: true
 
     - template: build_msvc.yml
       parameters:
