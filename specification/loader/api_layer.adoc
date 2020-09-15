@@ -498,7 +498,7 @@ only requirement is that the filename extension is ".json".
 		with each "version" of the API layer) must be set in the environment or else
         the implicit API layer is not loaded. This is for application environments
         (e.g. Steam) which want to enable an API layer(s) only for applications that
-        they launch, and allows for applications run outside of that 
+        they launch, and allows for applications run outside of that
         environment to not get that implicit API layer(s).
             | N/A
 | "disable_environment"
@@ -623,7 +623,7 @@ struct XrNegotiateLoaderInfo {
 
 You'll notice the structures are similar to other OpenXR structures.
 The "structType" field, in this case takes a new enum defined just for internal
-loader interfacing use. 
+loader interfacing use.
 
 The ename:XrLoaderInterfaceStructs enumeration is also defined in the
 `src/common/loader_interfaces.h` header and currently looks like:
@@ -699,7 +699,7 @@ variable of type slink:XrNegotiateLoaderInfo and initialize it in the following 
    `XR_LOADER_INFO_STRUCT_VERSION`
 3. Set the structure "structSize" to the current size of the
    `XrNegotiateLoaderInfo` structure
-4. Set "minInterfaceVersion" to the minimum 
+4. Set "minInterfaceVersion" to the minimum
    <<api-layer-interface-versions,loader/API layer interface version>> that the
    loader supports
 5. Set "maxInterfaceVersion" to the current version of the

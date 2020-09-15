@@ -282,7 +282,7 @@ detail below.
 The sname:XrNegotiateLoaderInfo struct is defined in the
 `src/common/loader_interfaces.h` header.  It is used to pass information
 about the loader to a runtime during the negotiation process.  See the
-definition of slink:XrNegotiateLoaderInfo under the 
+definition of slink:XrNegotiateLoaderInfo under the
 <<loader-api-layer-interface-negotiation,layer negotiation>> section for
 more information.
 

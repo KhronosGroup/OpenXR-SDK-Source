@@ -103,9 +103,9 @@ the <<api-layer-interaction, "API Layer Interaction">> section of this document.
 [[openxr-runtimes]]
 === OpenXR Runtimes ===
 
-OpenXR works with multiple runtimes each supporting one or more devices. Each 
-OpenXR runtime controls a complete VR/AR/MR system. Multiple runtimes may be 
-installed on a system, with one being _active_ at any given time. The loader 
+OpenXR works with multiple runtimes each supporting one or more devices. Each
+OpenXR runtime controls a complete VR/AR/MR system. Multiple runtimes may be
+installed on a system, with one being _active_ at any given time. The loader
 discovers the active runtime on the system and loads it.
 When an `XrInstance` is created during `xrCreateInstance`, the active runtime
 is associated with the instance.
@@ -119,7 +119,7 @@ the <<runtime-interaction, "Runtime Interaction">> section of this document.
 OpenXR uses an object model to control the scope of a particular action or
 operation.  The object to be acted on is usually the first parameter of an
 OpenXR call.  Under the covers, this object is a unique handle to either a
-class or structure.  The contents of each class/structure vary, but each 
+class or structure.  The contents of each class/structure vary, but each
 has a means of looking up a dispatch table which is
 used to direct the functional flow through any enabled API layers and into the
 appropriate runtime.
@@ -138,10 +138,10 @@ take an object.
 === OpenXR Call Chains ===
 
 When an (optional) API layer is loaded, the loader links together a _call chain_
-that includes each function selected by the layer. At `xrCreateInstance` time the 
+that includes each function selected by the layer. At `xrCreateInstance` time the
 loader initializes all enabled API layers and creates call
-chains for each OpenXR command, with each entry of the resulting dispatch table 
-pointing to the first element of that chain. The loader builds an individual 
+chains for each OpenXR command, with each entry of the resulting dispatch table
+pointing to the first element of that chain. The loader builds an individual
 dispatch table for the `XrInstance` that is created.
 
 When an application calls an OpenXR command, this typically will first hit a

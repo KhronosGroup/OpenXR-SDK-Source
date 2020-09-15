@@ -24,11 +24,11 @@ toc::[]
 
 This document contains the necessary information for understanding how
 to develop for, and interact with, the OpenXR loader.  Intended use of
-this document is as a detailed design document and a tool for learning 
+this document is as a detailed design document and a tool for learning
 general OpenXR loader behavior.
 
 In the event of any discrepancies between this document and
-the (https://www.khronos.org/registry/OpenXR[OpenXR specification]), that document is authoritative.  
+the (https://www.khronos.org/registry/OpenXR[OpenXR specification]), that document is authoritative.
 
 
 [[introduction-terminology]]

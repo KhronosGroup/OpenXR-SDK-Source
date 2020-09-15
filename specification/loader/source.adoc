@@ -78,7 +78,7 @@ generate the header yourself (preferred), or supply equivalent definitions:
 === Contributing to the Loader ===
 
 Khronos would be pleased if you decided to contribute to the loader
-source code.  
+source code.
 
 [[coding-standard]]
 === Coding Standard ===
