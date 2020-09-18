@@ -1,0 +1,1 @@
+cmake: fix openxr_loader target export when installing both Release and Debug config on Windows.
