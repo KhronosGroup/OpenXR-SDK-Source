@@ -40,7 +40,7 @@ if __name__ == "__main__":
         if not include_copied:
             # Move over one set of includes to the base
             move(artifact / 'include', outbase / 'include')
-            include_copied = True            
+            include_copied = True
 
         # lib files
         move(artifact / 'lib', base / 'lib')

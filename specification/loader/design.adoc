@@ -128,7 +128,7 @@ The OpenXR loader is responsible with interfacing with other libraries to
 complete its tasks.  Typically, there will be some interface negotiation
 between these other libraries and the loader (see
 <<loader-api-layer-interface-negotiation, Loader/Layer Interface Negotiation>>
-or 
+or
 <<loader-runtime-interface-negotiation, Loader/Runtime Interface Negotiation>>
 for more information).   The Interface classes are responsible with using
 the contents of a ManifestFile to setup the interface.  Each Interface
@@ -677,7 +677,7 @@ const char *LoaderPlatformLibraryOpenError(
     flink:LoaderPlatformLibraryOpen.
 
 The returned C-style character string contains any available platform-specific
-error code that may have occurred. 
+error code that may have occurred.
 
 
 .Closing A Platform-Specific Library File
@@ -719,7 +719,7 @@ If the function succeeds, the returned value will be a valid function
 pointer address.  If the function fails, it will return NULL.  A NULL return
 value could imply that the function simply isn't exported by the library,
 or that an error occurred during the platform call.  To determine what
-might have happened, the loader will call the 
+might have happened, the loader will call the
 fname:LoaderPlatformLibraryGetProcAddrError function:
 
 [[LoaderPlatformLibraryGetProcAddrError]]
@@ -733,7 +733,7 @@ const char *LoaderPlatformLibraryGetProcAddrError(
     flink:LoaderPlatformLibraryGetProcAddr call.
 
 The returned C-style character string contains any available platform-specific
-error code that may have occurred. 
+error code that may have occurred.
 
 
 [[environment-variable-usage]]

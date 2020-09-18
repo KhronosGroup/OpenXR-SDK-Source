@@ -1903,7 +1903,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                     struct_check += '}\n'
                     if child_struct.protect_value:
                         struct_check += '#endif // %s\n' % child_struct.protect_string
-                
+
                 struct_check += self.writeIndent(indent)
                 struct_check += 'InvalidStructureType(instance_info, command_name, objects_info, "%s",\n' % xr_struct.name
                 struct_check += self.writeIndent(indent)

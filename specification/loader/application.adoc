@@ -5,8 +5,8 @@
 [[application-interaction]]
 == Application Interaction ==
 
-An application requests a specific version of the OpenXR API when creating an 
-instance by writing to the "apiVersion" member of the `XrApplicationInfo` 
+An application requests a specific version of the OpenXR API when creating an
+instance by writing to the "apiVersion" member of the `XrApplicationInfo`
 structure which, in turn, is passed into the `XrInstanceCreateInfo` structure.
 If either the loader or the active runtime do not support the requested version,
 they may return an error and fail instance creation.  Refer to the
@@ -20,8 +20,8 @@ through the loader:
 
 1. Directly linking to the core OpenXR commands exposed and exported by the loader.
 2. Creating an application-managed dispatch table of OpenXR commands by querying
-the loader for function pointers via `xrGetInstanceProcAddr`. This method 
-supports core OpenXR commands, commands of (enabled) OpenXR extensions supported by the runtime, 
+the loader for function pointers via `xrGetInstanceProcAddr`. This method
+supports core OpenXR commands, commands of (enabled) OpenXR extensions supported by the runtime,
 and any commands exposed by enabled API layers.
 
 [[openxr-direct-exports]]
@@ -110,7 +110,7 @@ second call chain.
 [[openxr-indirect-linking]]
 ==== OpenXR Indirect Linking ====
 
-With loader indirect linking an application dynamically generates its own 
+With loader indirect linking an application dynamically generates its own
 dispatch table of OpenXR commands.  This method allows an application to
 fail gracefully if the loader cannot be found, or supports an older version
 of the API than the application. To do this, the application uses the
@@ -154,13 +154,13 @@ versions of OpenXR.
 === Application API Layer Usage ===
 
 Applications desiring OpenXR functionality beyond what the core API offers may
-use various API layers or extensions. An API layer cannot introduce new OpenXR 
+use various API layers or extensions. An API layer cannot introduce new OpenXR
 _core_ API commands, but may introduce new extension-specific OpenXR commands
 that can be queried through the extension interface.
 
 A common use of API layers is for validation which can be enabled by loading the
 API layer during application development, but not loading the API layer for
-application release. The overhead cost of validation is completely eliminated 
+application release. The overhead cost of validation is completely eliminated
 when the layer is not loaded.
 
 An application can discover which API layers are available to it with
@@ -169,7 +169,7 @@ that have been discovered by the loader.  The loader looks in various locations
 to find API layers on the system.  For more information see the
 <<api-layer-discovery,API Layer discovery>> section below.
 
-An API layer or layers may be enabled by an application by passing a list of 
+An API layer or layers may be enabled by an application by passing a list of
 names in the `enabledApiLayerNames` field of the `XrInstanceCreateInfo`
 at `xrCreateInstance` time.  During the `xrCreateInstance`, the loader
 constructs a <<openxr-call-chains, call chain>> that includes the application
@@ -193,12 +193,12 @@ ensure that you are using it properly.
 [[implicit-vs-explicit-api-layers]]
 ==== Implicit vs Explicit API Layers ====
 
-Explicit API layers are API layers which are enabled by an application (e.g. 
+Explicit API layers are API layers which are enabled by an application (e.g.
 with the `xrCreateInstance` function) or by setting a
-<<forced-loading-of-api-layers, loader environment variable>>. 
+<<forced-loading-of-api-layers, loader environment variable>>.
 
-Implicit API layers are API layers which are enabled simply because they exist. 
-An implicit layer found by the loader will be loaded by default, unless 
+Implicit API layers are API layers which are enabled simply because they exist.
+An implicit layer found by the loader will be loaded by default, unless
 specifically disabled.
 
 Some implicit API layer examples include:
@@ -209,7 +209,7 @@ Some implicit API layer examples include:
 * A tracing API layer designed to record API commands for future playback.
 
 Because implicit API layers are enabled automatically, they have an additional
-requirement over explicit API layers in that they must specify a 
+requirement over explicit API layers in that they must specify a
 "disable environment variable" in the API layer's
 <<api-layer-manifest-file-format, JSON manifest file>>, with key name `disable_environment`.
 This environment variable when present will disable the implicit API layer. Implicit
@@ -337,7 +337,7 @@ additional loader functionality.  Information about various extensions can be
 found in the <<openxr-spec,OpenXR API Specification>>, and `openxr.h` header
 file.
 
-To use extension functionality, the application should: call 
+To use extension functionality, the application should: call
 `xrEnumerateInstanceExtensionProperties` to determine if the extension is available.
 Then it must: enable the extension in `xrCreateInstance`.
 
