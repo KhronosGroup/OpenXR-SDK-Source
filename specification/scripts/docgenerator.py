@@ -291,7 +291,7 @@ class DocOutputGenerator(OutputGenerator):
             body += ';\n'
         body += '} ' + typeName + ';'
         return body
-    
+
     def genStruct(self, typeinfo, typeName, alias):
         """Generate struct."""
         OutputGenerator.genStruct(self, typeinfo, typeName, alias)
