@@ -1363,6 +1363,19 @@ class ValidityOutputGenerator(OutputGenerator):
         self.writeInclude('protos', name, validity, threadsafety,
                           commandpropertiesentry, successcodes, errorcodes)
 
+    def genStructInternals(self, typeinfo, typeName, validity, threadsafety):
+        """Internals of generating for a struct, so aliases can be handled."""
+
+        if typeinfo.elem.get('returnedonly') is None:
+            validity += self.makeStructOrCommandValidity(
+                typeinfo.elem, typeName, typeinfo.getMembers())
+            threadsafety = self.makeThreadSafetyBlock(typeinfo.elem, 'member')
+
+        else:
+            # Need to generate structure type and next pointer chain member validation
+            validity += self.makeOutputOnlyStructValidity(
+                typeinfo.elem, typeName, typeinfo.getMembers())
+
     def genStruct(self, typeinfo, typeName, alias):
         """Struct Generation."""
         OutputGenerator.genStruct(self, typeinfo, typeName, alias)
@@ -1376,15 +1389,14 @@ class ValidityOutputGenerator(OutputGenerator):
         # OpenXR-only: make sure extension is enabled
         validity.possiblyAddExtensionRequirement(self.currentExtension, 'using slink:')
 
-        if typeinfo.elem.get('returnedonly') is None:
-            validity += self.makeStructOrCommandValidity(
-                typeinfo.elem, typeName, typeinfo.getMembers())
-            threadsafety = self.makeThreadSafetyBlock(typeinfo.elem, 'member')
+        self.genStructInternals(typeinfo, typeName, validity, threadsafety)
 
-        else:
-            # Need to generate structure type and next pointer chain member validation
-            validity += self.makeOutputOnlyStructValidity(
-                typeinfo.elem, typeName, typeinfo.getMembers())
+        if alias and self.conventions.duplicate_aliased_structs:
+            validity.addValidityEntry(
+                '**Note:** slink:{new} is an alias for slink:{old}, so implicit valid usage for slink:{old} has been replicated below.'.format(
+                    old=alias, new=typeName))
+            alias_info = self.registry.typedict[alias]
+            self.genStructInternals(alias_info, alias, validity, threadsafety)
 
         self.writeInclude('structs', typeName, validity,
                           threadsafety, None, None, None)

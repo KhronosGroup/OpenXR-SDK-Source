@@ -276,3 +276,11 @@ class OpenXRConventions(ConventionsBase):
 
         Must implement."""
         raise NotImplementedError
+
+    @property
+    def duplicate_aliased_structs(self):
+        """
+        Should aliased structs have the original struct definition listed in the
+        generated docs snippet?
+        """
+        return True

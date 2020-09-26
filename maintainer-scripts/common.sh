@@ -117,7 +117,7 @@ getDocsFilenames() {
         extprocess/ \
         include/ \
         specification/ \
-        | grep -v "loader" \
+        | grep -v "specification/loader" \
         | grep -v "vuid[.]adoc" \
         | grep -v "CMakeLists.txt" \
         | grep -v "ubmitted" \

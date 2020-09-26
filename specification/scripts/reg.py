@@ -1181,6 +1181,8 @@ class Registry:
         self.gen.logMsg('diag', 'VALIDATING GROUP ATTRIBUTES')
         for cmd in self.reg.findall('commands/command'):
             proto = cmd.find('proto')
+            if proto is None:
+                continue
             # funcname = cmd.find('proto/name').text
             group = proto.get('group')
             if group is not None and group not in self.groupdict:

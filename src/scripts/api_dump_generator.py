@@ -989,32 +989,39 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         # Validate the rest of this struct
         struct_union_check += self.writeIndent(2)
         struct_union_check += 'switch (next_header->type) {\n'
-        for enum_tuple in self.api_enums:
-            if enum_tuple.name == 'XrStructureType':
-                if enum_tuple.protect_value:
-                    struct_union_check += '#if %s\n' % enum_tuple.protect_string
-                for cur_value in enum_tuple.values:
-                    struct_define_name = self.genXrStructureName(
-                        cur_value.name)
-                    if struct_define_name:
-                        cur_struct = self.getStruct(struct_define_name)
-                        if cur_struct.protect_value:
-                            struct_union_check += '#if %s\n' % cur_struct.protect_string
-                        struct_union_check += self.writeIndent(3)
-                        struct_union_check += 'case %s:\n' % cur_value.name
-                        struct_union_check += self.writeIndent(4)
-                        struct_union_check += 'if (!ApiDumpOutputXrStruct(gen_dispatch_table, reinterpret_cast<const %s*>(value), prefix, "const %s*", true, contents)) {\n' % (
-                            struct_define_name, struct_define_name)
-                        struct_union_check += self.writeIndent(5)
-                        struct_union_check += 'return false;\n'
-                        struct_union_check += self.writeIndent(4)
-                        struct_union_check += '}\n'
-                        struct_union_check += self.writeIndent(4)
-                        struct_union_check += 'return true;\n'
-                        if cur_struct.protect_value:
-                            struct_union_check += '#endif // %s\n' % cur_struct.protect_string
-                if enum_tuple.protect_value:
-                    struct_union_check += '#endif // %s\n' % enum_tuple.protect_string
+        enum_tuple = [x for x in self.api_enums if x.name == 'XrStructureType'][0]
+        for cur_value in enum_tuple.values:
+            struct_define_name = self.genXrStructureName(
+                cur_value.name)
+            if struct_define_name:
+                cur_struct = self.getStruct(struct_define_name)
+                avoid_dupe = None
+                if cur_value.alias:
+                    aliased = [x for x in enum_tuple.values if x.name == cur_value.alias]
+                    aliased_value = aliased[0]
+                    if aliased_value.protect_value and aliased_value.protect_value != cur_value.protect_value and aliased_value.protect_value != enum_tuple.protect_value:
+                        avoid_dupe = aliased_value.protect_string
+                        struct_union_check += '#if !(%s)\n' % avoid_dupe
+                    else:
+                        # This would unconditionally cause a duplicate case
+                        continue
+                if cur_struct.protect_value:
+                    struct_union_check += '#if %s\n' % cur_struct.protect_string
+                struct_union_check += self.writeIndent(3)
+                struct_union_check += 'case %s:\n' % cur_value.name
+                struct_union_check += self.writeIndent(4)
+                struct_union_check += 'if (!ApiDumpOutputXrStruct(gen_dispatch_table, reinterpret_cast<const %s*>(value), prefix, "const %s*", true, contents)) {\n' % (
+                    struct_define_name, struct_define_name)
+                struct_union_check += self.writeIndent(5)
+                struct_union_check += 'return false;\n'
+                struct_union_check += self.writeIndent(4)
+                struct_union_check += '}\n'
+                struct_union_check += self.writeIndent(4)
+                struct_union_check += 'return true;\n'
+                if cur_struct.protect_value:
+                    struct_union_check += '#endif // %s\n' % cur_struct.protect_string
+                if avoid_dupe:
+                    enum_value_validate += '#endif // !(%s)\n' % avoid_dupe
         struct_union_check += self.writeIndent(3)
         struct_union_check += 'default:\n'
         struct_union_check += self.writeIndent(4)
@@ -1052,6 +1059,10 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
 
                 # We fill in the GetInstanceProcAddr manually at the end
                 if cur_cmd.name == 'xrGetInstanceProcAddr':
+                    continue
+
+                # xrInitializeLoaderKHR is special
+                if cur_cmd.name == 'xrInitializeLoaderKHR':
                     continue
 
                 is_create = False

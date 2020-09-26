@@ -15,3 +15,13 @@ networkx
 
 # Optional: bundled copy may be in ../external/python
 jinja2
+
+# for spec diffs
+pypdf2
+pdf_diff
+
+# For testing
+pytest
+
+# for python doc builds
+pdoc3

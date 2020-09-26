@@ -973,13 +973,16 @@ struct DepthBuffer {
 };
 
 struct SwapchainImageContext {
-    // A packed array of XrSwapchainImageVulkanKHR's for xrEnumerateSwapchainImages
-    std::vector<XrSwapchainImageVulkanKHR> swapchainImages;
+    SwapchainImageContext(XrStructureType _swapchainImageType) : swapchainImageType(_swapchainImageType) {}
+
+    // A packed array of XrSwapchainImageVulkan2KHR's for xrEnumerateSwapchainImages
+    std::vector<XrSwapchainImageVulkan2KHR> swapchainImages;
     std::vector<RenderTarget> renderTarget;
     VkExtent2D size{};
     DepthBuffer depthBuffer{};
     RenderPass rp{};
     Pipeline pipe{};
+    XrStructureType swapchainImageType;
 
     SwapchainImageContext() = default;
 
@@ -1001,7 +1004,7 @@ struct SwapchainImageContext {
         renderTarget.resize(capacity);
         std::vector<XrSwapchainImageBaseHeader*> bases(capacity);
         for (uint32_t i = 0; i < capacity; ++i) {
-            swapchainImages[i] = {XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR};
+            swapchainImages[i] = {swapchainImageType};
             bases[i] = reinterpret_cast<XrSwapchainImageBaseHeader*>(&swapchainImages[i]);
         }
 
@@ -1009,7 +1012,7 @@ struct SwapchainImageContext {
     }
 
     uint32_t ImageIndex(const XrSwapchainImageBaseHeader* swapchainImageHeader) {
-        auto p = reinterpret_cast<const XrSwapchainImageVulkanKHR*>(swapchainImageHeader);
+        auto p = reinterpret_cast<const XrSwapchainImageVulkan2KHR*>(swapchainImageHeader);
         return (uint32_t)(p - &swapchainImages[0]);
     }
 
@@ -1257,9 +1260,11 @@ void Swapchain::Present(VkQueue queue, VkSemaphore drawComplete) {
 #endif  // defined(USE_MIRROR_WINDOW)
 
 struct VulkanGraphicsPlugin : public IGraphicsPlugin {
-    VulkanGraphicsPlugin(const std::shared_ptr<Options>& /*unused*/, std::shared_ptr<IPlatformPlugin> /*unused*/){};
+    VulkanGraphicsPlugin(const std::shared_ptr<Options>& /*unused*/, std::shared_ptr<IPlatformPlugin> /*unused*/) {
+        m_graphicsBinding.type = GetGraphicsBindingType();
+    };
 
-    std::vector<std::string> GetInstanceExtensions() const override { return {XR_KHR_VULKAN_ENABLE_EXTENSION_NAME}; }
+    std::vector<std::string> GetInstanceExtensions() const override { return {XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME}; }
 
     // Note: The output must not outlive the input - this modifies the input and returns a collection of views into that modified
     // input!
@@ -1302,54 +1307,46 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
     void InitializeDevice(XrInstance instance, XrSystemId systemId) override {
         // Create the Vulkan device for the adapter associated with the system.
         // Extension function must be loaded by name
-        PFN_xrGetVulkanGraphicsRequirementsKHR pfnGetVulkanGraphicsRequirementsKHR = nullptr;
-        CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrGetVulkanGraphicsRequirementsKHR",
-                                          reinterpret_cast<PFN_xrVoidFunction*>(&pfnGetVulkanGraphicsRequirementsKHR)));
+        XrGraphicsRequirementsVulkan2KHR graphicsRequirements{XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN2_KHR};
+        CHECK_XRCMD(GetVulkanGraphicsRequirements2KHR(instance, systemId, &graphicsRequirements));
 
-        PFN_xrGetVulkanInstanceExtensionsKHR pfnGetVulkanInstanceExtensionsKHR = nullptr;
-        CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrGetVulkanInstanceExtensionsKHR",
-                                          reinterpret_cast<PFN_xrVoidFunction*>(&pfnGetVulkanInstanceExtensionsKHR)));
+        VkResult err;
 
-        XrGraphicsRequirementsVulkanKHR graphicsRequirements{XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR};
-        CHECK_XRCMD(pfnGetVulkanGraphicsRequirementsKHR(instance, systemId, &graphicsRequirements));
-
-        uint32_t extensionNamesSize = 0;
-        CHECK_XRCMD(pfnGetVulkanInstanceExtensionsKHR(instance, systemId, 0, &extensionNamesSize, nullptr));
-        std::vector<char> extensionNames(extensionNamesSize);
-        CHECK_XRCMD(
-            pfnGetVulkanInstanceExtensionsKHR(instance, systemId, extensionNamesSize, &extensionNamesSize, &extensionNames[0]));
-
-        {
-            // Note: This cannot outlive the extensionNames above, since it's just a collection of views into that string!
-            std::vector<const char*> extensions = ParseExtensionString(&extensionNames[0]);
-            extensions.push_back("VK_EXT_debug_report");
-
-            std::vector<const char*> layers;
+        std::vector<const char*> layers;
 #if !defined(NDEBUG)
-            const char* const validationLayerName = GetValidationLayerName();
-            if (validationLayerName) {
-                layers.push_back(validationLayerName);
-            } else {
-                Log::Write(Log::Level::Warning, "No validation layers found in the system, skipping");
-            }
+        const char* const validationLayerName = GetValidationLayerName();
+        if (validationLayerName) {
+            layers.push_back(validationLayerName);
+        } else {
+            Log::Write(Log::Level::Warning, "No validation layers found in the system, skipping");
+        }
 #endif
 
-            VkApplicationInfo appInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
-            appInfo.pApplicationName = "hello_xr";
-            appInfo.applicationVersion = 1;
-            appInfo.pEngineName = "hello_xr";
-            appInfo.engineVersion = 1;
-            appInfo.apiVersion = VK_API_VERSION_1_0;
+        std::vector<const char*> extensions;
+        extensions.push_back("VK_EXT_debug_report");
 
-            VkInstanceCreateInfo instInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
-            instInfo.pApplicationInfo = &appInfo;
-            instInfo.enabledLayerCount = (uint32_t)layers.size();
-            instInfo.ppEnabledLayerNames = layers.empty() ? nullptr : layers.data();
-            instInfo.enabledExtensionCount = (uint32_t)extensions.size();
-            instInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data();
+        VkApplicationInfo appInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
+        appInfo.pApplicationName = "hello_xr";
+        appInfo.applicationVersion = 1;
+        appInfo.pEngineName = "hello_xr";
+        appInfo.engineVersion = 1;
+        appInfo.apiVersion = VK_API_VERSION_1_0;
 
-            CHECK_VKCMD(vkCreateInstance(&instInfo, nullptr, &m_vkInstance));
-        }
+        VkInstanceCreateInfo instInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
+        instInfo.pApplicationInfo = &appInfo;
+        instInfo.enabledLayerCount = (uint32_t)layers.size();
+        instInfo.ppEnabledLayerNames = layers.empty() ? nullptr : layers.data();
+        instInfo.enabledExtensionCount = (uint32_t)extensions.size();
+        instInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data();
+
+        XrVulkanInstanceCreateInfoKHR createInfo{XR_TYPE_VULKAN_INSTANCE_CREATE_INFO_KHR};
+        createInfo.systemId = systemId;
+        createInfo.pfnGetInstanceProcAddr = &vkGetInstanceProcAddr;
+        createInfo.vulkanCreateInfo = &instInfo;
+        createInfo.vulkanAllocator = nullptr;
+        CHECK_XRCMD(CreateVulkanInstanceKHR(instance, &createInfo, &m_vkInstance, &err));
+        CHECK_VKCMD(err);
+
         vkCreateDebugReportCallbackEXT =
             (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(m_vkInstance, "vkCreateDebugReportCallbackEXT");
         vkDestroyDebugReportCallbackEXT =
@@ -1364,11 +1361,10 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         debugInfo.pUserData = this;
         CHECK_VKCMD(vkCreateDebugReportCallbackEXT(m_vkInstance, &debugInfo, nullptr, &m_vkDebugReporter));
 
-        PFN_xrGetVulkanGraphicsDeviceKHR pfnGetVulkanGraphicsDeviceKHR = nullptr;
-        CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrGetVulkanGraphicsDeviceKHR",
-                                          reinterpret_cast<PFN_xrVoidFunction*>(&pfnGetVulkanGraphicsDeviceKHR)));
-
-        CHECK_XRCMD(pfnGetVulkanGraphicsDeviceKHR(instance, systemId, m_vkInstance, &m_vkPhysicalDevice));
+        XrVulkanGraphicsDeviceGetInfoKHR deviceGetInfo{XR_TYPE_VULKAN_GRAPHICS_DEVICE_GET_INFO_KHR};
+        deviceGetInfo.systemId = systemId;
+        deviceGetInfo.vulkanInstance = m_vkInstance;
+        CHECK_XRCMD(GetVulkanGraphicsDevice2KHR(instance, &deviceGetInfo, &m_vkPhysicalDevice));
 
         VkDeviceQueueCreateInfo queueInfo{VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO};
         float queuePriorities = 0;
@@ -1388,21 +1384,10 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
             }
         }
 
-        PFN_xrGetVulkanDeviceExtensionsKHR pfnGetVulkanDeviceExtensionsKHR = nullptr;
-        CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrGetVulkanDeviceExtensionsKHR",
-                                          reinterpret_cast<PFN_xrVoidFunction*>(&pfnGetVulkanDeviceExtensionsKHR)));
-
-        uint32_t deviceExtensionNamesSize = 0;
-        CHECK_XRCMD(pfnGetVulkanDeviceExtensionsKHR(instance, systemId, 0, &deviceExtensionNamesSize, nullptr));
-        std::vector<char> deviceExtensionNames(deviceExtensionNamesSize);
-        CHECK_XRCMD(pfnGetVulkanDeviceExtensionsKHR(instance, systemId, deviceExtensionNamesSize, &deviceExtensionNamesSize,
-                                                    &deviceExtensionNames[0]));
-        std::vector<const char*> deviceExtensions = ParseExtensionString(&deviceExtensionNames[0]);
+        std::vector<const char*> deviceExtensions;
 
         VkPhysicalDeviceFeatures features{};
         // features.samplerAnisotropy = VK_TRUE;
-        // Setting this quiets down a validation error triggered by the Oculus runtime
-        // features.shaderStorageImageMultisample = VK_TRUE;
 
 #if defined(USE_MIRROR_WINDOW)
         deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
@@ -1417,7 +1402,14 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         deviceInfo.ppEnabledExtensionNames = deviceExtensions.empty() ? nullptr : deviceExtensions.data();
         deviceInfo.pEnabledFeatures = &features;
 
-        CHECK_VKCMD(vkCreateDevice(m_vkPhysicalDevice, &deviceInfo, nullptr, &m_vkDevice));
+        XrVulkanDeviceCreateInfoKHR deviceCreateInfo{XR_TYPE_VULKAN_DEVICE_CREATE_INFO_KHR};
+        deviceCreateInfo.systemId = systemId;
+        deviceCreateInfo.pfnGetInstanceProcAddr = &vkGetInstanceProcAddr;
+        deviceCreateInfo.vulkanCreateInfo = &deviceInfo;
+        deviceCreateInfo.vulkanPhysicalDevice = m_vkPhysicalDevice;
+        deviceCreateInfo.vulkanAllocator = nullptr;
+        CHECK_XRCMD(CreateVulkanDeviceKHR(instance, &deviceCreateInfo, &m_vkDevice, &err));
+        CHECK_VKCMD(err);
 
         vkGetDeviceQueue(m_vkDevice, queueInfo.queueFamilyIndex, 0, &m_vkQueue);
 
@@ -1524,7 +1516,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         // Allocate and initialize the buffer of image structs (must be sequential in memory for xrEnumerateSwapchainImages).
         // Return back an array of pointers to each swapchain image struct so the consumer doesn't need to know the type/size.
         // Keep the buffer alive by adding it into the list of buffers.
-        m_swapchainImageContexts.emplace_back();
+        m_swapchainImageContexts.emplace_back(GetSwapchainImageType());
         SwapchainImageContext& swapchainImageContext = m_swapchainImageContexts.back();
 
         std::vector<XrSwapchainImageBaseHeader*> bases = swapchainImageContext.Create(
@@ -1619,8 +1611,8 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return VK_SAMPLE_COUNT_1_BIT; }
 
-   private:
-    XrGraphicsBindingVulkanKHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR};
+   protected:
+    XrGraphicsBindingVulkan2KHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
     std::list<SwapchainImageContext> m_swapchainImageContexts;
     std::map<const XrSwapchainImageBaseHeader*, SwapchainImageContext*> m_swapchainImageContextMap;
 
@@ -1741,6 +1733,159 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         return static_cast<VulkanGraphicsPlugin*>(pUserData)->debugReport(flags, objectType, object, location, messageCode,
                                                                           pLayerPrefix, pMessage);
     }
+
+    virtual XrStructureType GetGraphicsBindingType() const { return XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR; }
+    virtual XrStructureType GetSwapchainImageType() const { return XR_TYPE_SWAPCHAIN_IMAGE_VULKAN2_KHR; }
+
+    virtual XrResult CreateVulkanInstanceKHR(XrInstance instance, const XrVulkanInstanceCreateInfoKHR* createInfo,
+                                             VkInstance* vulkanInstance, VkResult* vulkanResult) {
+        PFN_xrCreateVulkanInstanceKHR pfnCreateVulkanInstanceKHR = nullptr;
+        CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrCreateVulkanInstanceKHR",
+                                          reinterpret_cast<PFN_xrVoidFunction*>(&pfnCreateVulkanInstanceKHR)));
+
+        return pfnCreateVulkanInstanceKHR(instance, createInfo, vulkanInstance, vulkanResult);
+    }
+
+    virtual XrResult CreateVulkanDeviceKHR(XrInstance instance, const XrVulkanDeviceCreateInfoKHR* createInfo,
+                                           VkDevice* vulkanDevice, VkResult* vulkanResult) {
+        PFN_xrCreateVulkanDeviceKHR pfnCreateVulkanDeviceKHR = nullptr;
+        CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrCreateVulkanDeviceKHR",
+                                          reinterpret_cast<PFN_xrVoidFunction*>(&pfnCreateVulkanDeviceKHR)));
+
+        return pfnCreateVulkanDeviceKHR(instance, createInfo, vulkanDevice, vulkanResult);
+    }
+
+    virtual XrResult GetVulkanGraphicsDevice2KHR(XrInstance instance, const XrVulkanGraphicsDeviceGetInfoKHR* getInfo,
+                                                 VkPhysicalDevice* vulkanPhysicalDevice) {
+        PFN_xrGetVulkanGraphicsDevice2KHR pfnGetVulkanGraphicsDevice2KHR = nullptr;
+        CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrGetVulkanGraphicsDevice2KHR",
+                                          reinterpret_cast<PFN_xrVoidFunction*>(&pfnGetVulkanGraphicsDevice2KHR)));
+
+        return pfnGetVulkanGraphicsDevice2KHR(instance, getInfo, vulkanPhysicalDevice);
+    }
+
+    virtual XrResult GetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId,
+                                                       XrGraphicsRequirementsVulkan2KHR* graphicsRequirements) {
+        PFN_xrGetVulkanGraphicsRequirements2KHR pfnGetVulkanGraphicsRequirements2KHR = nullptr;
+        CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrGetVulkanGraphicsRequirements2KHR",
+                                          reinterpret_cast<PFN_xrVoidFunction*>(&pfnGetVulkanGraphicsRequirements2KHR)));
+
+        return pfnGetVulkanGraphicsRequirements2KHR(instance, systemId, graphicsRequirements);
+    }
+};
+
+// A compatibility class that implements the KHR_vulkan_enable2 functionality on top of KHR_vulkan_enable
+struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
+    VulkanGraphicsPluginLegacy(const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin)
+        : VulkanGraphicsPlugin(options, platformPlugin) {
+        m_graphicsBinding.type = GetGraphicsBindingType();
+    };
+
+    std::vector<std::string> GetInstanceExtensions() const override { return {XR_KHR_VULKAN_ENABLE_EXTENSION_NAME}; }
+    virtual XrStructureType GetGraphicsBindingType() const override { return XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR; }
+    virtual XrStructureType GetSwapchainImageType() const override { return XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR; }
+
+    virtual XrResult CreateVulkanInstanceKHR(XrInstance instance, const XrVulkanInstanceCreateInfoKHR* createInfo,
+                                             VkInstance* vulkanInstance, VkResult* vulkanResult) override {
+        PFN_xrGetVulkanInstanceExtensionsKHR pfnGetVulkanInstanceExtensionsKHR = nullptr;
+        CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrGetVulkanInstanceExtensionsKHR",
+                                          reinterpret_cast<PFN_xrVoidFunction*>(&pfnGetVulkanInstanceExtensionsKHR)));
+
+        uint32_t extensionNamesSize = 0;
+        CHECK_XRCMD(pfnGetVulkanInstanceExtensionsKHR(instance, createInfo->systemId, 0, &extensionNamesSize, nullptr));
+
+        std::vector<char> extensionNames(extensionNamesSize);
+        CHECK_XRCMD(pfnGetVulkanInstanceExtensionsKHR(instance, createInfo->systemId, extensionNamesSize, &extensionNamesSize,
+                                                      &extensionNames[0]));
+        {
+            // Note: This cannot outlive the extensionNames above, since it's just a collection of views into that string!
+            std::vector<const char*> extensions = ParseExtensionString(&extensionNames[0]);
+
+            // Merge the runtime's request with the applications requests
+            for (uint32_t i = 0; i < createInfo->vulkanCreateInfo->enabledExtensionCount; ++i) {
+                extensions.push_back(createInfo->vulkanCreateInfo->ppEnabledExtensionNames[i]);
+            }
+
+            VkInstanceCreateInfo instInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
+            memcpy(&instInfo, createInfo->vulkanCreateInfo, sizeof(instInfo));
+            instInfo.enabledExtensionCount = (uint32_t)extensions.size();
+            instInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data();
+
+            auto pfnCreateInstance = (PFN_vkCreateInstance)createInfo->pfnGetInstanceProcAddr(nullptr, "vkCreateInstance");
+            *vulkanResult = pfnCreateInstance(&instInfo, createInfo->vulkanAllocator, vulkanInstance);
+        }
+
+        return XR_SUCCESS;
+    }
+
+    virtual XrResult CreateVulkanDeviceKHR(XrInstance instance, const XrVulkanDeviceCreateInfoKHR* createInfo,
+                                           VkDevice* vulkanDevice, VkResult* vulkanResult) override {
+        PFN_xrGetVulkanDeviceExtensionsKHR pfnGetVulkanDeviceExtensionsKHR = nullptr;
+        CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrGetVulkanDeviceExtensionsKHR",
+                                          reinterpret_cast<PFN_xrVoidFunction*>(&pfnGetVulkanDeviceExtensionsKHR)));
+
+        uint32_t deviceExtensionNamesSize = 0;
+        CHECK_XRCMD(pfnGetVulkanDeviceExtensionsKHR(instance, createInfo->systemId, 0, &deviceExtensionNamesSize, nullptr));
+        std::vector<char> deviceExtensionNames(deviceExtensionNamesSize);
+        CHECK_XRCMD(pfnGetVulkanDeviceExtensionsKHR(instance, createInfo->systemId, deviceExtensionNamesSize,
+                                                    &deviceExtensionNamesSize, &deviceExtensionNames[0]));
+        {
+            // Note: This cannot outlive the extensionNames above, since it's just a collection of views into that string!
+            std::vector<const char*> extensions = ParseExtensionString(&deviceExtensionNames[0]);
+
+            // Merge the runtime's request with the applications requests
+            for (uint32_t i = 0; i < createInfo->vulkanCreateInfo->enabledExtensionCount; ++i) {
+                extensions.push_back(createInfo->vulkanCreateInfo->ppEnabledExtensionNames[i]);
+            }
+
+            VkPhysicalDeviceFeatures features{};
+            memcpy(&features, createInfo->vulkanCreateInfo->pEnabledFeatures, sizeof(features));
+
+            // Setting this quiets down a validation error triggered by the Oculus runtime
+            features.shaderStorageImageMultisample = VK_TRUE;
+
+            VkDeviceCreateInfo deviceInfo{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
+            memcpy(&deviceInfo, createInfo->vulkanCreateInfo, sizeof(deviceInfo));
+            deviceInfo.pEnabledFeatures = &features;
+            deviceInfo.enabledExtensionCount = (uint32_t)extensions.size();
+            deviceInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data();
+
+            auto pfnCreateDevice = (PFN_vkCreateDevice)createInfo->pfnGetInstanceProcAddr(m_vkInstance, "vkCreateDevice");
+            *vulkanResult = pfnCreateDevice(m_vkPhysicalDevice, &deviceInfo, createInfo->vulkanAllocator, vulkanDevice);
+        }
+
+        return XR_SUCCESS;
+    }
+
+    virtual XrResult GetVulkanGraphicsDevice2KHR(XrInstance instance, const XrVulkanGraphicsDeviceGetInfoKHR* getInfo,
+                                                 VkPhysicalDevice* vulkanPhysicalDevice) override {
+        PFN_xrGetVulkanGraphicsDeviceKHR pfnGetVulkanGraphicsDeviceKHR = nullptr;
+        CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrGetVulkanGraphicsDeviceKHR",
+                                          reinterpret_cast<PFN_xrVoidFunction*>(&pfnGetVulkanGraphicsDeviceKHR)));
+
+        if (getInfo->next != nullptr) {
+            return XR_ERROR_FEATURE_UNSUPPORTED;
+        }
+
+        CHECK_XRCMD(pfnGetVulkanGraphicsDeviceKHR(instance, getInfo->systemId, getInfo->vulkanInstance, vulkanPhysicalDevice));
+
+        return XR_SUCCESS;
+    }
+
+    virtual XrResult GetVulkanGraphicsRequirements2KHR(XrInstance instance, XrSystemId systemId,
+                                                       XrGraphicsRequirementsVulkan2KHR* graphicsRequirements) override {
+        PFN_xrGetVulkanGraphicsRequirementsKHR pfnGetVulkanGraphicsRequirementsKHR = nullptr;
+        CHECK_XRCMD(xrGetInstanceProcAddr(instance, "xrGetVulkanGraphicsRequirementsKHR",
+                                          reinterpret_cast<PFN_xrVoidFunction*>(&pfnGetVulkanGraphicsRequirementsKHR)));
+
+        XrGraphicsRequirementsVulkanKHR legacyRequirements{XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR};
+        CHECK_XRCMD(pfnGetVulkanGraphicsRequirementsKHR(instance, systemId, &legacyRequirements));
+
+        graphicsRequirements->maxApiVersionSupported = legacyRequirements.maxApiVersionSupported;
+        graphicsRequirements->minApiVersionSupported = legacyRequirements.minApiVersionSupported;
+
+        return XR_SUCCESS;
+    }
 };
 
 }  // namespace
@@ -1748,6 +1893,11 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Vulkan(const std::shared_ptr<Options>& options,
                                                              std::shared_ptr<IPlatformPlugin> platformPlugin) {
     return std::make_shared<VulkanGraphicsPlugin>(options, std::move(platformPlugin));
+}
+
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_VulkanLegacy(const std::shared_ptr<Options>& options,
+                                                                   std::shared_ptr<IPlatformPlugin> platformPlugin) {
+    return std::make_shared<VulkanGraphicsPluginLegacy>(options, std::move(platformPlugin));
 }
 
 #endif  // XR_USE_GRAPHICS_API_VULKAN

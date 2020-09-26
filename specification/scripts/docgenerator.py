@@ -276,22 +276,37 @@ class DocOutputGenerator(OutputGenerator):
                 else:
                     self.logMsg('diag', '# NOT writing empty include file for type', name)
 
+    def genStructBody(self, typeinfo, typeName):
+        """
+        Returns the body generated for a struct.
+
+        Factored out to allow aliased types to also generate the original type.
+        """
+        typeElem = typeinfo.elem
+        body = 'typedef ' + typeElem.get('category') + ' ' + typeName + ' {\n'
+
+        targetLen = self.getMaxCParamTypeLength(typeinfo)
+        for member in typeElem.findall('.//member'):
+            body += self.makeCParamDecl(member, targetLen + 4)
+            body += ';\n'
+        body += '} ' + typeName + ';'
+        return body
+    
     def genStruct(self, typeinfo, typeName, alias):
         """Generate struct."""
         OutputGenerator.genStruct(self, typeinfo, typeName, alias)
 
-        typeElem = typeinfo.elem
-
         if alias:
-            body = 'typedef ' + alias + ' ' + typeName + ';\n'
+            body = ''
+            if self.conventions.duplicate_aliased_structs:
+                # TODO maybe move this outside the conditional? This would be a visual change.
+                body += '// {} is an alias for {}\n'.format(typeName, alias)
+                alias_info = self.registry.typedict[alias]
+                body += self.genStructBody(alias_info, alias)
+                body += '\n\n'
+            body += 'typedef ' + alias + ' ' + typeName + ';\n'
         else:
-            body = 'typedef ' + typeElem.get('category') + ' ' + typeName + ' {\n'
-
-            targetLen = self.getMaxCParamTypeLength(typeinfo)
-            for member in typeElem.findall('.//member'):
-                body += self.makeCParamDecl(member, targetLen + 4)
-                body += ';\n'
-            body += '} ' + typeName + ';'
+            body = self.genStructBody(typeinfo, typeName)
 
         self.writeInclude('structs', typeName, body)
 
@@ -311,7 +326,7 @@ class DocOutputGenerator(OutputGenerator):
                 'name': name,
             }
 
-            (numVal, strVal) = self.enumToValue(elem, True)
+            (numVal, _) = self.enumToValue(elem, True)
             data['value'] = numVal
 
             extname = elem.get('extname')

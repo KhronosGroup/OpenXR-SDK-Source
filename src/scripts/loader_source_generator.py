@@ -42,6 +42,9 @@ MANUAL_LOADER_FUNCS = set((
     'xrSessionBeginDebugUtilsLabelRegionEXT',
     'xrSessionEndDebugUtilsLabelRegionEXT',
     'xrSessionInsertDebugUtilsLabelEXT',
+
+    # For XR_KHR_loader_init:
+    'xrInitializeLoaderKHR',
 ))
 
 # This is a list of extensions that the loader implements.  This means that

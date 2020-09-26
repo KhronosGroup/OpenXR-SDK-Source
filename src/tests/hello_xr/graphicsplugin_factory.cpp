@@ -20,6 +20,9 @@ std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_OpenGL(const std::shared_p
                                                              std::shared_ptr<IPlatformPlugin> platformPlugin);
 #endif
 #ifdef XR_USE_GRAPHICS_API_VULKAN
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_VulkanLegacy(const std::shared_ptr<Options>& options,
+                                                                   std::shared_ptr<IPlatformPlugin> platformPlugin);
+
 std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Vulkan(const std::shared_ptr<Options>& options,
                                                              std::shared_ptr<IPlatformPlugin> platformPlugin);
 #endif
@@ -51,6 +54,10 @@ std::map<std::string, GraphicsPluginFactory, IgnoreCaseStringLess> graphicsPlugi
 #endif
 #ifdef XR_USE_GRAPHICS_API_VULKAN
     {"Vulkan",
+     [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {
+         return CreateGraphicsPlugin_VulkanLegacy(options, std::move(platformPlugin));
+     }},
+    {"Vulkan2",
      [](const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin) {
          return CreateGraphicsPlugin_Vulkan(options, std::move(platformPlugin));
      }},

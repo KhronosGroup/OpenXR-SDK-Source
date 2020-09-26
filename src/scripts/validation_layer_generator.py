@@ -310,12 +310,23 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             enum_value_validate += 'switch (value) {\n'
             indent += 1
             for cur_value in enum_tuple.values:
+                avoid_dupe = None
+                if cur_value.alias:
+                    aliased = [x for x in enum_tuple.values if x.name == cur_value.alias]
+                    aliased_value = aliased[0]
+                    if aliased_value.protect_value and aliased_value.protect_value != cur_value.protect_value and aliased_value.protect_value != enum_tuple.protect_value:
+                        avoid_dupe = aliased_value.protect_string
+                        enum_value_validate += '#if !(%s)\n' % avoid_dupe
+                    else:
+                        # This would unconditionally cause a duplicate case
+                        continue
+                value_protect = None
                 if cur_value.protect_value and enum_tuple.protect_value != cur_value.protect_value:
-                    enum_value_validate += '#if %s\n' % cur_value.protect_string
+                    value_protect = cur_value.protect_string
+                    enum_value_validate += '#if %s\n' % value_protect
+
                 enum_value_validate += self.writeIndent(indent)
                 enum_value_validate += 'case %s:\n' % cur_value.name
-                if cur_value.protect_value and enum_tuple.protect_value != cur_value.protect_value:
-                    enum_value_validate += '#endif // %s\n' % cur_value.protect_string
                 if cur_value.ext_name and cur_value.ext_name != checked_extension and not self.isCoreExtensionName(cur_value.ext_name):
                     indent += 1
                     enum_value_validate += self.writeIndent(indent)
@@ -361,6 +372,10 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 else:
                     enum_value_validate += self.writeIndent(indent + 1)
                     enum_value_validate += 'return true;\n'
+                if value_protect:
+                    enum_value_validate += '#endif // %s\n' % value_protect
+                if avoid_dupe:
+                    enum_value_validate += '#endif // !(%s)\n' % avoid_dupe
             indent -= 1
             enum_value_validate += self.writeIndent(indent)
             enum_value_validate += 'default:\n'
@@ -467,34 +482,43 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         # Validate the rest of this struct
         next_chain_info += self.writeIndent(1)
         next_chain_info += 'switch (next_header->type) {\n'
-        for enum_tuple in self.api_enums:
-            if enum_tuple.name == 'XrStructureType':
-                if enum_tuple.protect_value:
-                    next_chain_info += '#if %s\n' % enum_tuple.protect_string
-                for cur_value in enum_tuple.values:
-                    struct_define_name = self.genXrStructureName(
-                        cur_value.name)
-                    if struct_define_name:
-                        struct_tuple = self.getStruct(struct_define_name)
-                        if struct_tuple.protect_value:
-                            next_chain_info += '#if %s\n' % struct_tuple.protect_string
-                        next_chain_info += self.writeIndent(2)
-                        next_chain_info += 'case %s:\n' % cur_value.name
-                        next_chain_info += self.writeIndent(3)
-                        next_chain_info += 'if (XR_SUCCESS != ValidateXrStruct(instance_info, command_name, objects_info, false,\n'
-                        next_chain_info += self.writeIndent(3)
-                        next_chain_info += '                                   reinterpret_cast<const %s*>(next))) {\n' % struct_define_name
-                        next_chain_info += self.writeIndent(4)
-                        next_chain_info += 'return NEXT_CHAIN_RESULT_ERROR;\n'
-                        next_chain_info += self.writeIndent(3)
-                        next_chain_info += '}\n'
-                        next_chain_info += self.writeIndent(3)
-                        next_chain_info += 'break;\n'
-                        if struct_tuple.protect_value:
-                            next_chain_info += '#endif // %s\n' % struct_tuple.protect_string
-                if enum_tuple.protect_value:
-                    next_chain_info += '#endif //%s\n' % enum_tuple.protect_string
-                break
+        enum_tuple = [x for x in self.api_enums if x.name == 'XrStructureType'][0]
+        for cur_value in enum_tuple.values:
+            struct_define_name = self.genXrStructureName(
+                cur_value.name)
+            if not struct_define_name:
+                continue
+
+            struct_tuple = self.getStruct(struct_define_name)
+            avoid_dupe = None
+            if cur_value.alias:
+                aliased_value = [x for x in enum_tuple.values if x.name == cur_value.alias][0]
+                if aliased_value.protect_value and aliased_value.protect_value != cur_value.protect_value and aliased_value.protect_value != struct_tuple.protect_value:
+                    avoid_dupe = aliased_value.protect_string
+                    next_chain_info += '#if !(%s)\n' % avoid_dupe
+                else:
+                    # This would unconditionally cause a duplicate case
+                    continue
+            if struct_tuple.protect_value:
+                next_chain_info += '#if %s\n' % struct_tuple.protect_string
+                
+            next_chain_info += self.writeIndent(2)
+            next_chain_info += 'case %s:\n' % cur_value.name
+            next_chain_info += self.writeIndent(3)
+            next_chain_info += 'if (XR_SUCCESS != ValidateXrStruct(instance_info, command_name, objects_info, false,\n'
+            next_chain_info += self.writeIndent(3)
+            next_chain_info += '                                   reinterpret_cast<const %s*>(next))) {\n' % struct_define_name
+            next_chain_info += self.writeIndent(4)
+            next_chain_info += 'return NEXT_CHAIN_RESULT_ERROR;\n'
+            next_chain_info += self.writeIndent(3)
+            next_chain_info += '}\n'
+            next_chain_info += self.writeIndent(3)
+            next_chain_info += 'break;\n'
+            if struct_tuple.protect_value:
+                next_chain_info += '#endif // %s\n' % struct_tuple.protect_string
+            if avoid_dupe:
+                next_chain_info += '#endif // !(%s)\n' % avoid_dupe
+
         next_chain_info += self.writeIndent(2)
         next_chain_info += 'default:\n'
         next_chain_info += self.writeIndent(3)

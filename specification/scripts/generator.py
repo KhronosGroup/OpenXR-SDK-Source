@@ -248,8 +248,14 @@ class OutputGenerator:
         self.diagFile = diagFile
         # Internal state
         self.featureName = None
+        """The current feature name being generated."""
+
         self.genOpts = None
+        """The GeneratorOptions subclass instance."""
+
         self.registry = None
+        """The specification registry object."""
+
         # Used for extension enum value generation
         self.extBase = 1000000000
         self.extBlockSize = 1000

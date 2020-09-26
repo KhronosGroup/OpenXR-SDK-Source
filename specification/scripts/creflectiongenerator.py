@@ -96,6 +96,8 @@ class CReflectionOutputGenerator(OutputGenerator):
         OutputGenerator.genType(self, typeinfo, name, alias)
         typeElem = typeinfo.elem
 
+        if alias:
+            return
         category = typeElem.get('category')
         if category in ('struct', 'union'):
             # If the type is a struct type, generate it using the
@@ -165,6 +167,9 @@ class CReflectionOutputGenerator(OutputGenerator):
             enumTuples = []
             for elem in groupElem.findall('enum'):
                 (numVal, strVal) = self.enumToValue(elem, True)
+                if numVal is None:
+                    # then this is an alias or something
+                    continue
                 enumTuples.append((getElemName(elem), strVal))
 
             self.enums.append(CEnum(groupName, expandPrefix, expandSuffix, enumTuples))

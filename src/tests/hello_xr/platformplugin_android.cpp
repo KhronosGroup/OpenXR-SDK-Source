@@ -15,6 +15,18 @@ struct AndroidPlatformPlugin : public IPlatformPlugin {
         instanceCreateInfoAndroid = {XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
         instanceCreateInfoAndroid.applicationVM = data->applicationVM;
         instanceCreateInfoAndroid.applicationActivity = data->applicationActivity;
+
+        PFN_xrInitializeLoaderKHR xrInitializeLoaderKHR;
+        xrGetInstanceProcAddr(XR_NULL_HANDLE, "xrInitializeLoaderKHR", (PFN_xrVoidFunction*)&xrInitializeLoaderKHR);
+        if (xrInitializeLoaderKHR != NULL) {
+            XrLoaderInitInfoAndroidKHR loaderInitializeInfoAndroid;
+            memset(&loaderInitializeInfoAndroid, 0, sizeof(loaderInitializeInfoAndroid));
+            loaderInitializeInfoAndroid.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
+            loaderInitializeInfoAndroid.next = nullptr;
+            loaderInitializeInfoAndroid.applicationVM = data->applicationVM;
+            loaderInitializeInfoAndroid.applicationContext = data->applicationActivity;
+            xrInitializeLoaderKHR((XrLoaderInitInfoBaseHeaderKHR*)&loaderInitializeInfoAndroid);
+        }
     }
 
     std::vector<std::string> GetInstanceExtensions() const override { return {XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME}; }

@@ -148,7 +148,9 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                                            # Empty string or string to use after #if to protect this value
                                            'protect_string',
                                            # Name of extension this command is associated with (or None)
-                                           'ext_name'])
+                                           'ext_name',
+                                           # None or the name of the type this is an alias for
+                                           'alias'])
         # Enum type data
         self.EnumData = namedtuple('EnumData',
                                    [  # The name of the enum
@@ -286,7 +288,9 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                                        # None or a comma-delimited list indicating #define values to use around this type
                                        'protect_value',
                                        # Empty string or string to use after #if to protect this type
-                                       'protect_string'])
+                                       'protect_string',
+                                       # None or the name of the type this is an alias for
+                                       'alias'])
         # Structure relation group data
         self.StructRelationGroup = namedtuple('StructRelationGroup',
                                               [  # The name of the generic structure defining the common elements
@@ -347,6 +351,8 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         self._struct_relation_groups = {}
         # A list of all the API states
         self.api_states = []
+        # A mapping of all aliases
+        self.aliases = {}
         # Max lengths for various items
         self.max_extension_name_length = 32
         self.max_structure_type_length = 32
@@ -354,7 +360,11 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         self.structs_with_no_type = ['XrBaseInStructure', 'XrBaseOutStructure']
         # The following commands should only exist in the loader, and only as a trampoline
         # (i.e. Don't add it to the dispatch table)
-        self.no_trampoline_or_terminator = ['xrEnumerateApiLayerProperties', 'xrEnumerateInstanceExtensionProperties']
+        self.no_trampoline_or_terminator = [
+            'xrEnumerateApiLayerProperties',
+            'xrEnumerateInstanceExtensionProperties',
+            'xrInitializeLoaderKHR'
+        ]
 
     # This is the basic warning about the source file being generated.  It can be
     # overridden by a derived class.
@@ -574,6 +584,10 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     def genCmd(self, cmd_info, name, alias):
         OutputGenerator.genCmd(self, cmd_info, name, alias)
 
+        # We don't treat cmd aliases any differently
+        if alias:
+            self.aliases[name] = alias
+
         self.num_commands = self.num_commands + 1
         self.addCommandToDispatchList(
             self.currentExtension, self.type, name, cmd_info)
@@ -585,6 +599,9 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   name            the name of the group
     def genGroup(self, group_info, name, alias):
         OutputGenerator.genGroup(self, group_info, name, alias)
+        if alias:
+            self.aliases[name] = alias
+
         group_type = group_info.elem.get('type')
         group_supported = group_info.elem.get('supported') != 'disabled'
         is_extension = not self.isCoreExtensionName(self.currentExtension)
@@ -605,15 +622,15 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                         self.printCodeGenErrorMessage('Enum value %s in XML (for extension %s) does'
                                                       ' not end with the expected vendor tag \"%s\"' % (
                                                           elem_name, self.currentExtension, self.current_vendor_tag))
-                    extension_to_check = self.currentExtension
-                    if elem.get('extname') is not None:
-                        extension_to_check = elem.get('extname')
+                    extension_to_check = elem.get('extname', self.currentExtension)
+                    alias = elem.get('alias')
                     values.append(
                         self.EnumBitValue(
                             name=elem_name,
                             protect_value=enum_protect_value,
                             protect_string=enum_protect_string,
-                            ext_name=extension_to_check))
+                            ext_name=extension_to_check,
+                            alias=alias))
             if group_type == 'enum':
                 if is_extension and not name.endswith(self.current_vendor_tag):
                     self.printCodeGenErrorMessage('Enum %s in XML (for extension %s) does not end'
@@ -654,11 +671,13 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                             self.printCodeGenErrorMessage('XrResult %s length %d in XML is greater'
                                                           ' than allowable space of %d when null-terminator is added' % (
                                                               item_name, len(item_name), self.max_result_length))
+                        alias = elem.get('alias')
                         self.api_result_types.append(
                             self.TypeData(
                                 name=item_name,
                                 protect_value=protect_value,
-                                protect_string=protect_string))
+                                protect_string=protect_string,
+                                alias=alias))
         # Separately save a list of all the API object types we care about
         elif name == 'XrObjectType':
             for elem in group_info.elem.findall('enum'):
@@ -667,6 +686,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                         self.featureExtraProtect, elem.get('protect'))
                     item_name = elem.get('name')
                     if item_name is not None:
+                        alias = elem.get('alias')
                         if is_extension and not item_name.endswith(self.current_vendor_tag):
                             self.printCodeGenErrorMessage('ObjectType %s in XML (for extension %s) does'
                                                           ' not end with the expected vendor tag \"%s\"' % (
@@ -675,14 +695,15 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                             self.TypeData(
                                 name=item_name,
                                 protect_value=protect_value,
-                                protect_string=protect_string))
+                                protect_string=protect_string,
+                                alias=alias))
         # Separately save a list of all the API structure types we care about
         elif name == 'XrStructureType':
             for elem in group_info.elem.findall('enum'):
+                item_name = elem.get('name')
                 if elem.get('supported') != 'disabled':
                     (protect_value, protect_string) = self.genProtectInfo(
                         self.featureExtraProtect, elem.get('protect'))
-                    item_name = elem.get('name')
                     if item_name is not None:
                         if len(item_name) + 1 > self.max_structure_type_length:
                             self.printCodeGenErrorMessage('StructureType %s length %d in XML (for'
@@ -694,11 +715,15 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                                                           ' %s) does not end with the expected'
                                                           ' vendor tag \"%s\"' % (
                                                               item_name, self.currentExtension, self.current_vendor_tag))
+                        alias = elem.get('alias')
+                        if alias:
+                            self.aliases[item_name] = alias
                         self.api_structure_types.append(
                             self.TypeData(
                                 name=item_name,
                                 protect_value=protect_value,
-                                protect_string=protect_string))
+                                protect_string=protect_string,
+                                alias=alias))
 
     # Retrieve the type and name for a parameter
     #   self            the AutomaticSourceOutputGenerator object
@@ -736,6 +761,12 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   type_name       the name of this type
     def genType(self, type_info, type_name, alias):
         OutputGenerator.genType(self, type_info, type_name, alias)
+
+        # Skip aliases
+        if alias:
+            self.aliases[type_name] = alias
+            return
+
         type_elem = type_info.elem
         type_category = type_elem.get('category')
         protect_value, protect_string = self.genProtectInfo(
@@ -808,6 +839,9 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   name            the name of this enum
     def genEnum(self, enum_info, name, alias):
         OutputGenerator.genEnum(self, enum_info, name, alias)
+        if alias:
+            self.aliases[name] = alias
+
         if name == 'XR_MAX_EXTENSION_NAME_SIZE':
             self.max_extension_name_length = int(enum_info.elem.get('value'))
         if name == 'XR_MAX_STRUCTURE_NAME_SIZE':
@@ -935,7 +969,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             if lengths is not None:
                 is_array = True
                 is_null_terminated = any(elt.null_terminated for elt in lengths)
-                assert( ('null-terminated' in member.get('len')) == is_null_terminated)
+                assert(('null-terminated' in member.get('len')) == is_null_terminated)
 
                 # Get the name of the (first) variable to use for the count.
                 for length in lengths:
@@ -1708,6 +1742,8 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             return ''
         if type_name == 'XR_TYPE_UNKNOWN':
             return ''
+        # Alias substitution, if possible.
+        type_name = self.aliases.get(type_name, type_name)
         cur_string = type_name[7:].lower()
         while '_' in cur_string:
             value_index = cur_string.index('_')
