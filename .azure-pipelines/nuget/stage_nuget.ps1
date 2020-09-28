@@ -1,9 +1,11 @@
+# Copyright (c) 2019-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
 param(
-    [Parameter(Mandatory=$true, HelpMessage="Path to unzipped openxr_loader_windows OpenXR-SDK release asset")]
+    [Parameter(Mandatory = $true, HelpMessage = "Path to unzipped openxr_loader_windows OpenXR-SDK release asset")]
     $SDKRelease,
-    [Parameter(Mandatory=$true, HelpMessage="Path to specification Makefile. Needed to extract the version")]
+    [Parameter(Mandatory = $true, HelpMessage = "Path to specification Makefile. Needed to extract the version")]
     $SpecMakefile,
-    [Parameter(Mandatory=$true, HelpMessage="Path create staged nuget directory layout")]
+    [Parameter(Mandatory = $true, HelpMessage = "Path create staged nuget directory layout")]
     $NugetStaging)
 
 $ErrorActionPreference = "Stop"
@@ -30,7 +32,7 @@ $SDKVersion = $VersionMatch.Matches[0].Groups[1]
 #
 # Start off using the NuGet template.
 #
-echo "Copy-Item $NugetTemplate $NugetStaging -Recurse"
+Write-Output "Copy-Item $NugetTemplate $NugetStaging -Recurse"
 Copy-Item $NugetTemplate $NugetStaging -Recurse
 
 #
@@ -51,8 +53,7 @@ Copy-Item (Join-Path $SDKRelease "include") (Join-Path $NugetStaging "include") 
 #
 # Copy in the binaries from the SDK release.
 #
-function CopyLoader($Platform)
-{
+function CopyLoader($Platform) {
     $PlatformSDKPath = Join-Path $SDKRelease "$Platform"
     $NuGetPlatformPath = Join-Path $NugetStaging "native/$Platform/release"
 
