@@ -61,11 +61,16 @@ stages:
       vmImage: 'ubuntu-16.04'
     container: khronosgroup/docker-images:openxr-sdk
     steps:
-      - download: current
-        artifact: sdk-tarball
-        displayName: Download archived OpenXR-SDK
+      - task: DownloadPipelineArtifact@2
+        inputs:
+          source: current
+          artifact: sdk-tarball
+          displayName: Download archived OpenXR-SDK
+          path: '$(Pipeline.Workspace)'
       - script: ls -la
-      - script: ls -la sdk-tarball || true
+        displayName: List files in directory
+      - script: ls -la sdk-tarball* || true
+        displayName: List tarball-related files
       - task: ExtractFiles@1
         inputs:
           archiveFilePatterns: '$(Pipeline.Workspace)/*.tar.gz'
@@ -83,9 +88,12 @@ stages:
     pool:
       vmImage: 'windows-latest'
     steps:
-    - download: current
-      artifact: sdk-tarball
-      displayName: Download archived OpenXR-SDK
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        source: current
+        artifact: sdk-tarball
+        displayName: Download archived OpenXR-SDK
+        path: '$(Pipeline.Workspace)'
 
     - task: ExtractFiles@1
       inputs:
