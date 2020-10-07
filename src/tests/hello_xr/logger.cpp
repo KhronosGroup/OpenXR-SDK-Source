@@ -28,7 +28,7 @@ void Write(Level severity, const std::string& msg) {
     const auto now = std::chrono::system_clock::now();
     const time_t now_time = std::chrono::system_clock::to_time_t(now);
     tm now_tm;
-#ifdef _MSC_VER
+#ifdef _WIN32
     localtime_s(&now_tm, &now_time);
 #else
     localtime_r(&now_time, &now_tm);
