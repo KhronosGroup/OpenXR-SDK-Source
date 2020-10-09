@@ -1,136 +1,138 @@
+# Copyright (c) 2019-2020 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
+
 parameters:
-  sourceDir: '$(System.DefaultWorkingDirectory)'
+  sourceDir: "$(System.DefaultWorkingDirectory)"
 
 jobs:
-# Build the loader, API layers, and samples on Linux
-- job: linux_build
-  displayName: 'Linux'
-  strategy:
-    matrix:
-      xlib:
-        buildType: RelWithDebInfo
-        presentationBackend: xlib
-      xcb:
-        buildType: RelWithDebInfo
-        presentationBackend: xcb
-      wayland:
-        buildType: RelWithDebInfo
-        presentationBackend: wayland
-  pool:
-    vmImage: 'ubuntu-latest'
-  container: khronosgroup/docker-images:openxr-sdk
-  steps:
-    # First build as debug
-    - template: build_linux.yml
-      parameters:
-        sourceDir: ${{parameters.sourceDir}}
-        buildType: Debug
-        cmakeArgs: '-DPRESENTATION_BACKEND=$(PresentationBackend)'
+  # Build the loader, API layers, and samples on Linux
+  - job: linux_build
+    displayName: "Linux"
+    strategy:
+      matrix:
+        xlib:
+          buildType: RelWithDebInfo
+          presentationBackend: xlib
+        xcb:
+          buildType: RelWithDebInfo
+          presentationBackend: xcb
+        wayland:
+          buildType: RelWithDebInfo
+          presentationBackend: wayland
+    pool:
+      vmImage: "ubuntu-latest"
+    container: khronosgroup/docker-images:openxr-sdk
+    steps:
+      # First build as debug
+      - template: build_linux.yml
+        parameters:
+          sourceDir: ${{parameters.sourceDir}}
+          buildType: Debug
+          cmakeArgs: "-DPRESENTATION_BACKEND=$(PresentationBackend)"
 
-    # Then build release
-    - template: build_linux.yml
-      parameters:
-        sourceDir: ${{parameters.sourceDir}}
-        buildType: RelWithDebInfo
-        cmakeArgs: '-DPRESENTATION_BACKEND=$(PresentationBackend)'
+      # Then build release
+      - template: build_linux.yml
+        parameters:
+          sourceDir: ${{parameters.sourceDir}}
+          buildType: RelWithDebInfo
+          cmakeArgs: "-DPRESENTATION_BACKEND=$(PresentationBackend)"
 
-# This job computes the product of the config dimensions
-- job: generator
-  steps:
-    - task: PythonScript@0
-      name: winmatrix
-      inputs:
-        scriptPath: $(System.DefaultWorkingDirectory)/.azure-pipelines/generate_windows_matrix_build.py
-        # argument sets the variable name defined by python script
-        arguments: winbuild
+  # This job computes the product of the config dimensions
+  - job: generator
+    steps:
+      - task: PythonScript@0
+        name: winmatrix
+        inputs:
+          scriptPath: $(System.DefaultWorkingDirectory)/.azure-pipelines/generate_windows_matrix_build.py
+          # argument sets the variable name defined by python script
+          arguments: winbuild
 
-# Build the loader, API layers, and samples on Windows
-- job: windows_build
-  dependsOn: generator
-  displayName: 'Windows MSVC'
-  variables:
-    VULKAN_SDK: "$(System.DefaultWorkingDirectory)\\vulkan_sdk\\$(VULKAN_SDK_VERSION)"
-  pool:
-    vmImage: 'windows-latest'
-  # Use the json emitted by the generator job to set up this matrix
-  strategy:
-    matrix: $[ dependencies.generator.outputs['winmatrix.winbuild'] ]
-  steps:
-    - template: build_msvc.yml
-      parameters:
-        sourceDir: ${{parameters.sourceDir}}
-        buildType: $(buildType)
-        generator: "$(generator)"
-        cmakeArgs: $(cmakeArgs) -DBUILD_ALL_EXTENSIONS=ON
-        useVulkan: 'true'
+  # Build the loader, API layers, and samples on Windows
+  - job: windows_build
+    dependsOn: generator
+    displayName: "Windows MSVC"
+    variables:
+      VULKAN_SDK: "$(System.DefaultWorkingDirectory)\\vulkan_sdk\\$(VULKAN_SDK_VERSION)"
+    pool:
+      vmImage: "windows-latest"
+    # Use the json emitted by the generator job to set up this matrix
+    strategy:
+      matrix: $[ dependencies.generator.outputs['winmatrix.winbuild'] ]
+    steps:
+      - template: build_msvc.yml
+        parameters:
+          sourceDir: ${{parameters.sourceDir}}
+          buildType: $(buildType)
+          generator: "$(generator)"
+          cmakeArgs: $(cmakeArgs) -DBUILD_ALL_EXTENSIONS=ON
+          useVulkan: "true"
 
-    - task: PublishPipelineArtifact@1
-      displayName: Publish loader
-      condition: and(succeeded(), eq(variables.buildType, 'RelWithDebInfo'))
-      inputs:
-        path: ${{parameters.sourceDir}}/install
-        artifact: $(artifactName)
+      - task: PublishPipelineArtifact@1
+        displayName: Publish loader
+        condition: and(succeeded(), eq(variables.buildType, 'RelWithDebInfo'))
+        inputs:
+          path: ${{parameters.sourceDir}}/install
+          artifact: $(artifactName)
 
-# Build the loader, API layers, and samples on Windows with MinGW
-# - job: mingw_build
-#   displayName: 'Windows MinGW'
-#   variables:
-#     VULKAN_SDK: "$(System.DefaultWorkingDirectory)\\vulkan_sdk\\$(VULKAN_SDK_VERSION)"
-#   pool:
-#     vmImage: 'windows-latest'
-#   steps:
-#     - template: build_mingw.yml
-#       parameters:
-#         sourceDir: ${{parameters.sourceDir}}
-#         buildType: RelWithDebInfo
-#         cmakeArgs: -DBUILD_ALL_EXTENSIONS=ON
-#         useVulkan: 'true'
+  # Build the loader, API layers, and samples on Windows with MinGW
+  # - job: mingw_build
+  #   displayName: 'Windows MinGW'
+  #   variables:
+  #     VULKAN_SDK: "$(System.DefaultWorkingDirectory)\\vulkan_sdk\\$(VULKAN_SDK_VERSION)"
+  #   pool:
+  #     vmImage: 'windows-latest'
+  #   steps:
+  #     - template: build_mingw.yml
+  #       parameters:
+  #         sourceDir: ${{parameters.sourceDir}}
+  #         buildType: RelWithDebInfo
+  #         cmakeArgs: -DBUILD_ALL_EXTENSIONS=ON
+  #         useVulkan: 'true'
 
-- job: combine_artifacts
-  dependsOn: windows_build
-  displayName: "Organize artifacts"
-  pool:
-    vmImage: 'windows-latest'
-  steps:
-    - download: current
-      patterns: "**/*.dll"
-      displayName: Download dynamic libraries
-    - download: current
-      patterns: "**/*.lib"
-      displayName: Download link import libraries
-    - download: current
-      patterns: "**/*.h"
-      displayName: Download headers
+  - job: combine_artifacts
+    dependsOn: windows_build
+    displayName: "Organize artifacts"
+    pool:
+      vmImage: "windows-latest"
+    steps:
+      - download: current
+        patterns: "**/*.dll"
+        displayName: Download dynamic libraries
+      - download: current
+        patterns: "**/*.lib"
+        displayName: Download link import libraries
+      - download: current
+        patterns: "**/*.h"
+        displayName: Download headers
 
-    - task: PythonScript@0
-      displayName: Move artifact contents
-      inputs:
-        scriptPath: $(System.DefaultWorkingDirectory)/.azure-pipelines/organize_windows_artifacts.py
-        arguments: $(Pipeline.Workspace) $(System.DefaultWorkingDirectory)/openxr_loader
-    - task: PublishPipelineArtifact@1
-      displayName: Publish combined artifact
-      condition: succeeded()
-      inputs:
-        path: $(System.DefaultWorkingDirectory)/openxr_loader
-        artifact: openxr_loader_windows
+      - task: PythonScript@0
+        displayName: Move artifact contents
+        inputs:
+          scriptPath: $(System.DefaultWorkingDirectory)/.azure-pipelines/organize_windows_artifacts.py
+          arguments: $(Pipeline.Workspace) $(System.DefaultWorkingDirectory)/openxr_loader
+      - task: PublishPipelineArtifact@1
+        displayName: Publish combined artifact
+        condition: succeeded()
+        inputs:
+          path: $(System.DefaultWorkingDirectory)/openxr_loader
+          artifact: openxr_loader_windows
 
-    - task: PowerShell@2
-      displayName: Stage loader and headers for NuGet
-      inputs:
-        filePath: $(System.DefaultWorkingDirectory)/.azure-pipelines/nuget/stage_nuget.ps1
-        arguments:
-          $(System.DefaultWorkingDirectory)/openxr_loader `
-          $(Build.SourcesDirectory)/specification/Makefile `
-          $(System.DefaultWorkingDirectory)/openxr_loader_staging
-    - task: NuGetCommand@2
-      displayName: Package for NuGet
-      inputs:
-        command: pack
-        packagesToPack: $(System.DefaultWorkingDirectory)/openxr_loader_staging/OpenXR.Loader.nuspec
-        packDestination: $(System.DefaultWorkingDirectory)/nuget
-    - task: PublishPipelineArtifact@1
-      displayName: Publish NuGet Package
-      condition: succeeded()
-      inputs:
-        path: $(System.DefaultWorkingDirectory)/nuget
-        artifact: NuGet
+      - task: PowerShell@2
+        displayName: Stage loader and headers for NuGet
+        inputs:
+          filePath: $(System.DefaultWorkingDirectory)/.azure-pipelines/nuget/stage_nuget.ps1
+          arguments: $(System.DefaultWorkingDirectory)/openxr_loader `
+            $(Build.SourcesDirectory)/specification/Makefile `
+            $(System.DefaultWorkingDirectory)/openxr_loader_staging
+      - task: NuGetCommand@2
+        displayName: Package for NuGet
+        inputs:
+          command: pack
+          packagesToPack: $(System.DefaultWorkingDirectory)/openxr_loader_staging/OpenXR.Loader.nuspec
+          packDestination: $(System.DefaultWorkingDirectory)/nuget
+      - task: PublishPipelineArtifact@1
+        displayName: Publish NuGet Package
+        condition: succeeded()
+        inputs:
+          path: $(System.DefaultWorkingDirectory)/nuget
+          artifact: NuGet
