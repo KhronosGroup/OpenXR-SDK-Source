@@ -37,7 +37,7 @@ std::unique_ptr<LoaderLogRecorder> MakeStdOutLoaderLogRecorder(void* user_data, 
 std::unique_ptr<LoaderLogRecorder> MakeDebugUtilsLoaderLogRecorder(const XrDebugUtilsMessengerCreateInfoEXT* create_info,
                                                                    XrDebugUtilsMessengerEXT debug_messenger);
 
-#if _WIN32
+#ifdef _WIN32
 //! Win32 debugger output
 std::unique_ptr<LoaderLogRecorder> MakeDebuggerLoaderLogRecorder(void* user_data);
 #endif
