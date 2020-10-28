@@ -317,7 +317,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
 
         // Map every swapchainImage base pointer to this context
         for (auto& base : bases) {
-            m_swapchainImageContextMap.emplace(std::make_pair(base, &swapchainImageContext));
+            m_swapchainImageContextMap[base] = &swapchainImageContext;
         }
 
         return bases;
