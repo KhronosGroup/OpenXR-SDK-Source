@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # Copyright (c) 2019 The Khronos Group Inc.
+# SPDX-License-Identifier: Apache-2.0
 
 from itertools import product
 
