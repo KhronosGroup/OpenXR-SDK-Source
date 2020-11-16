@@ -4,6 +4,7 @@
 
 from itertools import product
 from pathlib import Path
+import shutil
 import sys
 
 from shared import PLATFORMS, TRUE_FALSE, VS_VERSION, make_win_artifact_name
@@ -23,28 +24,25 @@ if __name__ == "__main__":
     workspace = Path(sys.argv[1])
     outbase = Path(sys.argv[2])
 
-
-    include_copied = False
+    common_copied = False
 
     for platform, uwp in product(PLATFORMS, TRUE_FALSE):
         # ARM/ARM64 is only built for the UWP platform.
         if not uwp and (platform.lower() == 'arm' or platform.lower() == 'arm64'):
             continue
 
-        base = outbase / '{}{}'.format(platform,
-                                              '_uwp' if uwp else '')
-        base.mkdir(parents=True, exist_ok=True)
+        platform_dirname = '{}{}'.format(platform,
+                                         '_uwp' if uwp else '')
+
         name = make_win_artifact_name(platform, uwp)
 
         artifact = workspace / name
 
-        if not include_copied:
-            # Move over one set of includes to the base
-            move(artifact / 'include', outbase / 'include')
-            include_copied = True
+        if not common_copied:
+            # Start by copying the full tree over.
+            shutil.copytree(artifact, outbase, dirs_exist_ok=True)
+            common_copied = True
+            continue
 
         # lib files
-        move(artifact / 'lib', base / 'lib')
-
-        # dll files
-        move(artifact / 'bin', base / 'bin')
+        shutil.copytree(artifact / platform_dirname, outbase / platform_dirname, dirs_exist_ok=True)

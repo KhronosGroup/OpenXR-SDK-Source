@@ -64,7 +64,7 @@ jobs:
           sourceDir: ${{parameters.sourceDir}}
           buildType: $(buildType)
           generator: "$(generator)"
-          cmakeArgs: $(cmakeArgs) -DBUILD_ALL_EXTENSIONS=ON
+          cmakeArgs: $(cmakeArgs) -DBUILD_ALL_EXTENSIONS=ON -DINSTALL_TO_ARCHITECTURE_PREFIXES=ON
           useVulkan: "true"
 
       - task: PublishPipelineArtifact@1
@@ -104,7 +104,16 @@ jobs:
       - download: current
         patterns: "**/*.h"
         displayName: Download headers
-
+      - download: current
+        patterns: "**/*.cmake"
+        displayName: Download CMake scripts
+      - download: current
+        patterns: "**/*.exe"
+        displayName: Download executables scripts
+      # Use the specified version of Python from the tool cache
+      - task: UsePythonVersion@0
+        inputs:
+          versionSpec: '3.9' 
       - task: PythonScript@0
         displayName: Move artifact contents
         inputs:
