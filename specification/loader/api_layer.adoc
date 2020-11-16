@@ -415,12 +415,8 @@ only requirement is that the filename extension is ".json".
                "extension_version": "1"
            }
        ],
-       "enable_environment": {
-           "ENABLE_XR_API_LAYER_TEST_1": ""
-       }
-       "disable_environment": {
-           "DISABLE_XR_API_LAYER_TEST_1": ""
-       }
+       "enable_environment": "ENABLE_XR_API_LAYER_TEST_1",
+       "disable_environment": "DISABLE_XR_API_LAYER_TEST_1"
    }
 }
 ----
