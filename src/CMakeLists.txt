@@ -29,10 +29,38 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 include(GNUInstallDirs)
 include(StdFilesystemFlags)
 
+string(TOUPPER "${CMAKE_GENERATOR_PLATFORM}" CMAKE_GENERATOR_PLATFORM_UPPER)
+
+# Artifact organization
+if(WIN32)
+    option(INSTALL_TO_ARCHITECTURE_PREFIXES "Install platform-specific files to architecture-specific directories." OFF)
+    if(INSTALL_TO_ARCHITECTURE_PREFIXES)
+        unset(_UWP_SUFFIX)
+        if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore")
+            set(_UWP_SUFFIX _uwp)
+        endif()
+        if(CMAKE_GENERATOR_PLATFORM_UPPER MATCHES "ARM.*")
+            if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                set(_PLATFORM ARM64)
+            else()
+                set(_PLATFORM ARM)
+            endif()
+        else()
+            if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                set(_PLATFORM x64)
+            else()
+                set(_PLATFORM Win32)
+            endif()
+        endif()
+
+        set(CMAKE_INSTALL_BINDIR ${_PLATFORM}${_UWP_SUFFIX}/${CMAKE_INSTALL_BINDIR})
+        set(CMAKE_INSTALL_LIBDIR ${_PLATFORM}${_UWP_SUFFIX}/${CMAKE_INSTALL_LIBDIR})
+    endif()
+endif()
+
 ### Dependencies
 
 # CMake will detect OpenGL/Vulkan which are not compatible with UWP and ARM/ARM64 on Windows so skip it in these cases.
-string(TOUPPER "${CMAKE_GENERATOR_PLATFORM}" CMAKE_GENERATOR_PLATFORM_UPPER)
 if(CMAKE_SYSTEM_NAME STREQUAL "WindowsStore" OR (WIN32 AND CMAKE_GENERATOR_PLATFORM_UPPER MATCHES "ARM.*"))
     set(OPENGL_INCOMPATIBLE TRUE)
     set(VULKAN_INCOMPATIBLE TRUE)
