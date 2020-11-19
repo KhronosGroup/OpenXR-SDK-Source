@@ -1,0 +1,1 @@
+Include PDB symbols to go along with the openxr_loader.dll Windows artifacts.
