@@ -283,6 +283,9 @@ install(
     DESTINATION ${TARGET_DESTINATION}
 )
 
+if(WIN32 AND DYNAMIC_LOADER)
+    install(FILES $<TARGET_PDB_FILE:openxr_loader> DESTINATION ${CMAKE_INSTALL_BINDIR} OPTIONAL)
+endif()
 
 # Make the "meta" cmake config/version file to redirect to the right arch/build
 if(WIN32 AND INSTALL_TO_ARCHITECTURE_PREFIXES)

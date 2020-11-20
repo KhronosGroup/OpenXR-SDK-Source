@@ -99,6 +99,9 @@ jobs:
         patterns: "**/*.dll"
         displayName: Download dynamic libraries
       - download: current
+        patterns: "**/*.pdb"
+        displayName: Download dynamic library symbols
+      - download: current
         patterns: "**/*.lib"
         displayName: Download link import libraries
       - download: current
