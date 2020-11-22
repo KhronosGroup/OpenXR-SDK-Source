@@ -127,7 +127,7 @@ set(OPENXR_DEBUG_POSTFIX d CACHE STRING "OpenXR loader debug postfix.")
 else()
 set(OPENXR_DEBUG_POSTFIX "" CACHE STRING "OpenXR loader debug postfix.")
 endif()
-set_target_properties(openxr_loader PROPERTIES DEBUG_POSTFIX ${OPENXR_DEBUG_POSTFIX})
+set_target_properties(openxr_loader PROPERTIES DEBUG_POSTFIX "${OPENXR_DEBUG_POSTFIX}")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(FALLBACK_CONFIG_DIRS
