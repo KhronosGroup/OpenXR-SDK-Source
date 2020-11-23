@@ -103,6 +103,7 @@ target_include_directories(
             # for target-specific generated files
             ${CMAKE_CURRENT_SOURCE_DIR}
             ${CMAKE_CURRENT_BINARY_DIR}
+    INTERFACE $<INSTALL_INTERFACE:include>
 )
 
 if(VulkanHeaders_FOUND)
@@ -120,6 +121,13 @@ target_link_libraries(
 
 target_compile_definitions(openxr_loader PRIVATE API_NAME="OpenXR")
 openxr_add_filesystem_utils(openxr_loader)
+
+if(WIN32)
+set(OPENXR_DEBUG_POSTFIX d CACHE STRING "OpenXR loader debug postfix.")
+else()
+set(OPENXR_DEBUG_POSTFIX "" CACHE STRING "OpenXR loader debug postfix.")
+endif()
+set_target_properties(openxr_loader PROPERTIES DEBUG_POSTFIX ${OPENXR_DEBUG_POSTFIX})
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(FALLBACK_CONFIG_DIRS
@@ -187,8 +195,8 @@ elseif(WIN32)
 
     # Need to copy DLL to client directories so clients can easily load it.
     if(DYNAMIC_LOADER AND (CMAKE_GENERATOR MATCHES "^Visual Studio.*"))
-        file(TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/openxr_loader.dll COPY_DLL_SRC_PATH)
-        file(TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/openxr_loader.pdb COPY_PDB_SRC_PATH)
+        file(TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/openxr_loader$<$<CONFIG:Debug>:${OPENXR_DEBUG_POSTFIX}>.dll COPY_DLL_SRC_PATH)
+        file(TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/openxr_loader$<$<CONFIG:Debug>:${OPENXR_DEBUG_POSTFIX}>.pdb COPY_PDB_SRC_PATH)
         file(TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/../tests/hello_xr/$<CONFIGURATION>/
              COPY_DST_HELLO_XR_PATH
         )
@@ -238,11 +246,14 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     endif()
 endif()
 
+add_library(headers INTERFACE)
+target_include_directories(headers INTERFACE $<INSTALL_INTERFACE:include>)
+
 install(
-    TARGETS openxr_loader EXPORT openxr_loader_export
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}$<$<CONFIG:Debug>:/Debug>
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}$<$<CONFIG:Debug>:/Debug>
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}$<$<CONFIG:Debug>:/Debug>
+    TARGETS openxr_loader headers EXPORT openxr_loader_export
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 export(
@@ -265,12 +276,10 @@ install(
 )
 
 include(CMakePackageConfigHelpers)
-set(INCLUDE_INSTALL_DIR include/)
 configure_package_config_file(
     OpenXRConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/OpenXRConfig.cmake
     INSTALL_DESTINATION ${TARGET_DESTINATION}
-    PATH_VARS INCLUDE_INSTALL_DIR
 )
 write_basic_package_version_file(
     ${CMAKE_CURRENT_BINARY_DIR}/OpenXRConfigVersion.cmake
