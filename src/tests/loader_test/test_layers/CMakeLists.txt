@@ -43,7 +43,7 @@ target_include_directories(XrApiLayer_test
     PRIVATE ${PROJECT_SOURCE_DIR}/src/common
     PRIVATE ${PROJECT_BINARY_DIR}/include
 )
-if(VulkanHeaders_FOUND)
+if(Vulkan_FOUND)
     target_include_directories(XrApiLayer_test
         PRIVATE ${Vulkan_INCLUDE_DIRS}
     )

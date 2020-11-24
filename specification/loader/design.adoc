@@ -5,11 +5,11 @@
 [[loader-design]]
 == Loader Design ==
 
-This section of the document is focused on the internal design of
-the OpenXR loader provided in the `src/loader` folder.
+This section of the document is focused on the internal design of the OpenXR
+loader provided in the `src/loader` folder.
 
-The OpenXR loader is composed of several classes.  The overall class
-diagram looks roughly like the following:
+The OpenXR loader is composed of several classes.
+The overall class diagram looks roughly like the following:
 
 image::images/class_diagram.svg[align="center", title="Loader Class Diagram"]
 
@@ -20,17 +20,19 @@ image::images/class_diagram.svg[align="center", title="Loader Class Diagram"]
 
 The Desktop OpenXR loader uses JSON manifest files for information about
 available <<api-layer-manifest-file-format, API layers>> and
-<<runtime-manifest-file-format, runtimes>>.  All the functionality for finding,
-parsing, and processing the various manifest file formats are found in the
-three manifest file classes: `ManifestFile`, `RuntimeManifestFile`, and
-`ApiLayerManifestFile`.  All three classes are defined in the `manifest_file`
-header (.hpp) and source (.cpp) files.
+<<runtime-manifest-file-format, runtimes>>.
+All the functionality for finding, parsing, and processing the various
+manifest file formats are found in the three manifest file classes:
+`ManifestFile`, `RuntimeManifestFile`, and `ApiLayerManifestFile`.
+All three classes are defined in the `manifest_file` header (.hpp) and
+source (.cpp) files.
 
 [[manifestfile]]
 .ManifestFile
 
 `ManifestFile` is the base class containing the majority of common code.
-It only performs a minimal set of validation and provides accessor functions.
+It only performs a minimal set of validation and provides accessor
+functions.
 These functions perform all the work using two primary sources:
 
 * The std::experimental::filesystem pass:[C++] functionality exposed by most
@@ -44,25 +46,28 @@ These functions perform all the work using two primary sources:
 
 `RuntimeManifestFile` is a derived class (with <<manifestfile,ManifestFile>>
 as the parent) which handles specifically finding and parsing any
-<<runtime-manifest-file-format, runtime manifest files>>.  It implements a
-static function fname:FindManifestFiles which is to be used as a factory method
-for finding all available runtime manifest files, creating an instance of
-`RuntimeManifestFiles` for each, and saving them if they appear to be valid.
-This is the command that any OpenXR command inside the loader should
-call if it requires a list of available runtime manifest files.
+<<runtime-manifest-file-format, runtime manifest files>>.
+It implements a static function fname:FindManifestFiles which is to be used
+as a factory method for finding all available runtime manifest files,
+creating an instance of `RuntimeManifestFiles` for each, and saving them if
+they appear to be valid.
+This is the command that any OpenXR command inside the loader should call if
+it requires a list of available runtime manifest files.
 
 [source,c++]
 ----
 static XrResult RuntimeManifestFile::FindManifestFiles(
             std::vector<std::unique_ptr<RuntimeManifestFile>> &manifest_files);
 ----
-  * pname:manifest_files is a vector that will be used to store a unique_ptr to
-    each valid runtime manifest file found.
+  * pname:manifest_files is a vector that will be used to store a unique_ptr
+    to each valid runtime manifest file found.
 
 The `RuntimeManifestFile` also provides a utility function for creating an
-instance of itself if it determines everything is valid inside the JSON file.
-fname:CreateIfValid not only validates the JSON format, but also verifies that
-the specific fields required by the RuntimeManifestFile class are available.
+instance of itself if it determines everything is valid inside the JSON
+file.
+fname:CreateIfValid not only validates the JSON format, but also verifies
+that the specific fields required by the RuntimeManifestFile class are
+available.
 
 [source,c++]
 ----
@@ -70,26 +75,28 @@ void RuntimeManifestFile::CreateIfValid(
             std::string filename,
             std::vector<std::unique_ptr<RuntimeManifestFile>> &manifest_files);
 ----
-  * pname:filename indicates the absolute file name path to the manifest file
-    that needs to be loaded and verified.
-  * pname:manifest_files is a vector that will be used to store a unique_ptr to
-    each valid runtime manifest file found.  If this call determines the file
-    exists and is valid, it will create an instance of `RuntimeManifestFile`
-    and add it to this vector.
+  * pname:filename indicates the absolute file name path to the manifest
+    file that needs to be loaded and verified.
+  * pname:manifest_files is a vector that will be used to store a unique_ptr
+    to each valid runtime manifest file found.
+    If this call determines the file exists and is valid, it will create an
+    instance of `RuntimeManifestFile` and add it to this vector.
 
 
 [[apilayermanifestfile]]
 .ApiLayerManifestFile
 
-Similar to <<runtimemanifestfile,RuntimeManifestFile>>, `ApiLayerManifestFile` is a
-derived class (with <<manifestfile,ManifestFile>> as the parent).  This class
-handles specifically finding and parsing any
-<<api-layer-manifest-file-format, API layer manifest files>>.  It also implements a
-static function fname:FindManifestFiles which is to be used as a factory method
-for finding all available API layer manifest files, creating an instance of
-`ApiLayerManifestFiles` for each, and saving them if they appear to be valid.
-This is the command that any OpenXR command inside the loader should
-call if it requires a list of available API layer manifest files.
+Similar to <<runtimemanifestfile,RuntimeManifestFile>>,
+`ApiLayerManifestFile` is a derived class (with
+<<manifestfile,ManifestFile>> as the parent).
+This class handles specifically finding and parsing any
+<<api-layer-manifest-file-format, API layer manifest files>>.
+It also implements a static function fname:FindManifestFiles which is to be
+used as a factory method for finding all available API layer manifest files,
+creating an instance of `ApiLayerManifestFiles` for each, and saving them if
+they appear to be valid.
+This is the command that any OpenXR command inside the loader should call if
+it requires a list of available API layer manifest files.
 
 [source,c++]
 ----
@@ -97,16 +104,19 @@ static XrResult ApiLayerManifestFile::FindManifestFiles(
             ManifestFileType type,
             std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files);
 ----
-  * pname:type indicates the specific type of manifest file being searched for.
+  * pname:type indicates the specific type of manifest file being searched
+    for.
     In this case, it must: be either `MANIFEST_TYPE_IMPLICIT_API_LAYER` or
     `MANIFEST_TYPE_EXPLICIT_API_LAYER`.
-  * pname:manifest_files is a vector that will be used to store a unique_ptr to
-    each valid API layer manifest file found.
+  * pname:manifest_files is a vector that will be used to store a unique_ptr
+    to each valid API layer manifest file found.
 
 The `ApiLayerManifestFile` also provides a utility function for creating an
-instance of itself if it determines everything is valid inside the JSON file.
-fname:CreateIfValid not only validates the JSON format, but also verifies that
-the specific fields required by the ApiLayerManifestFile class are available.
+instance of itself if it determines everything is valid inside the JSON
+file.
+fname:CreateIfValid not only validates the JSON format, but also verifies
+that the specific fields required by the ApiLayerManifestFile class are
+available.
 
 [source,c++]
 ----
@@ -114,36 +124,38 @@ void ApiLayerManifestFile::CreateIfValid(
             std::string filename,
             std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files);
 ----
-  * pname:filename indicates the absolute file name path to the manifest file
-    that needs to be loaded and verified.
-  * pname:manifest_files is a vector that will be used to store a unique_ptr to
-    each valid runtime manifest file found.  If this call determines the file
-    exists and is valid, it will create an instance of `ApiLayerManifestFile`
-    and add it to this vector.
+  * pname:filename indicates the absolute file name path to the manifest
+    file that needs to be loaded and verified.
+  * pname:manifest_files is a vector that will be used to store a unique_ptr
+    to each valid runtime manifest file found.
+    If this call determines the file exists and is valid, it will create an
+    instance of `ApiLayerManifestFile` and add it to this vector.
 
 
 ==== Library Interface Classes ====
 
 The OpenXR loader is responsible with interfacing with other libraries to
-complete its tasks.  Typically, there will be some interface negotiation
-between these other libraries and the loader (see
-<<loader-api-layer-interface-negotiation, Loader/Layer Interface Negotiation>>
-or
-<<loader-runtime-interface-negotiation, Loader/Runtime Interface Negotiation>>
-for more information).   The Interface classes are responsible with using
-the contents of a ManifestFile to setup the interface.  Each Interface
-class must be used with the appropriate ManifestFile type to properly interface
-with a specific type of library.
+complete its tasks.
+Typically, there will be some interface negotiation between these other
+libraries and the loader (see <<loader-api-layer-interface-negotiation,
+Loader/Layer Interface Negotiation>> or
+<<loader-runtime-interface-negotiation, Loader/Runtime Interface
+Negotiation>> for more information).
+The Interface classes are responsible with using the contents of a
+ManifestFile to setup the interface.
+Each Interface class must be used with the appropriate ManifestFile type to
+properly interface with a specific type of library.
 
 
 [[runtimeinterface]]
 .RuntimeInterface
 
-The `RuntimeInterface` is tasked with working with runtime libraries.  Once
-the runtime manifest file information is found and parsed by the
+The `RuntimeInterface` is tasked with working with runtime libraries.
+Once the runtime manifest file information is found and parsed by the
 <<runtimemanifestfile, RuntimeManifestFile>> class, it is passed along to
 this class which will load the appropriate library and perform the required
-<<loader-runtime-interface-negotiation, Loader/Runtime Interface Negotiation>>.
+<<loader-runtime-interface-negotiation, Loader/Runtime Interface
+Negotiation>>.
 
 The `RuntimeInterface` implements a static function fname:LoadRuntime which
 is to be used as a factory method for loading the current active runtime,
@@ -161,7 +173,8 @@ static XrResult RuntimeInterface::LoadRuntime();
 ----
 
 Likewise, the `RuntimeInterface` implements a static function
-fname:UnloadRuntime which is to be used to unload the current active runtime.
+fname:UnloadRuntime which is to be used to unload the current active
+runtime.
 This will reduce the reference count until it is 0 and then unload the
 active runtime library.
 
@@ -180,8 +193,9 @@ static RuntimeInterface& GetRuntime();
 ----
 
 During `XrInstance` creation and destruction, the `RuntimeInterface` needs
-to work directly with the runtime library.  To do this, the `RuntimeInterface`
-has two methods that are used by the OpenXR loader:
+to work directly with the runtime library.
+To do this, the `RuntimeInterface` has two methods that are used by the
+OpenXR loader:
 
 [source,c++]
 ----
@@ -194,11 +208,11 @@ XrResult RuntimeInterface::CreateInstance(
 Once successful completion occurs, the `RuntimeInterface` will:
 
 * Store the runtime's version of the `XrInstance`
-* Generate a dispatch table to all known OpenXR commands implemented by
-  the runtime.
+* Generate a dispatch table to all known OpenXR commands implemented by the
+  runtime.
 
-To destroy a runtime's instance as part of the `xrDestroyInstance`
-command, the loader calls fname:DestroyInstance;
+To destroy a runtime's instance as part of the `xrDestroyInstance` command,
+the loader calls fname:DestroyInstance;
 
 [source,c++]
 ----
@@ -209,17 +223,20 @@ XrResult RuntimeInterface::DestroyInstance();
 [[apilayerinterface]]
 .ApiLayerInterface
 
-Similarly, the `ApiLayerInterface` class is tasked with working with API layer
-libraries.  Once the API layer manifest file information is found and parsed by the
+Similarly, the `ApiLayerInterface` class is tasked with working with API
+layer libraries.
+Once the API layer manifest file information is found and parsed by the
 <<apilayermanifestfile, ApiLayerManifestFile>> class, it is passed along to
 this class which will load the appropriate library and perform the required
-<<loader-api-layer-interface-negotiation, Loader/Layer Interface Negotiation>>.
+<<loader-api-layer-interface-negotiation, Loader/Layer Interface
+Negotiation>>.
 
-The `ApiLayerInterface` implements a static function fname:LoadApiLayers which
-is to be used as a factory method for loading all available API layers,
-performing the appropriate negotiation, and then creating an instance of
-`ApiLayerInterface` for each. This is the command that any OpenXR command inside
-the loader should call if it requires load one or more API layers:
+The `ApiLayerInterface` implements a static function fname:LoadApiLayers
+which is to be used as a factory method for loading all available API
+layers, performing the appropriate negotiation, and then creating an
+instance of `ApiLayerInterface` for each.
+This is the command that any OpenXR command inside the loader should call if
+it requires load one or more API layers:
 
 [source,c++]
 ----
@@ -229,15 +246,15 @@ static XrResult ApiLayerInterface::LoadApiLayers(
         std::vector<std::unique_ptr<ApiLayerInterface>>& api_layer_interfaces);
 ----
   * pname:manifest_files is a vector of unique_ptr elements containing the
-    loaded API layer manifest information.  The contents of this vector will be
-    either transferred to a new `ApiLayerInterface` object placed in the
-    pname:api_layer_interfaces vector, or deleted when the call to this method
-    completes.
-  * pname:enabled_layers is a vector of names for all API layers that are enabled
-    by the environment or the user.
+    loaded API layer manifest information.
+    The contents of this vector will be either transferred to a new
+    `ApiLayerInterface` object placed in the pname:api_layer_interfaces
+    vector, or deleted when the call to this method completes.
+  * pname:enabled_layers is a vector of names for all API layers that are
+    enabled by the environment or the user.
   * pname:api_layer_interfaces is a vector that will be used to store a
-    unique_ptr to a `ApiLayerInterface` object representing each valid API layer that
-    is enabled and has completed loading and negotiation.
+    unique_ptr to a `ApiLayerInterface` object representing each valid API
+    layer that is enabled and has completed loading and negotiation.
 
 
 ==== The LoaderInstance Class ====
@@ -263,18 +280,18 @@ static XrResult LoaderInstance::CreateInstance(
 ----
   * pname:get_instance_proc_addr_term is the function pointer to the
     terminator for xrGetInstanceProcAddr.
-  * pname:create_instance_term is the function pointer to the
-    terminator for xrCreateInstance.
+  * pname:create_instance_term is the function pointer to the terminator for
+    xrCreateInstance.
   * pname:create_api_layer_instance_term is the function pointer to the
     terminator for xrCreateApiLayerInstance.
   * pname:api_layer_interfaces is a vector that contains a unique_ptr to all
-    `ApiLayerInterface` objects that are valid and enabled.  All of these
-    pointers will be moved to the `LoaderInstance` on successful completion
-    of the `CreateInstance` call.
+    `ApiLayerInterface` objects that are valid and enabled.
+    All of these pointers will be moved to the `LoaderInstance` on
+    successful completion of the `CreateInstance` call.
   * pname:info is a pointer to the `XrInstanceCreateInfo` passed into the
     OpenXR `xrCreateInstance` command that triggered this call.
-  * pname:instance contains a returned pointer to the `XrInstance` that
-    will be returned upon successful execution and associated with this
+  * pname:instance contains a returned pointer to the `XrInstance` that will
+    be returned upon successful execution and associated with this
     `LoaderInstance` object.
 
 During the fname:CreateInstance call, the loader will perform the following
@@ -287,26 +304,26 @@ work:
 * Create a parallel `LoaderInstance` associated with the returned
   `XrInstance`.
 * Generate a top-level dispatch table containing all the supported commands.
-** This table is built by using the generated `xrGetInstanceProcAddr`
-   call chain
+** This table is built by using the generated `xrGetInstanceProcAddr` call
+   chain
 
 Because the loader knows what runtime need to be called as part of the
 create sequence, it inserts a terminator during the `xrCreateInstance`
-sequence called `loaderXrTermCreateInstance` after the last API layer in order
-to create the runtime instance.
+sequence called `loaderXrTermCreateInstance` after the last API layer in
+order to create the runtime instance.
 
 
 ==== Logging Classes ====
 
 .LoaderLogger
 
-The `LoaderLogger` class was created to provide global logging capability
-to the OpenXR loader.  It was implemented as a Singleton to reduce the
-overhead of passing pointers/references around to the various loader
-objects.
+The `LoaderLogger` class was created to provide global logging capability to
+the OpenXR loader.
+It was implemented as a Singleton to reduce the overhead of passing
+pointers/references around to the various loader objects.
 
-To get a reference to the `LoaderLogger` singleton, use the fname:GetInstance
-method:
+To get a reference to the `LoaderLogger` singleton, use the
+fname:GetInstance method:
 
 [source,c++]
 ----
@@ -314,8 +331,9 @@ static LoaderLogger& LoaderLogger::GetInstance();
 ----
 
 The `LoaderLogger` works by sending all received messages to various
-instances of <<loaderlogrecorder, LoaderLogRecorder> objects.  To add a
-`LoaderLogRecorder` to the `LoaderLogger`, call fname:AddLogRecorder:
+instances of <<loaderlogrecorder, LoaderLogRecorder> objects.
+To add a `LoaderLogRecorder` to the `LoaderLogger`, call
+fname:AddLogRecorder:
 
 [source,c++]
 ----
@@ -326,9 +344,9 @@ void LoaderLogger::AddLogRecorder(
     derived object.
 
 Once added, general log messages will be passed to each of the
-`LoaderLogRecorder` stored in an internal vector.  Any source inside
-of the loader may trigger a log message by using the pname:LogMessage
-command:
+`LoaderLogRecorder` stored in an internal vector.
+Any source inside of the loader may trigger a log message by using the
+pname:LogMessage command:
 
 [source,c++]
 ----
@@ -344,8 +362,9 @@ bool LoaderLogger::LogMessage(
   * pname:message_type is type of the message
   * pname:message_id is the message id, typically for loader messages this
     is "OpenXR-Loader"
-  * pname:command_name is the name of the OpenXR command associated with
-    the message.  May be an empty string.
+  * pname:command_name is the name of the OpenXR command associated with the
+    message.
+    May be an empty string.
   * pname:message is the message.
   * pname:objects a vector of objects that are relevant to this message.
     May be empty.
@@ -376,12 +395,12 @@ static bool LogVerboseMessage(
   * pname:command_name the OpenXR command that is related to the message.
     May be an empty string.
   * pname:message the message that needs to be logged
-  * pname:objects an optional array of OpenXR object handles that are related
-    to the log message.
+  * pname:objects an optional array of OpenXR object handles that are
+    related to the log message.
 
 It's important to note that these static methods also take care of grabbing
-the `LoaderLogger`::fname:GetInstance() and making the appropriate call
-to `LoaderLogger`::pname:LogMessage().
+the `LoaderLogger`::fname:GetInstance() and making the appropriate call to
+`LoaderLogger`::pname:LogMessage().
 
 [example]
 .Using the Log Messages
@@ -404,21 +423,23 @@ if (XR_SUCCESS != res) {
 LoaderLogger::LogInfoMessage("", "Loaded all API layers");
 ----
 
-In these examples, the message does not correspond to a named command so an empty string is passed.
+In these examples, the message does not correspond to a named command so an
+empty string is passed.
 ====
 
 [[loaderlogrecorder]]
 .LoaderLogRecorder
 
 The `LoaderLogRecorder` is a base class that defines the basics used for
-recording a log message somewhere.  `LoaderLogRecorder` provides no protections
-for multithreading logging.  Any required protections should be implemented
-by the derived class that is multithread sensitive (i.e. if a logger wrote to a
-file).
+recording a log message somewhere.
+`LoaderLogRecorder` provides no protections for multithreading logging.
+Any required protections should be implemented by the derived class that is
+multithread sensitive (i.e. if a logger wrote to a file).
 
 The pure virtual method the base class defines that is used to record log
-messages is the fname:LogMessage method.  Each derived class is responsible for
-defining exactly how log messages are recorded.
+messages is the fname:LogMessage method.
+Each derived class is responsible for defining exactly how log messages are
+recorded.
 
 [source,c++]
 ----
@@ -429,11 +450,12 @@ virtual bool LogMessage(
 ----
 
 Some utility methods that the `LoaderLogRecorder` base class supplies allow
-controls over whether or not log messages are actually recorded.  Upon creation,
-a `LoaderLogRecorder` is set to actively record all messages that contain
-the appropriate flags.  However, if we want to pause recording to one or more
-of the `LoaderLogRecorders` at some point and then resume recording again
-later, the following utilities can be used:
+controls over whether or not log messages are actually recorded.
+Upon creation, a `LoaderLogRecorder` is set to actively record all messages
+that contain the appropriate flags.
+However, if we want to pause recording to one or more of the
+`LoaderLogRecorders` at some point and then resume recording again later,
+the following utilities can be used:
 
 [source,c++]
 ----
@@ -454,22 +476,25 @@ providing three basic behaviors:
 ** Created by `MakeDebugUtilsLoaderLogRecorder()`
 
 The recorder created by `MakeStdErrLoaderLogRecorder()` handles recording
-all error messages that occur in the loader out to `std::cerr`.  This logger
-is always enabled and is intended to always provide error messages for easier
-issue diagnosis.
+all error messages that occur in the loader out to `std::cerr`.
+This logger is always enabled and is intended to always provide error
+messages for easier issue diagnosis.
 
-The recorder created by `MakeStdOutLoaderLogRecorder()` records messages
-out to `std::cout`.  This logger is enabled when the
-<<loader-debugging, XR_LOADER_DEBUG>> environment variable is defined.
+The recorder created by `MakeStdOutLoaderLogRecorder()` records messages out
+to `std::cout`.
+This logger is enabled when the <<loader-debugging, XR_LOADER_DEBUG>>
+environment variable is defined.
 
 The recorder created by `MakeDebugUtilsLoaderLogRecorder()` triggers an
 `XR_EXT_debug_utils` callback every time a log message occurs.
 Two steps are required before the loader enables this class:
 
- 1. The `XR_EXT_debug_utils` must: be enabled during fname:xrCreateInstance call.
+ 1. The `XR_EXT_debug_utils` must: be enabled during fname:xrCreateInstance
+    call.
  2. The application must: create a `XrDebugUtilsMessengerEXT` by
   * Supplying an sname:XrDebugUtilsMessengerCreateInfoEXT structure to the
-    sname:XrInstanceCreateInfo::pname:next chain during fname:xrCreateInstance, or
+    sname:XrInstanceCreateInfo::pname:next chain during
+    fname:xrCreateInstance, or
   * Calling fname:xrCreateDebugUtilsMessengerEXT.
 
 [[automatically-generated-code]]
@@ -477,16 +502,19 @@ Two steps are required before the loader enables this class:
 
 In order to allow the OpenXR loader to be as flexible as possible, we
 generate a large portion of the code automatically using the xr.xml registry
-file.  The generation process is triggered during the build.  This is done
-inside the `CMakelists.txt` files in both the `src` and `src/loader` folders,
-using the macro `run_xml_generate_dependency`.  This macro (defined in the
-`src/CMakelists.txt` file, triggers python and generates the source.  The
-generation scripts are based on the functionality originally defined in the
-of the `specification/scripts` folder, but here they've been extended to
+file.
+The generation process is triggered during the build.
+This is done inside the `CMakelists.txt` files in both the `src` and
+`src/loader` folders, using the macro `run_xml_generate_dependency`.
+This macro (defined in the `src/CMakelists.txt` file, triggers python and
+generates the source.
+The generation scripts are based on the functionality originally defined in
+the of the `specification/scripts` folder, but here they've been extended to
 generate loader source code.
 
 The loader automatic code generation scripts are found in the `src/scripts`
-folder.  The main script of interest for OpenXR loader code generation is
+folder.
+The main script of interest for OpenXR loader code generation is
 `automatic_source_generation.py` which generates 4 files during the build
 process:
 
@@ -505,10 +533,12 @@ process:
 ==== xr_generated_dispatch_table.h ====
 
 This C-style header contains the definition of the
-sname:XrGeneratedDispatchTable structure.  This structure can be used to store
-function pointers for any OpenXR commands defined in the xr.xml at the time
-the loader was built.  It includes slots for both core and extension function
-pointers.  Currently, the loader uses this structure as well as the provided API Layers.
+sname:XrGeneratedDispatchTable structure.
+This structure can be used to store function pointers for any OpenXR
+commands defined in the xr.xml at the time the loader was built.
+It includes slots for both core and extension function pointers.
+Currently, the loader uses this structure as well as the provided API
+Layers.
 
 A partial listing from the generated table follows:
 
@@ -532,8 +562,8 @@ You'll notice that the `xr` prefix was dropped on the name of the elements
 within the structure to simplify naming as well as avoid any potential
 compilation conflicts.
 
-The `xr_generated_dispatch_table.h` header also includes a utility function that
-can be used to populate a dispatch table once it has been created:
+The `xr_generated_dispatch_table.h` header also includes a utility function
+that can be used to populate a dispatch table once it has been created:
 
 [[GeneratedXrPopulateDispatchTable,GeneratedXrPopulateDispatchTable]]
 [source,c++]
@@ -543,36 +573,39 @@ void GeneratedXrPopulateDispatchTable(
         XrInstance instance,
         PFN_xrGetInstanceProcAddr get_inst_proc_addr);
 ----
-  * pname:table is a pointer to the slink:XrGeneratedDispatchTable to populate.
+  * pname:table is a pointer to the slink:XrGeneratedDispatchTable to
+    populate.
   * pname:instance is the instance required by pname:get_inst_proc_addr.
-    *NOTE*: This may have a value of `XR_NULL_HANDLE`, but many of the commands
-    may be `NULL` if this is used.
-  * pname:get_inst_proc_addr is a pointer to the `xrGetInstanceProcAddr` command
-    to use to populate the table.  If you're calling into the OpenXR loader,
-    this would be the standard `xrGetInstanceProcAddr` call.  However, if you
-    were calling this from an API layer, you would want to use the next level's
-    (API layer or runtime) implementation of `xrGetInstanceProcAddr`.
+    *NOTE*: This may have a value of `XR_NULL_HANDLE`, but many of the
+    commands may be `NULL` if this is used.
+  * pname:get_inst_proc_addr is a pointer to the `xrGetInstanceProcAddr`
+    command to use to populate the table.
+    If you're calling into the OpenXR loader, this would be the standard
+    `xrGetInstanceProcAddr` call.
+    However, if you were calling this from an API layer, you would want to
+    use the next level's (API layer or runtime) implementation of
+    `xrGetInstanceProcAddr`.
 
 
 ==== xr_generated_dispatch_table.c ====
 
-This file is paired with the above `xr_generated_dispatch_table.h` header and
-only implements the flink:GeneratedXrPopulateDispatchTable function used to populate
-the elements of a dispatch table.
+This file is paired with the above `xr_generated_dispatch_table.h` header
+and only implements the flink:GeneratedXrPopulateDispatchTable function used
+to populate the elements of a dispatch table.
 
 
 ==== xr_loader_generated.hpp ====
 
 `xr_loader_generated.hpp` contains prototypes for all the manually defined
-instance command trampoline and terminator functions.  This is done so that
-they can be referenced in the `xr_loader_generated.cpp` source file which
-is used for `xrGetInstanceProcAddr` as well as setting up the loader
-dispatch table.
+instance command trampoline and terminator functions.
+This is done so that they can be referenced in the `xr_loader_generated.cpp`
+source file which is used for `xrGetInstanceProcAddr` as well as setting up
+the loader dispatch table.
 
 ==== xr_loader_generated.cpp ====
 
-The `xr_loader_generated.cpp` source file contains the implementation
-of all generated OpenXR trampoline functions.
+The `xr_loader_generated.cpp` source file contains the implementation of all
+generated OpenXR trampoline functions.
 
 [[manually-implemented-code]]
 === Manually Implemented Code ===
@@ -612,27 +645,31 @@ implemented in the loader.
 [[functional-flow]]
 === Functional Flow ===
 
-The loader supports a single XrInstance at a time in order to avoid
-tracking handle values and their relationship to the `LoaderInstance`. Every
-XR function call is assumed to be for the single XrInstance that has been
-created. This enables the loader to work with future extensions and handle types
+The loader supports a single XrInstance at a time in order to avoid tracking
+handle values and their relationship to the `LoaderInstance`.
+Every XR function call is assumed to be for the single XrInstance that has
+been created.
+This enables the loader to work with future extensions and handle types
 without change.
 
 [[platform-specific-behavior]]
 === Platform-Specific Behavior ===
 
-The OpenXR loader design is intended to be flexible on supported on a variety
-of platforms.  However, the loader on certain platforms will require behavior
-not necessary in other environments.  This section describes the common
-platform-specific behavior expected in the OpenXR loader.
+The OpenXR loader design is intended to be flexible on supported on a
+variety of platforms.
+However, the loader on certain platforms will require behavior not necessary
+in other environments.
+This section describes the common platform-specific behavior expected in the
+OpenXR loader.
 
 
 [[library-handling]]
 ==== Library Handling ====
 
 The loader works with libraries and runtimes which are exposed as either a
-static or dynamic external library files.  Each operating system provides their
-own utilities for interfacing with these files, which the loader abstracts.
+static or dynamic external library files.
+Each operating system provides their own utilities for interfacing with
+these files, which the loader abstracts.
 Most loader platform code can be found in the following source file:
 
 [source,c++]
@@ -641,16 +678,17 @@ src/loader/loader_platform.hpp
 ----
 
 The OpenXR loader uses a general handle define for all platform library
-functions.  This handle is identified as `LoaderPlatformLibraryHandle`
-and is used to interact with all the platform-specific library functions.
+functions.
+This handle is identified as `LoaderPlatformLibraryHandle` and is used to
+interact with all the platform-specific library functions.
 
 
 .Opening A Platform-Specific Library File
 
 To open a platform-specific library file, and therefore retrieve the
-platform-specific `LoaderPlatformLibraryHandle` relative to that file,
-the loader calls the fname:LoaderPlatformLibraryOpen function which
-has the following prototype:
+platform-specific `LoaderPlatformLibraryHandle` relative to that file, the
+loader calls the fname:LoaderPlatformLibraryOpen function which has the
+following prototype:
 
 [[LoaderPlatformLibraryOpen]]
 [source,c++]
@@ -658,8 +696,8 @@ has the following prototype:
 LoaderPlatformLibraryHandle LoaderPlatformLibraryOpen(
     const std::string &path);
 ----
-  * pname:path must: be a constant string containing the absolute path to the
-    library file that needs to be opened.
+  * pname:path must: be a constant string containing the absolute path to
+    the library file that needs to be opened.
 
 If the function succeeds, the returned value will be non-NULL.
 If a failure occurs during this call, the returned value will be NULL.
@@ -672,12 +710,12 @@ fname:LoaderPlatformLibraryOpenError function:
 const char *LoaderPlatformLibraryOpenError(
     const std::string &path);
 ----
-  * pname:path must: be a constant string containing the absolute path to the
-    library file that the loader previously attempted to load using
+  * pname:path must: be a constant string containing the absolute path to
+    the library file that the loader previously attempted to load using
     flink:LoaderPlatformLibraryOpen.
 
-The returned C-style character string contains any available platform-specific
-error code that may have occurred.
+The returned C-style character string contains any available
+platform-specific error code that may have occurred.
 
 
 .Closing A Platform-Specific Library File
@@ -691,8 +729,8 @@ fname:LoaderPlatformLibraryClose to release it.
 void LoaderPlatformLibraryClose(
     LoaderPlatformLibraryHandle library)
 ----
-  * pname:library must: be valid `LoaderPlatformLibraryHandle` opened
-    using flink:LoaderPlatformLibraryOpen
+  * pname:library must: be valid `LoaderPlatformLibraryHandle` opened using
+    flink:LoaderPlatformLibraryOpen
 
 
 .Querying Content In a Platform-Specific Library File
@@ -708,18 +746,19 @@ void *LoaderPlatformLibraryGetProcAddr
     LoaderPlatformLibraryHandle library,
     const std::string &name)
 ----
-  * pname:library must: be valid `LoaderPlatformLibraryHandle` opened
-    using flink:LoaderPlatformLibraryOpen, but not yet closed using
+  * pname:library must: be valid `LoaderPlatformLibraryHandle` opened using
+    flink:LoaderPlatformLibraryOpen, but not yet closed using
     flink:LoaderPlatformLibraryClose.
-  * pname:name must: contain the name of the library supplied
-    function who's function pointer is desired.
+  * pname:name must: contain the name of the library supplied function who's
+    function pointer is desired.
 
 
 If the function succeeds, the returned value will be a valid function
-pointer address.  If the function fails, it will return NULL.  A NULL return
-value could imply that the function simply isn't exported by the library,
-or that an error occurred during the platform call.  To determine what
-might have happened, the loader will call the
+pointer address.
+If the function fails, it will return NULL.
+A NULL return value could imply that the function simply isn't exported by
+the library, or that an error occurred during the platform call.
+To determine what might have happened, the loader will call the
 fname:LoaderPlatformLibraryGetProcAddrError function:
 
 [[LoaderPlatformLibraryGetProcAddrError]]
@@ -732,21 +771,22 @@ const char *LoaderPlatformLibraryGetProcAddrError(
     entry-point that was attempted to be queried during the previous
     flink:LoaderPlatformLibraryGetProcAddr call.
 
-The returned C-style character string contains any available platform-specific
-error code that may have occurred.
+The returned C-style character string contains any available
+platform-specific error code that may have occurred.
 
 
 [[environment-variable-usage]]
 ==== Environment Variable Usage ====
 
-Several environment variables are used in the OpenXR loader, especially
-on the Desktop (Windows/Linux).  However, accessing environment variables
-is different based on each operating system, so we have added global
-interface functions to use for accessing environment variables.  These
-are defined in `src/common/platform_utils.hpp`
+Several environment variables are used in the OpenXR loader, especially on
+the Desktop (Windows/Linux).
+However, accessing environment variables is different based on each
+operating system, so we have added global interface functions to use for
+accessing environment variables.
+These are defined in `src/common/platform_utils.hpp`
 
-**NOTE:** This is outside of the loader source to allow other items in
-the source folder to use these utilities.
+**NOTE:** This is outside of the loader source to allow other items in the
+source folder to use these utilities.
 
 
 .Reading a Standard Environment Variable
@@ -763,12 +803,12 @@ std::string PlatformUtilsGetEnv(
     the name of the environment variable to get the value of.
 
 If the environment variable identified by pname:name exists on the system,
-the C-style NULL-terminated string will be returned.  If the environment
-variable can not be found, an empty string is returned.
+the C-style NULL-terminated string will be returned.
+If the environment variable can not be found, an empty string is returned.
 
-If you want to distinguish between an empty value and a variable not set at all,
-if the underlying platform distinguishes these cases,
-use fname:PlatformUtilsGetEnvSet:
+If you want to distinguish between an empty value and a variable not set at
+all, if the underlying platform distinguishes these cases, use
+fname:PlatformUtilsGetEnvSet:
 
 [[PlatformUtilsGetEnvSet]]
 [source,c++]
@@ -782,8 +822,9 @@ It returns true if the environment variable is set.
 .Reading a Secure Environment Variable
 
 Access to certain environment variables needs to be done in a way that
-maintains operational security of the program.  To read a secure
-environment variable, the loader calls fname:PlatformUtilsGetSecureEnv:
+maintains operational security of the program.
+To read a secure environment variable, the loader calls
+fname:PlatformUtilsGetSecureEnv:
 
 [[PlatformUtilsGetSecureEnv]]
 [source,c++]
@@ -795,17 +836,17 @@ char *PlatformUtilsGetSecureEnv(
     the name of the environment variable to get the value of.
 
 If the platform supports secure environment variable reading, the
-appropriate method will be used.  Otherwise, it will fall back to the
-standard flink:PlatformUtilsGetEnv call.
+appropriate method will be used.
+Otherwise, it will fall back to the standard flink:PlatformUtilsGetEnv call.
 
 [[active-runtime-file-management]]
 ==== Active Runtime File Management ====
 
 .Querying the Active Runtime File name
 
-Since the runtime file name can vary based on the supporting system,
-the command fname:PlatformGetGlobalRuntimeFileName provides a quick
-mechanism for querying the name of the file.
+Since the runtime file name can vary based on the supporting system, the
+command fname:PlatformGetGlobalRuntimeFileName provides a quick mechanism
+for querying the name of the file.
 
 [NOTE]
 .Note
@@ -820,7 +861,7 @@ bool PlatformGetGlobalRuntimeFileName(
     uint16_t major_version,
     std::string &file_name);
 ----
-  * pname:major_version is the major API version for the OpenXR
-    you are querying the active runtime file name for.
+  * pname:major_version is the major API version for the OpenXR you are
+    querying the active runtime file name for.
   * pname:file_name is the returned name of the runtime file.
     This is only valid if the command returns `true`.

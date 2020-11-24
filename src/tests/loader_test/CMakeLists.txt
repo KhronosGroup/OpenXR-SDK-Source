@@ -41,9 +41,9 @@ target_include_directories(
     PRIVATE ${PROJECT_SOURCE_DIR}/src/common
     PRIVATE ${PROJECT_SOURCE_DIR}/external/include
 )
-if(VulkanHeaders_FOUND)
+if(Vulkan_FOUND)
     target_include_directories(loader_test
-        PRIVATE ${VulkanHeaders_INCLUDE_DIRS}
+        PRIVATE ${Vulkan_INCLUDE_DIRS}
     )
 endif()
 

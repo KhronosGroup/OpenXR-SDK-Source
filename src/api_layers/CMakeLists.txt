@@ -69,7 +69,7 @@ add_library(XrApiLayer_api_dump SHARED
 )
 set_target_properties(XrApiLayer_api_dump PROPERTIES FOLDER ${API_LAYERS_FOLDER})
 
-target_link_libraries(XrApiLayer_api_dump PRIVATE openxr-all-supported ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(XrApiLayer_api_dump PRIVATE openxr-all-supported Threads::Threads)
 add_dependencies(XrApiLayer_api_dump
     generate_openxr_header
     xr_global_generated_files
@@ -92,7 +92,7 @@ target_include_directories(XrApiLayer_api_dump
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
 )
-if(VulkanHeaders_FOUND)
+if(Vulkan_FOUND)
     target_include_directories(XrApiLayer_api_dump
         PRIVATE ${Vulkan_INCLUDE_DIRS}
     )
@@ -133,7 +133,7 @@ add_library(XrApiLayer_core_validation SHARED
 )
 set_target_properties(XrApiLayer_core_validation PROPERTIES FOLDER ${API_LAYERS_FOLDER})
 
-target_link_libraries(XrApiLayer_core_validation PRIVATE openxr-all-supported ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(XrApiLayer_core_validation PRIVATE openxr-all-supported Threads::Threads)
 add_dependencies(XrApiLayer_core_validation
     generate_openxr_header
     xr_global_generated_files
@@ -155,7 +155,7 @@ target_include_directories(XrApiLayer_core_validation
     ${CMAKE_CURRENT_BINARY_DIR}
 
 )
-if(VulkanHeaders_FOUND)
+if(Vulkan_FOUND)
     target_include_directories(XrApiLayer_core_validation
         PRIVATE ${Vulkan_INCLUDE_DIRS}
     )

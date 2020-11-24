@@ -5,15 +5,16 @@
 [[loader-debugging]]
 == Loader Debugging ==
 
-There may be times that a developer wishes to debug the loader.  The following
-sections define useful tips in debugging the OpenXR loader.
+There may be times that a developer wishes to debug the loader.
+The following sections define useful tips in debugging the OpenXR loader.
 
 [[loader-logging]]
 === Loader Logging ===
 
 The user can define the `XR_LOADER_DEBUG` environment variable which will
-enable logging.  In order to use the setting, simply define the level of debug
-information you wish to see logged by the loader to std::cerr.
+enable logging.
+In order to use the setting, simply define the level of debug information
+you wish to see logged by the loader to std::cerr.
 
 The available log levels are as follows:
 
@@ -34,8 +35,8 @@ The available log levels are as follows:
     | Log any messages originating from the loader.
 |====
 
-Notice that each level logs not only messages of it's type, but also those of
-any levels above it.
+Notice that each level logs not only messages of it's type, but also those
+of any levels above it.
 
 [example]
 .Setting XR_LOADER_DEBUG
@@ -55,12 +56,14 @@ export XR_LOADER_DEBUG=error
 
 === Additional Debug Suggestions ===
 
-If you are seeing issues which may be related to the loader's use of either an
-API layer or a runtime, there is another setting that may assist you in tracking
-down problems.  Manually define the environment variable `LD_BIND_NOW` to a
-value of 1.  This forces every dynamic library's symbols to be fully
-resolved on load.  If there is a problem with either an API layer or a runtime
-missing symbols on your system, enabling this will expose the problem.  When
-enabled, this setting causes  the OpenXR loader to fail on loading the problem
-library.  It is recommended that you enable `LD_BIND_NOW` along with
+If you are seeing issues which may be related to the loader's use of either
+an API layer or a runtime, there is another setting that may assist you in
+tracking down problems.
+Manually define the environment variable `LD_BIND_NOW` to a value of 1.
+This forces every dynamic library's symbols to be fully resolved on load.
+If there is a problem with either an API layer or a runtime missing symbols
+on your system, enabling this will expose the problem.
+When enabled, this setting causes the OpenXR loader to fail on loading the
+problem library.
+It is recommended that you enable `LD_BIND_NOW` along with
 `XR_LOADER_DEBUG=warn` to expose any important issues.

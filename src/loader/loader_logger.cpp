@@ -118,6 +118,10 @@ LoaderLogger::LoaderLogger() {
     // present as "none" then we don't.
     if (debug_string != "none") {
         AddLogRecorder(MakeStdErrLoaderLogRecorder(nullptr));
+#ifdef __ANDROID__
+        // Add a logcat logger by default.
+        AddLogRecorder(MakeLogcatLoaderLogRecorder());
+#endif  // __ANDROID__
     }
 
 #ifdef _WIN32

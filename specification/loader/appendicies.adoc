@@ -8,8 +8,9 @@
 === Table of Debug Environment Variables ===
 
 The following are all the Debug Environment Variables available for use with
-the loader.  These are referenced throughout the text, but collected here for
-ease of discovery.
+the loader.
+These are referenced throughout the text, but collected here for ease of
+discovery.
 
 .Debug Environment Variables
 

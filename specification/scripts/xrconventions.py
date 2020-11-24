@@ -237,7 +237,7 @@ class OpenXRConventions(ConventionsBase):
         """Return a set of directories not to automatically descend into
            when reflowing spec text
         """
-        return ('loader', 'styleguide')
+        return ('styleguide',)
 
     @property
     def zero(self):

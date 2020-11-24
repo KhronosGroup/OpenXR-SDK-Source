@@ -1841,8 +1841,10 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
             VkPhysicalDeviceFeatures features{};
             memcpy(&features, createInfo->vulkanCreateInfo->pEnabledFeatures, sizeof(features));
 
+#if !defined(XR_USE_PLATFORM_ANDROID)
             // Setting this quiets down a validation error triggered by the Oculus runtime
             features.shaderStorageImageMultisample = VK_TRUE;
+#endif
 
             VkDeviceCreateInfo deviceInfo{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
             memcpy(&deviceInfo, createInfo->vulkanCreateInfo, sizeof(deviceInfo));

@@ -244,7 +244,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
     def isExternalGraphicsApiHandle(self, name):
         if (name.startswith('Vk') or name.startswith('GLX') or name.startswith('ID3D') or
             name.startswith('wl_') or name.startswith('Mir') or name.startswith('xcb_') or
-                name == 'HGLRC' or name == 'HDC'):
+                name.startswith('EGL') or name == 'HGLRC' or name == 'HDC'):
             return True
         return False
 

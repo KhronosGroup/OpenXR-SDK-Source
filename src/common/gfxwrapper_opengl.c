@@ -4201,6 +4201,7 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
                         const ksGpuSurfaceColorFormat colorFormat, const ksGpuSurfaceDepthFormat depthFormat,
                         const ksGpuSampleCount sampleCount, const int width, const int height, const bool fullscreen) {
     memset(window, 0, sizeof(ksGpuWindow));
+    (void)fullscreen;
 
     window->colorFormat = colorFormat;
     window->depthFormat = depthFormat;

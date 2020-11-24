@@ -158,7 +158,10 @@ def makeGenOpts(args):
                 defaultExtensions = 'openxr',
                 addExtensions     = None,
                 removeExtensions  = None,
-                emitExtensions    = emitExtensionsPat)
+                emitExtensions    = emitExtensionsPat,
+                apicall           = 'XRAPI_ATTR ',
+                apientry          = 'XRAPI_CALL ',
+                apientryp         = 'XRAPI_PTR *',)
             ]
 
         genOpts['gen_dispatch.h'] = [
@@ -174,7 +177,10 @@ def makeGenOpts(args):
                 defaultExtensions = 'openxr',
                 addExtensions     = None,
                 removeExtensions  = None,
-                emitExtensions    = emitExtensionsPat)
+                emitExtensions    = emitExtensionsPat,
+                apicall           = 'XRAPI_ATTR ',
+                apientry          = 'XRAPI_CALL ',
+                apientryp         = 'XRAPI_PTR *',)
             ]
 
     genOpts['xr_generated_dispatch_table.h'] = [

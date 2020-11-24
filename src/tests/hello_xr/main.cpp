@@ -183,6 +183,19 @@ void android_main(struct android_app* app) {
         // Initialize the OpenXR program.
         std::shared_ptr<IOpenXrProgram> program = CreateOpenXrProgram(options, platformPlugin, graphicsPlugin);
 
+        // Initialize the loader for this platform
+        PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
+        if (XR_SUCCEEDED(
+                xrGetInstanceProcAddr(XR_NULL_HANDLE, "xrInitializeLoaderKHR", (PFN_xrVoidFunction*)(&initializeLoader)))) {
+            XrLoaderInitInfoAndroidKHR loaderInitInfoAndroid;
+            memset(&loaderInitInfoAndroid, 0, sizeof(loaderInitInfoAndroid));
+            loaderInitInfoAndroid.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
+            loaderInitInfoAndroid.next = NULL;
+            loaderInitInfoAndroid.applicationVM = app->activity->vm;
+            loaderInitInfoAndroid.applicationContext = app->activity->clazz;
+            initializeLoader((const XrLoaderInitInfoBaseHeaderKHR*)&loaderInitInfoAndroid);
+        }
+
         program->CreateInstance();
         program->InitializeSystem();
         program->InitializeSession();

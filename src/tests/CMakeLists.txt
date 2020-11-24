@@ -17,8 +17,10 @@
 # Author:
 #
 
-add_subdirectory(list)
 add_subdirectory(hello_xr)
-if(BUILD_LOADER)
-add_subdirectory(loader_test)
+if(NOT ANDROID)
+    add_subdirectory(list)
+    if(BUILD_LOADER)
+        add_subdirectory(loader_test)
+    endif()
 endif()

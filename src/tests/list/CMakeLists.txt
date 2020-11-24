@@ -29,9 +29,9 @@ target_include_directories(openxr_runtime_list
     PRIVATE ${PROJECT_BINARY_DIR}/include
     PRIVATE ${PROJECT_SOURCE_DIR}/external/include
 )
-if(VulkanHeaders_FOUND)
+if(Vulkan_FOUND)
     target_include_directories(openxr_runtime_list
-        PRIVATE ${VulkanHeaders_INCLUDE_DIRS}
+        PRIVATE ${Vulkan_INCLUDE_DIRS}
     )
 endif()
 
