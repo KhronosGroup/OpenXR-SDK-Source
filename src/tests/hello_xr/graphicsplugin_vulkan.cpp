@@ -1844,7 +1844,7 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
 #if !defined(XR_USE_PLATFORM_ANDROID)
             VkPhysicalDeviceFeatures availableFeatures{};
             vkGetPhysicalDeviceFeatures(m_vkPhysicalDevice, &availableFeatures);
-            if(availableFeatures.shaderStorageImageMultisample == VK_TRUE) {
+            if (availableFeatures.shaderStorageImageMultisample == VK_TRUE) {
                 // Setting this quiets down a validation error triggered by the Oculus runtime
                 features.shaderStorageImageMultisample = VK_TRUE;
             }
