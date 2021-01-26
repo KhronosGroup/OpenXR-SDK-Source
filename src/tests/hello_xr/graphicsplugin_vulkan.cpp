@@ -1325,6 +1325,15 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         std::vector<const char*> extensions;
         extensions.push_back("VK_EXT_debug_report");
 
+#if defined(USE_MIRROR_WINDOW)
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+        extensions.push_back("VK_KHR_surface");
+        extensions.push_back("VK_KHR_win32_surface");
+#else
+#error CreateSurface not supported on this OS
+#endif  // defined(VK_USE_PLATFORM_WIN32_KHR)
+#endif  // defined(USE_MIRROR_WINDOW)
+
         VkApplicationInfo appInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
         appInfo.pApplicationName = "hello_xr";
         appInfo.applicationVersion = 1;
