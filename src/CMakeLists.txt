@@ -130,6 +130,12 @@ option(
     ON
 )
 
+if(WIN32)
+    set(OPENXR_DEBUG_POSTFIX d CACHE STRING "OpenXR loader debug postfix.")
+else()
+    set(OPENXR_DEBUG_POSTFIX "" CACHE STRING "OpenXR loader debug postfix.")
+endif()
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     option(DYNAMIC_LOADER "Build the loader as a .dll library" OFF)
 else()

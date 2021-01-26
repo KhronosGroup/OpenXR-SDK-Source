@@ -103,6 +103,7 @@ target_include_directories(
             # for target-specific generated files
             ${CMAKE_CURRENT_SOURCE_DIR}
             ${CMAKE_CURRENT_BINARY_DIR}
+    INTERFACE $<INSTALL_INTERFACE:include>
 )
 
 if(Vulkan_FOUND)
@@ -126,6 +127,8 @@ endif()
 
 target_compile_definitions(openxr_loader PRIVATE API_NAME="OpenXR")
 openxr_add_filesystem_utils(openxr_loader)
+
+set_target_properties(openxr_loader PROPERTIES DEBUG_POSTFIX "${OPENXR_DEBUG_POSTFIX}")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set(FALLBACK_CONFIG_DIRS
@@ -193,8 +196,8 @@ elseif(WIN32)
 
     # Need to copy DLL to client directories so clients can easily load it.
     if(DYNAMIC_LOADER AND (CMAKE_GENERATOR MATCHES "^Visual Studio.*"))
-        file(TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/openxr_loader.dll COPY_DLL_SRC_PATH)
-        file(TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/openxr_loader.pdb COPY_PDB_SRC_PATH)
+        file(TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/openxr_loader$<$<CONFIG:Debug>:${OPENXR_DEBUG_POSTFIX}>.dll COPY_DLL_SRC_PATH)
+        file(TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/openxr_loader$<$<CONFIG:Debug>:${OPENXR_DEBUG_POSTFIX}>.pdb COPY_PDB_SRC_PATH)
         file(TO_NATIVE_PATH ${CMAKE_CURRENT_BINARY_DIR}/../tests/hello_xr/$<CONFIGURATION>/
              COPY_DST_HELLO_XR_PATH
         )
@@ -244,11 +247,14 @@ if(CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang")
     endif()
 endif()
 
+add_library(headers INTERFACE)
+target_include_directories(headers INTERFACE $<INSTALL_INTERFACE:include>)
+
 install(
-    TARGETS openxr_loader EXPORT openxr_loader_export
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}$<$<CONFIG:Debug>:/Debug>
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}$<$<CONFIG:Debug>:/Debug>
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}$<$<CONFIG:Debug>:/Debug>
+    TARGETS openxr_loader headers EXPORT openxr_loader_export
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 export(
