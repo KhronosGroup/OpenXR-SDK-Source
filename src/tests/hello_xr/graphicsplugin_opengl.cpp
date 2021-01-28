@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020 The Khronos Group Inc.
+// Copyright (c) 2017-2021, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -357,6 +357,8 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
             ksGpuWindow_SwapBuffers(&window);
         }
     }
+
+    uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return 1; }
 
    private:
 #ifdef XR_USE_PLATFORM_WIN32

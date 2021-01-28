@@ -1,8 +1,12 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2013-2020 The Khronos Group Inc.
+# Copyright (c) 2013-2021, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
+#
+# NOTE: Generated file is dual-licensed (Apache-2.0 OR MIT),
+# to allow downstream projects to use the standard while
+# avoiding license incompatibility
 
 import os
 import re

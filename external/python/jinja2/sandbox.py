@@ -14,10 +14,9 @@
 """
 import types
 import operator
-from collections import Mapping
 from jinja2.environment import Environment
 from jinja2.exceptions import SecurityError
-from jinja2._compat import string_types, PY2
+from jinja2._compat import string_types, PY2, abc, range_type
 from jinja2.utils import Markup
 
 from markupsafe import EscapeFormatter
@@ -79,10 +78,9 @@ except ImportError:
     pass
 
 #: register Python 2.6 abstract base classes
-from collections import MutableSet, MutableMapping, MutableSequence
-_mutable_set_types += (MutableSet,)
-_mutable_mapping_types += (MutableMapping,)
-_mutable_sequence_types += (MutableSequence,)
+_mutable_set_types += (abc.MutableSet,)
+_mutable_mapping_types += (abc.MutableMapping,)
+_mutable_sequence_types += (abc.MutableSequence,)
 
 
 _mutable_spec = (
@@ -103,7 +101,7 @@ _mutable_spec = (
 )
 
 
-class _MagicFormatMapping(Mapping):
+class _MagicFormatMapping(abc.Mapping):
     """This class implements a dummy wrapper to fix a bug in the Python
     standard library for string formatting.
 
@@ -148,10 +146,14 @@ def safe_range(*args):
     """A range that can't generate ranges with a length of more than
     MAX_RANGE items.
     """
-    rng = range(*args)
+    rng = range_type(*args)
+
     if len(rng) > MAX_RANGE:
-        raise OverflowError('range too big, maximum size for range is %d' %
-                            MAX_RANGE)
+        raise OverflowError(
+            "Range too big. The sandbox blocks ranges larger than"
+            " MAX_RANGE (%d)." % MAX_RANGE
+        )
+
     return rng
 
 

@@ -1,1 +1,0 @@
-cmake: Debug library uses d suffix on Windows. CMake OPENXR_DEBUG_POSTFIX variable can be set to something else to change it.  

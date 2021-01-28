@@ -1,7 +1,7 @@
 # How to Build
 
 <!--
-Copyright (c) 2014-2020 The Khronos Group Inc.
+Copyright (c) 2014-2021, The Khronos Group Inc.
 
 SPDX-License-Identifier: CC-BY-4.0
 -->

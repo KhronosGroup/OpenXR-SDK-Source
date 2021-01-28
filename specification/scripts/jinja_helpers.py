@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2019-2020 The Khronos Group Inc.
+# Copyright (c) 2019-2021, The Khronos Group Inc.
 # Copyright (c) 2019 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0

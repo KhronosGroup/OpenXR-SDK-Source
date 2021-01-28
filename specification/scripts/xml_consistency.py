@@ -14,6 +14,7 @@ from pathlib import Path
 
 from check_spec_links import XREntityDatabase as OrigEntityDatabase
 from reg import Registry
+from spec_tools.algo import longest_common_token_prefix
 from spec_tools.attributes import LengthEntry
 from spec_tools.consistency_tools import XMLChecker
 from spec_tools.util import findNamedElem, getElemName, getElemType
@@ -184,9 +185,13 @@ class Checker(XMLChecker):
             bare_end = "_BIT"
             end = bare_end + end
             stripped_enum_type = stripped_enum_type.replace("FlagBits", "")
+        # This is how we apply the "convert type to enum value name" transform: pretend it's a structure type,
+        # then replace "XR_TYPE_" with the generic prefix "XR_"
         start = self.conventions.generate_structure_type_from_name(stripped_enum_type).replace("XR_TYPE", "XR") + "_"
 
         value_names = get_enum_value_names(self.db.registry, enum_type)
+
+        # Check that they do start with the right beginning.
         for name in value_names:
             stripped_name, tag = self.strip_extension_tag(name)
             if not name.startswith(start):
@@ -203,7 +208,14 @@ class Checker(XMLChecker):
             elif end:
                 if not name.endswith(end):
                     self.record_error('Got an enum value whose name does not match the pattern: got', name,
-                                    'but expected something that ended with', end, 'due to typename being', enum_type)
+                                      'but expected something that ended with', end, 'due to typename being', enum_type)
+
+        # Check that the expected beginning is the longest common prefix (meaning the type is named right)
+        if len(value_names) > 1:
+            prefix = longest_common_token_prefix(value_names)
+            if prefix != start:
+                self.record_error('Got an enum whose name does not match the pattern: the type is', enum_type,
+                                  'which would cause values to start with', start, 'but got a different longest common prefix', prefix)
 
     def add_extra_codes(self, types_to_codes):
         """Add any desired entries to the types-to-codes DictOfStringSets
@@ -509,7 +521,6 @@ class Checker(XMLChecker):
             if name_val != expected_name:
                 self.record_error("Incorrect name enum: expected", expected_name,
                                   "got", name_val)
-
 
 
 if __name__ == "__main__":

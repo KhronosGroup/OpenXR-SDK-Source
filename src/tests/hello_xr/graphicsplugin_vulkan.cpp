@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020 The Khronos Group Inc.
+// Copyright (c) 2017-2021, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -1324,10 +1324,9 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 
         std::vector<const char*> extensions;
         extensions.push_back("VK_EXT_debug_report");
-
 #if defined(USE_MIRROR_WINDOW)
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
         extensions.push_back("VK_KHR_surface");
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
         extensions.push_back("VK_KHR_win32_surface");
 #else
 #error CreateSurface not supported on this OS

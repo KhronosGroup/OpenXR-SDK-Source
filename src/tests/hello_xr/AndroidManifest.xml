@@ -4,7 +4,7 @@
 		android:versionCode="1"
 		android:versionName="1.0" android:installLocation="auto" >
 <!--
-Copyright (c) 2017-2020 The Khronos Group Inc.
+Copyright (c) 2017-2021, The Khronos Group Inc.
 
 SPDX-License-Identifier: Apache-2.0
 -->
@@ -14,15 +14,15 @@ SPDX-License-Identifier: Apache-2.0
 	<!-- Tell the system this app works in either 3dof or 6dof mode -->
 	<uses-feature android:name="android.hardware.vr.headtracking" android:required="true" />
 
-	<application android:allowBackup="false" android:label="Hello XR">
+	<application android:allowBackup="false" android:label="Hello XR" android:hasCode="false">
 
 		<!-- The activity is the built-in NativeActivity framework class. -->
 		<!-- launchMode is set to singleTask because there should never be multiple copies of the app running. -->
 		<!-- Theme.Black.NoTitleBar.Fullscreen gives solid black instead of a (bad stereoscopic) gradient on app transition. -->
-        <!-- If targeting API level 24+, configChanges should additionally include 'density'. -->
-        <!-- If targeting API level 24+, android:resizeableActivity="false" should be added. -->
+		<!-- If targeting API level 24+, configChanges should additionally include 'density'. -->
+		<!-- If targeting API level 24+, android:resizeableActivity="false" should be added. -->
 		<activity
-				android:name="com.khronos.hello_xr.MainActivity"
+				android:name="android.app.NativeActivity"
 				android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
 				android:launchMode="singleTask"
 				android:screenOrientation="landscape"

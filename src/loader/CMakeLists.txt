@@ -115,9 +115,10 @@ endif()
 
 target_link_libraries(
     openxr_loader
-    PRIVATE openxr-all-supported ${CMAKE_DL_LIBS}
+    PRIVATE ${CMAKE_DL_LIBS}
     PUBLIC Threads::Threads
 )
+target_compile_definitions(openxr_loader PRIVATE ${OPENXR_ALL_SUPPORTED_DEFINES})
 if(ANDROID)
     target_link_libraries(
         openxr_loader

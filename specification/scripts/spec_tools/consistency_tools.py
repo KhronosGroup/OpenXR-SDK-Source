@@ -286,6 +286,22 @@ class XMLChecker:
                         self.record_error("References a non-existent parameter/member in the length of",
                                           getElemName(param), ":", entry.other_param_name)
 
+    def check_referenced_type(self, desc, ref_name):
+        """
+        Record an error if a type mentioned somewhere doesn't exist.
+
+        :param desc: Description of where this type reference was found,
+                     for the error messsage.
+        :param ref_name: The name of the referenced type. If false-ish (incl. None),
+                         checking is skipped, so OK to pass the results of
+                         info.elem.get() directly
+        """
+        if ref_name:
+            entity = self.db.findEntity(ref_name)
+            if not entity:
+                self.record_error("Unknown type named in", desc, ":",
+                                  ref_name)
+
     def check_type(self, name, info, category):
         """Check a type's XML data for consistency.
 
@@ -311,9 +327,18 @@ class XMLChecker:
                         self.record_error("Type has incorrect type-member value: expected",
                                           expected, "got", val)
 
+            # Check structextends attribute, if present.
+            self.check_referenced_type("'structextends' attribute", info.elem.get("structextends"))
+
+            # Check parentstruct attribute, if present.
+            self.check_referenced_type("'parentstruct' attribute", info.elem.get("parentstruct"))
+
         elif category == "bitmask":
             if 'Flags' not in name:
                 self.record_error("Name of bitmask doesn't include 'Flags'")
+        elif category == "handle":
+            # Check parent attribute, if present.
+            self.check_referenced_type("'parent' attribute", info.elem.get("parent"))
 
     def check_extension(self, name, info, supported):
         """Check an extension's XML data for consistency.

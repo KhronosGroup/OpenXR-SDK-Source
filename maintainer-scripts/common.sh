@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2019-2020 The Khronos Group Inc.
+# Copyright (c) 2019-2021, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -113,8 +113,9 @@ getDocsFilenames() {
         changes/template.md \
         changes/specification \
         changes/registry \
+        external/python \
         maintainer-scripts/check-changelog-fragments.sh \
-        extprocess/ \
+        specification/sources/extprocess/ \
         include/ \
         specification/ \
         | grep -v "specification/loader" \

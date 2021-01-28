@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2020 The Khronos Group Inc.
+// Copyright (c) 2017-2021, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -246,6 +246,8 @@ struct D3D11GraphicsPlugin : public IGraphicsPlugin {
             m_deviceContext->DrawIndexed((UINT)ArraySize(Geometry::c_cubeIndices), 0, 0);
         }
     }
+
+    uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return 1; }
 
    private:
     ComPtr<ID3D11Device> m_device;

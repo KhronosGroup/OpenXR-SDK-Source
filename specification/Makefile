@@ -1,4 +1,4 @@
-# Copyright (c) 2013-2020 The Khronos Group Inc.
+# Copyright (c) 2013-2021, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -44,7 +44,7 @@ ifneq (,$(strip $(VERY_STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level WARN
 endif
 
-SPECREVISION = 1.0.13
+SPECREVISION = 1.0.14
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -514,6 +514,7 @@ all:
 # Meta build for releases. Also copies into approximately the right layout for the OpenXR-Registry repo.
 REGISTRYOUTDIR = $(OUTDIR)/../registry-release/specs/$(MAJORMINORVER)
 release: header html pdf manhtmlpages loader styleguide extprocess
+	-asciidoctor-pdf-optimize $(PDFSPEC)
 	$(QUIET)$(MKDIR) $(REGISTRYOUTDIR)/pdf
 	$(QUIET)$(CP) $(PDFSPEC) $(REGISTRYOUTDIR)/pdf/xrspec.pdf
 	$(QUIET)$(MKDIR) $(REGISTRYOUTDIR)/html
