@@ -112,7 +112,10 @@ jobs:
         displayName: Download CMake scripts
       - download: current
         patterns: "**/*.exe"
-        displayName: Download executables scripts
+        displayName: Download executables
+      - download: current
+        patterns: "**/*.json"
+        displayName: Download manifests
       # Use the specified version of Python from the tool cache
       - task: UsePythonVersion@0
         inputs:
