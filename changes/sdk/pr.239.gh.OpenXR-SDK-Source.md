@@ -1,0 +1,1 @@
+Loader: Fix loader failing to load on Windows 7 due to pathcch dependency.
