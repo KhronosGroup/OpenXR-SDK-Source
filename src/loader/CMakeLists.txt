@@ -90,11 +90,11 @@ set_source_files_properties(${LOADER_EXTERNAL_GEN_FILES} PROPERTIES GENERATED TR
 add_dependencies(openxr_loader generate_openxr_header xr_global_generated_files)
 target_include_directories(
     openxr_loader
-    PRIVATE ${PROJECT_SOURCE_DIR}/src/common
+    # for OpenXR headers
+    PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+           $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
 
-            # for OpenXR headers
-            ${PROJECT_SOURCE_DIR}/include
-            ${PROJECT_BINARY_DIR}/include
+    PRIVATE ${PROJECT_SOURCE_DIR}/src/common
 
             # for generated dispatch table, common_config.h
             ${CMAKE_CURRENT_SOURCE_DIR}/..
