@@ -121,7 +121,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         -->
         <type category="define">
 #if !defined(XR_MAY_ALIAS)
-#if defined(__clang__) || (defined(__GNUC__) &amp;&amp; (__GNUC__ > 4))
+#if defined(__clang__) || (defined(__GNUC__) &amp;&amp; (__GNUC__ &gt; 4))
 #define <name>XR_MAY_ALIAS</name> __attribute__((__may_alias__))
 #else
 #define XR_MAY_ALIAS
