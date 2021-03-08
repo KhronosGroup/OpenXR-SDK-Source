@@ -1345,8 +1345,8 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <type category="struct" name="XrControllerModelNodePropertiesMSFT">
             <member values="XR_TYPE_CONTROLLER_MODEL_NODE_PROPERTIES_MSFT"><type>XrStructureType</type> <name>type</name></member>
             <member><type>void</type>* <name>next</name></member>
-            <member><type>char</type> <name>parentNodeName</name>[XR_MAX_CONTROLLER_MODEL_NODE_NAME_SIZE_MSFT]</member>
-            <member><type>char</type> <name>nodeName</name>[XR_MAX_CONTROLLER_MODEL_NODE_NAME_SIZE_MSFT]</member>
+            <member><type>char</type> <name>parentNodeName</name>[<enum>XR_MAX_CONTROLLER_MODEL_NODE_NAME_SIZE_MSFT</enum>]</member>
+            <member><type>char</type> <name>nodeName</name>[<enum>XR_MAX_CONTROLLER_MODEL_NODE_NAME_SIZE_MSFT</enum>]</member>
         </type>
         <type category="struct" name="XrControllerModelPropertiesMSFT">
             <member values="XR_TYPE_CONTROLLER_MODEL_PROPERTIES_MSFT"><type>XrStructureType</type> <name>type</name></member>
