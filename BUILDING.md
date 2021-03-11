@@ -19,7 +19,7 @@ manager or with something like `pip3 install jinja2`.
 
 Building the OpenXR components in this tree on Windows is supported using
 Visual Studio 2013 and newer.  Before beginning, make sure the appropriate
-"msbuild.exe" is in your PATH.  Also, when generating the solutions/projects
+"msbuild.exe" is in your PATH .  Also, when generating the solutions/projects
 using CMake, be sure to use the correct compiler version number.  The
 following table is provided to help you:
 
@@ -28,6 +28,7 @@ following table is provided to help you:
 | Visual Studio 2013   |       12       |
 | Visual Studio 2015   |       14       |
 | Visual Studio 2017   |       15       |
+| Visual Studio 2019   |       16       |
 
 ### Windows 64-bit
 
@@ -40,6 +41,18 @@ cmake -G "Visual Studio [Version Number] Win64" ../..
 ```
 
 Finally, open the build\win64\OPENXR.sln in the Visual Studio to build the samples.
+
+#### VS2019
+For VS2019 the above may complain and say to split out the arch into `-A '[arch]'`.  This `-A` parameter must be set to `x64`, *not* `Win64`:
+
+```
+mkdir build\win64
+cd build\win64
+cmake -G "Visual Studio [Version Number]" -A x64 ../..
+```
+
+VS2019 includes cmake tools, which can be installed through the Visual Studio Installer -> Modify -> Individual Components -> C++ CMake tools for Windows.  To get the right paths for msbuild.exe and cmake.exe, you can launch through `Start -> Visual Studio 2019 -> x64 Native Tools Command Prompt For VS 2019`.
+
 
 ### Windows 32-bit
 
