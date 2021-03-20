@@ -10,6 +10,8 @@
 #include <stdarg.h>
 #include <stddef.h>
 
+#include "openxr_reflection.h"
+
 // Macro to generate stringify functions for OpenXR enumerations based data provided in openxr_reflection.h
 // clang-format off
 #define ENUM_CASE_STR(name, val) case name: return #name;
