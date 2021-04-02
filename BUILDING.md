@@ -1,4 +1,4 @@
-# How to Build
+# How to Build and Run
 
 <!--
 Copyright (c) 2014-2021, The Khronos Group Inc.
@@ -6,30 +6,42 @@ Copyright (c) 2014-2021, The Khronos Group Inc.
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
-## Python v3.6+ required
+## Building
 
-Certain source files are generated at build time from the `xr.xml` file, utilizing
-python scripts. The scripts make use of the python `pathlib` module, which is
-fully supported in python version 3.6 or later.
+### Python v3.6+ may be required
 
-You will also need the python `jinja2` package, available from your package
-manager or with something like `pip3 install jinja2`.
+**If you are building from most repostories:** (specifically, the
+OpenXR-SDK-Source repository, the OpenXR-CTS repository, or the internal Khronos
+GitLab OpenXR repository) Certain source files are generated at build time from
+the `xr.xml` file, utilizing Python scripts. The scripts make use of the Python
+`pathlib` module, which is fully supported in Python version 3.6 or later.
 
-## Windows
+You will also need the Python `jinja2` package, available from your package
+manager or with something like `pip3 install jinja2`. Most OpenXR repositories
+include a bundled copy of this, but if you see errors about Jinja, this would be
+one approach to try.
+
+**If you are building the `OpenXR-SDK` repository:** all source files have been
+pre-generated for you, and only the OpenXR headers and loader are included.
+
+### CMake
+
+The project is a relatively standard CMake-based project. You
+might consider
+[the official CMake User Interaction Guide][cmake-user-interaction] if you're
+new to building CMake-based projects. The instructions below can mostly be skimmed to find the dependencies
+
+[cmake-user-interaction]:https://cmake.org/cmake/help/latest/guide/user-interaction/
+
+### Windows
 
 Building the OpenXR components in this tree on Windows is supported using Visual
 Studio 2013 and newer. If you are using Visual Studio 2019, you can simply "Open
 folder" and use the built-in CMake support. Other environments, such as VS Code,
 that can have CMake support installed and use the Visual Studio toolchains,
-should also work: the project is a relatively standard CMake-based project. You
-might consider
-[the official CMake User Interaction Guide][cmake-user-interaction] if you're
-new to building CMake-based projects.
+should also work: 
 
-[cmake-user-interaction]:https://cmake.org/cmake/help/latest/guide/user-interaction/
-
-To easily build from the command line using the following steps, make sure the
-appropriate `msbuild.exe` is in your PATH. Also, when generating the
+When generating the
 solutions/projects using CMake, be sure to use the correct compiler version
 number. The following table is provided to help you:
 
@@ -40,11 +52,11 @@ number. The following table is provided to help you:
 | Visual Studio 2017   |       15       |
 | Visual Studio 2019   |       16       |
 
-### Windows 64-bit
+#### Windows 64-bit
 
 First, generate the 64-bit solution and project files using CMake:
 
-```
+```cmd
 mkdir build\win64
 cd build\win64
 cmake -G "Visual Studio [Version Number] Win64" ../..
@@ -67,11 +79,11 @@ Installer -> Modify -> Individual Components -> C++ CMake tools for Windows. To
 get the right paths for `msbuild.exe` and `cmake.exe`, you can launch through
 `Start -> Visual Studio 2019 -> x64 Native Tools Command Prompt For VS 2019`.
 
-### Windows 32-bit
+#### Windows 32-bit
 
 First, generate the 32-bit solution and project files using CMake:
 
-```
+```cmd
 mkdir build\win32
 cd build\win32
 cmake -G "Visual Studio [Version Number]" ../..
@@ -79,78 +91,92 @@ cmake -G "Visual Studio [Version Number]" ../..
 
 Open the build\win32\OPENXR.sln in the Visual Studio to build the samples.
 
-## Linux
+#### (Optional) Building the OpenXR Loader as a DLL
 
-The following set of packages provides all required libs for building for xlib or xcb with OpenGL and Vulkan support.
- - build-essential
- - cmake (of _somewhat_ recent vintage, 3.10+ known working)
- - libgl1-mesa-dev
- - libvulkan-dev
- - libx11-xcb-dev
- - libxcb-dri2-0-dev
- - libxcb-glx0-dev
- - libxcb-icccm4-dev
- - libxcb-keysyms1-dev
- - libxcb-randr0-dev
- - libxrandr-dev
- - libxxf86vm-dev
- - mesa-common-dev
+The OpenXR loader is built as a static library by default on Windows. To instead
+build as a dynamic link library, define the cmake option `DYNAMIC_LOADER=ON`.
+e.g. for Win64, replace the CMake line shown above with:
 
-### Linux Debug
-
+```cmd
+cmake -DDYNAMIC_LOADER=ON -G "Visual Studio [Version Number] Win64" ../..
 ```
+
+Note that even if built as a dynamic library, the loader **should not** be
+installed system-wide on Windows or Android.
+
+### Linux
+
+The following set of packages provides all required libs for building for xlib
+or xcb with OpenGL and Vulkan support.
+
+- build-essential
+- cmake
+- libgl1-mesa-dev
+- libvulkan-dev
+- libx11-xcb-dev
+- libxcb-dri2-0-dev
+- libxcb-glx0-dev
+- libxcb-icccm4-dev
+- libxcb-keysyms1-dev
+- libxcb-randr0-dev
+- libxrandr-dev
+- libxxf86vm-dev
+- mesa-common-dev
+
+#### Linux Debug
+
+```sh
 mkdir -p build/linux_debug
 cd build/linux_debug
 cmake -DCMAKE_BUILD_TYPE=Debug ../..
 make
 ```
 
-### Linux Release
+#### Linux Release (with debug symbols)
 
-```
+```sh
 mkdir -p build/linux_release
 cd build/linux_release
-cmake -DCMAKE_BUILD_TYPE=Release ../..
+cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../..
 make
 ```
 
-## (Optional) Building the OpenXR Loader as a DLL
+## Running the HELLO_XR sample
 
-The OpenXR loader is built as a static library by default. To instead build as a dynamic link library, define
-the cmake option `DYNAMIC_LOADER=ON`.  e.g. for Win64, replace the cmake line shown above with:
+### OpenXR runtime installation
 
-```
-cmake -DDYNAMIC_LOADER=ON -G "Visual Studio [Version Number] Win64" ../..
-```
+An OpenXR _runtime_ must first be installed before running the `hello_xr`
+sample. The runtime is an implementation of the OpenXR API, typically tailed to
+a specific device and distributed by the device manufacturer. Publicly-available
+runtimes are listed on the main OpenXR landing page at
+<https://www.khronos.org/openxr>
 
-# Running the HELLO_XR sample
+### Configuring the OpenXR Loader
 
-## OpenXR runtime installation
+On Windows and Android, the OpenXR loader is distributed with the application,
+not installed to the system. On Linux, the loader is available from many
+distributions already, and may be installed system-wide.
 
-An OpenXR _runtime_ must first be installed before running the hello_xr sample. The runtime is an
-implementation of the OpenXR API, typically tailed to a specific device and distributed by the
-device manufacturer. To allow experimentation with the API in the absence of a specific device runtime,
-several organizations have made available prototype OpenXR runtimes, linked from the main OpenXR landing
-page at https://www.khronos.org/openxr
+#### `XR_RUNTIME_JSON` environment variable
 
-## Configuring the OpenXR Loader
-### XR\_RUNTIME\_JSON environment variable
+The OpenXR loader looks in system-specific locations for the JSON file
+`active_runtime.json`, which describes the default installed OpenXR runtime. To
+override the default selection, you may define an environment variable
+`XR_RUNTIME_JSON` to select a different runtime, or a runtime which has not been
+installed in the default location.
 
-The OpenXR loader looks in system-specific locations for the JSON file `active_runtime.json`, which describes the
-default installed OpenXR runtime. To override the default selection, you may define an environment variable
-`XR_RUNTIME_JSON` to select a different runtime, or a runtime which has not been installed in the default
-location.
+For example, you might set `XR_RUNTIME_JSON` to
+`<build_dir>/test/runtime/my_custom_runtime.json` to select an OpenXR runtime
+described by JSON file `my_custom_runtime.json`.
 
-For example, you might set XR\_RUNTIME\_JSON to `<build_dir>/test/runtime/my_custom_runtime.json` to select
-an OpenXR runtime described by JSON file `my_custom_runtime.json`.
+### Running the hello_xr Test
 
-## Running the Hello_XR Test
+The binary for the hello_xr application is written to the
+`<build_dir>/src/tests/hello_xr` directory. Set your working directory to this
+directory and execute the `hello_xr` binary.
 
-The binary for the hello_xr application is written to the `<build_dir>/src/tests/hello_xr` directory.
-Set your working directory to this directory and execute the hello_xr binary.
+### hello_xr with a dynamic loader (Windows)
 
-### Hello_XR with a dynamic loader (Windows)
-
-When building a DLL version of the loader, the Visual Studio projects generated by CMake will copy the loader
-DLLs to the test application's (hello_xr) binary directory. This makes it unnecessary to copy these files to someplace like `Windows\System32`.
-
+When building a DLL version of the loader, the Visual Studio projects generated
+by CMake will copy the loader DLLs to the test application's (hello_xr) binary
+directory.
