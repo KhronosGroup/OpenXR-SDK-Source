@@ -3550,7 +3550,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
 
           <type name="XrEventDataDisplayRefreshRateChangedFB"/>
           <enum offset="0"  extends="XrStructureType"  name="XR_TYPE_EVENT_DATA_DISPLAY_REFRESH_RATE_CHANGED_FB"/>
- 
+
           <command name="xrEnumerateDisplayRefreshRatesFB"/>
           <command name="xrGetDisplayRefreshRateFB"/>
           <command name="xrRequestDisplayRefreshRateFB"/>
@@ -3592,14 +3592,14 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <enum value="&quot;XR_HTC_extension_107&quot;" name="XR_HTC_extension_107_EXTENSION_NAME"/>
         </require>
     </extension>
-    
+
     <extension name="XR_HTC_extension_108" number="108" type="instance" supported="disabled">
         <require>
             <enum value="1" name="XR_HTC_extension_108_SPEC_VERSION"/>
             <enum value="&quot;XR_HTC_extension_108&quot;" name="XR_HTC_extension_108_EXTENSION_NAME"/>
         </require>
     </extension>
-    
+
     <extension name="XR_FB_color_space" number="109" type="instance" supported="openxr">
         <require>
             <enum value="1" name="XR_FB_color_space_SPEC_VERSION"/>
