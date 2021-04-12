@@ -31,6 +31,7 @@ endif()
 # List of all files externally generated outside of the loader that the loader
 # needs to build with.
 set(LOADER_EXTERNAL_GEN_FILES ${COMMON_GENERATED_OUTPUT})
+set(LOADER_EXTERNAL_GEN_DEPENDS ${COMMON_GENERATED_DEPENDS})
 run_xr_xml_generate(loader_source_generator.py xr_generated_loader.hpp)
 run_xr_xml_generate(loader_source_generator.py xr_generated_loader.cpp)
 
@@ -86,7 +87,9 @@ else()
 endif()
 set_target_properties(openxr_loader PROPERTIES FOLDER ${LOADER_FOLDER})
 
-set_source_files_properties(${LOADER_EXTERNAL_GEN_FILES} PROPERTIES GENERATED TRUE)
+if(LOADER_EXTERNAL_GEN_DEPENDS)
+    set_source_files_properties(${LOADER_EXTERNAL_GEN_DEPENDS} PROPERTIES GENERATED TRUE)
+endif()
 add_dependencies(openxr_loader generate_openxr_header xr_global_generated_files)
 target_include_directories(
     openxr_loader
