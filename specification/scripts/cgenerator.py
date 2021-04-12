@@ -247,13 +247,20 @@ class COutputGenerator(OutputGenerator):
                                                           protect_str=self.genOpts.protectExtensionProtoStr),
                                   file=self.outFile)
                         if self.genOpts.protectProto:
-                            write('#endif', file=self.outFile)
+                            write('#endif',
+                                  self._endProtectComment(protect_directive=self.genOpts.protectProto,
+                                                          protect_str=self.genOpts.protectProtoStr),
+                                  file=self.outFile)
                         else:
                             self.newline()
                     if self.featureExtraProtect is not None:
-                        write('#endif /*', self.featureExtraProtect, '*/', file=self.outFile)
+                        write('#endif',
+                              self._endProtectComment(protect_str=self.featureExtraProtect),
+                              file=self.outFile)
                     if self.genOpts.protectFeature:
-                        write('#endif /*', self.featureName, '*/', file=self.outFile)
+                        write('#endif',
+                              self._endProtectComment(protect_str=self.featureName),
+                              file=self.outFile)
         # Finish processing in superclass
         OutputGenerator.endFeature(self)
 
