@@ -146,9 +146,9 @@ make
 ### OpenXR runtime installation
 
 An OpenXR _runtime_ must first be installed before running the `hello_xr`
-sample. The runtime is an implementation of the OpenXR API, typically tailed to
-a specific device and distributed by the device manufacturer. Publicly-available
-runtimes are listed on the main OpenXR landing page at
+sample. The runtime is an implementation of the OpenXR API, typically tailored
+to a specific device and distributed by the device manufacturer.
+Publicly-available runtimes are listed on the main OpenXR landing page at
 <https://www.khronos.org/openxr>
 
 ### Configuring the OpenXR Loader
