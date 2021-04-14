@@ -376,6 +376,9 @@ class COutputGenerator(OutputGenerator):
             (protect_begin, protect_end) = self.genProtectString(typeElem.get('protect'))
             if protect_begin:
                 body += protect_begin
+
+            structextends = typeElem.get('structextends')
+            body += '// ' + typeName + ' extends ' + structextends + '\n' if structextends else ''
             body += 'typedef ' + typeElem.get('category')
 
             # This is an OpenXR-specific alternative where aliasing refers

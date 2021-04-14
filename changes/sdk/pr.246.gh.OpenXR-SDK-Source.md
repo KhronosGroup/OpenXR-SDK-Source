@@ -1,1 +1,0 @@
-Loader: Fix conflicting filename in openxr_loader.def causing a linker warning when building debug for Windows.

@@ -132,7 +132,7 @@ class CReflectionOutputGenerator(OutputGenerator):
             protect.update(localProtect.split(','))
 
         if protect:
-            protect = tuple(protect)
+            protect = tuple(sorted(protect))
         else:
             protect = None
 

@@ -40,7 +40,7 @@ add_to_tar() {
     TARNAME=$1
     shift
     echo "[$TARNAME.tar] Adding $@"
-    tar rf "$ROOT/$TARNAME.tar" "$@"
+    tar --owner=0 --group=0 -rf "$ROOT/$TARNAME.tar" "$@"
 }
 
 # Generate a file using the scripts in specification/scripts/,

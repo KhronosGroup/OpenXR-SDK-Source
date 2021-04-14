@@ -44,7 +44,7 @@ ifneq (,$(strip $(VERY_STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level WARN
 endif
 
-SPECREVISION = 1.0.14
+SPECREVISION = 1.0.15
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -463,7 +463,7 @@ endif
 $(EXAMPLES_MAKEFILE): $(EXAMPLES_SCRIPT)
 	$(QUIET)$(PYTHON) $< --makefile=$@ --line_numbers $(EXTRACT_QUIET)
 
-build-examples: $(EXAMPLES_MAKEFILE) $(HEADER)
+build-examples: $(EXAMPLES_MAKEFILE) header
 	$(QUIET)$(MAKE) -f $(EXAMPLES_MAKEFILE)
 .PHONY: build-examples
 

@@ -729,6 +729,7 @@ XRAPI_ATTR XrResult XRAPI_CALL LoaderXrGetInstanceProcAddr(XrInstance instance, 
         return XR_ERROR_VALIDATION_FAILURE;
     }
 
+    LoaderInstance *loader_instance = nullptr;
     if (instance == XR_NULL_HANDLE) {
         // Null instance is allowed for a few specific API entry points, otherwise return error
         if (strcmp(name, "xrCreateInstance") != 0 && strcmp(name, "xrEnumerateApiLayerProperties") != 0 &&
@@ -739,6 +740,15 @@ XRAPI_ATTR XrResult XRAPI_CALL LoaderXrGetInstanceProcAddr(XrInstance instance, 
             error_str += " requires a valid instance";
             LoaderLogger::LogValidationErrorMessage("VUID-xrGetInstanceProcAddr-instance-parameter", "xrGetInstanceProcAddr",
                                                     error_str);
+            return XR_ERROR_HANDLE_INVALID;
+        }
+    } else {
+        // non null instance passed in, it should be our current instance
+        XrResult result = ActiveLoaderInstance::Get(&loader_instance, "xrGetInstanceProcAddr");
+        if (XR_FAILED(result)) {
+            return result;
+        }
+        if (loader_instance->GetInstanceHandle() != instance) {
             return XR_ERROR_HANDLE_INVALID;
         }
     }
@@ -766,13 +776,6 @@ XRAPI_ATTR XrResult XRAPI_CALL LoaderXrGetInstanceProcAddr(XrInstance instance, 
     } else if (strcmp(name, "xrDestroyInstance") == 0) {
         *function = reinterpret_cast<PFN_xrVoidFunction>(LoaderXrDestroyInstance);
         return XR_SUCCESS;
-    }
-
-    // Remainder of the functions require the LoaderInstance.
-    LoaderInstance *loader_instance = nullptr;
-    XrResult result = ActiveLoaderInstance::Get(&loader_instance, "xrGetInstanceProcAddr");
-    if (XR_FAILED(result)) {
-        return result;
     }
 
     // XR_EXT_debug_utils is built into the loader and handled partly through the xrGetInstanceProcAddress terminator,

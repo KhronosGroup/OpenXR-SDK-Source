@@ -8,7 +8,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 ## Layer Name
 
-XR\_APILAYER\_LUNARG\_api\_dump
+`XR_APILAYER_LUNARG_api_dump`
 
 ## Description
 
@@ -20,6 +20,7 @@ then be written out to the prompt or a file.
 ## Settings
 
 There are three modes currently supported:
+
 1. Output text to stdout
 2. Output text to a file
 3. Output HTML content to a file
@@ -28,16 +29,16 @@ The default mode of the API Dump layer is outputting information to
 stdout.  To enable text output to a file, two environmental variables
 must be set:
 
-* XR\_API\_DUMP\_EXPORT\_TYPE
-* XR\_API\_DUMP\_FILE\_NAME
+* `XR_API_DUMP_EXPORT_TYPE`
+* `XR_API_DUMP_FILE_NAME`
 
-XR\_API\_DUMP\_EXPORT\_TYPE is used to define the type of output from API
+`XR_API_DUMP_EXPORT_TYPE` is used to define the type of output from API
 dump.  Currently, this can only be set to the following options:
 
-* text  : This will generate standard text output
-* html  : This will generate HTML formatted content.
+* `text`  : This will generate standard text output
+* `html`  : This will generate HTML formatted content.
 
-XR\_API\_DUMP\_FILE\_NAME is used to define the file name that is written
+`XR_API_DUMP_FILE_NAME` is used to define the file name that is written
 to.  If not defined, the information goes to stdout.  If defined,
 then the file will be written with the output of the API dump layer.
 
@@ -46,64 +47,67 @@ then the file will be written with the output of the API dump layer.
 ### Example Text Output
 
 For outputting text to a file, you would do the following:
-```
+
+```sh
 export XR_API_DUMP_EXPORT_TYPE=text
 export XR_API_DUMP_FILE_NAME=my_api_dump.txt
 ```
 
-When the XR\_APILAYER\_LUNARG\_api\_dump API layer is enabled, the
+When the `XR_APILAYER_LUNARG_api_dump` API layer is enabled, the
 output (whether to stdout or a file) should look like
 the following:
 
-```
+```none
 XrResult xrCreateInstance
-    XrInstanceCreateInfo* info = 0x7fff21511b90
-    XrStructureType info->sType = 3
-    const void* info->next = 0
-    uint32_t info->flags = 0
-    uint32_t info->enabledLayerCount = 0
-    const char* const* info->enabledLayerNames = 0x0
-    uint32_t info->enabledExtensionCount = 0
-    const char* const* info->enabledLayerNames = 0x0
-    XrInstance instance = 0x7fff21511080
+    const XrInstanceCreateInfo* info = 0x000000b0a32ff5c8
+    XrStructureType info->type = 3
+    const void * info->next = 0x0000000000000000
+    XrInstanceCreateFlags info->createFlags = 0
+    XrApplicationInfo info->applicationInfo = 0x000000b0a32ff5e0
+    char* info->applicationInfo->applicationName = HelloXR
+    uint32_t info->applicationInfo->applicationVersion = 0x0
+    char* info->applicationInfo->engineName
+    uint32_t info->applicationInfo->engineVersion = 0x0
+    XrVersion info->applicationInfo->apiVersion = 0x100000000000e
+    uint32_t info->enabledApiLayerCount = 0x0
+    const char* const* info->enabledApiLayerNames = 0x0000000000000000
+    uint32_t info->enabledExtensionCount = 0x1
+    const char* const* info->enabledExtensionNames = 0x000001F52F564890
+    const char* const* info->enabledExtensionNames[0] = XR_KHR_D3D11_enable
+    XrInstance* instance = 0x000000b0a32ff1e0
 XrResult xrGetInstanceProcAddr
-    XrInstance instance = 0x155a230
+    XrInstance instance = 0x0000000000000001
     const char* name = xrCreateInstance
-    PFN_xrVoidFunction* function = 0x7fff21512010
+    PFN_xrVoidFunction* function = 0x000001f53138afc8
 XrResult xrGetInstanceProcAddr
-    XrInstance instance = 0x155a230
+    XrInstance instance = 0x0000000000000001
     const char* name = xrDestroyInstance
-    PFN_xrVoidFunction* function = 0x7fff21512020
+    PFN_xrVoidFunction* function = 0x000001f53138afd0
+XrResult xrGetInstanceProcAddr
+    XrInstance instance = 0x0000000000000001
+    const char* name = xrGetInstanceProperties
+    PFN_xrVoidFunction* function = 0x000001f53138afd8
 ...
-XrResult xrEnumerateSystems
-    XrInstance instance = 0x155a230
-    uint32_t systemPathCapacityInput = 0x1
-    uint32_t* systemPathCountOutput = 0x0x7fff21511b84
-    XrPath* systemPaths = 0x7fff21511b78
-XrResult xrCreateSystem
-    XrInstance instance = 0x155a230
-    XrSystemCreateInfo* info = 0x7fff21511b30
-    XrStructureType info->sType = 7
-    uint32_t info->flags = 0x0
-    XrPath info->physicalDisplayDevice = 0x0
-    XrGraphicsAPI info->graphicsApi = 66565
-    XrGraphicsBinding info->graphicsBinding
-    XrGraphicsBindingOpenGL* info->graphicsBinding.openGL = 0x0
-    XrGraphicsBindingOpenGLES* info->graphicsBinding.openGLES = 0x0
-    XrGraphicsBindingVulkan* info->graphicsBinding.vulkan = 0x0
-    XrGraphicsBindingD3D* info->graphicsBinding.d3d = 0x0
-    XrGraphicsBindingMetal* info->graphicsBinding.metal = 0x0
-    uint32_t info->enabledExtensionCount = 0x0
-    XrSystem* system = 0x7fff21511b28
-XrResult xrCreateFence
-    XrSystem system = 0x155ca30
-    XrFenceCreateInfo* info = 0x7fff21511610
-    XrStructureType info->sType = 9
-    XrFenceCreateFlags info->flags = 0
-    XrFence* fence = 0x17017a0
+XrResult xrGetInstanceProperties
+    XrInstance instance = 0000000000000001
+    XrInstanceProperties* instanceProperties = 000000B0A32FFC30
+XrResult xrGetSystem
+    XrInstance instance = 0000000000000001
+    const XrSystemGetInfo* getInfo = 0x000000b0a32ffcd8
+    XrStructureType getInfo->type = XR_TYPE_SYSTEM_GET_INFO
+    const void * getInfo->next = 0x0000000000000000
+    XrFormFactor getInfo->formFactor = 1
+    XrSystemId* systemId = 000001F52F5484B0
+XrResult xrEnumerateViewConfigurations
+    XrInstance instance = 0000000000000001
+    XrSystemId systemId = 1
+    uint32_t viewConfigurationTypeCapacityInput = 0x0
+    uint32_t* viewConfigurationTypeCountOutput = 000000B0A32FFBE0
+    XrViewConfigurationType* viewConfigurationTypes = 0000000000000000
 ```
 
 You'll notice that the information contains:
+
 * The parameter's type
 * The parameter's name (expanded if it's inside a structure)
 * The parameter's value
@@ -111,12 +115,13 @@ You'll notice that the information contains:
 ### Example HTML Output
 
 For outputting HTML content to a file, you would do the following:
-```
+
+```sh
 export XR_API_DUMP_EXPORT_TYPE=html
 export XR_API_DUMP_FILE_NAME=my_api_dump.html
 ```
 
-When the XR\_APILAYER\_LUNARG_api_dump APIlayer is enabled, and the
+When the XR_APILAYER_LUNARG_api_dump APIlayer is enabled, and the
 user has enabled HTML output, the resulting HTML file contents
 (when rendered through an internet browser) should look like the
 following:

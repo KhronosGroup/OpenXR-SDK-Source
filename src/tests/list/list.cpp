@@ -118,6 +118,20 @@ int main() {
         printf("\t%s %d\n", extension.extensionName, extension.extensionVersion);
     }
 
+    xrEnumerateApiLayerProperties(0, &size, nullptr);
+    std::vector<XrApiLayerProperties> apiLayerProperties;
+    for (uint32_t i = 0; i < size; i++) {
+        apiLayerProperties.push_back(XrApiLayerProperties{XR_TYPE_API_LAYER_PROPERTIES, nullptr});
+    }
+    xrEnumerateApiLayerProperties(size, &size, apiLayerProperties.data());
+
+    printf("List API layer properties\n");
+    for (XrApiLayerProperties apiLayerProperty : apiLayerProperties) {
+        printf("\t%s %u.%u.%u %u %s\n", apiLayerProperty.layerName, XR_VERSION_MAJOR(apiLayerProperty.specVersion),
+               XR_VERSION_MINOR(apiLayerProperty.specVersion), XR_VERSION_PATCH(apiLayerProperty.specVersion),
+               apiLayerProperty.layerVersion, apiLayerProperty.description);
+    }
+
     // The program struct will do cleanup for us.
     return 0;
 }

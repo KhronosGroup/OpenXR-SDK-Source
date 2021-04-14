@@ -63,7 +63,8 @@ pnamePat = re.compile(r'pname:(?P<param>\w+)')
 # Markup that's OK in a contiguous paragraph but otherwise passed through
 #   .anything
 #   === Section Titles
-endParaContinue = re.compile(r'^(\..*|=+ .+)$')
+#   image::path_to_image[attributes]  (apparently a single colon is OK but less idiomatic)
+endParaContinue = re.compile(r'^(\..*|=+ .+|image:.*\[.*\])$')
 
 # Markup for block delimiters whose contents *should* be reformatted
 #   --   (exactly two)  (open block)
@@ -92,7 +93,8 @@ blockPassthrough = re.compile(r'^(\|={3,}|[`]{3}|[-.+/]{4,})$')
 #   :: bullet (no longer supported by asciidoctor 2)
 #   {empty}:: bullet
 #   1. list item
-beginBullet = re.compile(r'^ *([-*.]+|\{empty\}::|::|[0-9]+[.]) ')
+#   <1> source listing callout
+beginBullet = re.compile(r'^ *([-*.]+|\{empty\}::|::|[0-9]+[.]|<([0-9]+)>) ')
 
 # Text that (may) not end sentences
 

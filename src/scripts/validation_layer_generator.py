@@ -501,7 +501,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                     continue
             if struct_tuple.protect_value:
                 next_chain_info += '#if %s\n' % struct_tuple.protect_string
-
+                
             next_chain_info += self.writeIndent(2)
             next_chain_info += 'case %s:\n' % cur_value.name
             next_chain_info += self.writeIndent(3)
