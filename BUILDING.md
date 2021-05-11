@@ -39,7 +39,7 @@ Building the OpenXR components in this tree on Windows is supported using Visual
 Studio 2013 and newer. If you are using Visual Studio 2019, you can simply "Open
 folder" and use the built-in CMake support. Other environments, such as VS Code,
 that can have CMake support installed and use the Visual Studio toolchains,
-should also work: 
+should also work:
 
 When generating the
 solutions/projects using CMake, be sure to use the correct compiler version

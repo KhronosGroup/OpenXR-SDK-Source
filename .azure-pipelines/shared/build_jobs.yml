@@ -1,8 +1,13 @@
-# Copyright (c) 2019-2020 The Khronos Group Inc.
+# Copyright (c) 2019-2021 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
 parameters:
-  sourceDir: "$(System.DefaultWorkingDirectory)"
+  - name: sourceDir
+    type: string
+    default: "$(System.DefaultWorkingDirectory)"
+  - name: isSdk
+    type: boolean
+    default: true
 
 jobs:
   # Build the loader, API layers, and samples on Linux
@@ -21,7 +26,7 @@ jobs:
           presentationBackend: wayland
     pool:
       vmImage: "ubuntu-latest"
-    container: khronosgroup/docker-images:openxr-sdk
+    container: khronosgroup/docker-images:openxr-sdk.202102
     steps:
       # First build as debug
       - template: build_linux.yml
@@ -43,7 +48,7 @@ jobs:
       - task: PythonScript@0
         name: winmatrix
         inputs:
-          scriptPath: $(System.DefaultWorkingDirectory)/.azure-pipelines/generate_windows_matrix_build.py
+          scriptPath: $(System.DefaultWorkingDirectory)/.azure-pipelines/shared/generate_windows_matrix_build.py
           # argument sets the variable name defined by python script
           arguments: winbuild
 
@@ -91,6 +96,7 @@ jobs:
 
   - job: combine_artifacts
     dependsOn: windows_build
+    condition: ${{ eq(parameters.isSdk, true) }}
     displayName: "Organize artifacts"
     pool:
       vmImage: "windows-latest"
@@ -119,11 +125,11 @@ jobs:
       # Use the specified version of Python from the tool cache
       - task: UsePythonVersion@0
         inputs:
-          versionSpec: '3.9'
+          versionSpec: "3.9"
       - task: PythonScript@0
         displayName: Move artifact contents
         inputs:
-          scriptPath: $(System.DefaultWorkingDirectory)/.azure-pipelines/organize_windows_artifacts.py
+          scriptPath: $(System.DefaultWorkingDirectory)/.azure-pipelines/shared/organize_windows_artifacts.py
           arguments: $(Pipeline.Workspace) $(System.DefaultWorkingDirectory)/openxr_loader
       - task: PublishPipelineArtifact@1
         displayName: Publish combined artifact

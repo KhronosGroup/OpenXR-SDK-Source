@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: CC0-1.0
+# SPDX-FileCopyrightText: 2021 Collabora, Ltd.
+
+# Changelog fragments will never start with a header.
+MD041: false
+
+# Changelog fragments have long lines and this is fine, they're wrapped before use
+MD013: false

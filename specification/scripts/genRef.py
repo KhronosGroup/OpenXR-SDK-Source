@@ -524,7 +524,8 @@ def genRef(specFile, baseDir):
 
     - specFile - filename to extract from
     - baseDir - output directory to generate page in"""
-    file = loadFile(specFile)
+    # We don't care the newline format used here.
+    file, _ = loadFile(specFile)
     if file is None:
         return
 

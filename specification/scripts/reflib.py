@@ -236,17 +236,22 @@ def lookupPage(pageMap, name):
     return pi
 
 def loadFile(filename):
-    """Load a file into a list of strings. Return the list or None on failure"""
+    """Load a file into a list of strings. Return the (list, newline_string) or (None, None) on failure"""
+    newline_string = "\n"
     try:
-        fp = open(filename, 'r', encoding='utf-8')
+        with open(filename, 'rb') as fp:
+            contents = fp.read()
+            if contents.count(b"\r\n") > 1:
+                newline_string = "\r\n"
+
+        with open(filename, 'r', encoding='utf-8') as fp:
+            lines = fp.readlines()
     except:
         logWarn('Cannot open file', filename, ':', sys.exc_info()[0])
-        return None
+        return None, None
 
-    file = fp.readlines()
-    fp.close()
 
-    return file
+    return lines, newline_string
 
 def clampToBlock(line, minline, maxline):
     """Clamp a line number to be in the range [minline,maxline].

@@ -233,12 +233,9 @@ class Checker(XMLChecker):
 
         # Filter out any based on the specific command
         if cmd_name.startswith(DESTROY_PREFIX):
-            # xrDestroyX can't return XR_ERROR_X_LOST or XR_X_LOSS_PENDING
-            # (right?)
-            handle = cmd_name[len(DESTROY_PREFIX):].upper()
-            codes = codes.copy()
-            codes.discard("XR_ERROR_{}_LOST".format(handle))
-            codes.discard("XR_{}_LOSS_PENDING".format(handle))
+            # xrDestroyX should not return XR_ERROR_anything_LOST or XR_anything_LOSS_PENDING
+            codes = {x for x in codes if not x.endswith("_LOST")}
+            codes = {x for x in codes if not x.endswith("_LOSS_PENDING")}
         return codes
 
     def check_command_return_codes_basic(self, name, info,

@@ -41,9 +41,9 @@ check_tree_and_changelog() {
     shift
     if changes_in_tree "$@"; then
         if changes_in_tree $changelog_dir; then
-            echo "OK: Found changes in $@ and changelog fragment in $changelog_dir"
+            echo "OK: Found changes in $* and changelog fragment in $changelog_dir"
         else
-            echo "Error: Found changes in $@ but no changelog fragment in $changelog_dir"
+            echo "Error: Found changes in $* but no changelog fragment in $changelog_dir"
             RESULT=false
             export RESULT
         fi

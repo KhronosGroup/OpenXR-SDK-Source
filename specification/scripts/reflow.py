@@ -544,7 +544,7 @@ def apiMatch(oldname, newname):
 def reflowFile(filename, args):
     logDiag('reflow: filename', filename)
 
-    lines = loadFile(filename)
+    lines, newline_string = loadFile(filename)
     if lines is None:
         return
 
@@ -558,7 +558,7 @@ def reflowFile(filename, args):
         outFilename = args.outDir + '/' + os.path.basename(filename) + args.suffix
 
     try:
-        fp = open(outFilename, 'w', encoding='utf8')
+        fp = open(outFilename, 'w', encoding='utf8', newline=newline_string)
     except:
         logWarn('Cannot open output file', filename, ':', sys.exc_info()[0])
         return

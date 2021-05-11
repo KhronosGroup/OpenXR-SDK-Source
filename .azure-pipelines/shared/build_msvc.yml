@@ -1,15 +1,26 @@
-# Copyright (c) 2019-2020 The Khronos Group Inc.
+# Copyright (c) 2019-2021 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
 parameters:
-  buildType: "Debug"
-  generator: "Visual Studio 16 2019"
-  cmakeArgs: ""
-  sourceDir: "$(System.DefaultWorkingDirectory)"
-  useVulkan: "true"
+  - name: buildType
+    type: string
+    default: "Debug"
+  - name: generator
+    type: string
+    default: "Visual Studio 16 2019"
+  - name: cmakeArgs
+    type: string
+    default: ""
+  - name: sourceDir
+    type: string
+    default: "$(System.DefaultWorkingDirectory)"
+    # TODO should be boolean
+  - name: useVulkan
+    type: string
+    default: "true"
 
 steps:
-  - powershell: ./.azure-pipelines/install_vulkan.ps1
+  - powershell: ./.azure-pipelines/shared/install_vulkan.ps1
     displayName: Install Vulkan SDK
     workingDirectory: "${{ parameters.sourceDir }}"
     condition: eq('${{ parameters.useVulkan}}', 'true')

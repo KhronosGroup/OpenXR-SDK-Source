@@ -1935,6 +1935,8 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 struct_check += self.writeIndent(indent)
                 struct_check += 'return XR_ERROR_VALIDATION_FAILURE;\n'
                 struct_check += '}\n\n'
+                if xr_struct.protect_value:
+                    struct_check += '#endif // %s\n' % xr_struct.protect_string
                 continue
 
             first_member_handle_tuple = None

@@ -1,4 +1,4 @@
-# Copyright (c) 2019-2020 The Khronos Group Inc.
+# Copyright (c) 2019-2021 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
 # Main azure-pipelines configuration for the OpenXR-SDK-Sources repo.
@@ -12,16 +12,16 @@ variables:
 stages:
   - stage: Check
     jobs:
-      - template: check_clang_format.yml
+      - template: shared/check_clang_format.yml
 
   - stage: Build
     jobs:
-      - template: build_jobs.yml
+      - template: shared/build_jobs.yml
       # Build the loader documentation
       - job: loader_docs
         pool:
-          vmImage: "ubuntu-16.04"
-        container: khronosgroup/docker-images:openxr-base
+          vmImage: "ubuntu-latest"
+        container: khronosgroup/docker-images:openxr-base.202102
         steps:
           - script: make loader
             workingDirectory: specification
@@ -33,8 +33,8 @@ stages:
     jobs:
       - job: archive
         pool:
-          vmImage: "ubuntu-16.04"
-        container: khronosgroup/docker-images:openxr-base
+          vmImage: "ubuntu-latest"
+        container: khronosgroup/docker-images:openxr-base.202102
         steps:
           - script: make loader
             workingDirectory: specification
@@ -61,14 +61,14 @@ stages:
               buildType: RelWithDebInfo
               presentationBackend: wayland
         pool:
-          vmImage: "ubuntu-16.04"
+          vmImage: "ubuntu-latest"
         container: khronosgroup/docker-images:openxr-sdk
         steps:
           - task: DownloadPipelineArtifact@2
+            displayName: Download archived OpenXR-SDK
             inputs:
               source: current
               artifact: sdk-tarball
-              displayName: Download archived OpenXR-SDK
               path: "$(Pipeline.Workspace)"
           - script: ls -la
             displayName: List files in directory
@@ -80,7 +80,7 @@ stages:
               destinationFolder: $(Pipeline.Workspace)/pregen
               cleanDestinationFolder: true
           - script: ls -la $(Pipeline.Workspace)/pregen
-          - template: build_linux.yml
+          - template: shared/build_linux.yml
             parameters:
               sourceDir: $(Pipeline.Workspace)/pregen
               buildType: RelWithDebInfo
@@ -92,10 +92,10 @@ stages:
           vmImage: "windows-latest"
         steps:
           - task: DownloadPipelineArtifact@2
+            displayName: Download archived OpenXR-SDK
             inputs:
               source: current
               artifact: sdk-tarball
-              displayName: Download archived OpenXR-SDK
               path: "$(Pipeline.Workspace)"
 
           - task: ExtractFiles@1
@@ -104,7 +104,7 @@ stages:
               destinationFolder: $(Pipeline.Workspace)/pregen
               cleanDestinationFolder: true
 
-          - template: build_msvc.yml
+          - template: shared/build_msvc.yml
             parameters:
               sourceDir: $(Pipeline.Workspace)/pregen
               buildType: RelWithDebInfo

@@ -1,11 +1,19 @@
-# Copyright (c) 2019-2020 The Khronos Group Inc.
+# Copyright (c) 2019-2021 The Khronos Group Inc.
 # SPDX-License-Identifier: Apache-2.0
 
 parameters:
-  buildType: RelWithDebInfo
-  cmakeArgs: ""
-  buildDir: build
-  sourceDir: "$(System.DefaultWorkingDirectory)"
+  - name: buildType
+    type: string
+    default: "RelWithDebInfo"
+  - name: cmakeArgs
+    type: string
+    default: ""
+  - name: sourceDir
+    type: string
+    default: "$(System.DefaultWorkingDirectory)"
+  - name: buildDir
+    type: string
+    default: build
 
 steps:
   - script: |

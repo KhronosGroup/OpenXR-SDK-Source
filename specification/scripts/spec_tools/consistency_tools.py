@@ -719,14 +719,10 @@ def compute_type_to_codes(handle_data, types_to_codes, extra_op=None):
 
     extra_handle_codes = {}
     for handle_type, ancestors in handle_ancestors.items():
-        codes = set()
         # The sets of return codes corresponding to each ancestor type.
-        ancestors_codes = (types_to_codes.get(ancestor, set())
-                           for ancestor in ancestors)
-        codes.union(*ancestors_codes)
-        # for parent_codes in ancestors_codes:
-        #     codes.update(parent_codes)
-        extra_handle_codes[handle_type] = codes
+        ancestors_codes = [types_to_codes.get(ancestor, set())
+                           for ancestor in ancestors]
+        extra_handle_codes[handle_type] = set().union(*ancestors_codes)
 
     for handle_type, extras in extra_handle_codes.items():
         types_to_codes.add(handle_type, extras)
