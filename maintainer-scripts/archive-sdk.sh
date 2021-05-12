@@ -38,10 +38,17 @@ TARNAME=OpenXR-SDK
 # shellcheck disable=SC2046
 makeSubset "$TARNAME" $(getSDKFilenames)
 (
+    if [ -f COPYING.adoc ]; then
+        # Add the shared COPYING.adoc used in all GitHub projects derived from the internal openxr repo
+        add_to_tar "$TARNAME" COPYING.adoc
+    fi
+
     cd github
 
-    # Add the shared COPYING.adoc used in all GitHub projects derived from the internal openxr repo
-    add_to_tar "$TARNAME" COPYING.adoc
+    if [ -f COPYING.adoc ] && ! [ -f ../COPYING.adoc ]; then
+        # If we didn't get it before, maybe we got it now.
+        add_to_tar "$TARNAME" COPYING.adoc
+    fi
 
     cd sdk
     # Add the SDK-specific README
