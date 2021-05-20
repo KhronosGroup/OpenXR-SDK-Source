@@ -1,0 +1,1 @@
+Loader: Fix iteration over explicit layer manifests.
