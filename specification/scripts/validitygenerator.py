@@ -9,9 +9,9 @@ from enum import Enum
 from functools import reduce
 from pathlib import Path
 
-from conventions import ProseListFormats as plf
 from generator import OutputGenerator, write
 from spec_tools.attributes import ExternSyncEntry, LengthEntry
+from spec_tools.conventions import ProseListFormats as plf
 from spec_tools.data_structures import DictOfStringSets
 from spec_tools.util import (findNamedElem, findTypedElem, getElemName,
                              getElemType)
@@ -57,6 +57,11 @@ def _genericIsDisjoint(a, b):
         return False
     # if we never enter the loop...
     return True
+
+
+_WCHAR = "wchar_t"
+_CHAR = "char"
+_CHARACTER_TYPES = {_CHAR, _WCHAR}
 
 
 class StateRelationship(Enum):
@@ -476,7 +481,7 @@ class ValidityOutputGenerator(OutputGenerator):
         entry = ValidityEntry(anchor=(param_name, 'parameter'))
 
         if self.paramIsStaticArray(param):
-            if paramtype != 'char':
+            if paramtype not in _CHARACTER_TYPES:
                 entry += 'Any given element of '
             return entry
 
@@ -568,14 +573,19 @@ class ValidityOutputGenerator(OutputGenerator):
                 entry += '. '
                 entry += see_also
 
-        if self.paramIsStaticArray(param) and paramtype == 'char':
+        if self.paramIsStaticArray(param) and paramtype in _CHARACTER_TYPES:
             # TODO this is a minor hack to determine if this is a command parameter or a struct member
             if self.paramIsConst(param) or blockname.startswith(self.conventions.type_prefix):
+                if paramtype != _CHAR:
+                    raise UnhandledCaseError("input arrays of wchar_t are not yet handled")
                 entry += 'a null-terminated UTF-8 string whose length is less than or equal to '
                 entry += self.staticArrayLength(param)
             else:
                 # This is a command's output parameter
-                entry += 'a character array of length %s ' % self.staticArrayLength(param)
+                entry += 'a '
+                if paramtype == _WCHAR:
+                    entry += "wide "
+                entry += 'character array of length %s ' % self.staticArrayLength(param)
             add_see_also(entry)
             validity += entry
             return validity
@@ -630,7 +640,7 @@ class ValidityOutputGenerator(OutputGenerator):
                     # An array of void values is a byte array.
                     entry += 'byte'
 
-            elif paramtype == 'char':
+            elif paramtype == _CHAR:
                 # A null terminated array of chars is a string
                 if lengths[-1].null_terminated:
                     entry += 'UTF-8 string'
@@ -751,7 +761,7 @@ class ValidityOutputGenerator(OutputGenerator):
                                     or is_pointer
                                     or not self.isStructAlwaysValid(paramtype))
         typetext = None
-        if paramtype in ('void', 'char'):
+        if paramtype in ('void', _CHAR):
             # Chars and void are special cases - we call the impl function,
             # but don't use the typetext.
             # A null-terminated char array is a string, else it's chars.

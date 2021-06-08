@@ -40,3 +40,13 @@ Currently the best sample code is in [src/tests/hello_xr/](https://github.com/Kh
 ## Building
 
 See [BUILDING.md](https://github.com/KhronosGroup/OpenXR-SDK-Source/blob/master/BUILDING.md)
+
+## Note about `git blame`
+
+We are tracking "bulk commits" in the `.git-blame-ignore-revs` file, for better
+git blame output. Sadly it appears that web interfaces do not yet handle this
+file, but you can if using the command line. See
+[--ignore-revs-file docs](https://git-scm.com/docs/git-blame#Documentation/git-blame.txt---ignore-revs-fileltfilegt)
+for details, and
+[this blog post about ignore-revs](https://www.moxio.com/blog/43/ignoring-bulk-change-commits-with-git-blame)
+for some useful usage details.

@@ -10,7 +10,7 @@
 import re
 from pathlib import Path
 
-from conventions import ConventionsBase
+from spec_tools.conventions import ConventionsBase
 
 # Tokenize into "words"
 # The leading named groups are for "special cases" per spec "Implicit Valid Usage" section 2.7.7

@@ -29,7 +29,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <tag name="EPIC"       author="Epic"                        contact="Nick Whiting @whitingn"/>
         <tag name="EXT"        author="Multivendor"                 contact="Ryan Pavlik @rpavlik"/>
         <tag name="EXTX"       author="Multivendor experimental"    contact="Brad Grantham @bradgrantham-lunarg"/>
-        <tag name="FB"         author="Facebook"                    contact="Cass Everitt @casseveritt, Ed Hutchins @eahutchins"/>
+        <tag name="FB"         author="Facebook"                    contact="Cass Everitt @casseveritt, Jonathan Wright @Nelno"/>
         <tag name="GOOGLE"     author="Google"                      contact="Kaye Mason @chaleur"/>
         <tag name="HTC"        author="HTC"                         contact="Chris Kuo @ggkuo, Kyle Chen @kylechen76"/>
         <tag name="HUAWEI"     author="Huawei"                      contact="Yihong Huang @rachelhuang"/>
@@ -90,14 +90,18 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <type requires="xcb/xcb.h" name="xcb_window_t"/>
         <type requires="vulkan/vulkan.h" name="PFN_vkGetInstanceProcAddr"/>
         <type requires="vulkan/vulkan.h" name="VkAllocationCallbacks"/>
+        <type requires="vulkan/vulkan.h" name="VkComponentSwizzle"/>
         <type requires="vulkan/vulkan.h" name="VkDevice"/>
         <type requires="vulkan/vulkan.h" name="VkDeviceCreateInfo"/>
+        <type requires="vulkan/vulkan.h" name="VkFilter"/>
         <type requires="vulkan/vulkan.h" name="VkFormat"/>
         <type requires="vulkan/vulkan.h" name="VkImage"/>
         <type requires="vulkan/vulkan.h" name="VkInstance"/>
         <type requires="vulkan/vulkan.h" name="VkInstanceCreateInfo"/>
         <type requires="vulkan/vulkan.h" name="VkPhysicalDevice"/>
         <type requires="vulkan/vulkan.h" name="VkResult"/>
+        <type requires="vulkan/vulkan.h" name="VkSamplerAddressMode"/>
+        <type requires="vulkan/vulkan.h" name="VkSamplerMipmapMode"/>
         <type requires="time.h" name="timespec"/>
 
         <type category="define">#define <name>XR_MAKE_VERSION</name>(major, minor, patch) \
@@ -112,7 +116,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         updates them automatically by processing a line at a time.
         -->
         <type category="define">// OpenXR current version number.
-#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(1, 0, 16)</type>
+#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(1, 0, 17)</type>
 
         <!--
         NOTE: For avoidance of ambiguity, there should only be 1 <name> tag immediately in
@@ -122,7 +126,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         -->
         <type category="define">
 #if !defined(XR_MAY_ALIAS)
-#if defined(__clang__) || (defined(__GNUC__) &amp;&amp; (__GNUC__ > 4))
+#if defined(__clang__) || (defined(__GNUC__) &amp;&amp; (__GNUC__ &gt; 4))
 #define <name>XR_MAY_ALIAS</name> __attribute__((__may_alias__))
 #else
 #define XR_MAY_ALIAS
@@ -209,6 +213,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <!-- Basic C types, pulled in via openxr_platform_defines.h -->
         <type requires="openxr_platform_defines" name="void"/>
         <type requires="openxr_platform_defines" name="char"/>
+        <type requires="openxr_platform_defines" name="wchar_t"/>
         <type requires="openxr_platform_defines" name="float"/>
         <type requires="openxr_platform_defines" name="int8_t"/>
         <type requires="openxr_platform_defines" name="uint8_t"/>
@@ -1314,15 +1319,19 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <member><type>XrStructureType</type> <name>type</name></member>
             <member><type>void</type>* <name>next</name></member>
         </type>
-        <type category="struct" name="XrSwapchainStateAndroidSurfaceDimensionsFB" parentstruct="XrSwapchainStateBaseHeaderFB">
+
+        <!-- XR_FB_swapchain_update_state_android_surface structs -->
+        <type category="struct" name="XrSwapchainStateAndroidSurfaceDimensionsFB" parentstruct="XrSwapchainStateBaseHeaderFB" protect="XR_USE_PLATFORM_ANDROID">
             <member values="XR_TYPE_SWAPCHAIN_STATE_ANDROID_SURFACE_DIMENSIONS_FB"><type>XrStructureType</type> <name>type</name></member>
-            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>void</type>* <name>next</name></member>
             <member><type>uint32_t</type> <name>width</name></member>
             <member><type>uint32_t</type> <name>height</name></member>
         </type>
+
+        <!-- XR_FB_swapchain_update_state_opengl_es structs -->
         <type category="struct" name="XrSwapchainStateSamplerOpenGLESFB" parentstruct="XrSwapchainStateBaseHeaderFB" protect="XR_USE_GRAPHICS_API_OPENGL_ES">
             <member values="XR_TYPE_SWAPCHAIN_STATE_SAMPLER_OPENGL_ES_FB"><type>XrStructureType</type> <name>type</name></member>
-            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>void</type>* <name>next</name></member>
             <member><type>EGLenum</type> <name>minFilter</name></member>
             <member><type>EGLenum</type> <name>magFilter</name></member>
             <member><type>EGLenum</type> <name>wrapModeS</name></member>
@@ -1331,6 +1340,23 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <member><type>EGLenum</type> <name>swizzleGreen</name></member>
             <member><type>EGLenum</type> <name>swizzleBlue</name></member>
             <member><type>EGLenum</type> <name>swizzleAlpha</name></member>
+            <member><type>float</type> <name>maxAnisotropy</name></member>
+            <member><type>XrColor4f</type> <name>borderColor</name></member>
+        </type>
+
+        <!-- XR_FB_swapchain_update_state_vulkan structs -->
+        <type category="struct" name="XrSwapchainStateSamplerVulkanFB" parentstruct="XrSwapchainStateBaseHeaderFB" protect="XR_USE_GRAPHICS_API_VULKAN">
+            <member values="XR_TYPE_SWAPCHAIN_STATE_SAMPLER_VULKAN_FB"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>* <name>next</name></member>
+            <member><type>VkFilter</type> <name>minFilter</name></member>
+            <member><type>VkFilter</type> <name>magFilter</name></member>
+            <member><type>VkSamplerMipmapMode</type> <name>mipmapMode</name></member>
+            <member><type>VkSamplerAddressMode</type> <name>wrapModeS</name></member>
+            <member><type>VkSamplerAddressMode</type> <name>wrapModeT</name></member>
+            <member><type>VkComponentSwizzle</type> <name>swizzleRed</name></member>
+            <member><type>VkComponentSwizzle</type> <name>swizzleGreen</name></member>
+            <member><type>VkComponentSwizzle</type> <name>swizzleBlue</name></member>
+            <member><type>VkComponentSwizzle</type> <name>swizzleAlpha</name></member>
             <member><type>float</type> <name>maxAnisotropy</name></member>
             <member><type>XrColor4f</type> <name>borderColor</name></member>
         </type>
@@ -1404,6 +1430,197 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <member optional="true" len="nodeCapacityInput"><type>XrControllerModelNodeStateMSFT</type>* <name>nodeStates</name></member>
         </type>
 
+        <!-- XR_MSFT_scene_understanding -->
+        <type category="handle" parent="XrSession">
+            <type>XR_DEFINE_HANDLE</type>(<name>XrSceneObserverMSFT</name>)</type>
+        <type category="handle" parent="XrSceneObserverMSFT">
+            <type>XR_DEFINE_HANDLE</type>(<name>XrSceneMSFT</name>)</type>
+        <type name="XrSceneObjectTypeMSFT" category="enum"/>
+        <type name="XrScenePlaneAlignmentTypeMSFT" category="enum"/>
+        <type name="XrSceneComputeStateMSFT" category="enum"/>
+        <type name="XrSceneComputeFeatureMSFT" category="enum"/>
+        <type name="XrSceneComputeConsistencyMSFT" category="enum"/>
+        <type name="XrSceneComponentTypeMSFT" category="enum"/>
+        <type name="XrMeshComputeLodMSFT" category="enum"/>
+        <type category="struct" name="XrUuidMSFT">
+            <member><type>uint8_t</type> <name>bytes</name>[16]</member>
+        </type>
+        <type category="struct" name="XrSceneObserverCreateInfoMSFT">
+            <member values="XR_TYPE_SCENE_OBSERVER_CREATE_INFO_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+        <type category="struct" name="XrSceneCreateInfoMSFT">
+            <member values="XR_TYPE_SCENE_CREATE_INFO_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+        <type category="struct" name="XrNewSceneComputeInfoMSFT">
+            <member values="XR_TYPE_NEW_SCENE_COMPUTE_INFO_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>uint32_t</type> <name>requestedFeatureCount</name></member>
+            <member len="requestedFeatureCount">const <type>XrSceneComputeFeatureMSFT</type>* <name>requestedFeatures</name></member>
+            <member><type>XrSceneComputeConsistencyMSFT</type> <name>consistency</name></member>
+            <member><type>XrSceneBoundsMSFT</type> <name>bounds</name></member>
+        </type>
+        <type category="struct" name="XrVisualMeshComputeLodInfoMSFT" structextends="XrNewSceneComputeInfoMSFT">
+            <member values="XR_TYPE_VISUAL_MESH_COMPUTE_LOD_INFO_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrMeshComputeLodMSFT</type> <name>lod</name></member>
+        </type>
+        <type category="struct" name="XrSceneSphereBoundMSFT">
+            <member><type>XrVector3f</type> <name>center</name></member>
+            <member><type>float</type> <name>radius</name></member>
+        </type>
+        <type category="struct" name="XrSceneOrientedBoxBoundMSFT">
+            <member><type>XrPosef</type> <name>pose</name></member>
+            <member><type>XrVector3f</type> <name>extents</name></member>
+        </type>
+        <type category="struct" name="XrSceneFrustumBoundMSFT">
+            <member><type>XrPosef</type> <name>pose</name></member>
+            <member><type>XrFovf</type> <name>fov</name></member>
+            <member><type>float</type> <name>farDistance</name></member>
+        </type>
+        <type category="struct" name="XrSceneBoundsMSFT">
+            <member><type>XrSpace</type> <name>space</name></member>
+            <member><type>XrTime</type> <name>time</name></member>
+            <member optional="true"><type>uint32_t</type> <name>sphereCount</name></member>
+            <member optional="true" len="sphereCount">const <type>XrSceneSphereBoundMSFT</type>* <name>spheres</name></member>
+            <member optional="true"><type>uint32_t</type> <name>boxCount</name></member>
+            <member optional="true" len="boxCount">const <type>XrSceneOrientedBoxBoundMSFT</type>* <name>boxes</name></member>
+            <member optional="true"><type>uint32_t</type> <name>frustumCount</name></member>
+            <member optional="true" len="frustumCount">const <type>XrSceneFrustumBoundMSFT</type>* <name>frustums</name></member>
+        </type>
+        <type category="struct" name="XrSceneComponentMSFT">
+            <member><type>XrSceneComponentTypeMSFT</type> <name>componentType</name></member>
+            <member><type>XrUuidMSFT</type> <name>id</name></member>
+            <member optional="true"><type>XrUuidMSFT</type> <name>parentId</name></member>
+            <member><type>XrTime</type> <name>updateTime</name></member>
+        </type>
+        <type category="struct" name="XrSceneComponentsMSFT">
+            <member values="XR_TYPE_SCENE_COMPONENTS_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>* <name>next</name></member>
+            <member optional="true"><type>uint32_t</type> <name>componentCapacityInput</name></member>
+            <member><type>uint32_t</type> <name>componentCountOutput</name></member>
+            <member optional="true" len="componentCapacityInput"><type>XrSceneComponentMSFT</type>* <name>components</name></member>
+        </type>
+        <type category="struct" name="XrSceneComponentsGetInfoMSFT">
+            <member values="XR_TYPE_SCENE_COMPONENTS_GET_INFO_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrSceneComponentTypeMSFT</type> <name>componentType</name></member>
+        </type>
+        <type category="struct" name="XrSceneComponentLocationMSFT">
+            <member optional="true"><type>XrSpaceLocationFlags</type> <name>flags</name></member>
+            <member><type>XrPosef</type> <name>pose</name></member>
+        </type>
+        <type category="struct" name="XrSceneComponentLocationsMSFT">
+            <member values="XR_TYPE_SCENE_COMPONENT_LOCATIONS_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>* <name>next</name></member>
+            <member optional="true"><type>uint32_t</type> <name>locationCount</name></member>
+            <member optional="true" len="locationCount"><type>XrSceneComponentLocationMSFT</type>* <name>locations</name></member>
+        </type>
+        <type category="struct" name="XrSceneComponentsLocateInfoMSFT">
+            <member values="XR_TYPE_SCENE_COMPONENTS_LOCATE_INFO_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrSpace</type> <name>baseSpace</name></member>
+            <member><type>XrTime</type> <name>time</name></member>
+            <member optional="true"><type>uint32_t</type> <name>componentIdCount</name></member>
+            <member optional="true" len="componentIdCount">const <type>XrUuidMSFT</type>* <name>componentIds</name></member>
+        </type>
+        <type category="struct" name="XrSceneObjectMSFT">
+            <member><type>XrSceneObjectTypeMSFT</type> <name>objectType</name></member>
+        </type>
+        <type category="struct" name="XrSceneObjectsMSFT" structextends="XrSceneComponentsMSFT">
+            <member values="XR_TYPE_SCENE_OBJECTS_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>* <name>next</name></member>
+            <member optional="true"><type>uint32_t</type> <name>sceneObjectCount</name></member>
+            <member optional="true" len="sceneObjectCount"><type>XrSceneObjectMSFT</type>* <name>sceneObjects</name></member>
+        </type>
+        <type category="struct" name="XrSceneComponentParentFilterInfoMSFT" structextends="XrSceneComponentsGetInfoMSFT">
+            <member values="XR_TYPE_SCENE_COMPONENT_PARENT_FILTER_INFO_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrUuidMSFT</type> <name>parentId</name></member>
+        </type>
+        <type category="struct" name="XrSceneObjectTypesFilterInfoMSFT" structextends="XrSceneComponentsGetInfoMSFT">
+            <member values="XR_TYPE_SCENE_OBJECT_TYPES_FILTER_INFO_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member optional="true"><type>uint32_t</type> <name>objectTypeCount</name></member>
+            <member optional="true" len="objectTypeCount">const <type>XrSceneObjectTypeMSFT</type>* <name>objectTypes</name></member>
+        </type>
+        <type category="struct" name="XrScenePlaneMSFT">
+            <member><type>XrScenePlaneAlignmentTypeMSFT</type> <name>alignment</name></member>
+            <member><type>XrExtent2Df</type> <name>size</name></member>
+            <member><type>uint64_t</type> <name>meshBufferId</name></member>
+            <member><type>XrBool32</type> <name>supportsIndicesUint16</name></member>
+        </type>
+        <type category="struct" name="XrScenePlanesMSFT" structextends="XrSceneComponentsMSFT">
+            <member values="XR_TYPE_SCENE_PLANES_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>* <name>next</name></member>
+            <member optional="true"><type>uint32_t</type> <name>scenePlaneCount</name></member>
+            <member optional="true" len="scenePlaneCount"><type>XrScenePlaneMSFT</type>* <name>scenePlanes</name></member>
+        </type>
+        <type category="struct" name="XrScenePlaneAlignmentFilterInfoMSFT" structextends="XrSceneComponentsGetInfoMSFT">
+            <member values="XR_TYPE_SCENE_PLANE_ALIGNMENT_FILTER_INFO_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member optional="true"><type>uint32_t</type> <name>alignmentCount</name></member>
+            <member optional="true" len="alignmentCount">const <type>XrScenePlaneAlignmentTypeMSFT</type>* <name>alignments</name></member>
+        </type>
+        <type category="struct" name="XrSceneMeshMSFT">
+            <member><type>uint64_t</type> <name>meshBufferId</name></member>
+            <member><type>XrBool32</type> <name>supportsIndicesUint16</name></member>
+        </type>
+        <type category="struct" name="XrSceneMeshesMSFT" structextends="XrSceneComponentsMSFT">
+            <member values="XR_TYPE_SCENE_MESHES_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>* <name>next</name></member>
+            <member optional="true"><type>uint32_t</type> <name>sceneMeshCount</name></member>
+            <member optional="true" len="sceneMeshCount"><type>XrSceneMeshMSFT</type>* <name>sceneMeshes</name></member>
+        </type>
+        <type category="struct" name="XrSceneMeshBuffersGetInfoMSFT">
+            <member values="XR_TYPE_SCENE_MESH_BUFFERS_GET_INFO_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>uint64_t</type> <name>meshBufferId</name></member>
+        </type>
+        <type category="struct" name="XrSceneMeshBuffersMSFT">
+            <member values="XR_TYPE_SCENE_MESH_BUFFERS_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>* <name>next</name></member>
+        </type>
+        <type category="struct" name="XrSceneMeshVertexBufferMSFT">
+            <member values="XR_TYPE_SCENE_MESH_VERTEX_BUFFER_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>* <name>next</name></member>
+            <member optional="true"><type>uint32_t</type> <name>vertexCapacityInput</name></member>
+            <member><type>uint32_t</type> <name>vertexCountOutput</name></member>
+            <member optional="true" len="vertexCapacityInput"><type>XrVector3f</type>* <name>vertices</name></member>
+        </type>
+        <type category="struct" name="XrSceneMeshIndicesUint32MSFT">
+            <member values="XR_TYPE_SCENE_MESH_INDICES_UINT32_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>* <name>next</name></member>
+            <member optional="true"><type>uint32_t</type> <name>indexCapacityInput</name></member>
+            <member><type>uint32_t</type> <name>indexCountOutput</name></member>
+            <member optional="true" len="indexCapacityInput"><type>uint32_t</type>* <name>indices</name></member>
+        </type>
+        <type category="struct" name="XrSceneMeshIndicesUint16MSFT">
+            <member values="XR_TYPE_SCENE_MESH_INDICES_UINT16_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>* <name>next</name></member>
+            <member optional="true"><type>uint32_t</type> <name>indexCapacityInput</name></member>
+            <member><type>uint32_t</type> <name>indexCountOutput</name></member>
+            <member optional="true" len="indexCapacityInput"><type>uint16_t</type>* <name>indices</name></member>
+        </type>
+
+        <!-- XR_MSFT_scene_understanding_serialization -->
+        <type category="struct" name="XrSerializedSceneFragmentDataGetInfoMSFT">
+            <member values="XR_TYPE_SERIALIZED_SCENE_FRAGMENT_DATA_GET_INFO_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrUuidMSFT</type> <name>sceneFragmentId</name></member>
+        </type>
+        <type category="struct" name="XrDeserializeSceneFragmentMSFT">
+            <member optional="true"><type>uint32_t</type> <name>bufferSize</name></member>
+            <member optional="true" len="bufferSize">const <type>uint8_t</type>* <name>buffer</name></member>
+        </type>
+        <type category="struct" name="XrSceneDeserializeInfoMSFT">
+            <member values="XR_TYPE_SCENE_DESERIALIZE_INFO_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member optional="true"><type>uint32_t</type> <name>fragmentCount</name></member>
+            <member optional="true" len="fragmentCount">const <type>XrDeserializeSceneFragmentMSFT</type>* <name>fragments</name></member>
+        </type>
+
         <!-- XR_FB_color_space structs -->
         <type name="XrColorSpaceFB" category="enum"/>
         <type category="struct" name="XrSystemColorSpacePropertiesFB">
@@ -1437,6 +1654,21 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <member values="XR_TYPE_SYSTEM_FOVEATED_RENDERING_PROPERTIES_VARJO"><type>XrStructureType</type> <name>type</name></member>
             <member><type>void</type>*          <name>next</name></member>
             <member><type>XrBool32</type>       <name>supportsFoveatedRendering</name></member>
+        </type>
+
+        <!-- XR_MSFT_composition_layer_reprojection -->
+        <type name="XrReprojectionModeMSFT" category="enum"/>
+        <type category="struct" name="XrCompositionLayerReprojectionInfoMSFT" structextends="XrCompositionLayerProjection">
+            <member values="XR_TYPE_COMPOSITION_LAYER_REPROJECTION_INFO_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*               <name>next</name></member>
+            <member><type>XrReprojectionModeMSFT</type>    <name>reprojectionMode</name></member>
+        </type>
+        <type category="struct" name="XrCompositionLayerReprojectionPlaneOverrideMSFT" structextends="XrCompositionLayerProjection">
+            <member values="XR_TYPE_COMPOSITION_LAYER_REPROJECTION_PLANE_OVERRIDE_MSFT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*               <name>next</name></member>
+            <member><type>XrVector3f</type>                <name>position</name></member>
+            <member><type>XrVector3f</type>                <name>normal</name></member>
+            <member><type>XrVector3f</type>                <name>velocity</name></member>
         </type>
 
     </types>
@@ -1643,7 +1875,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
 
     <!--enums for Perf setting EXT-->
     <enums name="XrPerfSettingsLevelEXT" type="enum">
-        <enum value="0"     name="XR_PERF_SETTINGS_LEVEL_POWER_SAVINGS_EXT"
+        <enum value="0"      name="XR_PERF_SETTINGS_LEVEL_POWER_SAVINGS_EXT"
         comment="Performance settings hint used by the application to indicate that it enters a non-XR
                  section (head-locked / static screen), during which power savings are to be prioritized"/>
         <enum value="25"     name="XR_PERF_SETTINGS_LEVEL_SUSTAINED_LOW_EXT"
@@ -1669,7 +1901,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <enum value="3"   name="XR_PERF_SETTINGS_SUB_DOMAIN_THERMAL_EXT"     comment="Indicates that the performance notification originates from the THERMAL sub-domain"/>
     </enums>
     <enums name="XrPerfSettingsNotificationLevelEXT" type="enum">
-        <enum value="0"     name="XR_PERF_SETTINGS_NOTIF_LEVEL_NORMAL_EXT"
+        <enum value="0"      name="XR_PERF_SETTINGS_NOTIF_LEVEL_NORMAL_EXT"
         comment="Notifies that the sub-domain has reached a level
                  where no further actions other than currently applied are necessary"/>
         <enum value="25"     name="XR_PERF_SETTINGS_NOTIF_LEVEL_WARNING_EXT"
@@ -1750,6 +1982,14 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <enum value="7"   name="XR_COLOR_SPACE_ADOBE_RGB_FB"/>
     </enums>
 
+    <!-- XR_MSFT_composition_layer_reprojection -->
+    <enums name="XrReprojectionModeMSFT" type="enum">
+        <enum value="1"   name="XR_REPROJECTION_MODE_DEPTH_MSFT"/>
+        <enum value="2"   name="XR_REPROJECTION_MODE_PLANAR_FROM_DEPTH_MSFT"/>
+        <enum value="3"   name="XR_REPROJECTION_MODE_PLANAR_MANUAL_MSFT"/>
+        <enum value="4"   name="XR_REPROJECTION_MODE_ORIENTATION_ONLY_MSFT"/>
+    </enums>
+
     <!-- Flags -->
     <enums name="XrInstanceCreateFlagBits" type="bitmask">
         <!-- This is currently empty, awaiting future flags. -->
@@ -1762,19 +2002,19 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <enum bitpos="1" name="XR_SWAPCHAIN_CREATE_STATIC_IMAGE_BIT"      comment="Only one image will be acquired from this swapchain over its lifetime"/>
     </enums>
     <enums name="XrSwapchainUsageFlagBits" type="bitmask">
-        <enum bitpos="0" name="XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT"         comment="Specifies that the image can: be a color rendering target."/>
-        <enum bitpos="1" name="XR_SWAPCHAIN_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT" comment="Specifies that the image can: be a depth/stencil rendering target."/>
-        <enum bitpos="2" name="XR_SWAPCHAIN_USAGE_UNORDERED_ACCESS_BIT"         comment="Specifies that the image can: be accessed out of order and that access can: be via atomic operations."/>
-        <enum bitpos="3" name="XR_SWAPCHAIN_USAGE_TRANSFER_SRC_BIT"             comment="Specifies that the image can: be used as the source of a transfer command."/>
-        <enum bitpos="4" name="XR_SWAPCHAIN_USAGE_TRANSFER_DST_BIT"             comment="Specifies that the image can: be used as the destination of a transfer command."/>
-        <enum bitpos="5" name="XR_SWAPCHAIN_USAGE_SAMPLED_BIT"                  comment="Specifies that the image can: be sampled by a shader."/>
-        <enum bitpos="6" name="XR_SWAPCHAIN_USAGE_MUTABLE_FORMAT_BIT"           comment="Specifies that the image can: be reinterpreted as another image format."/>
+        <enum bitpos="0" name="XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT"         comment="Specifies that the image may: be a color rendering target."/>
+        <enum bitpos="1" name="XR_SWAPCHAIN_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT" comment="Specifies that the image may: be a depth/stencil rendering target."/>
+        <enum bitpos="2" name="XR_SWAPCHAIN_USAGE_UNORDERED_ACCESS_BIT"         comment="Specifies that the image may: be accessed out of order and that access may: be via atomic operations."/>
+        <enum bitpos="3" name="XR_SWAPCHAIN_USAGE_TRANSFER_SRC_BIT"             comment="Specifies that the image may: be used as the source of a transfer operation."/>
+        <enum bitpos="4" name="XR_SWAPCHAIN_USAGE_TRANSFER_DST_BIT"             comment="Specifies that the image may: be used as the destination of a transfer operation."/>
+        <enum bitpos="5" name="XR_SWAPCHAIN_USAGE_SAMPLED_BIT"                  comment="Specifies that the image may: be sampled by a shader."/>
+        <enum bitpos="6" name="XR_SWAPCHAIN_USAGE_MUTABLE_FORMAT_BIT"           comment="Specifies that the image may: be reinterpreted as another image format."/>
     </enums>
     <enums name="XrViewStateFlagBits" type="bitmask">
-        <enum bitpos="0" name="XR_VIEW_STATE_ORIENTATION_VALID_BIT"   comment="Indicates validity of all XrView orientations"/>
-        <enum bitpos="1" name="XR_VIEW_STATE_POSITION_VALID_BIT"      comment="Indicates validity of all XrView positions"/>
-        <enum bitpos="2" name="XR_VIEW_STATE_ORIENTATION_TRACKED_BIT" comment="Indicates whether all XrView orientations are actively tracked"/>
-        <enum bitpos="3" name="XR_VIEW_STATE_POSITION_TRACKED_BIT"    comment="Indicates whether all XrView positions are actively tracked"/>
+        <enum bitpos="0" name="XR_VIEW_STATE_ORIENTATION_VALID_BIT"   comment="Indicates validity of all slink:XrView orientations"/>
+        <enum bitpos="1" name="XR_VIEW_STATE_POSITION_VALID_BIT"      comment="Indicates validity of all slink:XrView positions"/>
+        <enum bitpos="2" name="XR_VIEW_STATE_ORIENTATION_TRACKED_BIT" comment="Indicates whether all slink:XrView orientations are actively tracked"/>
+        <enum bitpos="3" name="XR_VIEW_STATE_POSITION_TRACKED_BIT"    comment="Indicates whether all slink:XrView positions are actively tracked"/>
     </enums>
     <enums name="XrCompositionLayerFlagBits" type="bitmask">
         <enum bitpos="0" name="XR_COMPOSITION_LAYER_CORRECT_CHROMATIC_ABERRATION_BIT" comment="Enables chromatic aberration correction when not done by default."/>
@@ -1783,14 +2023,14 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
     </enums>
 
     <enums name="XrSpaceLocationFlagBits" type="bitmask">
-        <enum bitpos="0" name="XR_SPACE_LOCATION_ORIENTATION_VALID_BIT"   comment="Indicates validity of orientation member"/>
-        <enum bitpos="1" name="XR_SPACE_LOCATION_POSITION_VALID_BIT"      comment="Indicates validity of position member"/>
-        <enum bitpos="2" name="XR_SPACE_LOCATION_ORIENTATION_TRACKED_BIT" comment="Indicates whether pose member contains an actively tracked orientation"/>
-        <enum bitpos="3" name="XR_SPACE_LOCATION_POSITION_TRACKED_BIT"    comment="Indicates whether pose member contains an actively tracked position"/>
+        <enum bitpos="0" name="XR_SPACE_LOCATION_ORIENTATION_VALID_BIT"   comment="Indicates that the pname:orientation member contains valid data"/>
+        <enum bitpos="1" name="XR_SPACE_LOCATION_POSITION_VALID_BIT"      comment="Indicates that the pname:position member contains valid data"/>
+        <enum bitpos="2" name="XR_SPACE_LOCATION_ORIENTATION_TRACKED_BIT" comment="Indicates whether pname:pose member contains an actively tracked pname:orientation"/>
+        <enum bitpos="3" name="XR_SPACE_LOCATION_POSITION_TRACKED_BIT"    comment="Indicates whether pname:pose member contains an actively tracked pname:position"/>
     </enums>
     <enums name="XrSpaceVelocityFlagBits" type="bitmask">
-        <enum bitpos="0" name="XR_SPACE_VELOCITY_LINEAR_VALID_BIT"  comment="Indicates validity of linearVelocity member"/>
-        <enum bitpos="1" name="XR_SPACE_VELOCITY_ANGULAR_VALID_BIT" comment="Indicates validity of angularVelocity member"/>
+        <enum bitpos="0" name="XR_SPACE_VELOCITY_LINEAR_VALID_BIT"  comment="Indicates that the pname:linearVelocity member contains valid data"/>
+        <enum bitpos="1" name="XR_SPACE_VELOCITY_ANGULAR_VALID_BIT" comment="Indicates that the pname:angularVelocity member contains valid data"/>
     </enums>
 
     <enums name="XrInputSourceLocalizedNameFlagBits" type="bitmask">
@@ -1823,7 +2063,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
 
     <!-- flags for XR_EXTX_overlay -->
     <enums name="XrOverlayMainSessionFlagBitsEXTX" type="bitmask">
-        <enum bitpos="0" name="XR_OVERLAY_MAIN_SESSION_ENABLED_COMPOSITION_LAYER_INFO_DEPTH_BIT_EXTX" comment="Indicates the main session enabled XR_KHR_extra_layer_info_depth"/>
+        <enum bitpos="0" name="XR_OVERLAY_MAIN_SESSION_ENABLED_COMPOSITION_LAYER_INFO_DEPTH_BIT_EXTX" comment="Indicates the main session enabled `XR_KHR_composition_layer_depth`"/>
     </enums>
     <enums name="XrOverlaySessionCreateFlagBitsEXTX" type="bitmask">
     </enums>
@@ -1832,6 +2072,52 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
     <enums name="XrSpatialGraphNodeTypeMSFT" type="enum">
         <enum value="1"   name="XR_SPATIAL_GRAPH_NODE_TYPE_STATIC_MSFT"/>
         <enum value="2"   name="XR_SPATIAL_GRAPH_NODE_TYPE_DYNAMIC_MSFT"/>
+    </enums>
+
+    <!-- enumes XR_MSFT_scene_understanding -->
+    <enums name="XrSceneObjectTypeMSFT" type="enum">
+        <enum value="-1"   name="XR_SCENE_OBJECT_TYPE_UNCATEGORIZED_MSFT"/>
+        <enum value="1"    name="XR_SCENE_OBJECT_TYPE_BACKGROUND_MSFT"/>
+        <enum value="2"    name="XR_SCENE_OBJECT_TYPE_WALL_MSFT"/>
+        <enum value="3"    name="XR_SCENE_OBJECT_TYPE_FLOOR_MSFT"/>
+        <enum value="4"    name="XR_SCENE_OBJECT_TYPE_CEILING_MSFT"/>
+        <enum value="5"    name="XR_SCENE_OBJECT_TYPE_PLATFORM_MSFT"/>
+        <enum value="6"    name="XR_SCENE_OBJECT_TYPE_INFERRED_MSFT"/>
+    </enums>
+    <enums name="XrScenePlaneAlignmentTypeMSFT" type="enum">
+        <enum value="0"   name="XR_SCENE_PLANE_ALIGNMENT_TYPE_NON_ORTHOGONAL_MSFT"/>
+        <enum value="1"   name="XR_SCENE_PLANE_ALIGNMENT_TYPE_HORIZONTAL_MSFT"/>
+        <enum value="2"   name="XR_SCENE_PLANE_ALIGNMENT_TYPE_VERTICAL_MSFT"/>
+    </enums>
+    <enums name="XrSceneComputeStateMSFT" type="enum">
+        <enum value="0"   name="XR_SCENE_COMPUTE_STATE_NONE_MSFT"/>
+        <enum value="1"   name="XR_SCENE_COMPUTE_STATE_UPDATING_MSFT"/>
+        <enum value="2"   name="XR_SCENE_COMPUTE_STATE_COMPLETED_MSFT"/>
+        <enum value="3"   name="XR_SCENE_COMPUTE_STATE_COMPLETED_WITH_ERROR_MSFT"/>
+    </enums>
+    <enums name="XrSceneComponentTypeMSFT" type="enum">
+        <enum value="-1"   name="XR_SCENE_COMPONENT_TYPE_INVALID_MSFT"/>
+        <enum value="1"    name="XR_SCENE_COMPONENT_TYPE_OBJECT_MSFT"/>
+        <enum value="2"    name="XR_SCENE_COMPONENT_TYPE_PLANE_MSFT"/>
+        <enum value="3"    name="XR_SCENE_COMPONENT_TYPE_VISUAL_MESH_MSFT"/>
+        <enum value="4"    name="XR_SCENE_COMPONENT_TYPE_COLLIDER_MESH_MSFT"/>
+    </enums>
+    <enums name="XrSceneComputeFeatureMSFT" type="enum">
+        <enum value="1"   name="XR_SCENE_COMPUTE_FEATURE_PLANE_MSFT"/>
+        <enum value="2"   name="XR_SCENE_COMPUTE_FEATURE_PLANE_MESH_MSFT"/>
+        <enum value="3"   name="XR_SCENE_COMPUTE_FEATURE_VISUAL_MESH_MSFT"/>
+        <enum value="4"   name="XR_SCENE_COMPUTE_FEATURE_COLLIDER_MESH_MSFT"/>
+    </enums>
+    <enums name="XrSceneComputeConsistencyMSFT" type="enum">
+        <enum value="1"   name="XR_SCENE_COMPUTE_CONSISTENCY_SNAPSHOT_COMPLETE_MSFT"/>
+        <enum value="2"   name="XR_SCENE_COMPUTE_CONSISTENCY_SNAPSHOT_INCOMPLETE_FAST_MSFT"/>
+        <enum value="3"   name="XR_SCENE_COMPUTE_CONSISTENCY_OCCLUSION_OPTIMIZED_MSFT"/>
+    </enums>
+    <enums name="XrMeshComputeLodMSFT" type="enum">
+        <enum value="1"   name="XR_MESH_COMPUTE_LOD_COARSE_MSFT"/>
+        <enum value="2"   name="XR_MESH_COMPUTE_LOD_MEDIUM_MSFT"/>
+        <enum value="3"   name="XR_MESH_COMPUTE_LOD_FINE_MSFT"/>
+        <enum value="4"   name="XR_MESH_COMPUTE_LOD_UNLIMITED_MSFT"/>
     </enums>
 
     <!-- flags for XR_FB_android_surface_swapchain_create -->
@@ -2095,7 +2381,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>XrAndroidThreadTypeKHR</type> <name>threadType</name></param>
             <param><type>uint32_t</type> <name>threadId</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_LIMIT_REACHED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED">
             <proto><type>XrResult</type> <name>xrCreateSwapchainAndroidSurfaceKHR</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrSwapchainCreateInfo</type>* <name>info</name></param>
@@ -2305,14 +2591,14 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </command>
 
         <!-- commands for XR_KHR_vulkan_enable2 -->
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SYSTEM_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrCreateVulkanInstanceKHR</name></proto>
             <param><type>XrInstance</type>                          <name>instance</name></param>
             <param>const <type>XrVulkanInstanceCreateInfoKHR</type>*<name>createInfo</name></param>
             <param><type>VkInstance</type>*                         <name>vulkanInstance</name></param>
             <param><type>VkResult</type>*                           <name>vulkanResult</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SYSTEM_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrCreateVulkanDeviceKHR</name></proto>
             <param><type>XrInstance</type>                          <name>instance</name></param>
             <param>const <type>XrVulkanDeviceCreateInfoKHR</type>*  <name>createInfo</name></param>
@@ -2352,13 +2638,13 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </command>
 
         <!-- commands for XR_MSFT_spatial_anchor -->
-        <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_TIME_INVALID,XR_ERROR_POSE_INVALID,XR_ERROR_CREATE_SPATIAL_ANCHOR_FAILED_MSFT">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_TIME_INVALID,XR_ERROR_POSE_INVALID,XR_ERROR_CREATE_SPATIAL_ANCHOR_FAILED_MSFT">
             <proto><type>XrResult</type> <name>xrCreateSpatialAnchorMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrSpatialAnchorCreateInfoMSFT</type>* <name>createInfo</name></param>
             <param><type>XrSpatialAnchorMSFT</type>* <name>anchor</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_POSE_INVALID">
             <proto><type>XrResult</type> <name>xrCreateSpatialAnchorSpaceMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrSpatialAnchorSpaceCreateInfoMSFT</type>* <name>createInfo</name></param>
@@ -2370,40 +2656,35 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </command>
 
         <!-- commands for XR_EXT_conformance_automation -->
-        <command successcodes="XR_SUCCESS"
-            errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
             <proto><type>XrResult</type> <name>xrSetInputDeviceActiveEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPath</type> <name>interactionProfile</name></param>
             <param><type>XrPath</type> <name>topLevelPath</name></param>
             <param><type>XrBool32</type> <name>isActive</name></param>
         </command>
-        <command successcodes="XR_SUCCESS"
-            errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
             <proto><type>XrResult</type> <name>xrSetInputDeviceStateBoolEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPath</type> <name>topLevelPath</name></param>
             <param><type>XrPath</type> <name>inputSourcePath</name></param>
             <param><type>XrBool32</type> <name>state</name></param>
         </command>
-        <command successcodes="XR_SUCCESS"
-            errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
             <proto><type>XrResult</type> <name>xrSetInputDeviceStateFloatEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPath</type> <name>topLevelPath</name></param>
             <param><type>XrPath</type> <name>inputSourcePath</name></param>
             <param><type>float</type> <name>state</name></param>
         </command>
-        <command successcodes="XR_SUCCESS"
-            errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
             <proto><type>XrResult</type> <name>xrSetInputDeviceStateVector2fEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPath</type> <name>topLevelPath</name></param>
             <param><type>XrPath</type> <name>inputSourcePath</name></param>
             <param><type>XrVector2f</type> <name>state</name></param>
         </command>
-        <command successcodes="XR_SUCCESS"
-            errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_POSE_INVALID,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_POSE_INVALID,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
             <proto><type>XrResult</type> <name>xrSetInputDeviceLocationEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPath</type> <name>topLevelPath</name></param>
@@ -2413,14 +2694,13 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </command>
 
         <!-- commands for XR_KHR_loader_init -->
-        <command successcodes="XR_SUCCESS"
-            errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrInitializeLoaderKHR</name></proto>
             <param>const <type>XrLoaderInitInfoBaseHeaderKHR</type>* <name>loaderInitInfo</name></param>
         </command>
 
         <!--XR_MSFT_spatial_graph_bridge -->
-        <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_POSE_INVALID">
             <proto><type>XrResult</type> <name>xrCreateSpatialGraphNodeSpaceMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrSpatialGraphNodeSpaceCreateInfoMSFT</type>* <name>createInfo</name></param>
@@ -2428,8 +2708,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </command>
 
         <!-- XR_EXT_hand_tracking -->
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING"
-            errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_FEATURE_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_FEATURE_UNSUPPORTED">
             <proto><type>XrResult</type> <name>xrCreateHandTrackerEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrHandTrackerCreateInfoEXT</type>* <name>createInfo</name></param>
@@ -2447,15 +2726,13 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </command>
 
         <!-- XR_MSFT_hand_tracking_mesh -->
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING"
-            errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_POSE_INVALID,XR_ERROR_FEATURE_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_POSE_INVALID,XR_ERROR_FEATURE_UNSUPPORTED">
             <proto><type>XrResult</type> <name>xrCreateHandMeshSpaceMSFT</name></proto>
             <param><type>XrHandTrackerEXT</type> <name>handTracker</name></param>
             <param>const <type>XrHandMeshSpaceCreateInfoMSFT</type>* <name>createInfo</name></param>
             <param><type>XrSpace</type>* <name>space</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING"
-            errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_TIME_INVALID,XR_ERROR_FEATURE_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_TIME_INVALID,XR_ERROR_FEATURE_UNSUPPORTED">
             <proto><type>XrResult</type> <name>xrUpdateHandMeshMSFT</name></proto>
             <param><type>XrHandTrackerEXT</type> <name>handTracker</name></param>
             <param>const <type>XrHandMeshUpdateInfoMSFT</type>* <name>updateInfo</name></param>
@@ -2463,13 +2740,13 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </command>
 
         <!-- XR_MSFT_controller_model -->
-        <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID,XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID,XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT">
             <proto><type>XrResult</type> <name>xrGetControllerModelKeyMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPath</type> <name>topLevelUserPath</name></param>
             <param><type>XrControllerModelKeyStateMSFT</type>* <name>controllerModelKeyState</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT">
             <proto><type>XrResult</type> <name>xrLoadControllerModelMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrControllerModelKeyMSFT</type> <name>modelKey</name></param>
@@ -2477,17 +2754,90 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>uint32_t</type>* <name>bufferCountOutput</name></param>
             <param optional="true" len="bufferCapacityInput"><type>uint8_t</type>* <name>buffer</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT">
             <proto><type>XrResult</type> <name>xrGetControllerModelPropertiesMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrControllerModelKeyMSFT</type> <name>modelKey</name></param>
             <param><type>XrControllerModelPropertiesMSFT</type>* <name>properties</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT">
             <proto><type>XrResult</type> <name>xrGetControllerModelStateMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrControllerModelKeyMSFT</type> <name>modelKey</name></param>
             <param><type>XrControllerModelStateMSFT</type>* <name>state</name></param>
+        </command>
+
+        <!-- XR_MSFT_scene_understanding -->
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SYSTEM_INVALID">
+            <proto><type>XrResult</type> <name>xrEnumerateSceneComputeFeaturesMSFT</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param><type>XrSystemId</type> <name>systemId</name></param>
+            <param optional="true"><type>uint32_t</type> <name>featureCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>featureCountOutput</name></param>
+            <param optional="true" len="featureCapacityInput"><type>XrSceneComputeFeatureMSFT</type>* <name>features</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED">
+            <proto><type>XrResult</type> <name>xrCreateSceneObserverMSFT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param optional="true">const <type>XrSceneObserverCreateInfoMSFT</type>* <name>createInfo</name></param>
+            <param><type>XrSceneObserverMSFT</type>* <name>sceneObserver</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+            <proto><type>XrResult</type> <name>xrDestroySceneObserverMSFT</name></proto>
+            <param externsync="true_with_children"><type>XrSceneObserverMSFT</type> <name>sceneObserver</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED">
+            <proto><type>XrResult</type> <name>xrCreateSceneMSFT</name></proto>
+            <param><type>XrSceneObserverMSFT</type> <name>sceneObserver</name></param>
+            <param optional="true">const <type>XrSceneCreateInfoMSFT</type>* <name>createInfo</name></param>
+            <param><type>XrSceneMSFT</type>* <name>scene</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+            <proto><type>XrResult</type> <name>xrDestroySceneMSFT</name></proto>
+            <param externsync="true_with_children"><type>XrSceneMSFT</type> <name>scene</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_TIME_INVALID,XR_ERROR_POSE_INVALID">
+            <proto><type>XrResult</type> <name>xrComputeNewSceneMSFT</name></proto>
+            <param><type>XrSceneObserverMSFT</type> <name>sceneObserver</name></param>
+            <param>const <type>XrNewSceneComputeInfoMSFT</type>* <name>computeInfo</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY">
+            <proto><type>XrResult</type> <name>xrGetSceneComputeStateMSFT</name></proto>
+            <param><type>XrSceneObserverMSFT</type> <name>sceneObserver</name></param>
+            <param><type>XrSceneComputeStateMSFT</type>* <name>state</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SIZE_INSUFFICIENT">
+            <proto><type>XrResult</type> <name>xrGetSceneComponentsMSFT</name></proto>
+            <param><type>XrSceneMSFT</type> <name>scene</name></param>
+            <param>const <type>XrSceneComponentsGetInfoMSFT</type>* <name>getInfo</name></param>
+            <param><type>XrSceneComponentsMSFT</type>* <name>components</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_TIME_INVALID">
+            <proto><type>XrResult</type> <name>xrLocateSceneComponentsMSFT</name></proto>
+            <param><type>XrSceneMSFT</type> <name>scene</name></param>
+            <param>const <type>XrSceneComponentsLocateInfoMSFT</type>* <name>locateInfo</name></param>
+            <param><type>XrSceneComponentLocationsMSFT</type>* <name>locations</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SCENE_COMPONENT_ID_INVALID_MSFT">
+            <proto><type>XrResult</type> <name>xrGetSceneMeshBuffersMSFT</name></proto>
+            <param><type>XrSceneMSFT</type> <name>scene</name></param>
+            <param>const <type>XrSceneMeshBuffersGetInfoMSFT</type>* <name>getInfo</name></param>
+            <param><type>XrSceneMeshBuffersMSFT</type>* <name>buffers</name></param>
+        </command>
+
+        <!-- XR_MSFT_scene_understanding_serialization -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY">
+            <proto><type>XrResult</type> <name>xrDeserializeSceneMSFT</name></proto>
+            <param><type>XrSceneObserverMSFT</type> <name>sceneObserver</name></param>
+            <param>const <type>XrSceneDeserializeInfoMSFT</type>* <name>deserializeInfo</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SIZE_INSUFFICIENT">
+            <proto><type>XrResult</type> <name>xrGetSerializedSceneFragmentDataMSFT</name></proto>
+            <param><type>XrSceneMSFT</type> <name>scene</name></param>
+            <param>const <type>XrSerializedSceneFragmentDataGetInfoMSFT</type>* <name>getInfo</name></param>
+            <param optional="true"><type>uint32_t</type> <name>countInput</name></param>
+            <param><type>uint32_t</type>* <name>readOutput</name></param>
+            <param optional="true" len="countInput"><type>uint8_t</type>* <name>buffer</name></param>
         </command>
 
         <!-- XR_FB_display_refresh_rate -->
@@ -2510,13 +2860,13 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </command>
 
         <!-- XR_MSFT_perception_anchor_interop -->
-        <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED">
             <proto><type>XrResult</type> <name>xrCreateSpatialAnchorFromPerceptionAnchorMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>IUnknown</type>* <name>perceptionAnchor</name></param>
             <param><type>XrSpatialAnchorMSFT</type>* <name>anchor</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY">
             <proto><type>XrResult</type> <name>xrTryGetPerceptionAnchorFromSpatialAnchorMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrSpatialAnchorMSFT</type> <name>anchor</name></param>
@@ -2528,6 +2878,12 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <proto><type>XrResult</type> <name>xrUpdateSwapchainFB</name></proto>
             <param><type>XrSwapchain</type> <name>swapchain</name></param>
             <param>const <type>XrSwapchainStateBaseHeaderFB</type>* <name>state</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST">
+            <proto><type>XrResult</type> <name>xrGetSwapchainStateFB</name></proto>
+            <param><type>XrSwapchain</type> <name>swapchain</name></param>
+            <param><type>XrSwapchainStateBaseHeaderFB</type>* <name>state</name></param>
         </command>
 
         <!-- XR_FB_color_space -->
@@ -2549,6 +2905,30 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <proto><type>XrResult</type> <name>xrSetEnvironmentDepthEstimationVARJO</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrBool32</type> <name>enabled</name></param>
+        </command>
+
+        <!-- XR_MSFT_composition_layer_reprojection -->
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED,XR_ERROR_SYSTEM_INVALID">
+            <proto><type>XrResult</type> <name>xrEnumerateReprojectionModesMSFT</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param><type>XrSystemId</type> <name>systemId</name></param>
+            <param><type>XrViewConfigurationType</type> <name>viewConfigurationType</name></param>
+            <param optional="true"><type>uint32_t</type> <name>modeCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>modeCountOutput</name></param>
+            <param optional="true" len="modeCapacityInput"><type>XrReprojectionModeMSFT</type>* <name>modes</name></param>
+        </command>
+
+        <!-- commands for XR_OCULUS_audio_device_guid -->
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_FEATURE_UNSUPPORTED">
+            <proto><type>XrResult</type> <name>xrGetAudioOutputDeviceGuidOculus</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param><type>wchar_t</type> <name>buffer</name>[<enum>XR_MAX_AUDIO_DEVICE_STR_SIZE_OCULUS</enum>]</param>
+        </command>
+
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_FEATURE_UNSUPPORTED">
+            <proto><type>XrResult</type> <name>xrGetAudioInputDeviceGuidOculus</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param><type>wchar_t</type> <name>buffer</name>[<enum>XR_MAX_AUDIO_DEVICE_STR_SIZE_OCULUS</enum>]</param>
         </command>
     </commands>
 
@@ -2865,7 +3245,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
     <!-- Reserved space for Variable rate rendering extension -->
     <extension name="XR_KHR_variable_rate_rendering" number="21" type="instance" supported="disabled">
         <require>
-            <enum value="1" name="XR_KHR_variable_render_rate_SPEC_VERSION"/>
+            <enum value="1" name="XR_KHR_variable_rate_rendering_SPEC_VERSION"/>
             <enum value="&quot;XR_KHR_variable_rate_rendering&quot;" name="XR_KHR_VARIABLE_RATE_RENDERING_EXTENSION_NAME"/>
         </require>
     </extension>
@@ -3283,11 +3663,11 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
 
             <enum value="64" name="XR_MAX_CONTROLLER_MODEL_NODE_NAME_SIZE_MSFT"/>
 
-            <enum offset="0" extends="XrStructureType" name="XR_TYPE_CONTROLLER_MODEL_KEY_STATE_MSFT"/>
-            <enum offset="1" extends="XrStructureType" name="XR_TYPE_CONTROLLER_MODEL_NODE_PROPERTIES_MSFT"/>
-            <enum offset="2" extends="XrStructureType" name="XR_TYPE_CONTROLLER_MODEL_PROPERTIES_MSFT"/>
-            <enum offset="3" extends="XrStructureType" name="XR_TYPE_CONTROLLER_MODEL_NODE_STATE_MSFT"/>
-            <enum offset="4" extends="XrStructureType" name="XR_TYPE_CONTROLLER_MODEL_STATE_MSFT"/>
+            <enum offset="0" extends="XrStructureType"  name="XR_TYPE_CONTROLLER_MODEL_KEY_STATE_MSFT"/>
+            <enum offset="1" extends="XrStructureType"  name="XR_TYPE_CONTROLLER_MODEL_NODE_PROPERTIES_MSFT"/>
+            <enum offset="2" extends="XrStructureType"  name="XR_TYPE_CONTROLLER_MODEL_PROPERTIES_MSFT"/>
+            <enum offset="3" extends="XrStructureType"  name="XR_TYPE_CONTROLLER_MODEL_NODE_STATE_MSFT"/>
+            <enum offset="4" extends="XrStructureType"  name="XR_TYPE_CONTROLLER_MODEL_STATE_MSFT"/>
             <enum offset="0" dir="-" extends="XrResult" name="XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT" comment="The controller model key is invalid."/>
 
         </require>
@@ -3357,10 +3737,21 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </require>
     </extension>
 
-    <extension name="XR_MSFT_extension_67" number="67" type="instance" supported="disabled">
+    <extension name="XR_MSFT_composition_layer_reprojection" number="67" type="instance" supported="openxr">
         <require>
-            <enum value="1" name="XR_MSFT_extension_67_SPEC_VERSION"/>
-            <enum value="&quot;XR_MSFT_extension_67&quot;" name="XR_MSFT_extension_67_EXTENSION_NAME"/>
+            <enum value="1" name="XR_MSFT_composition_layer_reprojection_SPEC_VERSION"/>
+            <enum value="&quot;XR_MSFT_composition_layer_reprojection&quot;" name="XR_MSFT_COMPOSITION_LAYER_REPROJECTION_EXTENSION_NAME"/>
+
+            <type name="XrReprojectionModeMSFT"/>
+            <type name="XrCompositionLayerReprojectionInfoMSFT"/>
+            <type name="XrCompositionLayerReprojectionPlaneOverrideMSFT"/>
+
+            <command name="xrEnumerateReprojectionModesMSFT"/>
+
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_COMPOSITION_LAYER_REPROJECTION_INFO_MSFT"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_COMPOSITION_LAYER_REPROJECTION_PLANE_OVERRIDE_MSFT"/>
+            <enum offset="0" dir="-" extends="XrResult" name="XR_ERROR_REPROJECTION_MODE_UNSUPPORTED_MSFT" comment="The reprojection mode is not supported."/>
+
         </require>
     </extension>
 
@@ -3395,17 +3786,14 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </require>
     </extension>
 
-    <extension name="XR_FB_swapchain_update_state" number="72" type="instance" supported="openxr" protect="XR_USE_PLATFORM_ANDROID">
+    <extension name="XR_FB_swapchain_update_state" number="72" type="instance" supported="openxr">
         <require>
-            <enum value="1" name="XR_FB_swapchain_update_state_SPEC_VERSION"/>
+            <enum value="3" name="XR_FB_swapchain_update_state_SPEC_VERSION"/>
             <enum value="&quot;XR_FB_swapchain_update_state&quot;" name="XR_FB_SWAPCHAIN_UPDATE_STATE_EXTENSION_NAME"/>
 
             <type name="XrSwapchainStateBaseHeaderFB"/>
-            <type name="XrSwapchainStateAndroidSurfaceDimensionsFB"/>
-            <type name="XrSwapchainStateSamplerOpenGLESFB"/>
-            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SWAPCHAIN_STATE_ANDROID_SURFACE_DIMENSIONS_FB"/>
-            <enum offset="1" extends="XrStructureType" name="XR_TYPE_SWAPCHAIN_STATE_SAMPLER_OPENGL_ES_FB"/>
             <command name="xrUpdateSwapchainFB"/>
+            <command name="xrGetSwapchainStateFB"/>
         </require>
     </extension>
 
@@ -3611,21 +3999,104 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <enum value="2" name="XR_MND_swapchain_usage_input_attachment_bit_SPEC_VERSION"/>
             <enum value="&quot;XR_MND_swapchain_usage_input_attachment_bit&quot;" name="XR_MND_SWAPCHAIN_USAGE_INPUT_ATTACHMENT_BIT_EXTENSION_NAME"/>
             <!-- NOTE: This was added before the working group established a process. Future vendor extensions MUST NOT extend core bitmasks. -->
-            <enum bitpos="7" extends="XrSwapchainUsageFlagBits" name="XR_SWAPCHAIN_USAGE_INPUT_ATTACHMENT_BIT_MND" comment="Specifies that the image can: be used as a input attachment."/>
+            <enum bitpos="7" extends="XrSwapchainUsageFlagBits" name="XR_SWAPCHAIN_USAGE_INPUT_ATTACHMENT_BIT_MND" comment="Specifies that the image may: be used as a input attachment."/>
         </require>
     </extension>
 
-    <extension name="XR_MSFT_extension_98" number="98" type="instance" supported="disabled">
+    <extension name="XR_MSFT_scene_understanding" number="98" type="instance" supported="openxr">
         <require>
-            <enum value="1" name="XR_MSFT_extension_98_SPEC_VERSION"/>
-            <enum value="&quot;XR_MSFT_extension_98&quot;" name="XR_MSFT_extension_98_EXTENSION_NAME"/>
+            <enum value="1" name="XR_MSFT_scene_understanding_SPEC_VERSION"/>
+            <enum value="&quot;XR_MSFT_scene_understanding&quot;" name="XR_MSFT_SCENE_UNDERSTANDING_EXTENSION_NAME"/>
+            <type name="XrUuidMSFT"/>
+            <type name="XrSceneObserverCreateInfoMSFT"/>
+            <type name="XrSceneCreateInfoMSFT"/>
+            <type name="XrNewSceneComputeInfoMSFT"/>
+            <type name="XrVisualMeshComputeLodInfoMSFT"/>
+            <type name="XrSceneSphereBoundMSFT"/>
+            <type name="XrSceneOrientedBoxBoundMSFT"/>
+            <type name="XrSceneFrustumBoundMSFT"/>
+            <type name="XrSceneBoundsMSFT"/>
+            <type name="XrSceneComponentMSFT"/>
+            <type name="XrSceneComponentsMSFT"/>
+            <type name="XrSceneComponentsGetInfoMSFT"/>
+            <type name="XrSceneComponentLocationMSFT"/>
+            <type name="XrSceneComponentLocationsMSFT"/>
+            <type name="XrSceneComponentsLocateInfoMSFT"/>
+            <type name="XrSceneObjectMSFT"/>
+            <type name="XrSceneObjectsMSFT"/>
+            <type name="XrSceneComponentParentFilterInfoMSFT"/>
+            <type name="XrSceneObjectTypesFilterInfoMSFT"/>
+            <type name="XrScenePlaneMSFT"/>
+            <type name="XrScenePlanesMSFT"/>
+            <type name="XrScenePlaneAlignmentFilterInfoMSFT"/>
+            <type name="XrSceneMeshMSFT"/>
+            <type name="XrSceneMeshesMSFT"/>
+            <type name="XrSceneMeshBuffersGetInfoMSFT"/>
+            <type name="XrSceneMeshBuffersMSFT"/>
+            <type name="XrSceneMeshVertexBufferMSFT"/>
+            <type name="XrSceneMeshIndicesUint32MSFT"/>
+            <type name="XrSceneMeshIndicesUint16MSFT"/>
+            <type name="XrSceneObjectTypeMSFT"/>
+            <type name="XrScenePlaneAlignmentTypeMSFT"/>
+            <type name="XrSceneComputeStateMSFT"/>
+            <type name="XrSceneComponentTypeMSFT"/>
+            <type name="XrSceneComputeFeatureMSFT"/>
+            <type name="XrSceneComputeConsistencyMSFT"/>
+            <type name="XrMeshComputeLodMSFT"/>
+            <command name="xrEnumerateSceneComputeFeaturesMSFT"/>
+            <command name="xrCreateSceneObserverMSFT"/>
+            <command name="xrDestroySceneObserverMSFT"/>
+            <command name="xrCreateSceneMSFT"/>
+            <command name="xrDestroySceneMSFT"/>
+            <command name="xrComputeNewSceneMSFT"/>
+            <command name="xrGetSceneComputeStateMSFT"/>
+            <command name="xrGetSceneComponentsMSFT"/>
+            <command name="xrLocateSceneComponentsMSFT"/>
+            <command name="xrGetSceneMeshBuffersMSFT"/>
+            <enum offset="0" extends="XrObjectType" name="XR_OBJECT_TYPE_SCENE_OBSERVER_MSFT" comment="XrSceneObserverMSFT"/>
+            <enum offset="1" extends="XrObjectType" name="XR_OBJECT_TYPE_SCENE_MSFT" comment="XrSceneMSFT"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SCENE_OBSERVER_CREATE_INFO_MSFT"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_SCENE_CREATE_INFO_MSFT"/>
+            <enum offset="2" extends="XrStructureType" name="XR_TYPE_NEW_SCENE_COMPUTE_INFO_MSFT"/>
+            <enum offset="3" extends="XrStructureType" name="XR_TYPE_VISUAL_MESH_COMPUTE_LOD_INFO_MSFT"/>
+            <enum offset="4" extends="XrStructureType" name="XR_TYPE_SCENE_COMPONENTS_MSFT"/>
+            <enum offset="5" extends="XrStructureType" name="XR_TYPE_SCENE_COMPONENTS_GET_INFO_MSFT"/>
+            <enum offset="6" extends="XrStructureType" name="XR_TYPE_SCENE_COMPONENT_LOCATIONS_MSFT"/>
+            <enum offset="7" extends="XrStructureType" name="XR_TYPE_SCENE_COMPONENTS_LOCATE_INFO_MSFT"/>
+            <enum offset="8" extends="XrStructureType" name="XR_TYPE_SCENE_OBJECTS_MSFT"/>
+            <enum offset="9" extends="XrStructureType" name="XR_TYPE_SCENE_COMPONENT_PARENT_FILTER_INFO_MSFT"/>
+            <enum offset="10" extends="XrStructureType" name="XR_TYPE_SCENE_OBJECT_TYPES_FILTER_INFO_MSFT"/>
+            <enum offset="11" extends="XrStructureType" name="XR_TYPE_SCENE_PLANES_MSFT"/>
+            <enum offset="12" extends="XrStructureType" name="XR_TYPE_SCENE_PLANE_ALIGNMENT_FILTER_INFO_MSFT"/>
+            <enum offset="13" extends="XrStructureType" name="XR_TYPE_SCENE_MESHES_MSFT"/>
+            <enum offset="14" extends="XrStructureType" name="XR_TYPE_SCENE_MESH_BUFFERS_GET_INFO_MSFT"/>
+            <enum offset="15" extends="XrStructureType" name="XR_TYPE_SCENE_MESH_BUFFERS_MSFT"/>
+            <enum offset="16" extends="XrStructureType" name="XR_TYPE_SCENE_MESH_VERTEX_BUFFER_MSFT"/>
+            <enum offset="17" extends="XrStructureType" name="XR_TYPE_SCENE_MESH_INDICES_UINT32_MSFT"/>
+            <enum offset="18" extends="XrStructureType" name="XR_TYPE_SCENE_MESH_INDICES_UINT16_MSFT"/>
+            <enum offset="0" dir="-" extends="XrResult" name="XR_ERROR_COMPUTE_NEW_SCENE_NOT_COMPLETED_MSFT" comment="Compute new scene not completed."/>
+            <enum offset="1" dir="-" extends="XrResult" name="XR_ERROR_SCENE_COMPONENT_ID_INVALID_MSFT" comment="Scene component id invalid."/>
+            <enum offset="2" dir="-" extends="XrResult" name="XR_ERROR_SCENE_COMPONENT_TYPE_MISMATCH_MSFT" comment="Scene component type mismatch."/>
+            <enum offset="3" dir="-" extends="XrResult" name="XR_ERROR_SCENE_MESH_BUFFER_ID_INVALID_MSFT" comment="Scene mesh buffer id invalid."/>
+            <enum offset="4" dir="-" extends="XrResult" name="XR_ERROR_SCENE_COMPUTE_FEATURE_INCOMPATIBLE_MSFT" comment="Scene compute feature incompatible."/>
+            <enum offset="5" dir="-" extends="XrResult" name="XR_ERROR_SCENE_COMPUTE_CONSISTENCY_MISMATCH_MSFT" comment="Scene compute consistency mismatch."/>
         </require>
     </extension>
 
-    <extension name="XR_MSFT_extension_99" number="99" type="instance" supported="disabled">
+    <extension name="XR_MSFT_scene_understanding_serialization" number="99" type="instance" supported="openxr"
+        requires="XR_MSFT_scene_understanding">
         <require>
-            <enum value="1" name="XR_MSFT_extension_99_SPEC_VERSION"/>
-            <enum value="&quot;XR_MSFT_extension_99&quot;" name="XR_MSFT_extension_99_EXTENSION_NAME"/>
+            <enum value="1" name="XR_MSFT_scene_understanding_serialization_SPEC_VERSION"/>
+            <enum value="&quot;XR_MSFT_scene_understanding_serialization&quot;" name="XR_MSFT_SCENE_UNDERSTANDING_SERIALIZATION_EXTENSION_NAME"/>
+            <type name="XrSerializedSceneFragmentDataGetInfoMSFT"/>
+            <type name="XrDeserializeSceneFragmentMSFT"/>
+            <type name="XrSceneDeserializeInfoMSFT"/>
+            <command name="xrDeserializeSceneMSFT"/>
+            <command name="xrGetSerializedSceneFragmentDataMSFT"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SERIALIZED_SCENE_FRAGMENT_DATA_GET_INFO_MSFT"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_SCENE_DESERIALIZE_INFO_MSFT"/>
+            <enum offset="0" extends="XrSceneComputeFeatureMSFT" name="XR_SCENE_COMPUTE_FEATURE_SERIALIZE_SCENE_MSFT"/>
+            <enum offset="0" extends="XrSceneComponentTypeMSFT" name="XR_SCENE_COMPONENT_TYPE_SERIALIZED_SCENE_FRAGMENT_MSFT"/>
         </require>
     </extension>
 
@@ -4081,10 +4552,13 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </require>
     </extension>
 
-    <extension name="XR_FB_extension_160" number="160" type="instance" supported="disabled">
+    <extension name="XR_OCULUS_audio_device_guid" number="160" type="instance" supported="openxr" protect="XR_USE_PLATFORM_WIN32">
         <require>
-            <enum value="1" name="XR_FB_extension_160_SPEC_VERSION"/>
-            <enum value="&quot;XR_FB_extension_160&quot;" name="XR_FB_extension_160_EXTENSION_NAME"/>
+            <enum value="1" name="XR_OCULUS_audio_device_guid_SPEC_VERSION"/>
+            <enum value="&quot;XR_OCULUS_audio_device_guid&quot;" name="XR_OCULUS_AUDIO_DEVICE_GUID_EXTENSION_NAME"/>
+            <enum value="128" name="XR_MAX_AUDIO_DEVICE_STR_SIZE_OCULUS"/>
+            <command name="xrGetAudioOutputDeviceGuidOculus"/>
+            <command name="xrGetAudioInputDeviceGuidOculus"/>
         </require>
     </extension>
 
@@ -4095,24 +4569,30 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </require>
     </extension>
 
-    <extension name="XR_FB_extension_162" number="162" type="instance" supported="disabled">
+    <extension name="XR_FB_swapchain_update_state_android_surface" number="162" type="instance" supported="openxr" protect="XR_USE_PLATFORM_ANDROID" requires="XR_FB_swapchain_update_state">
         <require>
-            <enum value="1" name="XR_FB_extension_162_SPEC_VERSION"/>
-            <enum value="&quot;XR_FB_extension_162&quot;" name="XR_FB_extension_162_EXTENSION_NAME"/>
+            <enum value="1" name="XR_FB_swapchain_update_state_android_surface_SPEC_VERSION"/>
+            <enum value="&quot;XR_FB_swapchain_update_state_android_surface&quot;" name="XR_FB_SWAPCHAIN_UPDATE_STATE_ANDROID_SURFACE_EXTENSION_NAME"/>
+            <type name="XrSwapchainStateAndroidSurfaceDimensionsFB"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SWAPCHAIN_STATE_ANDROID_SURFACE_DIMENSIONS_FB"/>
         </require>
     </extension>
 
-    <extension name="XR_FB_extension_163" number="163" type="instance" supported="disabled">
+    <extension name="XR_FB_swapchain_update_state_opengl_es" number="163" type="instance" supported="openxr" protect="XR_USE_GRAPHICS_API_OPENGL_ES" requires="XR_FB_swapchain_update_state">
         <require>
-            <enum value="1" name="XR_FB_extension_163_SPEC_VERSION"/>
-            <enum value="&quot;XR_FB_extension_163&quot;" name="XR_FB_extension_163_EXTENSION_NAME"/>
+            <enum value="1" name="XR_FB_swapchain_update_state_opengl_es_SPEC_VERSION"/>
+            <enum value="&quot;XR_FB_swapchain_update_state_opengl_es&quot;" name="XR_FB_SWAPCHAIN_UPDATE_STATE_OPENGL_ES_EXTENSION_NAME"/>
+            <type name="XrSwapchainStateSamplerOpenGLESFB"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SWAPCHAIN_STATE_SAMPLER_OPENGL_ES_FB"/>
         </require>
     </extension>
 
-    <extension name="XR_FB_extension_164" number="164" type="instance" supported="disabled">
+    <extension name="XR_FB_swapchain_update_state_vulkan" number="164" type="instance" supported="openxr" protect="XR_USE_GRAPHICS_API_VULKAN" requires="XR_FB_swapchain_update_state">
         <require>
-            <enum value="1" name="XR_FB_extension_164_SPEC_VERSION"/>
-            <enum value="&quot;XR_FB_extension_164&quot;" name="XR_FB_extension_164_EXTENSION_NAME"/>
+            <enum value="1" name="XR_FB_swapchain_update_state_vulkan_SPEC_VERSION"/>
+            <enum value="&quot;XR_FB_swapchain_update_state_vulkan&quot;" name="XR_FB_SWAPCHAIN_UPDATE_STATE_VULKAN_EXTENSION_NAME"/>
+            <type name="XrSwapchainStateSamplerVulkanFB"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SWAPCHAIN_STATE_SAMPLER_VULKAN_FB"/>
         </require>
     </extension>
 
@@ -4127,6 +4607,76 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <require>
             <enum value="1" name="XR_KHR_extension_166_SPEC_VERSION"/>
             <enum value="&quot;XR_KHR_extension_166&quot;" name="XR_KHR_extension_166_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_FB_extension_167" number="167" type="instance" supported="disabled">
+        <require>
+            <enum value="1" name="XR_FB_extension_167_SPEC_VERSION"/>
+            <enum value="&quot;XR_FB_extension_167&quot;" name="XR_FB_extension_167_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_FB_extension_168" number="168" type="instance" supported="disabled">
+        <require>
+            <enum value="1" name="XR_FB_extension_168_SPEC_VERSION"/>
+            <enum value="&quot;XR_FB_extension_168&quot;" name="XR_FB_extension_168_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_FB_extension_169" number="169" type="instance" supported="disabled">
+        <require>
+            <enum value="1" name="XR_FB_extension_169_SPEC_VERSION"/>
+            <enum value="&quot;XR_FB_extension_169&quot;" name="XR_FB_extension_169_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_FB_extension_170" number="170" type="instance" supported="disabled">
+        <require>
+            <enum value="1" name="XR_FB_extension_170_SPEC_VERSION"/>
+            <enum value="&quot;XR_FB_extension_170&quot;" name="XR_FB_extension_170_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_FB_extension_171" number="171" type="instance" supported="disabled">
+        <require>
+            <enum value="1" name="XR_FB_extension_171_SPEC_VERSION"/>
+            <enum value="&quot;XR_FB_extension_171&quot;" name="XR_FB_extension_171_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_FB_extension_172" number="172" type="instance" supported="disabled">
+        <require>
+            <enum value="1" name="XR_FB_extension_172_SPEC_VERSION"/>
+            <enum value="&quot;XR_FB_extension_172&quot;" name="XR_FB_extension_172_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_FB_extension_173" number="173" type="instance" supported="disabled">
+        <require>
+            <enum value="1" name="XR_FB_extension_173_SPEC_VERSION"/>
+            <enum value="&quot;XR_FB_extension_173&quot;" name="XR_FB_extension_173_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_FB_extension_174" number="174" type="instance" supported="disabled">
+        <require>
+            <enum value="1" name="XR_FB_extension_174_SPEC_VERSION"/>
+            <enum value="&quot;XR_FB_extension_174&quot;" name="XR_FB_extension_174_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_FB_extension_175" number="175" type="instance" supported="disabled">
+        <require>
+            <enum value="1" name="XR_FB_extension_175_SPEC_VERSION"/>
+            <enum value="&quot;XR_FB_extension_175&quot;" name="XR_FB_extension_175_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_FB_extension_176" number="176" type="instance" supported="disabled">
+        <require>
+            <enum value="1" name="XR_FB_extension_176_SPEC_VERSION"/>
+            <enum value="&quot;XR_FB_extension_176&quot;" name="XR_FB_extension_176_EXTENSION_NAME"/>
         </require>
     </extension>
 

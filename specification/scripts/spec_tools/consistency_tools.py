@@ -8,13 +8,16 @@
 """Provides utilities to write a script to verify XML registry consistency."""
 
 import re
+from typing import Set
 
 import networkx as nx
+from networkx.algorithms import shortest_path
 
 from .algo import RecursiveMemoize
 from .attributes import ExternSyncEntry, LengthEntry
 from .data_structures import DictOfStringSets
 from .util import findNamedElem, getElemName, getElemType
+from .conventions import ConventionsBase
 
 
 def _get_extension_tags(reg):
@@ -23,7 +26,7 @@ def _get_extension_tags(reg):
 
 
 class XMLChecker:
-    def __init__(self, entity_db,  conventions, manual_types_to_codes=None,
+    def __init__(self, entity_db,  conventions: ConventionsBase, manual_types_to_codes=None,
                  forward_only_types_to_codes=None,
                  reverse_only_types_to_codes=None,
                  suppressions=None):
@@ -99,6 +102,7 @@ class XMLChecker:
         for codes in self.input_type_to_codes.values():
             specified_codes.update(codes)
 
+        self.return_codes: Set[str]
         unrecognized = specified_codes - self.return_codes
         if unrecognized:
             raise RuntimeError("Return code mentioned in script that isn't in the registry: " +
@@ -174,13 +178,27 @@ class XMLChecker:
         return self.conventions.should_skip_checking_codes
 
     def get_codes_for_command_and_type(self, cmd_name, type_name):
-        """Return a set of error codes expected due to having
+        """Return a set of return codes expected due to having
         an input argument of type type_name.
 
         The cmd_name is passed for use by extending methods.
+        Note that you should not use cmd_name to add codes, just to
+        filter them out. See get_required_codes_for_command() to do that.
 
         May extend."""
         return self.input_type_to_codes.get(type_name, set())
+
+    def get_required_codes_for_command(self, cmd_name):
+        """Return a set of return codes required due to having a particular name.
+
+        May override."""
+        return set()
+
+    def get_forbidden_codes_for_command(self, cmd_name):
+        """Return a set of return codes not permittted due to having a particular name.
+
+        May override."""
+        return set()
 
     def check(self):
         """Iterate through the registry, looking for consistency problems.
@@ -433,6 +451,19 @@ class XMLChecker:
         May extend."""
         referenced_input = self.referenced_input_types[name]
         referenced_types = self.referenced_types[name]
+        error_prefix = self.conventions.api_prefix + "ERROR"
+
+        bad_success = {x for x in successcodes if x.startswith(error_prefix)}
+        if bad_success:
+            self.record_error("Found error code(s)",
+                              ",".join(bad_success),
+                              "listed in the successcodes attributes")
+
+        bad_errors = {x for x in errorcodes if not x.startswith(error_prefix)}
+        if bad_errors:
+            self.record_error("Found success code(s)",
+                              ",".join(bad_errors),
+                              "listed in the errorcodes attributes")
 
         # Check that we have all the codes we expect, based on input types.
         for referenced_type in referenced_input:
@@ -449,6 +480,20 @@ class XMLChecker:
                                   referenced_type,
                                   "found via path",
                                   path_str)
+
+        # Check that we have all the codes we expect based on command name.
+        missing_codes = self.get_required_codes_for_command(name) - codes
+        if missing_codes:
+            self.record_error("Missing expected return code(s)",
+                              ",".join(missing_codes),
+                              "implied because of the name of this command")
+
+        # Check that we don't have any codes forbidden based on command name.
+        forbidden = self.get_forbidden_codes_for_command(name).intersection(codes)
+        if forbidden:
+            self.record_error("Got return code(s)",
+                              ", ".join(forbidden),
+                              "that were forbidden due to the name of this command")
 
         # Check that, for each code returned by this command that we can
         # associate with a type, we have some type that can provide it.
@@ -617,7 +662,7 @@ class ReferencedTypes(RecursiveMemoize):
         # Trigger computation
         _ = self[source]
 
-        return nx.algorithms.shortest_path(self.graph, source=source, target=target)
+        return shortest_path(self.graph, source=source, target=target)
 
     def directly_referenced(self, type_name):
         """Get all types referenced directly by type_name that satisfy the predicate.

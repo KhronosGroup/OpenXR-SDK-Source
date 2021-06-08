@@ -34,7 +34,7 @@ makeSubset() {
 
 }
 
-COMMON_FILES=".gitignore .gitattributes CODE_OF_CONDUCT.md LICENSES .reuse .editorconfig"
+COMMON_FILES=".gitignore .gitattributes .git-blame-ignore-revs CODE_OF_CONDUCT.md LICENSES .reuse .editorconfig"
 export COMMON_FILES
 
 add_to_tar() {
@@ -130,6 +130,7 @@ getDocsFilenames() {
         | grep -v "vuid[.]adoc" \
         | grep -v "CMakeLists.txt" \
         | grep -v "ubmitted" \
+        | grep -v "experimental" \
         | grep -v "compare" \
         | grep -v "JP\.jpg"
 }

@@ -8,17 +8,20 @@ from pathlib import Path
 
 from generator import GeneratorOptions, OutputGenerator, noneStr, write
 
-ENUM_TABLE_PREFIX = """
+_ENUM_TABLE_PREFIX = """
 [cols=",",options="header",]
 |=======================================================================
 |Enum |Description"""
 
-ENUM_TABLE_SUFFIX = """|======================================================================="""
+_TABLE_SUFFIX = """|======================================================================="""
 
-FLAG_BLOCK_PREFIX = """.Flag Descriptions
+_ENUM_BLOCK_PREFIX = """.Enumerant Descriptions
 ****"""
 
-FLAG_BLOCK_SUFFIX = """****"""
+_FLAG_BLOCK_PREFIX = """.Flag Descriptions
+****"""
+
+_BLOCK_SUFFIX = """****"""
 
 
 class DocGeneratorOptions(GeneratorOptions):
@@ -199,7 +202,7 @@ class DocOutputGenerator(OutputGenerator):
             write('----', file=fp)
             fp.close()
 
-    def writeTable(self, basename, values):
+    def writeEnumTable(self, basename, values):
         """Output a table of enumerants."""
         directory = Path(self.genOpts.directory) / 'enums'
         self.makeDir(str(directory))
@@ -209,13 +212,36 @@ class DocOutputGenerator(OutputGenerator):
 
         with open(filename, 'w', encoding='utf-8') as fp:
             write(self.conventions.warning_comment, file=fp)
-            write(ENUM_TABLE_PREFIX, file=fp)
+            write(_ENUM_TABLE_PREFIX, file=fp)
 
             for data in values:
                 write("|ename:{}".format(data['name']), file=fp)
                 write("|{}".format(data['comment']), file=fp)
 
-            write(ENUM_TABLE_SUFFIX, file=fp)
+            write(_TABLE_SUFFIX, file=fp)
+
+    def writeBox(self, filename, prefix, items):
+        """Write a generalized block/box for some values."""
+        self.logMsg('diag', '# Generating include file:', filename)
+
+        with open(filename, 'w', encoding='utf-8') as fp:
+            write(self.conventions.warning_comment, file=fp)
+            write(prefix, file=fp)
+
+            for item in items:
+                write("* {}".format(item), file=fp)
+
+            write(_BLOCK_SUFFIX, file=fp)
+
+    def writeEnumBox(self, basename, values):
+        """Output a box of enumerants."""
+        directory = Path(self.genOpts.directory) / 'enums'
+        self.makeDir(str(directory))
+
+        filename = str(directory / '{}.comments-box.txt'.format(basename))
+        self.writeBox(filename, _ENUM_BLOCK_PREFIX,
+                      ("ename:{} -- {}".format(data['name'], data['comment'])
+                       for data in values))
 
     def writeFlagBox(self, basename, values):
         """Output a box of flag bit comments."""
@@ -223,18 +249,9 @@ class DocOutputGenerator(OutputGenerator):
         self.makeDir(str(directory))
 
         filename = str(directory / '{}.comments.txt'.format(basename))
-        self.logMsg('diag', '# Generating include file:', filename)
-
-        with open(filename, 'w', encoding='utf-8') as fp:
-            write(self.conventions.warning_comment, file=fp)
-            write(FLAG_BLOCK_PREFIX, file=fp)
-
-            for data in values:
-                write("* ename:{} -- {}".format(data['name'],
-                                                data['comment']),
-                      file=fp)
-
-            write(FLAG_BLOCK_SUFFIX, file=fp)
+        self.writeBox(filename, _FLAG_BLOCK_PREFIX,
+                      ("ename:{} -- {}".format(data['name'], data['comment'])
+                       for data in values))
 
     def genType(self, typeinfo, name, alias):
         """Generate type."""
@@ -367,16 +384,17 @@ class DocOutputGenerator(OutputGenerator):
             group_type = groupinfo.elem.get('type')
             if groupName == self.result_type:
                 # Split this into success and failure
-                self.writeTable(groupName + '.success',
+                self.writeEnumTable(groupName + '.success',
                                 (data for data in values
                                  if data['value'] >= 0))
-                self.writeTable(groupName + '.error',
+                self.writeEnumTable(groupName + '.error',
                                 (data for data in values
                                  if data['value'] < 0))
             elif group_type == 'bitmask':
                 self.writeFlagBox(groupName, values)
             elif group_type == 'enum':
-                self.writeTable(groupName, values)
+                self.writeEnumTable(groupName, values)
+                self.writeEnumBox(groupName, values)
             else:
                 raise RuntimeError("Unrecognized enums type: " + str(group_type))
 

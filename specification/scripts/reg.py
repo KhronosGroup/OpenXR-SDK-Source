@@ -360,8 +360,8 @@ class Registry:
             key = elem.get('name')
         if key in dictionary:
             if not dictionary[key].compareElem(info, infoName):
-                self.gen.logMsg('warn', 'Attempt to redefine', key,
-                                '(this should not happen)')
+                raise RuntimeError(
+                    "Attempt to redefine %s (this should not happen - indicates XML error)" % key)
             else:
                 True
         else:

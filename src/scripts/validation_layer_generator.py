@@ -42,6 +42,8 @@ VALID_USAGE_MANUALLY_DEFINED = set((
     'xrSessionInsertDebugUtilsLabelEXT',
 ))
 
+_CHAR_RE = re.compile(r"\bchar\b")
+
 
 # ValidationSourceOutputGenerator - subclass of AutomaticSourceOutputGenerator.
 
@@ -1811,7 +1813,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 param_member_contents += self.writeIndent(indent)
                 param_member_contents += '// NOTE: Can\'t validate "VUID-%s-%s-parameter" type\n' % (struct_command_name,
                                                                                                      param_member.name)
-            elif param_member.is_static_array and "char" in param_member.type:
+            elif param_member.is_static_array and _CHAR_RE.search(param_member.type):
                 param_member_contents += self.writeIndent(indent)
                 param_member_contents += 'if (%s < std::strlen(%s)) {\n' % (
                     param_member.static_array_sizes[0], prefixed_param_member_name)

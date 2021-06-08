@@ -8,6 +8,7 @@
 # used in generation.
 
 from enum import Enum
+import abc
 
 # Type categories that respond "False" to isStructAlwaysValid
 # basetype is home to typedefs like ..Bool32
@@ -64,7 +65,7 @@ class ProseListFormats(Enum):
         return ''
 
 
-class ConventionsBase:
+class ConventionsBase(abc.ABC):
     """WG-specific conventions."""
 
     def __init__(self):
@@ -76,6 +77,7 @@ class ConventionsBase:
         return '`<<{}>>`'.format(name)
 
     @property
+    @abc.abstractmethod
     def null(self):
         """Preferred spelling of NULL."""
         raise NotImplementedError
@@ -112,6 +114,38 @@ class ConventionsBase:
         May override.
         """
         return 'code:'
+
+    @property
+    @abc.abstractmethod
+    def structtype_member_name(self):
+        """Return name of the structure type member.
+
+        Must implement.
+        """
+        raise NotImplementedError()
+
+    @property
+    @abc.abstractmethod
+    def nextpointer_member_name(self):
+        """Return name of the structure pointer chain member.
+
+        Must implement.
+        """
+        raise NotImplementedError()
+
+    @property
+    @abc.abstractmethod
+    def xml_api_name(self):
+        """Return the name used in the default API XML registry for the default API"""
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def generate_structure_type_from_name(self, structname):
+        """Generate a structure type name, like XR_TYPE_CREATE_INSTANCE_INFO.
+
+        Must implement.
+        """
+        raise NotImplementedError()
 
     def makeStructName(self, name):
         """Prepend the appropriate format macro for a structure to a structure type name.
@@ -167,10 +201,12 @@ class ConventionsBase:
         return ''.join(parts)
 
     @property
+    @abc.abstractmethod
     def file_suffix(self):
         """Return suffix of generated Asciidoctor files"""
         raise NotImplementedError
 
+    @abc.abstractmethod
     def api_name(self, spectype=None):
         """Return API or specification name for citations in ref pages.
 
@@ -207,6 +243,7 @@ class ConventionsBase:
         return self._type_prefix
 
     @property
+    @abc.abstractmethod
     def api_prefix(self):
         """Return API token prefix.
 
@@ -324,6 +361,7 @@ class ConventionsBase:
            group should be generated as part of group generation."""
         return False
 
+    @abc.abstractmethod
     def extension_include_string(self, ext):
         """Return format string for include:: line for an extension appendix
            file. ext is an object with the following members:
@@ -335,6 +373,7 @@ class ConventionsBase:
         raise NotImplementedError
 
     @property
+    @abc.abstractmethod
     def refpage_generated_include_path(self):
         """Return path relative to the generated reference pages, to the
            generated API include files.
