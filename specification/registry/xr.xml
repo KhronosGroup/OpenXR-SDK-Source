@@ -1842,26 +1842,26 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
 
     <!-- SECTION: OpenXR command definitions -->
     <commands>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY">
             <proto><type>XrResult</type> <name>xrGetInstanceProcAddr</name></proto>
             <param optional="true"><type>XrInstance</type> <name>instance</name></param>
             <param len="null-terminated">const <type>char</type>* <name>name</name></param>
             <param><type>PFN_xrVoidFunction</type>* <name>function</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_OUT_OF_MEMORY,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SIZE_INSUFFICIENT">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SIZE_INSUFFICIENT">
             <proto><type>XrResult</type> <name>xrEnumerateApiLayerProperties</name></proto>
             <param optional="true"><type>uint32_t</type> <name>propertyCapacityInput</name></param>
             <param><type>uint32_t</type>* <name>propertyCountOutput</name></param>
             <param optional="true" len="propertyCapacityInput"><type>XrApiLayerProperties</type>* <name>properties</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_OUT_OF_MEMORY,XR_ERROR_API_LAYER_NOT_PRESENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_RUNTIME_UNAVAILABLE">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_RUNTIME_UNAVAILABLE,XR_ERROR_API_LAYER_NOT_PRESENT">
             <proto><type>XrResult</type> <name>xrEnumerateInstanceExtensionProperties</name></proto>
             <param optional="true" len="null-terminated">const <type>char</type>* <name>layerName</name></param>
             <param optional="true"><type>uint32_t</type> <name>propertyCapacityInput</name></param>
             <param><type>uint32_t</type>* <name>propertyCountOutput</name></param>
             <param optional="true" len="propertyCapacityInput"><type>XrExtensionProperties</type>* <name>properties</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_INITIALIZATION_FAILED,XR_ERROR_API_VERSION_UNSUPPORTED,XR_ERROR_API_LAYER_NOT_PRESENT,XR_ERROR_EXTENSION_NOT_PRESENT,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_NAME_INVALID,XR_ERROR_RUNTIME_UNAVAILABLE">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_RUNTIME_UNAVAILABLE,XR_ERROR_NAME_INVALID,XR_ERROR_INITIALIZATION_FAILED,XR_ERROR_EXTENSION_NOT_PRESENT,XR_ERROR_API_VERSION_UNSUPPORTED,XR_ERROR_API_LAYER_NOT_PRESENT">
             <proto><type>XrResult</type> <name>xrCreateInstance</name></proto>
             <param>const <type>XrInstanceCreateInfo</type>* <name>createInfo</name></param>
             <param><type>XrInstance</type>* <name>instance</name></param>
@@ -1870,36 +1870,36 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <proto><type>XrResult</type> <name>xrDestroyInstance</name></proto>
             <param externsync="true_with_children"><type>XrInstance</type> <name>instance</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST">
             <proto><type>XrResult</type> <name>xrResultToString</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrResult</type> <name>value</name></param>
             <param><type>char</type> <name>buffer</name>[<enum>XR_MAX_RESULT_STRING_SIZE</enum>]</param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST">
             <proto><type>XrResult</type> <name>xrStructureTypeToString</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrStructureType</type> <name>value</name></param>
             <param><type>char</type> <name>buffer</name>[<enum>XR_MAX_STRUCTURE_NAME_SIZE</enum>]</param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST">
             <proto><type>XrResult</type> <name>xrGetInstanceProperties</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrInstanceProperties</type>* <name>instanceProperties</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_FORM_FACTOR_UNAVAILABLE,XR_ERROR_FORM_FACTOR_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_FORM_FACTOR_UNSUPPORTED,XR_ERROR_FORM_FACTOR_UNAVAILABLE">
             <proto><type>XrResult</type> <name>xrGetSystem</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param>const <type>XrSystemGetInfo</type>* <name>getInfo</name></param>
             <param><type>XrSystemId</type>* <name>systemId</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrGetSystemProperties</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrSystemId</type> <name>systemId</name></param>
             <param><type>XrSystemProperties</type>* <name>properties</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_INITIALIZATION_FAILED,XR_ERROR_SYSTEM_INVALID,XR_ERROR_GRAPHICS_DEVICE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_GRAPHICS_REQUIREMENTS_CALL_MISSING">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_SYSTEM_INVALID,XR_ERROR_INITIALIZATION_FAILED,XR_ERROR_GRAPHICS_REQUIREMENTS_CALL_MISSING,XR_ERROR_GRAPHICS_DEVICE_INVALID">
             <proto><type>XrResult</type> <name>xrCreateSession</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param>const <type>XrSessionCreateInfo</type>* <name>createInfo</name></param>
@@ -1913,14 +1913,14 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <proto><type>XrResult</type> <name>xrDestroySpace</name></proto>
             <param externsync="true_with_children"><type>XrSpace</type> <name>space</name></param>
          </command>
-         <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+         <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT">
             <proto><type>XrResult</type> <name>xrEnumerateSwapchainFormats</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param optional="true"><type>uint32_t</type> <name>formatCapacityInput</name></param>
             <param><type>uint32_t</type>* <name>formatCountOutput</name></param>
             <param optional="true" len="formatCapacityInput"><type>int64_t</type>* <name>formats</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_LIMIT_REACHED,XR_ERROR_HANDLE_INVALID,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SWAPCHAIN_FORMAT_UNSUPPORTED,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_SWAPCHAIN_FORMAT_UNSUPPORTED,XR_ERROR_FEATURE_UNSUPPORTED">
             <proto><type>XrResult</type> <name>xrCreateSwapchain</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrSwapchainCreateInfo</type>* <name>createInfo</name></param>
@@ -1930,69 +1930,69 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <proto><type>XrResult</type> <name>xrDestroySwapchain</name></proto>
             <param externsync="true_with_children"><type>XrSwapchain</type> <name>swapchain</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT">
             <proto><type>XrResult</type> <name>xrEnumerateSwapchainImages</name></proto>
             <param><type>XrSwapchain</type> <name>swapchain</name></param>
             <param optional="true"><type>uint32_t</type> <name>imageCapacityInput</name></param>
             <param><type>uint32_t</type>* <name>imageCountOutput</name></param>
             <param optional="true" len="imageCapacityInput"><type>XrSwapchainImageBaseHeader</type>* <name>images</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_CALL_ORDER_INVALID">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_CALL_ORDER_INVALID">
             <proto><type>XrResult</type> <name>xrAcquireSwapchainImage</name></proto>
             <param><type>XrSwapchain</type>         <name>swapchain</name></param>
             <param optional="true">const <type>XrSwapchainImageAcquireInfo</type>* <name>acquireInfo</name></param>
             <param><type>uint32_t</type>* <name>index</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_TIMEOUT_EXPIRED,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_CALL_ORDER_INVALID">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING,XR_TIMEOUT_EXPIRED" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_CALL_ORDER_INVALID">
             <proto><type>XrResult</type> <name>xrWaitSwapchainImage</name></proto>
             <param><type>XrSwapchain</type> <name>swapchain</name></param>
             <param>const <type>XrSwapchainImageWaitInfo</type>* <name>waitInfo</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_CALL_ORDER_INVALID">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_CALL_ORDER_INVALID">
             <proto><type>XrResult</type> <name>xrReleaseSwapchainImage</name></proto>
             <param><type>XrSwapchain</type>         <name>swapchain</name></param>
             <param optional="true">const <type>XrSwapchainImageReleaseInfo</type>* <name>releaseInfo</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_SESSION_NOT_READY,XR_ERROR_SESSION_RUNNING,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED,XR_ERROR_SESSION_RUNNING,XR_ERROR_SESSION_NOT_READY">
             <proto><type>XrResult</type> <name>xrBeginSession</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrSessionBeginInfo</type>* <name>beginInfo</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SESSION_NOT_STOPPING,XR_ERROR_SESSION_NOT_RUNNING,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_SESSION_NOT_STOPPING,XR_ERROR_SESSION_NOT_RUNNING">
             <proto><type>XrResult</type> <name>xrEndSession</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SESSION_NOT_RUNNING,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_SESSION_NOT_RUNNING">
             <proto><type>XrResult</type> <name>xrRequestExitSession</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT">
             <proto><type>XrResult</type> <name>xrEnumerateReferenceSpaces</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param optional="true"><type>uint32_t</type> <name>spaceCapacityInput</name></param>
             <param><type>uint32_t</type>* <name>spaceCountOutput</name></param>
             <param optional="true" len="spaceCapacityInput"><type>XrReferenceSpaceType</type>* <name>spaces</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_HANDLE_INVALID,XR_ERROR_REFERENCE_SPACE_UNSUPPORTED,XR_ERROR_POSE_INVALID,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_REFERENCE_SPACE_UNSUPPORTED,XR_ERROR_POSE_INVALID">
             <proto><type>XrResult</type> <name>xrCreateReferenceSpace</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrReferenceSpaceCreateInfo</type>* <name>createInfo</name></param>
             <param><type>XrSpace</type>* <name>space</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_HANDLE_INVALID,XR_ERROR_ACTION_TYPE_MISMATCH,XR_ERROR_LIMIT_REACHED,XR_ERROR_POSE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_POSE_INVALID,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID,XR_ERROR_ACTION_TYPE_MISMATCH">
             <proto><type>XrResult</type> <name>xrCreateActionSpace</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrActionSpaceCreateInfo</type>* <name>createInfo</name></param>
             <param><type>XrSpace</type>* <name>space</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_TIME_INVALID">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID">
             <proto><type>XrResult</type> <name>xrLocateSpace</name></proto>
             <param><type>XrSpace</type> <name>space</name></param>
             <param><type>XrSpace</type> <name>baseSpace</name></param>
             <param><type>XrTime</type>   <name>time</name></param>
             <param><type>XrSpaceLocation</type>* <name>location</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_SIZE_INSUFFICIENT">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrEnumerateViewConfigurations</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrSystemId</type> <name>systemId</name></param>
@@ -2000,7 +2000,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>uint32_t</type>* <name>viewConfigurationTypeCountOutput</name></param>
             <param optional="true" len="viewConfigurationTypeCapacityInput"><type>XrViewConfigurationType</type>* <name>viewConfigurationTypes</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED,XR_ERROR_SIZE_INSUFFICIENT">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrEnumerateEnvironmentBlendModes</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrSystemId</type> <name>systemId</name></param>
@@ -2009,14 +2009,14 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>uint32_t</type>* <name>environmentBlendModeCountOutput</name></param>
             <param optional="true" len="environmentBlendModeCapacityInput"><type>XrEnvironmentBlendMode</type>* <name>environmentBlendModes</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrGetViewConfigurationProperties</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrSystemId</type> <name>systemId</name></param>
             <param><type>XrViewConfigurationType</type> <name>viewConfigurationType</name></param>
             <param><type>XrViewConfigurationProperties</type>* <name>configurationProperties</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED,XR_ERROR_SIZE_INSUFFICIENT">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrEnumerateViewConfigurationViews</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrSystemId</type> <name>systemId</name></param>
@@ -2025,12 +2025,12 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>uint32_t</type>* <name>viewCountOutput</name></param>
             <param optional="true" len="viewCapacityInput"><type>XrViewConfigurationView</type>* <name>views</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING,XR_FRAME_DISCARDED" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_CALL_ORDER_INVALID,XR_ERROR_SESSION_NOT_RUNNING,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING,XR_FRAME_DISCARDED" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_SESSION_NOT_RUNNING,XR_ERROR_CALL_ORDER_INVALID">
             <proto><type>XrResult</type> <name>xrBeginFrame</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param optional="true">const <type>XrFrameBeginInfo</type>* <name>frameBeginInfo</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED,XR_ERROR_TIME_INVALID">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED,XR_ERROR_TIME_INVALID">
             <proto><type>XrResult</type> <name>xrLocateViews</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrViewLocateInfo</type>* <name>viewLocateInfo</name></param>
@@ -2039,12 +2039,12 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>uint32_t</type>* <name>viewCountOutput</name></param>
             <param optional="true" len="viewCapacityInput"><type>XrView</type>* <name>views</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_CALL_ORDER_INVALID,XR_ERROR_LAYER_INVALID,XR_ERROR_SWAPCHAIN_RECT_INVALID,XR_ERROR_ENVIRONMENT_BLEND_MODE_UNSUPPORTED,XR_ERROR_SESSION_NOT_RUNNING,XR_ERROR_LAYER_LIMIT_EXCEEDED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_TIME_INVALID,XR_ERROR_POSE_INVALID">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID,XR_ERROR_SWAPCHAIN_RECT_INVALID,XR_ERROR_SESSION_NOT_RUNNING,XR_ERROR_POSE_INVALID,XR_ERROR_LAYER_LIMIT_EXCEEDED,XR_ERROR_LAYER_INVALID,XR_ERROR_ENVIRONMENT_BLEND_MODE_UNSUPPORTED,XR_ERROR_CALL_ORDER_INVALID">
             <proto><type>XrResult</type> <name>xrEndFrame</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrFrameEndInfo</type>* <name>frameEndInfo</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SESSION_NOT_RUNNING,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_SESSION_NOT_RUNNING">
             <proto><type>XrResult</type> <name>xrWaitFrame</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param optional="true">const <type>XrFrameWaitInfo</type>* <name>frameWaitInfo</name></param>
@@ -2053,29 +2053,29 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
                 <param>the pname:session parameter by any other flink:xrWaitFrame call</param>
             </implicitexternsyncparams>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_ACTIONSET_NOT_ATTACHED,XR_ERROR_ACTION_TYPE_MISMATCH,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID,XR_ERROR_ACTION_TYPE_MISMATCH,XR_ERROR_ACTIONSET_NOT_ATTACHED">
             <proto><type>XrResult</type> <name>xrApplyHapticFeedback</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrHapticActionInfo</type>* <name>hapticActionInfo</name></param>
             <param>const <type>XrHapticBaseHeader</type>* <name>hapticFeedback</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_ACTIONSET_NOT_ATTACHED,XR_ERROR_ACTION_TYPE_MISMATCH,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID,XR_ERROR_ACTION_TYPE_MISMATCH,XR_ERROR_ACTIONSET_NOT_ATTACHED">
             <proto><type>XrResult</type> <name>xrStopHapticFeedback</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrHapticActionInfo</type>* <name>hapticActionInfo</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_EVENT_UNAVAILABLE" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_EVENT_UNAVAILABLE" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST">
             <proto><type>XrResult</type> <name>xrPollEvent</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrEventDataBuffer</type>* <name>eventData</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_PATH_FORMAT_INVALID,XR_ERROR_PATH_COUNT_EXCEEDED,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_PATH_FORMAT_INVALID,XR_ERROR_PATH_COUNT_EXCEEDED">
             <proto><type>XrResult</type> <name>xrStringToPath</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param len="null-terminated">const <type>char</type>* <name>pathString</name></param>
             <param><type>XrPath</type>* <name>path</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_PATH_INVALID,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_PATH_INVALID">
             <proto><type>XrResult</type> <name>xrPathToString</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrPath</type> <name>path</name></param>
@@ -2083,50 +2083,50 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>uint32_t</type>* <name>bufferCountOutput</name></param>
             <param optional="true" len="bufferCapacityInput"><type>char</type>* <name>buffer</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SPACE_BOUNDS_UNAVAILABLE,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_REFERENCE_SPACE_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING,XR_SPACE_BOUNDS_UNAVAILABLE" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_REFERENCE_SPACE_UNSUPPORTED">
             <proto><type>XrResult</type> <name>xrGetReferenceSpaceBoundsRect</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrReferenceSpaceType</type> <name>referenceSpaceType</name></param>
             <param><type>XrExtent2Df</type>* <name>bounds</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_ANDROID_THREAD_SETTINGS_ID_INVALID_KHR,XR_ERROR_ANDROID_THREAD_SETTINGS_FAILURE_KHR,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_ANDROID_THREAD_SETTINGS_ID_INVALID_KHR,XR_ERROR_ANDROID_THREAD_SETTINGS_FAILURE_KHR">
             <proto><type>XrResult</type> <name>xrSetAndroidApplicationThreadKHR</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrAndroidThreadTypeKHR</type> <name>threadType</name></param>
             <param><type>uint32_t</type> <name>threadId</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_LIMIT_REACHED,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_LIMIT_REACHED">
             <proto><type>XrResult</type> <name>xrCreateSwapchainAndroidSurfaceKHR</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrSwapchainCreateInfo</type>* <name>info</name></param>
             <param><type>XrSwapchain</type>* <name>swapchain</name></param>
             <param><type>jobject</type>* <name>surface</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_ACTIONSET_NOT_ATTACHED,XR_ERROR_ACTION_TYPE_MISMATCH,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID,XR_ERROR_ACTION_TYPE_MISMATCH,XR_ERROR_ACTIONSET_NOT_ATTACHED">
             <proto><type>XrResult</type> <name>xrGetActionStateBoolean</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrActionStateGetInfo</type>* <name>getInfo</name></param>
             <param><type>XrActionStateBoolean</type>* <name>state</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_ACTIONSET_NOT_ATTACHED,XR_ERROR_ACTION_TYPE_MISMATCH,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID,XR_ERROR_ACTION_TYPE_MISMATCH,XR_ERROR_ACTIONSET_NOT_ATTACHED">
             <proto><type>XrResult</type> <name>xrGetActionStateFloat</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrActionStateGetInfo</type>* <name>getInfo</name></param>
             <param><type>XrActionStateFloat</type>* <name>state</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_ACTIONSET_NOT_ATTACHED,XR_ERROR_ACTION_TYPE_MISMATCH,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID,XR_ERROR_ACTION_TYPE_MISMATCH,XR_ERROR_ACTIONSET_NOT_ATTACHED">
             <proto><type>XrResult</type> <name>xrGetActionStateVector2f</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrActionStateGetInfo</type>* <name>getInfo</name></param>
             <param><type>XrActionStateVector2f</type>* <name>state</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_ACTIONSET_NOT_ATTACHED,XR_ERROR_ACTION_TYPE_MISMATCH,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID,XR_ERROR_ACTION_TYPE_MISMATCH,XR_ERROR_ACTIONSET_NOT_ATTACHED">
             <proto><type>XrResult</type> <name>xrGetActionStatePose</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrActionStateGetInfo</type>* <name>getInfo</name></param>
             <param><type>XrActionStatePose</type>* <name>state</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_LIMIT_REACHED,XR_ERROR_HANDLE_INVALID,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_NAME_DUPLICATED,XR_ERROR_LOCALIZED_NAME_DUPLICATED,XR_ERROR_NAME_INVALID,XR_ERROR_LOCALIZED_NAME_INVALID,XR_ERROR_PATH_FORMAT_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_PATH_FORMAT_INVALID,XR_ERROR_NAME_INVALID,XR_ERROR_NAME_DUPLICATED,XR_ERROR_LOCALIZED_NAME_INVALID,XR_ERROR_LOCALIZED_NAME_DUPLICATED">
             <proto><type>XrResult</type> <name>xrCreateActionSet</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param>const <type>XrActionSetCreateInfo</type>* <name>createInfo</name></param>
@@ -2136,7 +2136,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <proto><type>XrResult</type> <name>xrDestroyActionSet</name></proto>
             <param externsync="true_with_children"><type>XrActionSet</type> <name>actionSet</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_ACTIONSETS_ALREADY_ATTACHED,XR_ERROR_LIMIT_REACHED,XR_ERROR_HANDLE_INVALID,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PATH_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_NAME_DUPLICATED,XR_ERROR_LOCALIZED_NAME_DUPLICATED,XR_ERROR_NAME_INVALID,XR_ERROR_LOCALIZED_NAME_INVALID,XR_ERROR_PATH_FORMAT_INVALID,XR_ERROR_PATH_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_FORMAT_INVALID,XR_ERROR_NAME_INVALID,XR_ERROR_NAME_DUPLICATED,XR_ERROR_LOCALIZED_NAME_INVALID,XR_ERROR_LOCALIZED_NAME_DUPLICATED,XR_ERROR_ACTIONSETS_ALREADY_ATTACHED">
             <proto><type>XrResult</type> <name>xrCreateAction</name></proto>
             <param><type>XrActionSet</type> <name>actionSet</name></param>
             <param>const <type>XrActionCreateInfo</type>* <name>createInfo</name></param>
@@ -2146,28 +2146,28 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <proto><type>XrResult</type> <name>xrDestroyAction</name></proto>
             <param externsync="true_with_children"><type>XrAction</type> <name>action</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_ACTIONSETS_ALREADY_ATTACHED,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID,XR_ERROR_ACTIONSETS_ALREADY_ATTACHED">
             <proto><type>XrResult</type> <name>xrSuggestInteractionProfileBindings</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param>const <type>XrInteractionProfileSuggestedBinding</type>* <name>suggestedBindings</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_ACTIONSETS_ALREADY_ATTACHED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_ACTIONSETS_ALREADY_ATTACHED">
             <proto><type>XrResult</type> <name>xrAttachSessionActionSets</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrSessionActionSetsAttachInfo</type>* <name>attachInfo</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_ACTIONSET_NOT_ATTACHED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID,XR_ERROR_ACTIONSET_NOT_ATTACHED">
             <proto><type>XrResult</type> <name>xrGetCurrentInteractionProfile</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPath</type> <name>topLevelUserPath</name></param>
             <param><type>XrInteractionProfileState</type>* <name>interactionProfile</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING,XR_SESSION_NOT_FOCUSED" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_ACTIONSET_NOT_ATTACHED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING,XR_SESSION_NOT_FOCUSED" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID,XR_ERROR_ACTIONSET_NOT_ATTACHED">
             <proto><type>XrResult</type> <name>xrSyncActions</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrActionsSyncInfo</type>* <name>syncInfo</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_ACTIONSET_NOT_ATTACHED,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_PATH_INVALID">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_PATH_INVALID,XR_ERROR_ACTIONSET_NOT_ATTACHED">
             <proto><type>XrResult</type> <name>xrEnumerateBoundSourcesForAction</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrBoundSourcesForActionEnumerateInfo</type>* <name>enumerateInfo</name></param>
@@ -2175,7 +2175,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>uint32_t</type>* <name>sourceCountOutput</name></param>
             <param optional="true" len="sourceCapacityInput"><type>XrPath</type>* <name>sources</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_ACTIONSET_NOT_ATTACHED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID,XR_ERROR_ACTIONSET_NOT_ATTACHED">
             <proto><type>XrResult</type> <name>xrGetInputSourceLocalizedName</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrInputSourceLocalizedNameGetInfo</type>* <name>getInfo</name></param>
@@ -2183,7 +2183,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>uint32_t</type>* <name>bufferCountOutput</name></param>
             <param optional="true" len="bufferCapacityInput"><type>char</type>* <name>buffer</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrGetVulkanInstanceExtensionsKHR</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrSystemId</type> <name>systemId</name></param>
@@ -2191,7 +2191,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>uint32_t</type>* <name>bufferCountOutput</name></param>
             <param optional="true" len="bufferCapacityInput"><type>char</type>* <name>buffer</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrGetVulkanDeviceExtensionsKHR</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrSystemId</type> <name>systemId</name></param>
@@ -2199,50 +2199,50 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>uint32_t</type>* <name>bufferCountOutput</name></param>
             <param optional="true" len="bufferCapacityInput"><type>char</type>* <name>buffer</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrGetVulkanGraphicsDeviceKHR</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrSystemId</type> <name>systemId</name></param>
             <param><type>VkInstance</type> <name>vkInstance</name></param>
             <param><type>VkPhysicalDevice</type>* <name>vkPhysicalDevice</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrGetOpenGLGraphicsRequirementsKHR</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrSystemId</type> <name>systemId</name></param>
             <param><type>XrGraphicsRequirementsOpenGLKHR</type>* <name>graphicsRequirements</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrGetOpenGLESGraphicsRequirementsKHR</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrSystemId</type> <name>systemId</name></param>
             <param><type>XrGraphicsRequirementsOpenGLESKHR</type>* <name>graphicsRequirements</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrGetVulkanGraphicsRequirementsKHR</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrSystemId</type> <name>systemId</name></param>
             <param><type>XrGraphicsRequirementsVulkanKHR</type>* <name>graphicsRequirements</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrGetD3D11GraphicsRequirementsKHR</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrSystemId</type> <name>systemId</name></param>
             <param><type>XrGraphicsRequirementsD3D11KHR</type>* <name>graphicsRequirements</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrGetD3D12GraphicsRequirementsKHR</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrSystemId</type> <name>systemId</name></param>
             <param><type>XrGraphicsRequirementsD3D12KHR</type>* <name>graphicsRequirements</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST">
             <proto><type>XrResult</type> <name>xrPerfSettingsSetPerformanceLevelEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPerfSettingsDomainEXT</type> <name>domain</name></param>
             <param><type>XrPerfSettingsLevelEXT</type> <name>level</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST">
             <proto><type>XrResult</type> <name>xrThermalGetTemperatureTrendEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPerfSettingsDomainEXT</type> <name>domain</name></param>
@@ -2250,54 +2250,54 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>float</type>* <name>tempHeadroom</name></param>
             <param><type>float</type>* <name>tempSlope</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_OUT_OF_MEMORY,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY">
             <proto><type>XrResult</type> <name>xrSetDebugUtilsObjectNameEXT</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param externsync="nameInfo.objectHandle">const <type>XrDebugUtilsObjectNameInfoEXT</type>* <name>nameInfo</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_OUT_OF_MEMORY,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_LIMIT_REACHED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED">
             <proto><type>XrResult</type> <name>xrCreateDebugUtilsMessengerEXT</name></proto>
             <param externsync="true_with_children"><type>XrInstance</type> <name>instance</name></param>
             <param>const <type>XrDebugUtilsMessengerCreateInfoEXT</type>* <name>createInfo</name></param>
             <param><type>XrDebugUtilsMessengerEXT</type>* <name>messenger</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
             <proto><type>XrResult</type> <name>xrDestroyDebugUtilsMessengerEXT</name></proto>
             <param externsync="true"><type>XrDebugUtilsMessengerEXT</type> <name>messenger</name></param>
             <implicitexternsyncparams>
                 <param>the slink:XrInstance used to create pname:messenger, and all of its child handles</param>
             </implicitexternsyncparams>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST">
             <proto><type>XrResult</type>                                    <name>xrSubmitDebugUtilsMessageEXT</name></proto>
             <param><type>XrInstance</type>                                  <name>instance</name></param>
             <param><type>XrDebugUtilsMessageSeverityFlagsEXT</type>         <name>messageSeverity</name></param>
             <param><type>XrDebugUtilsMessageTypeFlagsEXT</type>             <name>messageTypes</name></param>
             <param>const <type>XrDebugUtilsMessengerCallbackDataEXT</type>* <name>callbackData</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST">
             <proto><type>XrResult</type> <name>xrSessionBeginDebugUtilsLabelRegionEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrDebugUtilsLabelEXT</type>* <name>labelInfo</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST">
             <proto><type>XrResult</type> <name>xrSessionEndDebugUtilsLabelRegionEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST">
             <proto><type>XrResult</type> <name>xrSessionInsertDebugUtilsLabelEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrDebugUtilsLabelEXT</type>* <name>labelInfo</name></param>
         </command>
 
         <!-- commands for XR_KHR_win32_convert_performance_counter_time -->
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_TIME_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_TIME_INVALID">
             <proto><type>XrResult</type> <name>xrConvertTimeToWin32PerformanceCounterKHR</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrTime</type>   <name>time</name></param>
             <param><type>LARGE_INTEGER</type>* <name>performanceCounter</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_TIME_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_TIME_INVALID">
             <proto><type>XrResult</type> <name>xrConvertWin32PerformanceCounterToTimeKHR</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param>const <type>LARGE_INTEGER</type>* <name>performanceCounter</name></param>
@@ -2305,21 +2305,21 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </command>
 
         <!-- commands for XR_KHR_vulkan_enable2 -->
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrCreateVulkanInstanceKHR</name></proto>
             <param><type>XrInstance</type>                          <name>instance</name></param>
             <param>const <type>XrVulkanInstanceCreateInfoKHR</type>*<name>createInfo</name></param>
             <param><type>VkInstance</type>*                         <name>vulkanInstance</name></param>
             <param><type>VkResult</type>*                           <name>vulkanResult</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrCreateVulkanDeviceKHR</name></proto>
             <param><type>XrInstance</type>                          <name>instance</name></param>
             <param>const <type>XrVulkanDeviceCreateInfoKHR</type>*  <name>createInfo</name></param>
             <param><type>VkDevice</type>*                           <name>vulkanDevice</name></param>
             <param><type>VkResult</type>*                           <name>vulkanResult</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrGetVulkanGraphicsDevice2KHR</name></proto>
             <param><type>XrInstance</type>                              <name>instance</name></param>
             <param>const <type>XrVulkanGraphicsDeviceGetInfoKHR</type>* <name>getInfo</name></param>
@@ -2328,13 +2328,13 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <command name="xrGetVulkanGraphicsRequirements2KHR" alias="xrGetVulkanGraphicsRequirementsKHR" />
 
         <!-- commands for XR_KHR_convert_timespec_time -->
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_TIME_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_TIME_INVALID">
             <proto><type>XrResult</type> <name>xrConvertTimeToTimespecTimeKHR</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrTime</type>   <name>time</name></param>
             <param>struct <type>timespec</type>* <name>timespecTime</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_TIME_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_TIME_INVALID">
             <proto><type>XrResult</type> <name>xrConvertTimespecTimeToTimeKHR</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param>const struct <type>timespec</type>* <name>timespecTime</name></param>
@@ -2342,7 +2342,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </command>
 
         <!-- commands for XR_KHR_visibility_mask -->
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SESSION_LOST,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED">
             <proto><type>XrResult</type> <name>xrGetVisibilityMaskKHR</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrViewConfigurationType</type> <name>viewConfigurationType</name></param>
@@ -2352,26 +2352,26 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </command>
 
         <!-- commands for XR_MSFT_spatial_anchor -->
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_POSE_INVALID,XR_ERROR_CREATE_SPATIAL_ANCHOR_FAILED_MSFT,XR_ERROR_TIME_INVALID,XR_ERROR_SESSION_LOST,XR_SESSION_LOSS_PENDING">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_TIME_INVALID,XR_ERROR_POSE_INVALID,XR_ERROR_CREATE_SPATIAL_ANCHOR_FAILED_MSFT">
             <proto><type>XrResult</type> <name>xrCreateSpatialAnchorMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrSpatialAnchorCreateInfoMSFT</type>* <name>createInfo</name></param>
             <param><type>XrSpatialAnchorMSFT</type>* <name>anchor</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_POSE_INVALID,XR_ERROR_SESSION_LOST,XR_SESSION_LOSS_PENDING">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID">
             <proto><type>XrResult</type> <name>xrCreateSpatialAnchorSpaceMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrSpatialAnchorSpaceCreateInfoMSFT</type>* <name>createInfo</name></param>
             <param><type>XrSpace</type>* <name>space</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
             <proto><type>XrResult</type> <name>xrDestroySpatialAnchorMSFT</name></proto>
             <param><type>XrSpatialAnchorMSFT</type> <name>anchor</name></param>
         </command>
 
         <!-- commands for XR_EXT_conformance_automation -->
         <command successcodes="XR_SUCCESS"
-            errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_SESSION_LOSS_PENDING,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED">
+            errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
             <proto><type>XrResult</type> <name>xrSetInputDeviceActiveEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPath</type> <name>interactionProfile</name></param>
@@ -2379,7 +2379,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>XrBool32</type> <name>isActive</name></param>
         </command>
         <command successcodes="XR_SUCCESS"
-            errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_SESSION_LOSS_PENDING,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED">
+            errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
             <proto><type>XrResult</type> <name>xrSetInputDeviceStateBoolEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPath</type> <name>topLevelPath</name></param>
@@ -2387,7 +2387,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>XrBool32</type> <name>state</name></param>
         </command>
         <command successcodes="XR_SUCCESS"
-            errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_SESSION_LOSS_PENDING,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED">
+            errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
             <proto><type>XrResult</type> <name>xrSetInputDeviceStateFloatEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPath</type> <name>topLevelPath</name></param>
@@ -2395,7 +2395,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>float</type> <name>state</name></param>
         </command>
         <command successcodes="XR_SUCCESS"
-            errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_SESSION_LOSS_PENDING,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED">
+            errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
             <proto><type>XrResult</type> <name>xrSetInputDeviceStateVector2fEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPath</type> <name>topLevelPath</name></param>
@@ -2403,7 +2403,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>XrVector2f</type> <name>state</name></param>
         </command>
         <command successcodes="XR_SUCCESS"
-            errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_SESSION_LOSS_PENDING,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_POSE_INVALID">
+            errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_POSE_INVALID,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
             <proto><type>XrResult</type> <name>xrSetInputDeviceLocationEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPath</type> <name>topLevelPath</name></param>
@@ -2420,7 +2420,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </command>
 
         <!--XR_MSFT_spatial_graph_bridge -->
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SESSION_LOST,XR_SESSION_LOSS_PENDING,XR_ERROR_POSE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID">
             <proto><type>XrResult</type> <name>xrCreateSpatialGraphNodeSpaceMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrSpatialGraphNodeSpaceCreateInfoMSFT</type>* <name>createInfo</name></param>
@@ -2429,17 +2429,17 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
 
         <!-- XR_EXT_hand_tracking -->
         <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING"
-            errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_FEATURE_UNSUPPORTED">
+            errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_FEATURE_UNSUPPORTED">
             <proto><type>XrResult</type> <name>xrCreateHandTrackerEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrHandTrackerCreateInfoEXT</type>* <name>createInfo</name></param>
             <param><type>XrHandTrackerEXT</type>* <name>handTracker</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
             <proto><type>XrResult</type> <name>xrDestroyHandTrackerEXT</name></proto>
             <param externsync="true_with_children"><type>XrHandTrackerEXT</type> <name>handTracker</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_TIME_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID">
             <proto><type>XrResult</type> <name>xrLocateHandJointsEXT</name></proto>
             <param><type>XrHandTrackerEXT</type> <name>handTracker</name></param>
             <param>const <type>XrHandJointsLocateInfoEXT</type>* <name>locateInfo</name></param>
@@ -2448,14 +2448,14 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
 
         <!-- XR_MSFT_hand_tracking_mesh -->
         <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING"
-            errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_POSE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_FEATURE_UNSUPPORTED">
+            errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_POSE_INVALID,XR_ERROR_FEATURE_UNSUPPORTED">
             <proto><type>XrResult</type> <name>xrCreateHandMeshSpaceMSFT</name></proto>
             <param><type>XrHandTrackerEXT</type> <name>handTracker</name></param>
             <param>const <type>XrHandMeshSpaceCreateInfoMSFT</type>* <name>createInfo</name></param>
             <param><type>XrSpace</type>* <name>space</name></param>
         </command>
         <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING"
-            errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_TIME_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_FEATURE_UNSUPPORTED">
+            errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_TIME_INVALID,XR_ERROR_FEATURE_UNSUPPORTED">
             <proto><type>XrResult</type> <name>xrUpdateHandMeshMSFT</name></proto>
             <param><type>XrHandTrackerEXT</type> <name>handTracker</name></param>
             <param>const <type>XrHandMeshUpdateInfoMSFT</type>* <name>updateInfo</name></param>
@@ -2463,13 +2463,13 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </command>
 
         <!-- XR_MSFT_controller_model -->
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT,XR_ERROR_HANDLE_INVALID,XR_ERROR_SESSION_LOST,XR_SESSION_LOSS_PENDING,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_PATH_INVALID,XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT">
             <proto><type>XrResult</type> <name>xrGetControllerModelKeyMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPath</type> <name>topLevelUserPath</name></param>
             <param><type>XrControllerModelKeyStateMSFT</type>* <name>controllerModelKeyState</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT,XR_ERROR_HANDLE_INVALID,XR_ERROR_SESSION_LOST,XR_SESSION_LOSS_PENDING">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT">
             <proto><type>XrResult</type> <name>xrLoadControllerModelMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrControllerModelKeyMSFT</type> <name>modelKey</name></param>
@@ -2477,13 +2477,13 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
             <param><type>uint32_t</type>* <name>bufferCountOutput</name></param>
             <param optional="true" len="bufferCapacityInput"><type>uint8_t</type>* <name>buffer</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT,XR_ERROR_HANDLE_INVALID,XR_ERROR_SESSION_LOST,XR_SESSION_LOSS_PENDING">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT">
             <proto><type>XrResult</type> <name>xrGetControllerModelPropertiesMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrControllerModelKeyMSFT</type> <name>modelKey</name></param>
             <param><type>XrControllerModelPropertiesMSFT</type>* <name>properties</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT,XR_ERROR_HANDLE_INVALID,XR_ERROR_SESSION_LOST,XR_SESSION_LOSS_PENDING">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT">
             <proto><type>XrResult</type> <name>xrGetControllerModelStateMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrControllerModelKeyMSFT</type> <name>modelKey</name></param>
@@ -2491,32 +2491,32 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         </command>
 
       <!-- XR_FB_display_refresh_rate -->
-      <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE">
+      <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT">
         <proto><type>XrResult</type> <name>xrEnumerateDisplayRefreshRatesFB</name></proto>
         <param><type>XrSession</type> <name>session</name></param>
         <param optional="true"><type>uint32_t</type> <name>displayRefreshRateCapacityInput</name></param>
         <param><type>uint32_t</type>* <name>displayRefreshRateCountOutput</name></param>
         <param optional="true" len="displayRefreshRateCapacityInput"><type>float</type>* <name>displayRefreshRates</name></param>
       </command>
-      <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE">
+      <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST">
         <proto><type>XrResult</type> <name>xrGetDisplayRefreshRateFB</name></proto>
         <param><type>XrSession</type> <name>session</name></param>
         <param><type>float</type>* <name>displayRefreshRate</name></param>
       </command>
-      <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_DISPLAY_REFRESH_RATE_UNSUPPORTED_FB,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE">
+      <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_DISPLAY_REFRESH_RATE_UNSUPPORTED_FB">
         <proto><type>XrResult</type> <name>xrRequestDisplayRefreshRateFB</name></proto>
         <param><type>XrSession</type> <name>session</name></param>
         <param><type>float</type> <name>displayRefreshRate</name></param>
       </command>
 
       <!-- XR_MSFT_perception_anchor_interop -->
-      <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SESSION_LOST,XR_SESSION_LOSS_PENDING">
+      <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY">
           <proto><type>XrResult</type> <name>xrCreateSpatialAnchorFromPerceptionAnchorMSFT</name></proto>
           <param><type>XrSession</type> <name>session</name></param>
           <param><type>IUnknown</type>* <name>perceptionAnchor</name></param>
           <param><type>XrSpatialAnchorMSFT</type>* <name>anchor</name></param>
       </command>
-      <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SESSION_LOST,XR_SESSION_LOSS_PENDING">
+      <command successcodes="XR_SUCCESS" errorcodes="XR_SESSION_LOSS_PENDING,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_OUT_OF_MEMORY">
           <proto><type>XrResult</type> <name>xrTryGetPerceptionAnchorFromSpatialAnchorMSFT</name></proto>
           <param><type>XrSession</type> <name>session</name></param>
           <param><type>XrSpatialAnchorMSFT</type> <name>anchor</name></param>
@@ -2524,28 +2524,28 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
       </command>
 
       <!-- XR_FB_swapchain_update_state -->
-      <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE">
+      <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST">
         <proto><type>XrResult</type> <name>xrUpdateSwapchainFB</name></proto>
         <param><type>XrSwapchain</type> <name>swapchain</name></param>
         <param>const <type>XrSwapchainStateBaseHeaderFB</type>* <name>state</name></param>
       </command>
 
       <!-- XR_FB_color_space -->
-      <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE">
+      <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT">
         <proto><type>XrResult</type> <name>xrEnumerateColorSpacesFB</name></proto>
         <param><type>XrSession</type> <name>session</name></param>
         <param optional="true"><type>uint32_t</type> <name>colorSpaceCapacityInput</name></param>
         <param><type>uint32_t</type>* <name>colorSpaceCountOutput</name></param>
         <param optional="true" len="colorSpaceCapacityInput"><type>XrColorSpaceFB</type>* <name>colorSpaces</name></param>
       </command>
-      <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_COLOR_SPACE_UNSUPPORTED_FB,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE">
+      <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_COLOR_SPACE_UNSUPPORTED_FB">
         <proto><type>XrResult</type> <name>xrSetColorSpaceFB</name></proto>
         <param><type>XrSession</type> <name>session</name></param>
         <param>const <type>XrColorSpaceFB</type> <name>colorspace</name></param>
       </command>
 
       <!-- commands for XR_VARJO_environment_depth_estimation -->
-      <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED">
+      <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_FEATURE_UNSUPPORTED">
         <proto><type>XrResult</type> <name>xrSetEnvironmentDepthEstimationVARJO</name></proto>
         <param><type>XrSession</type> <name>session</name></param>
         <param><type>XrBool32</type> <name>enabled</name></param>
