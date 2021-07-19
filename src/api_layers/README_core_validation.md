@@ -31,17 +31,13 @@ There are three modes currently supported:
 3. Output HTML content to a file
 4. Output to the application using the `XR_EXT_debug_utils` extension
 
-Core Validation API layer does not output content by default.  In order to output
-to either stdout or a file, you must use the following environmental variables:
+Core Validation API layer outputs content to stdout by default.
 
-* `XR_CORE_VALIDATION_EXPORT_TYPE`
-* `XR_CORE_VALIDATION_FILE_NAME`
-
-`XR_CORE_VALIDATION_EXPORT_TYPE` is used to define the type of output from
+`XR_CORE_VALIDATION_EXPORT_TYPE` is used to change the type of output from
 the API layer.  Currently, this can be set to the following:
 
-* `text`  : This will generate standard text output.
 * `html`  : This will generate HTML formatted content.
+* `none`  : This will disable output.
 
 `XR_CORE_VALIDATION_FILE_NAME` is used to define the file name that is
 written to.  If not defined, the information goes to stdout.  If defined,
