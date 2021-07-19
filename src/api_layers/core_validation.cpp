@@ -415,7 +415,7 @@ void InvalidStructureType(GenValidUsageXrInstanceInfo *instance_info, const std:
     oss_type << structure_name << " has an invalid XrStructureType ";
     oss_type << Uint32ToHexString(static_cast<uint32_t>(type));
     if (expected != 0) {
-        oss_type << ", expected " << Uint32ToHexString(static_cast<uint32_t>(type));
+        oss_type << ", expected " << Uint32ToHexString(static_cast<uint32_t>(expected));
         oss_type << " (" << expected_name << ")";
     }
     if (vuid != nullptr) {
