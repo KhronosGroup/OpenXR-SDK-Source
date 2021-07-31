@@ -36,6 +36,8 @@ makeSubset() {
 
 COMMON_FILES=".gitignore .gitattributes .git-blame-ignore-revs CODE_OF_CONDUCT.md LICENSES .reuse .editorconfig"
 export COMMON_FILES
+COMMON_EXCLUDE_PATTERN="KhronosExperimental"
+export COMMON_EXCLUDE_PATTERN
 
 add_to_tar() {
     set -e
@@ -126,6 +128,7 @@ getDocsFilenames() {
         specification/sources/extprocess/ \
         include/ \
         specification/ \
+        | grep -v "${COMMON_EXCLUDE_PATTERN}" \
         | grep -v "specification/loader" \
         | grep -v "vuid[.]adoc" \
         | grep -v "CMakeLists.txt" \
@@ -176,6 +179,7 @@ getSDKSourceFilenames() {
         specification/README.md \
         specification/requirements.txt \
         src/ \
+        | grep -v "${COMMON_EXCLUDE_PATTERN}" \
         | grep -v "conformance" \
         | grep -v "template_gen_dispatch" \
         | grep -v "catch2" \
@@ -208,6 +212,7 @@ getSDKFilenames() {
         src/external/CMakeLists.txt \
         src/external/jsoncpp \
         src/.clang-format \
+        | grep -v "${COMMON_EXCLUDE_PATTERN}" \
         | grep -v "gfxwrapper" \
         | grep -v "include/.gitignore" \
         | grep -v "images"
@@ -260,6 +265,7 @@ getConformanceFilenames() {
         src/CMakeLists.txt \
         src/common_config.h.in \
         src/version.cmake \
+        | grep -v "${COMMON_EXCLUDE_PATTERN}" \
         | grep -v "htmldiff" \
         | grep -v "katex"
 }

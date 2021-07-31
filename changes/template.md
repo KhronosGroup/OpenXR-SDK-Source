@@ -3,12 +3,14 @@
 {%- if service == "gh" -%}
     {%- set project = ref.service_params[1] %}
     {%- set project_base = "https://github.com/KhronosGroup/" + project %}
-    {%- set link_text %}{{ project }}/#{{ ref.number }}{% endset %}
     {%- if ref.item_type == "issue" -%}
         {%- set subdir = "issues" %}
+        {%- set kind = "issue" %}
     {%- else -%}
         {%- set subdir = "pull" %}
+        {%- set kind = "PR" %}
     {%- endif -%}
+    {%- set link_text %}{{ project }} {{ kind }} {{ ref.number }}{% endset %}
 {%- else -%}
     {%- set project_base = "https://gitlab.khronos.org/openxr/openxr" %}
     {%- if ref.item_type == "issue" -%}

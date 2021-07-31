@@ -1021,7 +1021,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 if cur_struct.protect_value:
                     struct_union_check += '#endif // %s\n' % cur_struct.protect_string
                 if avoid_dupe:
-                    enum_value_validate += '#endif // !(%s)\n' % avoid_dupe
+                    struct_union_check += '#endif // !(%s)\n' % avoid_dupe
         struct_union_check += self.writeIndent(3)
         struct_union_check += 'default:\n'
         struct_union_check += self.writeIndent(4)
@@ -1189,26 +1189,10 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 if cur_cmd.protect_value:
                     generated_commands += '#endif // %s\n' % cur_cmd.protect_string
 
-        # Output the xrGetInstanceProcAddr command for the API Dump layer.
-        generated_commands += '\n// Layer\'s xrGetInstanceProcAddr\n'
-        generated_commands += 'XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrGetInstanceProcAddr(\n'
-        generated_commands += '    XrInstance                                  instance,\n'
-        generated_commands += '    const char*                                 name,\n'
-        generated_commands += '    PFN_xrVoidFunction*                         function) {\n'
-        generated_commands += '    try {\n'
+        generated_commands += 'static PFN_xrVoidFunction ApiDumpLayerInnerGetInstanceProcAddr(\n'
+        generated_commands += '    const char*                                 name) {\n'
         generated_commands += '        std::string func_name = name;\n\n'
-        generated_commands += '        // Generate output for this command\n'
-        generated_commands += '        std::vector<std::tuple<std::string, std::string, std::string>> contents;\n'
-        generated_commands += '        contents.emplace_back("XrResult", "xrGetInstanceProcAddr", "");\n'
-        generated_commands += '        contents.emplace_back("XrInstance", "instance", HandleToHexString(instance));\n'
-        generated_commands += '        contents.emplace_back("const char*", "name", name);\n'
-        generated_commands += '        contents.emplace_back("PFN_xrVoidFunction*", "function", PointerToHexString(reinterpret_cast<const void*>(function)));\n'
-        generated_commands += '        ApiDumpLayerRecordContent(contents);\n'
 
-        generated_commands += '        // Set the function pointer to NULL so that the fall-through below actually works:\n'
-        generated_commands += '        *function = nullptr;\n\n'
-
-        count = 0
         for x in range(0, 2):
             if x == 0:
                 commands = self.core_commands
@@ -1238,17 +1222,33 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 if cur_cmd.protect_value:
                     generated_commands += '#if %s\n' % cur_cmd.protect_string
 
-                if count == 0:
-                    generated_commands += '        if (func_name == "%s") {\n' % cur_cmd.name
-                else:
-                    generated_commands += '        } else if (func_name == "%s") {\n' % cur_cmd.name
-                count = count + 1
-
-                generated_commands += '            *function = reinterpret_cast<PFN_xrVoidFunction>(%s);\n' % layer_command_name
+                generated_commands += '        if (func_name == "%s") {\n' % cur_cmd.name
+                generated_commands += '            return reinterpret_cast<PFN_xrVoidFunction>(%s);\n' % layer_command_name
+                generated_commands += '        }\n'
                 if cur_cmd.protect_value:
                     generated_commands += '#endif // %s\n' % cur_cmd.protect_string
 
-        generated_commands += '        }\n'
+        generated_commands += '        return nullptr;\n'
+        generated_commands += '    }\n'
+
+        # Output the xrGetInstanceProcAddr command for the API Dump layer.
+        generated_commands += '\n// Layer\'s xrGetInstanceProcAddr\n'
+        generated_commands += 'XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrGetInstanceProcAddr(\n'
+        generated_commands += '    XrInstance                                  instance,\n'
+        generated_commands += '    const char*                                 name,\n'
+        generated_commands += '    PFN_xrVoidFunction*                         function) {\n'
+        generated_commands += '    try {\n'
+        generated_commands += '        std::string func_name = name;\n\n'
+        generated_commands += '        // Generate output for this command\n'
+        generated_commands += '        std::vector<std::tuple<std::string, std::string, std::string>> contents;\n'
+        generated_commands += '        contents.emplace_back("XrResult", "xrGetInstanceProcAddr", "");\n'
+        generated_commands += '        contents.emplace_back("XrInstance", "instance", HandleToHexString(instance));\n'
+        generated_commands += '        contents.emplace_back("const char*", "name", name);\n'
+        generated_commands += '        contents.emplace_back("PFN_xrVoidFunction*", "function", PointerToHexString(reinterpret_cast<const void*>(function)));\n'
+        generated_commands += '        ApiDumpLayerRecordContent(contents);\n'
+
+        generated_commands += '        *function = ApiDumpLayerInnerGetInstanceProcAddr(name);\n\n'
+
         generated_commands += '        // If we setup the function, just return\n'
         generated_commands += '        if (*function != nullptr) {\n'
         generated_commands += '            return XR_SUCCESS;\n'

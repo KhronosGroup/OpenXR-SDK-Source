@@ -287,7 +287,7 @@ class OutputGenerator:
             raise UserWarning(
                 '*** FATAL ERROR in Generator.logMsg: unknown level:' + level)
 
-    def enumToValue(self, elem, needsNum):
+    def enumToValue(self, elem, needsNum, parent_for_alias_dereference=None):
         """Parse and convert an `<enum>` tag into a value.
 
         Returns a list:
@@ -358,7 +358,15 @@ class OutputGenerator:
             self.logMsg('diag', 'Enum', name, '-> offset [', numVal, ',', value, ']')
             return [numVal, value]
         if 'alias' in elem.keys():
-            return [None, elem.get('alias')]
+            alias_of = elem.get('alias')
+            if parent_for_alias_dereference is None:
+                return (None, alias_of)
+            siblings = parent_for_alias_dereference.findall('enum')
+            for sib in siblings:
+                sib_name = sib.get('name')
+                if sib_name == alias_of:
+                    return self.enumToValue(sib, needsNum)
+            raise RuntimeError("Could not find the aliased enum value")
         return [None, None]
 
     def checkDuplicateEnums(self, enums):
@@ -423,6 +431,8 @@ class OutputGenerator:
         """Generate the C declaration for an enum"""
         groupElem = groupinfo.elem
 
+        if groupName == "XrSwapchainUsageFlagBits":
+            print("bla")
         if self.genOpts.conventions.constFlagBits and groupElem.get('type') == 'bitmask':
             return self.buildEnumCDecl_Bitmask(groupinfo, groupName)
         else:
@@ -442,9 +452,13 @@ class OutputGenerator:
             # Convert the value to an integer and use that to track min/max.
             # Values of form -(number) are accepted but nothing more complex.
             # Should catch exceptions here for more complex constructs. Not yet.
-            (_, strVal) = self.enumToValue(elem, True)
+            (_, strVal) = self.enumToValue(elem, True, parent_for_alias_dereference=groupElem)
+            alias_of = elem.get('alias')
             name = elem.get('name')
-            body += "static const {} {} = {};\n".format(flagTypeName, name, strVal)
+            body += "static const {} {} = {};".format(flagTypeName, name, strVal)
+            if alias_of is not None:
+                body += "  // alias of {}".format(alias_of)
+            body += "\n"
 
         # Postfix
 

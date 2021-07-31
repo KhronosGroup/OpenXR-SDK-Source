@@ -438,7 +438,7 @@ class MacroCheckerFile(object):
         if self.pname_data is not None and '* pname:' in line:
             context_entity = self.pname_data.entity
             if self.pname_mentions[context_entity] is None:
-                # First time seeting * pname: after an api include, prepare the set that
+                # First time seeing * pname: after an api include, prepare the set that
                 # tracks
                 self.pname_mentions[context_entity] = set()
 

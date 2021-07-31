@@ -417,7 +417,7 @@ class DocOutputGenerator(OutputGenerator):
     def genEnum(self, enuminfo, name, alias):
         """Generate enumerant."""
         OutputGenerator.genEnum(self, enuminfo, name, alias)
-        self.logMsg('diag', '# NOT writing compile-time constant', name)
+        self.logMsg('diag', '# NOT writing compile time constant', name)
 
     def genCmd(self, cmdinfo, name, alias):
         "Generate command."

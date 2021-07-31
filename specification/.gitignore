@@ -16,3 +16,7 @@ diffs/
 # Artifacts from converting/checking RELAX-NG Compact schema.
 registry/registry.rng
 registry/regenerated.rnc
+
+# Schematron-related files
+registry/schxslt-cli.jar
+registry/report.srvl

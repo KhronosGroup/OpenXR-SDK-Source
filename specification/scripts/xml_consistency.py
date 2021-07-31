@@ -471,7 +471,14 @@ class Checker(XMLChecker):
             errorcodes = info.elem.get('errorcodes').split(',')
             if not required_errors.issubset(set(errorcodes)):
                 self.record_error('Missing required error code')
-                exit(1)
+
+        if name.startswith(_DESTROY_PREFIX):
+            if len(params) != 1:
+                self.record_error('A destroy command should have exactly one parameter')
+            if params:
+                param = params[0]
+                if param.get("externsync") is None:
+                    self.record_error('A destroy command parameter should have an externsync attribute, probably externsync="true_with_children"')
 
         super().check_command(name, info)
 

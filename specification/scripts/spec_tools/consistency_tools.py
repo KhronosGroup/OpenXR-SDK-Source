@@ -309,7 +309,7 @@ class XMLChecker:
         Record an error if a type mentioned somewhere doesn't exist.
 
         :param desc: Description of where this type reference was found,
-                     for the error messsage.
+                     for the error message.
         :param ref_name: The name of the referenced type. If false-ish (incl. None),
                          checking is skipped, so OK to pass the results of
                          info.elem.get() directly

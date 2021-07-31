@@ -115,6 +115,8 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
             THROW("Runtime does not support desired Graphics API and/or version");
         }
 
+        m_contextApiMajorVersion = major;
+
 #if defined(XR_USE_PLATFORM_ANDROID)
         m_graphicsBinding.display = window.display;
         m_graphicsBinding.config = (EGLConfig)0;
@@ -202,14 +204,16 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
 
     int64_t SelectColorSwapchainFormat(const std::vector<int64_t>& runtimeFormats) const override {
         // List of supported color swapchain formats.
-        constexpr int64_t SupportedColorSwapchainFormats[] = {
-            GL_RGBA8,
-            GL_RGBA8_SNORM,
-        };
+        std::vector<int64_t> supportedColorSwapchainFormats{GL_RGBA8, GL_RGBA8_SNORM};
 
-        auto swapchainFormatIt =
-            std::find_first_of(runtimeFormats.begin(), runtimeFormats.end(), std::begin(SupportedColorSwapchainFormats),
-                               std::end(SupportedColorSwapchainFormats));
+        // In OpenGLES 3.0+, the R, G, and B values after blending are converted into the non-linear
+        // sRGB automatically.
+        if (m_contextApiMajorVersion >= 3) {
+            supportedColorSwapchainFormats.push_back(GL_SRGB8_ALPHA8);
+        }
+
+        auto swapchainFormatIt = std::find_first_of(runtimeFormats.begin(), runtimeFormats.end(),
+                                                    supportedColorSwapchainFormats.begin(), supportedColorSwapchainFormats.end());
         if (swapchainFormatIt == runtimeFormats.end()) {
             THROW("No runtime swapchain format supported for color swapchain");
         }
@@ -353,6 +357,7 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
     GLuint m_vao{0};
     GLuint m_cubeVertexBuffer{0};
     GLuint m_cubeIndexBuffer{0};
+    GLint m_contextApiMajorVersion{0};
 
     // Map color buffer to associated depth buffer. This map is populated on demand.
     std::map<uint32_t, uint32_t> m_colorToDepthMap;

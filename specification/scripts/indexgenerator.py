@@ -121,7 +121,7 @@ class DocIndexOutputGenerator(OutputGenerator):
         self.record_name(self.enums, groupName)
 
     def genEnum(self, enuminfo, name, alias):
-        """Generate enumerant (compile-time constants)."""
+        """Generate enumerant (compile time constants)."""
         OutputGenerator.genEnum(self, enuminfo, name, alias)
 
         if alias:

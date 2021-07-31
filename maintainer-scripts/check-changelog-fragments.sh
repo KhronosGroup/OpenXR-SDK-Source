@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Copyright 2020, Collabora, Ltd.
+# Copyright 2020-2021, Collabora, Ltd.
 # SPDX-License-Identifier: Apache-2.0
 
 set -e
 
 if [ $# -eq 0 ]; then
     TOPIC=HEAD
-    MAINLINE=origin/master
+    MAINLINE=origin/main
 elif [ $# -eq 1 ]; then
     TOPIC=$1
-    MAINLINE=origin/master
+    MAINLINE=origin/main
 elif [ $# -eq 2 ]; then
     TOPIC=$1
     MAINLINE=$2

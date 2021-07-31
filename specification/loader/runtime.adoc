@@ -101,6 +101,89 @@ An example "ActiveRuntime" value might look something like the following:
 C:\windows\system32\my_system_runtime.json
 ```
 
+[[runtime-enumeration]]
+==== Runtime Enumeration
+
+When multiple runtimes are installed on a system, the OpenXR loader will
+find the currently active runtime using the mechanism described before.
+
+At that point, the loader will act as if this runtime is currently the only
+installed one.
+
+To be able to allow additional tooling to discover other runtimes that are
+installed, but currently are not the active runtime on the system, each
+runtime should register the path to their manifest in a platform-dependant
+way in a list of "available runtimes".
+
+Runtime manifest files may optionally contain a `"name"` field.
+Tools that allow users to configure what runtime is currently active should
+display this user-friendly name if present when referring to the runtime in
+question.
+
+===== Windows Installed Runtimes Enumeration
+
+On Windows, the available runtimes' information is located in the Windows
+Registry.
+
+It can be found under the key:
+
+```
+HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenXR\<major_api_version>\AvailableRuntimes
+```
+
+Each installed runtime should add a `DWORD` value under that key.
+The `DWORD`'s name is the full path to the runtime's manifest
+
+Similarly to how Implicit API layers can control their activation state in
+the registry, as described in <<Windows Manifest Registry Usage>>:
+
+* A value of `0` indicates that the runtime can be discovered by tools that
+  want to enumerate all installed runtimes.
+
+* A non-zero value may be used if the runtime wants to disable itself from
+  enumeration (for example, if hardware configuration, or first time setup
+  hasn't been run by the user yet).
+
+For instance, the OpenXR 1.x runtime used as an example in section <<Windows
+Active Runtime Location>> would add a `DWORD` value in:
+
+```
+HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenXR\1\AvailableRuntimes
+```
+
+With the name:
+
+```
+C:\Windows\system32\my_system_runtime.json
+```
+
+And set it to `0`.
+
+All considerations for 32 bit platforms mentioned in section <<Windows
+Active Runtime Location>> still apply.
+
+Tools that want to change the currently `ActiveRuntime` should not modify
+the list of `AvailableRuntimes`, and just copy the path to the correct
+location.
+
+===== Linux Installed Runtimes Enumeration
+
+As previously defined, the OpenXR configuration on Linux is either stored in
+a standard XDG configuration directory, or the system-wide configuration
+directory.
+
+Aside from the currently active runtime, installed runtimes that make
+themselves available for enumeration should install their runtime manifest
+into this directory, using any name suitable.
+
+Rules about precedence in different directories for runtime enumeration
+follow the same rules as in section <<Linux Active Runtime Location>> for
+selecting the folder containing an `active_runtime.json`.
+
+Tools that want to change the current `active_runtime.json` should only
+update the symlink to the active runtime, and not move, copy or delete any
+other files.
+
 [[runtime-manifest-file-format]]
 ==== Runtime Manifest File Format
 
@@ -122,6 +205,7 @@ Here is an example runtime JSON manifest file:
 {
    "file_format_version": "1.0.0",
    "runtime": {
+      "name": "openxr_sample_runtime",
       "library_path": "./dbuild/src/impl/libopenxr_sample_impl.so"
    }
 }
@@ -158,10 +242,16 @@ Here is an example runtime JSON manifest file:
         the loader to use in place of standard runtime interface functions. The
         "functions" node is required if the runtime is using an alternative name
         for `xrNegotiateLoaderRuntimeInterface`.
-            | xrGet*ProcAddr (except for `xrNegotiateLoaderRuntimeInterface`
-            which must be queried using the OS/platform-specific
-            GetProcAddress).
+| "name"
+    | No
+        | An optional user-facing name that can be used by tooling to refer to
+        this specific runtime.
 |====
+
+
+Vendors may add non-standard fields to their runtime manifest files.
+These vendor specific fields must be prefixed with their vendor id (e.g:
+`VENDOR_name_of_field`).
 
 [NOTE]
 .Note
@@ -188,6 +278,11 @@ The fields of the 1.0.0 file format include:
 * "file_format_version"
 * "runtime"
 * "library_path"
+* "name"
+** This is an optional field, added before the OpenXR 1.0.18 release.
+   As it is not used by the loader nor does it introduce incompatibility, it
+   was added to the format described here without incrementing the manifest
+   file format version number.
 
 
 [[loader-distribution]]
@@ -242,7 +337,7 @@ set XR_RUNTIME_JSON=\windows\system32\steam_runtime.json
 *Linux*
 
 ----
-export XR_RUNTIME_JSON=/home/user/.local/share/openxr/runtime.d/steam_runtime.json
+export XR_RUNTIME_JSON=/home/user/.config/openxr/1/steamxr.json
 ----
 ====
 
@@ -392,11 +487,11 @@ flink:xrNegotiateLoaderRuntimeInterface function and each runtime then must:
 
 * Determine if it can support the loader's request:
 ** Does the runtime support any <<runtime-interface-versions, loader/runtime
-  interface version>> between pname:loaderInfo->pname:minInterfaceVersion
-  and pname:loaderInfo->pname:maxInterfaceVersion:
+   interface version>> between pname:loaderInfo->pname:minInterfaceVersion
+   and pname:loaderInfo->pname:maxInterfaceVersion:
 ** *AND* does the runtime support any OpenXR API version between
-  pname:loaderInfo->pname:minApiVersion and
-  pname:loaderInfo->pname:maxApiVersion:
+   pname:loaderInfo->pname:minApiVersion and
+   pname:loaderInfo->pname:maxApiVersion:
 * If it is able to support the request, it must: return `XR_SUCCESS` and:
 ** Fill in pname:runtimeRequest->pname:runtimeInterfaceVersion with the
    runtime interface version it desires to support
@@ -414,7 +509,7 @@ flink:xrNegotiateLoaderRuntimeInterface function and each runtime then must:
 The flink:xrNegotiateLoaderRuntimeInterface should be directly exported by a
 runtime so that using "GetProcAddress" on Windows or "dlsym" on Linux,
 should return a valid function pointer to it.
-However, *all other OpenXR entry-points* must: either:
+However, *all other OpenXR entry points* must: either:
 
  * NOT be exported directly from the runtime library
  * or NOT use the official OpenXR command names if they are exported
@@ -426,7 +521,7 @@ prior to when the OpenXR loader library is loaded by the application.
 Beware of interposing by dynamic OS library loaders if the official OpenXR
 names are used.
 On Linux, if official names are used, the runtime library must be linked
-with -Bsymbolic.
+with `-Bsymbolic`.
 
 
 [[runtime-interface-versions]]

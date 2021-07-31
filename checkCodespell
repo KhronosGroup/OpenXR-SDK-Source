@@ -17,8 +17,8 @@
 # limitations under the License.
 
 # checkCodespell - Run the codespell (https://github.com/codespell-project/codespell)
-# tool on the specification, registry, scripts, and source. Forwards any command line arguments
-# on to the codespell invocation.
+# tool on the specification, registry, scripts, and source. Forwards any
+# command line arguments on to the codespell invocation.
 #
 # Usage: ./checkCodespell
 #        Any command-line arguments are passed along to the codespell call,
@@ -42,8 +42,10 @@ CODESPELL_IGNORE=${CODESPELL_IGNORE:-${DEFAULT_CODESPELL_IGNORE}}
 # Add to this list when codespell mis-identifies a term actually used as a misspelling
 # (comma-delimited)
 # .Nd is used for a description in a mandoc manpage.
-# Wee and Ser are names
-IGNORE_WORDS="lod,LOD,nd,wee,ser,nuber"
+# ba is from a regex
+# unknwn is a header file name
+# Wee, Ser, Nuber, Blok are names
+IGNORE_WORDS="lod,nd,ba,unknwn,wee,ser,nuber,blok"
 
 # Add to this to exclude individual files or directories (comma-delimited)
 # - Skipping external code.
@@ -60,27 +62,30 @@ CODESPELL=${CODESPELL:-${which_codespell}}
 
 # This command is in a function so we can call it again easily to do a count.
 doCodespell() {
-    ${CODESPELL} --ignore-words-list="${IGNORE_WORDS}" \
+    # this use of git grep will ask git to list only text files in the repo
+    # under the given paths.
+    # the grep -v below it removes some files from the list: external sources,
+    # "not really fully text" files like svg and pdf,
+    # as well as HTML files with base64-encoded assets
+    git grep --files-with-matches -I '' -- \
+    "${ROOT}"/*.md \
+    "${ROOT}"/*.sh \
+    "${ROOT}"/*.bat \
+    "${ROOT}"/.azure-pipelines/ \
+    "${ROOT}"/changes/ \
+    "${ROOT}"/github/ \
+    "${ROOT}"/include/ \
+    "${ROOT}"/maintainer-scripts/ \
+    "${ROOT}"/specification/ \
+    "${ROOT}"/src/ \
+    "${ROOT}"/vuid_database/ \
+    | grep -E -v "(external|jsoncpp|stb_|[.]svg|[.]pdf|[.]html)" | \
+    xargs  \
+    "${CODESPELL}" --ignore-words-list="${IGNORE_WORDS}" \
     --skip="${SKIP}" \
-    --exclude-file=${ROOT}/openxr-codespell.exclude \
-    "$@" \
-    ${ROOT}/*.md \
-    ${ROOT}/*.sh \
-    ${ROOT}/*.bat \
-    ${ROOT}/include/ \
-    ${ROOT}/specification/check* \
-    ${ROOT}/specification/make* \
-    ${ROOT}/specification/*.md \
-    ${ROOT}/specification/loader/ \
-    ${ROOT}/specification/registry/ \
-    ${ROOT}/specification/scripts/*.py \
-    ${ROOT}/specification/scripts/*.rb \
-    ${ROOT}/specification/scripts/openxr-macros/*.rb \
-    ${ROOT}/specification/sources/ \
-    ${ROOT}/src \
-    ${ROOT}/vuid_database/ \
+    --exclude-file="${ROOT}"/openxr-codespell.exclude \
+    "$@"
 
-    # Keep a blank line after the last pattern, so that a trailing backslash is OK!
 }
 
 echo "Using CODESPELL=${CODESPELL} - version $(${CODESPELL} --version)"
@@ -102,7 +107,7 @@ if [ $# -eq 0 ]; then
 
     echo ""
     echo "No arguments passed, so counting errors and comparing to CODESPELL_IGNORE=${CODESPELL_IGNORE}"
-    if [ ${CODESPELL_IGNORE} -ne ${DEFAULT_CODESPELL_IGNORE} ]; then
+    if [ "${CODESPELL_IGNORE}" -ne "${DEFAULT_CODESPELL_IGNORE}" ]; then
         echo "Note: Manually-set CODESPELL_IGNORE is overriding the built in default value, DEFAULT_CODESPELL_IGNORE=${DEFAULT_CODESPELL_IGNORE}"
     else
         echo "(set from the built in default value, DEFAULT_CODESPELL_IGNORE)"

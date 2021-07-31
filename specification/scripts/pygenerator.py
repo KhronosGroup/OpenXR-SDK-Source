@@ -228,7 +228,7 @@ class PyOutputGenerator(OutputGenerator):
         self.enums[groupName] = enumerants
 
     def genEnum(self, enuminfo, name, alias):
-        """Generate enumerant (compile-time constants).
+        """Generate enumerant (compile time constants).
 
         - Add the constant name to the 'consts' dictionary, with the
           value being None to indicate that the constant isn't

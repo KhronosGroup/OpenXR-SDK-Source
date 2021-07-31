@@ -44,7 +44,7 @@ ifneq (,$(strip $(VERY_STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level WARN
 endif
 
-SPECREVISION = 1.0.17
+SPECREVISION = 1.0.18
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -141,7 +141,7 @@ $(DEFINESHEAD): ../include/openxr/openxr_platform_defines.h
 	$(QUIET)$(MKDIR) $(@D)
 	$(QUIET)$(CP) $< $@
 
-# Named target to geneate all headers
+# Named target to generate all headers
 header: $(GENHEADERS) $(DEFINESHEAD)
 .PHONY: header
 
@@ -483,6 +483,7 @@ check-spec-links:
 	$(QUIET)if [ -f $(CHECK_MARKUP_SCRIPT) ] && [ -f $(SPECSRC) ]; then $(CHECK_MARKUP_SCRIPT) -Werror; fi
 	$(QUIET)if [ -f $(SPECSRC) ]; then $(PYTHON) $(CHECK_SPEC_LINKS_SCRIPT); fi
 	$(QUIET)if [ -f checkXml.sh ] && [ -f registry/registry.rnc ]; then env FAIL_IF_COULD_NOT_VALIDATE=false ./checkXml.sh; fi
+	$(QUIET)if [ -f checkSchematron.sh ] && [ -f registry/registry.sch ]; then ./checkSchematron.sh; fi
 	$(QUIET)$(PYTHON) $(SCRIPTS)/xml_consistency.py
 
 .PHONY: check-spec-links

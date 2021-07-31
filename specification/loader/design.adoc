@@ -768,7 +768,7 @@ const char *LoaderPlatformLibraryGetProcAddrError(
     const std::string &path);
 ----
   * pname:path must: be a constant string containing the name of the
-    entry-point that was attempted to be queried during the previous
+    entry point that was attempted to be queried during the previous
     flink:LoaderPlatformLibraryGetProcAddr call.
 
 The returned C-style character string contains any available

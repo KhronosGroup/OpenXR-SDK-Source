@@ -35,11 +35,11 @@ and omits the samples, tests, and API layers, as they are not typically built as
 - `src/loader` - OpenXR loader code
 - `src/tests` - various test code (if looking for sample code start with `hello_xr/`)
 
-Currently the best sample code is in [src/tests/hello_xr/](https://github.com/KhronosGroup/OpenXR-SDK-Source/tree/master/src/tests/hello_xr).  More will be added in the future.
+Currently the best sample code is in [src/tests/hello_xr/](src/tests/hello_xr).  More will be added in the future.
 
 ## Building
 
-See [BUILDING.md](https://github.com/KhronosGroup/OpenXR-SDK-Source/blob/master/BUILDING.md)
+See [BUILDING.md](BUILDING.md)
 
 ## Note about `git blame`
 

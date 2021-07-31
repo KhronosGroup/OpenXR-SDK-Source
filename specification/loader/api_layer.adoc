@@ -864,7 +864,7 @@ Therefore, it must follow some conventions and rules defined below:
 *** It is an implicit API layer, it must: add it's own instance extension
     contents to the list of extensions.
 * For any OpenXR command the API layer intercepts, `xrGetInstanceProcAddr`
-  must: return a pointer to a local entry-point.
+  must: return a pointer to a local entry point.
 ** Otherwise it returns the value obtained by calling down the instance call
    chain.
 
