@@ -35,12 +35,13 @@ void ShowHelp() {
     // TODO: Improve/update when things are more settled.
     Log::Write(Log::Level::Info,
                "HelloXr --graphics|-g <Graphics API> [--formfactor|-ff <Form factor>] [--viewconfig|-vc <View config>] "
-               "[--blendmode|-bm <Blend mode>] [--space|-s <Space>] [--verbose|-v]");
+               "[--blendmode|-bm <Blend mode>] [--space|-s <Space>] [--overlay <Overlay placement>] [--verbose|-v]");
     Log::Write(Log::Level::Info, "Graphics APIs:            D3D11, D3D12, OpenGLES, OpenGL, Vulkan2, Vulkan");
     Log::Write(Log::Level::Info, "Form factors:             Hmd, Handheld");
     Log::Write(Log::Level::Info, "View configurations:      Mono, Stereo");
     Log::Write(Log::Level::Info, "Environment blend modes:  Opaque, Additive, AlphaBlend");
     Log::Write(Log::Level::Info, "Spaces:                   View, Local, Stage");
+    Log::Write(Log::Level::Info, "Overlay:                  Integer value: [0, UINT32_MAX]");
 }
 
 bool UpdateOptionsFromCommandLine(Options& options, int argc, char* argv[]) {
@@ -66,6 +67,8 @@ bool UpdateOptionsFromCommandLine(Options& options, int argc, char* argv[]) {
             options.EnvironmentBlendMode = getNextArg();
         } else if (EqualsIgnoreCase(arg, "--space") || EqualsIgnoreCase(arg, "-s")) {
             options.AppSpace = getNextArg();
+        } else if (EqualsIgnoreCase(arg, "--overlay") || EqualsIgnoreCase(arg, "-o")) {
+            options.OverlayPlacement = getNextArg();
         } else if (EqualsIgnoreCase(arg, "--verbose") || EqualsIgnoreCase(arg, "-v")) {
             Log::SetLevel(Log::Level::Verbose);
         } else if (EqualsIgnoreCase(arg, "--help") || EqualsIgnoreCase(arg, "-h")) {

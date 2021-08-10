@@ -62,6 +62,15 @@ inline XrEnvironmentBlendMode GetXrEnvironmentBlendMode(const std::string& envir
     throw std::invalid_argument(Fmt("Unknown environment blend mode '%s'", environmentBlendModeStr.c_str()));
 }
 
+inline uint32_t GetXrOverlayPlacement(const std::string& overlayPlacement) {
+    try {
+        unsigned long value = stoul(overlayPlacement);
+        return static_cast<uint32_t>(value);
+    } catch (...) {
+    }
+    throw std::invalid_argument(Fmt("Invalid overlay placement '%s'", overlayPlacement.c_str()));
+}
+
 namespace Math {
 namespace Pose {
 XrPosef Identity() {
@@ -224,6 +233,10 @@ struct OpenXrProgram : IOpenXrProgram {
         std::transform(graphicsExtensions.begin(), graphicsExtensions.end(), std::back_inserter(extensions),
                        [](const std::string& ext) { return ext.c_str(); });
 
+        if (m_overlayApp) {
+            extensions.push_back(XR_EXTX_OVERLAY_EXTENSION_NAME);
+        }
+
         XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
         createInfo.next = m_platformPlugin->GetInstanceCreateExtension();
         createInfo.enabledExtensionCount = (uint32_t)extensions.size();
@@ -324,6 +337,11 @@ struct OpenXrProgram : IOpenXrProgram {
         XrSystemGetInfo systemInfo{XR_TYPE_SYSTEM_GET_INFO};
         systemInfo.formFactor = m_formFactor;
         CHECK_XRCMD(xrGetSystem(m_instance, &systemInfo, &m_systemId));
+
+        if (!m_options->OverlayPlacement.empty()) {
+            m_overlayApp = true;
+            m_overlayPlacement = GetXrOverlayPlacement(m_options->OverlayPlacement);
+        }
 
         Log::Write(Log::Level::Verbose, Fmt("Using system %d for form factor %s", m_systemId, to_string(m_formFactor)));
         CHECK(m_instance != XR_NULL_HANDLE);
@@ -581,6 +599,14 @@ struct OpenXrProgram : IOpenXrProgram {
             XrSessionCreateInfo createInfo{XR_TYPE_SESSION_CREATE_INFO};
             createInfo.next = m_graphicsPlugin->GetGraphicsBinding();
             createInfo.systemId = m_systemId;
+
+            XrSessionCreateInfoOverlayEXTX overlayCreateInfo = {XR_TYPE_SESSION_CREATE_INFO_OVERLAY_EXTX, nullptr, 0U, 0U};
+            if (m_overlayApp) {
+                overlayCreateInfo.next = createInfo.next;
+                createInfo.next = &overlayCreateInfo;
+                overlayCreateInfo.sessionLayersPlacement = m_overlayPlacement;
+            }
+
             CHECK_XRCMD(xrCreateSession(m_instance, &createInfo, &m_session));
         }
 
@@ -1020,6 +1046,8 @@ struct OpenXrProgram : IOpenXrProgram {
     XrViewConfigurationType m_viewConfigType{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
     XrEnvironmentBlendMode m_environmentBlendMode{XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
     XrSystemId m_systemId{XR_NULL_SYSTEM_ID};
+    bool m_overlayApp = false;
+    uint32_t m_overlayPlacement = 0;
 
     std::vector<XrViewConfigurationView> m_configViews;
     std::vector<Swapchain> m_swapchains;

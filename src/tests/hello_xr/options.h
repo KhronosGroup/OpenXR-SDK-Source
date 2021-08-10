@@ -14,4 +14,6 @@ struct Options {
     std::string EnvironmentBlendMode{"Opaque"};
 
     std::string AppSpace{"Local"};
+
+    std::string OverlayPlacement{""};
 };
