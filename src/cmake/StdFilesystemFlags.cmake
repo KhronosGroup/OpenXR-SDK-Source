@@ -2,6 +2,8 @@
 #
 # SPDX-License-Identifier: BSL-1.0
 
+set(_FILESYSTEM_UTILS_DIR "${PROJECT_SOURCE_DIR}/src/common")
+
 if(MSVC AND MSVC_VERSION GREATER 1890)
     set(HAVE_FILESYSTEM_WITHOUT_LIB
         ON
@@ -26,37 +28,13 @@ else()
     }
     "
     )
-    set(_stdfs_conditions
-        "// If the C++ macro is set to the version containing C++17, it must support
-        // the final C++17 package
-        #if __cplusplus >= 201703L
-        #define USE_FINAL_FS 1
 
-        #elif defined(_MSC_VER) && _MSC_VER >= 1900
+    set(_stdfs_conditions "#include <stdfs_conditions.h>
+    ")
 
-        #if defined(_HAS_CXX17) && _HAS_CXX17
-        // When MSC supports c++17 use <filesystem> package.
-        #define USE_FINAL_FS 1
-        #endif  // !_HAS_CXX17
-
-        // Right now, GCC still only supports the experimental filesystem items starting in GCC 6
-        #elif (__GNUC__ >= 6)
-        #define USE_EXPERIMENTAL_FS 1
-
-        // If Clang, check for feature support
-        #elif defined(__clang__) && (__cpp_lib_filesystem || __cpp_lib_experimental_filesystem)
-        #if __cpp_lib_filesystem
-        #define USE_FINAL_FS 1
-        #else
-        #define USE_EXPERIMENTAL_FS 1
-        #endif
-
-        #endif
-    "
-    )
     set(_stdfs_source
         "${_stdfs_conditions}
-    #ifdef USE_FINAL_FS
+    #if defined(USE_FINAL_FS) && USE_FINAL_FS
     #include <filesystem>
     using namespace std::filesystem;
     #endif
@@ -65,7 +43,7 @@ else()
     )
     set(_stdfs_experimental_source
         "${_stdfs_conditions}
-    #ifdef USE_EXPERIMENTAL_FS
+    #if defined(USE_EXPERIMENTAL_FS) && USE_EXPERIMENTAL_FS
     #include <experimental/filesystem>
     using namespace std::experimental::filesystem;
     #endif
@@ -74,11 +52,11 @@ else()
     )
     set(_stdfs_needlib_source
         "${_stdfs_conditions}
-    #ifdef USE_FINAL_FS
+    #if defined(USE_FINAL_FS) && USE_FINAL_FS
     #include <filesystem>
     using namespace std::filesystem;
     #endif
-    #ifdef USE_EXPERIMENTAL_FS
+    #if defined(USE_EXPERIMENTAL_FS) && USE_EXPERIMENTAL_FS
     #include <experimental/filesystem>
     using namespace std::experimental::filesystem;
     #endif
@@ -88,8 +66,10 @@ else()
 
     # First, just look for the include.
     # We're checking if it compiles, not if the include exists,
-    # because the source code uses similar conditionals to decide.
+    # because the source code uses the same conditionals to decide.
+    # (Static libraries are just object files, they don't get linked)
     set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+    set(CMAKE_REQUIRED_INCLUDES "${_FILESYSTEM_UTILS_DIR}")
     unset(CMAKE_REQUIRED_LIBRARIES)
     unset(CMAKE_REQUIRED_FLAGS)
     check_cxx_source_compiles("${_stdfs_source}" HAVE_FILESYSTEM_IN_STD)
@@ -121,7 +101,7 @@ else()
     check_cxx_source_compiles("${_stdfs_needlib_source}" HAVE_FILESYSTEM_NEEDING_LIBCXXFS)
     unset(CMAKE_REQUIRED_LIBRARIES)
     unset(CMAKE_TRY_COMPILE_TARGET_TYPE)
-
+    unset(CMAKE_REQUIRED_INCLUDES)
 endif()
 
 function(openxr_add_filesystem_utils TARGET_NAME)
