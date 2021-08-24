@@ -39,7 +39,7 @@ def startTimer(timeit):
 
 def endTimer(timeit, msg):
     global startTime
-    if timeit:
+    if timeit and startTime is not None:
         endTime = time.process_time()
         write(msg, endTime - startTime, file=sys.stderr)
         startTime = None
@@ -455,15 +455,8 @@ if __name__ == '__main__':
         reg.dumpReg(filehandle=open('regdump.txt', 'w', encoding='utf-8'))
 
     # create error/warning & diagnostic files
-    if args.errfile:
-        errWarn = open(args.errfile, 'w', encoding='utf-8')
-    else:
-        errWarn = sys.stderr
-
-    if args.diagfile:
-        diag = open(args.diagfile, 'w', encoding='utf-8')
-    else:
-        diag = None
+    errWarn = open(args.errfile, 'w', encoding='utf-8') if args.errfile else sys.stderr
+    diag = open(args.diagfile, 'w', encoding='utf-8') if args.diagfile else None
 
     if args.debug:
         pdb.run('genTarget(args)')

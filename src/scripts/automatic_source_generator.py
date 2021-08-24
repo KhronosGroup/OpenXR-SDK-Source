@@ -27,10 +27,11 @@
 import re
 from collections import namedtuple
 from inspect import currentframe, getframeinfo
+from typing import List, Optional, Tuple, Union
 
-from generator import (GeneratorOptions, OutputGenerator, noneStr,
-                       regSortFeatures, write)
-from spec_tools.attributes import LengthEntry
+from generator import (GeneratorOptions, MissingRegistryError, OutputGenerator,
+                       noneStr, regSortFeatures, write)
+from spec_tools.attributes import LengthEntry, parse_optional_from_param
 from spec_tools.util import getElemName
 
 
@@ -391,11 +392,15 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   line            the line number the failure occurred on (or None, default, to autodetect)
     def printCodeGenErrorMessage(self, message, file=None, line=None):
         if file is None or line is None:
-            frame = getframeinfo(currentframe().f_back)
-            if file is None:
-                file = frame.filename
-            if line is None:
-                line = frame.lineno + 1
+            frame = currentframe()
+            if frame is not None:
+                frame = frame.f_back
+            if frame is not None:
+                frame_info = getframeinfo(frame)
+                if file is None:
+                    file = frame_info.filename
+                if line is None:
+                    line = frame_info.lineno + 1
         # The filename we get is the full path file name.  So trim it down to only the
         # last two folders
         trimmed_file = file
@@ -466,6 +471,8 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   gen_opts        the AutomaticSourceGeneratorOptions object
     def beginFile(self, genOpts):
         OutputGenerator.beginFile(self, genOpts)
+        if self.registry is None:
+            raise MissingRegistryError()
 
         # Iterate over all 'tag' Elements and add the names of all the valid vendor
         # tags to the list
@@ -854,7 +861,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   self            the AutomaticSourceOutputGenerator object
     #   feature_protect None or the feature's protection statement
     #   local_protect   None or the local type/command's protection statement
-    def genProtectInfo(self, feature_protect, local_protect):
+    def genProtectInfo(self, feature_protect: Optional[str], local_protect: Optional[str]) -> Tuple[Optional[str], str]:
         protect_type = None
         protect_str = ''
         protect_list = []
@@ -909,6 +916,8 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #
     def genStructUnion(self, type_info, type_category, type_name, alias):
         OutputGenerator.genStruct(self, type_info, type_name, alias)
+        if self.registry is None:
+            raise MissingRegistryError()
         is_union = type_category == 'union'
         (protect_value, protect_string) = self.genProtectInfo(
             self.featureExtraProtect, type_info.elem.get('protect'))
@@ -1007,9 +1016,10 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             generic_struct_name = type_info.elem.get('parentstruct')
             if self.isStruct(generic_struct_name):
                 # First, determine if it is or is not already a relation group
-                relation_group = self.getRelationGroupForBaseStruct(generic_struct_name)
-                found = (relation_group is not None)
-                if not found:
+                existing_relation_group = self.getRelationGroupForBaseStruct(generic_struct_name)
+                if existing_relation_group is not None:
+                    relation_group = existing_relation_group
+                else:
                     # Create with an empty child list for now
                     child_list = []
                     relation_group = self.StructRelationGroup(generic_struct_name=generic_struct_name,
@@ -1018,6 +1028,8 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
 
                 # Get the structure information for the group's generic structure
                 generic_struct = self.getStruct(generic_struct_name)
+                if generic_struct is None:
+                    raise RuntimeError("Could not find struct: " + generic_struct_name)
                 base_member_count = len(generic_struct.members)
 
                 # Second, it must have at least the same number of members
@@ -1033,10 +1045,13 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                     if members_match:
                         relation_group.child_struct_names.append(type_name)
                     else:
-                        frameinfo = getframeinfo(currentframe())
-                        self.printCodeGenWarningMessage(frameinfo.filename, frameinfo.lineno + 1,
-                                                        'Struct \"%s\" has different children than possible parent struct \"%s\".' % (
-                                                            type_name, generic_struct_name))
+                        frame = currentframe()
+                        frameinfo = getframeinfo(frame) if frame is not None else None
+                        self.printCodeGenWarningMessage(
+                            frameinfo.filename if frameinfo is not None else None,
+                            (frameinfo.lineno + 1) if frameinfo is not None else None,
+                            'Struct \"%s\" has different children than possible parent struct \"%s\".' % (
+                                type_name, generic_struct_name))
         if is_union:
             self.api_unions.append(
                 self.StructUnionData(name=type_name,
@@ -1126,7 +1141,6 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         for param in params:
             is_array = self.paramIsStaticArray(param)
             param_cdecl = self.makeCParamDecl(param, 0)
-            param_len = ''
             array_count_var = ''
             pointer_count_var = ''
             is_null_terminated = False
@@ -1360,22 +1374,6 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                 # Found, so just add a new check command
                 found_state.check_commands.append(command)
 
-    # Check if the parameter passed in is a pointer
-    #   self            the AutomaticSourceOutputGenerator object
-    #   param           the XML information for the param
-    def paramIsPointer(self, param):
-        ispointer = False
-        paramtype = param.find('type')
-        if paramtype.tail is not None and '*' in paramtype.tail:
-            ispointer = True
-        return ispointer
-
-    # Check if the parameter passed in is a pointer to an array
-    #   self            the AutomaticSourceOutputGenerator object
-    #   param           the XML information for the param
-    def paramIsArray(self, param):
-        return param.get('len') is not None
-
     # Check if the parameter passed in is a static array
     #   self            the AutomaticSourceOutputGenerator object
     #   param           the XML information for the param
@@ -1418,29 +1416,14 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         return static_array_sizes
 
     # Check if the parameter passed in is optional
-    # Returns a list of Boolean values for comma separated len attributes (len='false,true')
+    # Returns True, False, or a list of Boolean values for comma separated len attributes (len='false,true')
     #   self            the AutomaticSourceOutputGenerator object
     #   param           the XML information for the param
-    def paramIsOptional(self, param):
-        # See if the handle is optional
-        is_optional = False
-        # Simple, if it's optional, return true
-        optional_string = param.get('optional')
-        if optional_string:
-            if optional_string == 'true':
-                is_optional = True
-            elif ',' in optional_string:
-                opts = []
-                for opt in optional_string.split(','):
-                    val = opt.strip()
-                    if val == 'true':
-                        opts.append(True)
-                    elif val == 'false':
-                        opts.append(False)
-                    else:
-                        print('Unrecognized len attribute value', val)
-                is_optional = opts
-        return is_optional
+    def paramIsOptional(self, param) -> Union[bool, List[bool]]:
+        optional = parse_optional_from_param(param)
+        if len(optional) == 1:
+            return optional[0]
+        return optional
 
     # Check if the parameter passed in is a pointer
     #   self            the AutomaticSourceOutputGenerator object
@@ -1771,18 +1754,3 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   indent_cnt      the number of indents to return a string of
     def writeIndent(self, indent_cnt):
         return '    ' * indent_cnt
-
-    def iterateCoreThenExtensions(self, iterable):
-        self.cur_extension_name = ''
-        for isCore in [True, False]:
-            elts = filter(iterable, lambda elt: self.isCoreExtensionName(
-                elt.ext_name) == isCore)
-            for elt in elts:
-                this_ext_name = elt.ext_name
-                if this_ext_name != self.cur_extension_name:
-                    self.cur_extension_name = this_ext_name
-                    self.is_extension_change = True
-                else:
-                    self.is_extension_change = False
-
-                yield elt

@@ -22,11 +22,11 @@ CATEGORIES_REQUIRING_VALIDATION = set(('handle',
 TYPES_KNOWN_ALWAYS_VALID = set(('char',
                                 'float',
                                 'int8_t', 'uint8_t',
-                                'uint16_t',
+                                'int16_t', 'uint16_t',
                                 'int32_t', 'uint32_t',
                                 'int64_t', 'uint64_t',
                                 'size_t',
-                                'uintptr_t',
+                                'intptr_t', 'uintptr_t',
                                 'int',
                                 ))
 
@@ -44,7 +44,7 @@ class ProseListFormats(Enum):
             return cls.OR
         if s == 'and':
             return cls.AND
-        return None
+        raise RuntimeError("Unrecognized string connective: " + s)
 
     @property
     def connective(self):

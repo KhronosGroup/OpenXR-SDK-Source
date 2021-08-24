@@ -234,7 +234,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
 
                         # These should be mutually exclusive - verify it.
                         assert((not cur_cmd.is_destroy_disconnect) or
-                                (pointer_count == 0))
+                               (pointer_count == 0))
                     else:
                         tramp_variable_defines += self.printCodeGenErrorMessage(
                             'Command %s does not have an OpenXR Object handle as the first parameter.' % cur_cmd.name)
@@ -285,7 +285,6 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
             generated_funcs += ');\n'
 
             generated_funcs += '    }\n'
-
 
             if has_return:
                 generated_funcs += '    return result;\n'

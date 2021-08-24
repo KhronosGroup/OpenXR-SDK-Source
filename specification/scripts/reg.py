@@ -10,7 +10,8 @@ import re
 import sys
 import xml.etree.ElementTree as etree
 from collections import defaultdict, namedtuple
-from generator import OutputGenerator, GeneratorOptions, write
+
+from generator import GeneratorOptions, OutputGenerator, noneStr, write
 
 
 def apiNameMatch(str, supported):
@@ -235,14 +236,14 @@ class FeatureInfo(BaseInfo):
                attribute of <feature>. Extensions do not have API version
                numbers and are assigned number 0."""
 
-            self.number = "0"
+            self.number = 0
             self.supported = None
         else:
             # Extract vendor portion of <APIprefix>_<vendor>_<name>
             self.category = self.name.split('_', 2)[1]
             self.version = "0"
             self.versionNumber = "0"
-            self.number = elem.get('number')
+            self.number = int(elem.get('number'))
             """extension number, used for ordering and for assigning
             enumerant offsets. <feature> features do not have extension
             numbers and are assigned number 0."""
@@ -250,7 +251,7 @@ class FeatureInfo(BaseInfo):
             # If there's no 'number' attribute, use 0, so sorting works
             if self.number is None:
                 self.number = 0
-            self.supported = elem.get('supported')
+            self.supported = elem.get('supported', 'disabled')
 
 
 class Registry:
@@ -393,6 +394,8 @@ class Registry:
     def parseTree(self):
         """Parse the registry Element, once created"""
         # This must be the Element for the root <registry>
+        if self.tree is None:
+            raise RuntimeError("Tree not initialized!")
         self.reg = self.tree.getroot()
 
         # Create dictionary of registry types from toplevel <types> tags
@@ -406,7 +409,10 @@ class Registry:
             # If the <type> doesn't already have a 'name' attribute, set
             # it from contents of its <name> tag.
             if type_elem.get('name') is None:
-                type_elem.set('name', type_elem.find('name').text)
+                name_elem = type_elem.find('name')
+                if name_elem is None or not name_elem.text:
+                    raise RuntimeError("Type without a name!")
+                type_elem.set('name', name_elem.text)
             self.addElementInfo(type_elem, TypeInfo(type_elem), 'type', self.typedict)
 
         # Create dictionary of registry enum groups from <enums> tags.
@@ -451,7 +457,10 @@ class Registry:
             # it from contents of its <proto><name> tag.
             name = cmd.get('name')
             if name is None:
-                name = cmd.set('name', cmd.find('proto/name').text)
+                name_elem = cmd.find('proto/name')
+                if name_elem is None or not name_elem.text:
+                    raise RuntimeError("Command without a name!")
+                name = cmd.set('name', name_elem.text)
             ci = CmdInfo(cmd)
             self.addElementInfo(cmd, ci, 'command', self.cmddict)
             alias = cmd.get('alias')
@@ -569,10 +578,10 @@ class Registry:
                         # as when redefining an enum in another extension.
                         extnumber = enum.get('extnumber')
                         if not extnumber:
-                            enum.set('extnumber', featureInfo.number)
+                            enum.set('extnumber', str(featureInfo.number))
 
                         enum.set('extname', featureInfo.name)
-                        enum.set('supported', featureInfo.supported)
+                        enum.set('supported', noneStr(featureInfo.supported))
                         # Look up the GroupInfo with matching groupName
                         if groupName in self.groupdict:
                             # self.gen.logMsg('diag', 'Matching group',
@@ -966,6 +975,8 @@ class Registry:
                         if name in enumAliases:
                             elem.set('required', 'true')
                             self.gen.logMsg('diag', '* also need to require alias', name)
+            if f is None:
+                raise RuntimeError("Should not get here")
             if f.elem.get('category') == 'bitmask':
                 followupFeature = f.elem.get('bitvalues')
         elif ftype == 'command':
@@ -988,6 +999,8 @@ class Registry:
         # Actually generate the type only if emitting declarations
         if self.emitFeatures:
             self.gen.logMsg('diag', 'Emitting', ftype, 'decl for', fname)
+            if genProc is None:
+                raise RuntimeError("genProc is None when we should be emitting")
             genProc(f, fname, alias)
         else:
             self.gen.logMsg('diag', 'Skipping', ftype, fname,

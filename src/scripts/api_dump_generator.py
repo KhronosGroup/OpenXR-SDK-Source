@@ -1088,6 +1088,8 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 generated_commands += prototype
 
                 if has_return:
+                    if cur_cmd.return_type is None or not cur_cmd.return_type.text:
+                        raise RuntimeError("We expected a return type but got none from XML!")
                     return_prefix = '    '
                     return_prefix += cur_cmd.return_type.text
                     return_prefix += ' result'

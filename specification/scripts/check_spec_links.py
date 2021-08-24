@@ -25,9 +25,10 @@ from spec_tools.shared import MessageId
 EXTRA_DEFINES = ('XRAPI_ATTR', 'XRAPI_CALL', 'XRAPI_PTR', 'XR_NO_STDINT_H')
 
 # These are marked with the code: macro
-SYSTEM_TYPES = set(('void', 'char', 'float', 'size_t', 'uintptr_t',
+SYSTEM_TYPES = set(('void', 'char', 'float', 'size_t',
+                    'intptr_t', 'uintptr_t',
                     'int8_t', 'uint8_t',
-                    'uint16_t',
+                    'int16_t', 'uint16_t',
                     'int32_t', 'uint32_t',
                     'int64_t', 'uint64_t'))
 

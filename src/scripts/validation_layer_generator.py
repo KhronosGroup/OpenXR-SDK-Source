@@ -572,7 +572,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
 
             for cur_cmd in commands:
                 if cur_cmd.ext_name != cur_extension_name:
-                    if 'XR_VERSION_' in cur_cmd.ext_name:
+                    if self.isCoreExtensionName(cur_cmd.ext_name):
                         validation_header_info += '\n// ---- Core %s commands\n' % cur_cmd.ext_name[11:].replace(
                             "_", ".")
                     else:
@@ -1410,6 +1410,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         if is_array:
             long_count_name = param_member_prefix
             if param_member.is_static_array:
+                assert(param_member.static_array_sizes is not None)
                 short_count_var = param_member.static_array_sizes[0]
                 long_count_name = param_member.static_array_sizes[0]
             elif param_member.array_count_var:
@@ -2657,7 +2658,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
 
             for cur_cmd in commands:
                 if cur_cmd.ext_name != cur_extension_name:
-                    if 'XR_VERSION_' in cur_cmd.ext_name:
+                    if self.isCoreExtensionName(cur_cmd.ext_name):
                         validation_source_funcs += '\n// ---- Core %s commands\n' % cur_cmd.ext_name[11:].replace(
                             "_", ".")
                     else:
@@ -2712,7 +2713,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
 
             for cur_cmd in commands:
                 if cur_cmd.ext_name != cur_extension_name:
-                    if 'XR_VERSION_' in cur_cmd.ext_name:
+                    if self.isCoreExtensionName(cur_cmd.ext_name):
                         validation_source_funcs += '\n        // ---- Core %s commands\n' % cur_cmd.ext_name[11:].replace(
                             "_", ".")
                     else:

@@ -17,7 +17,7 @@ import tempfile
 try:
     from pathlib import Path
 except ImportError:
-    from pathlib2 import Path
+    from pathlib2 import Path  # type: ignore
 
 from spec_tools.util import getElemName, getElemType
 
@@ -101,6 +101,36 @@ def regSortFeatures(featureList):
     featureList.sort(key=regSortFeatureVersionKey)
     featureList.sort(key=regSortOrderKey)
     featureList.sort(key=regSortCategoryKey)
+
+
+class MissingGeneratorOptionsError(RuntimeError):
+    """Error raised when a Generator tries to do something that requires GeneratorOptions but it is None."""
+
+    def __init__(self, msg=None):
+        full_msg = 'Missing generator options object self.genOpts'
+        if msg:
+            full_msg += ': ' + msg
+        super().__init__(full_msg)
+
+
+class MissingRegistryError(RuntimeError):
+    """Error raised when a Generator tries to do something that requires a Registry object but it is None."""
+
+    def __init__(self, msg=None):
+        full_msg = 'Missing Registry object self.registry'
+        if msg:
+            full_msg += ': ' + msg
+        super().__init__(full_msg)
+
+
+class MissingGeneratorOptionsConventionsError(RuntimeError):
+    """Error raised when a Generator tries to do something that requires a Conventions object but it is None."""
+
+    def __init__(self, msg=None):
+        full_msg = 'Missing Conventions object self.genOpts.conventions'
+        if msg:
+            full_msg += ': ' + msg
+        super().__init__(full_msg)
 
 
 class GeneratorOptions:
@@ -210,6 +240,9 @@ class GeneratorOptions:
         self.codeGenerator = False
         """True if this generator makes compilable code"""
 
+        self.registry = None
+        """Populated later with the registry object."""
+
     def emptyRegex(self, pat):
         """Substitute a regular expression which matches no version
         or extension names for None or the empty string."""
@@ -311,6 +344,11 @@ class OutputGenerator:
         - An 'alias' attribute contains the name of another enum
           which this is an alias of. The other enum must be
           declared first when emitting this enum."""
+        if self.genOpts is None:
+            raise MissingGeneratorOptionsError()
+        if self.genOpts.conventions is None:
+            raise MissingGeneratorOptionsConventionsError()
+
         name = elem.get('name')
         numVal = None
         if 'value' in elem.keys():
@@ -331,7 +369,7 @@ class OutputGenerator:
             numVal = 1 << bitpos
             value = '0x%08x' % numVal
             if not self.genOpts.conventions.valid_flag_bit(bitpos):
-                msg='Enum {} uses bit position {}, which may result in undefined behavior or unexpected enumerant scalar data type'
+                msg = 'Enum {} uses bit position {}, which may result in undefined behavior or unexpected enumerant scalar data type'
                 self.logMsg('warn', msg.format(name, bitpos))
             if bitpos >= 32:
                 value = value + 'ULL'
@@ -429,10 +467,13 @@ class OutputGenerator:
 
     def buildEnumCDecl(self, expand, groupinfo, groupName):
         """Generate the C declaration for an enum"""
+        if self.genOpts is None:
+            raise MissingGeneratorOptionsError()
+        if self.genOpts.conventions is None:
+            raise MissingGeneratorOptionsConventionsError()
+
         groupElem = groupinfo.elem
 
-        if groupName == "XrSwapchainUsageFlagBits":
-            print("bla")
         if self.genOpts.conventions.constFlagBits and groupElem.get('type') == 'bitmask':
             return self.buildEnumCDecl_Bitmask(groupinfo, groupName)
         else:
@@ -504,6 +545,9 @@ class OutputGenerator:
         # aliases can still get in the wrong order.
         aliasText = []
 
+        maxName = None
+        minValue = None
+        maxValue = None
         for elem in enums:
             # Convert the value to an integer and use that to track min/max.
             # Values of form -(number) are accepted but nothing more complex.
@@ -524,10 +568,10 @@ class OutputGenerator:
                 if minName is None:
                     minName = maxName = name
                     minValue = maxValue = numVal
-                elif numVal < minValue:
+                elif minValue is None or numVal < minValue:
                     minName = name
                     minValue = numVal
-                elif numVal > maxValue:
+                elif maxValue is None or numVal > maxValue:
                     maxName = name
                     maxValue = numVal
 
@@ -572,7 +616,12 @@ class OutputGenerator:
         """Start a new interface file
 
         - genOpts - GeneratorOptions controlling what's generated and how"""
+
         self.genOpts = genOpts
+        if self.genOpts is None:
+            raise MissingGeneratorOptionsError()
+        if self.genOpts.conventions is None:
+            raise MissingGeneratorOptionsConventionsError()
         self.should_insert_may_alias_macro = \
             self.genOpts.conventions.should_insert_may_alias_macro(self.genOpts)
 
@@ -591,19 +640,23 @@ class OutputGenerator:
             self.warnFile.flush()
         if self.diagFile:
             self.diagFile.flush()
-        self.outFile.flush()
-        if self.outFile != sys.stdout and self.outFile != sys.stderr:
-            self.outFile.close()
+        if self.outFile:
+            self.outFile.flush()
+            if self.outFile != sys.stdout and self.outFile != sys.stderr:
+                self.outFile.close()
 
-        # On successfully generating output, move the temporary file to the
-        # target file.
-        if self.genOpts.filename is not None:
-            if sys.platform == 'win32':
-                directory = Path(self.genOpts.directory)
-                if not Path.exists(directory):
-                    os.makedirs(directory)
-            shutil.copy(self.outFile.name, self.genOpts.directory + '/' + self.genOpts.filename)
-            os.remove(self.outFile.name)
+            if self.genOpts is None:
+                raise MissingGeneratorOptionsError()
+
+            # On successfully generating output, move the temporary file to the
+            # target file.
+            if self.genOpts.filename is not None:
+                if sys.platform == 'win32':
+                    directory = Path(self.genOpts.directory)
+                    if not Path.exists(directory):
+                        os.makedirs(directory)
+                shutil.copy(self.outFile.name, self.genOpts.directory + '/' + self.genOpts.filename)
+                os.remove(self.outFile.name)
         self.genOpts = None
 
     def beginFeature(self, interface, emit):
@@ -684,10 +737,14 @@ class OutputGenerator:
 
         - name - contents of `<name>` tag
         - tail - whatever text follows that tag in the Element"""
+        if self.genOpts is None:
+            raise MissingGeneratorOptionsError()
         return self.genOpts.apientry + name + tail
 
     def makeTypedefName(self, name, tail):
         """Make the function-pointer typedef name for a command."""
+        if self.genOpts is None:
+            raise MissingGeneratorOptionsError()
         return '(' + self.genOpts.apientryp + 'PFN_' + name + tail + ')'
 
     def makeCParamDecl(self, param, aligncol):
@@ -698,6 +755,10 @@ class OutputGenerator:
         - param - Element (`<param>` or `<member>`) to format
         - aligncol - if non-zero, attempt to align the nested `<name>` element
           at this column"""
+        if self.genOpts is None:
+            raise MissingGeneratorOptionsError()
+        if self.genOpts.conventions is None:
+            raise MissingGeneratorOptionsConventionsError()
         indent = '    '
         paramdecl = indent + noneStr(param.text)
         for elem in param:
@@ -730,6 +791,10 @@ class OutputGenerator:
         or structure/union member).
 
         - param - Element (`<param>` or `<member>`) to identify"""
+        if self.genOpts is None:
+            raise MissingGeneratorOptionsError()
+        if self.genOpts.conventions is None:
+            raise MissingGeneratorOptionsConventionsError()
 
         # Allow for missing <name> tag
         newLen = 0
@@ -760,6 +825,9 @@ class OutputGenerator:
 
     def getHandleParent(self, typename):
         """Get the parent of a handle object."""
+        if self.registry is None:
+            raise MissingRegistryError()
+
         info = self.registry.typedict.get(typename)
         if info is None:
             return None
@@ -783,6 +851,9 @@ class OutputGenerator:
 
     def getTypeCategory(self, typename):
         """Get the category of a type."""
+        if self.registry is None:
+            raise MissingRegistryError()
+
         info = self.registry.typedict.get(typename)
         if info is None:
             return None
@@ -797,6 +868,8 @@ class OutputGenerator:
         # A conventions object is required for this call.
         if not self.conventions:
             raise RuntimeError("To use isStructAlwaysValid, be sure your options include a Conventions object.")
+        if self.registry is None:
+            raise MissingRegistryError()
 
         if self.conventions.type_always_valid(structname):
             return True
@@ -838,6 +911,21 @@ class OutputGenerator:
 
         return True
 
+    def paramIsArray(self, param):
+        """Check if the parameter passed in is a pointer to an array.
+
+        param           the XML information for the param
+        """
+        return param.get('len') is not None
+
+    def paramIsPointer(self, param):
+        """Check if the parameter passed in is a pointer.
+
+        param           the XML information for the param
+        """
+        tail = param.find('type').tail
+        return tail is not None and '*' in tail
+
     def isEnumRequired(self, elem):
         """Return True if this `<enum>` element is
         required, False otherwise
@@ -873,6 +961,8 @@ class OutputGenerator:
         `<command>` Element, as a two-element list of strings.
 
         - cmd - Element containing a `<command>` tag"""
+        if self.genOpts is None:
+            raise MissingGeneratorOptionsError()
         proto = cmd.find('proto')
         params = cmd.findall('param')
         # Begin accumulating prototype and typedef strings

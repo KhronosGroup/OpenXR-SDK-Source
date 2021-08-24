@@ -10,8 +10,11 @@
 
 import os
 import re
-from generator import (GeneratorOptions, OutputGenerator, noneStr,
-                       regSortFeatures, write)
+
+from generator import (GeneratorOptions,
+                       MissingGeneratorOptionsConventionsError,
+                       MissingGeneratorOptionsError, MissingRegistryError,
+                       OutputGenerator, noneStr, write)
 
 
 class CGeneratorOptions(GeneratorOptions):
@@ -156,10 +159,12 @@ class COutputGenerator(OutputGenerator):
 
     def beginFile(self, genOpts):
         OutputGenerator.beginFile(self, genOpts)
+        if self.genOpts is None:
+            raise MissingGeneratorOptionsError()
         # C-specific
         #
         # Multiple inclusion protection & C++ wrappers.
-        if genOpts.protectFile and self.genOpts.filename:
+        if self.genOpts.protectFile and self.genOpts.filename:
             headerSym = re.sub(r'\.h', '_h_',
                                os.path.basename(self.genOpts.filename)).upper()
             write('#ifndef', headerSym, file=self.outFile)
@@ -181,6 +186,8 @@ class COutputGenerator(OutputGenerator):
     def endFile(self):
         # C-specific
         # Finish C++ wrapper and multiple inclusion protection
+        if self.genOpts is None:
+            raise MissingGeneratorOptionsError()
         self.newline()
         write('#ifdef __cplusplus', file=self.outFile)
         write('}', file=self.outFile)
@@ -214,7 +221,11 @@ class COutputGenerator(OutputGenerator):
         # C-specific
         if self.emit:
             if self.feature_not_empty:
-                is_core = self.featureName.startswith(self.conventions.api_prefix + "VERSION_")
+                if self.genOpts is None:
+                    raise MissingGeneratorOptionsError()
+                if self.genOpts.conventions is None:
+                    raise MissingGeneratorOptionsConventionsError()
+                is_core = self.featureName and self.featureName.startswith(self.conventions.api_prefix + "VERSION_")
                 if self.genOpts.conventions.writeFeature(self.featureExtraProtect, self.genOpts.filename):
                     self.newline()
                     if self.genOpts.protectFeature:
@@ -292,6 +303,8 @@ class COutputGenerator(OutputGenerator):
             # special-purpose generator.
             self.genStruct(typeinfo, name, alias)
         else:
+            if self.genOpts is None:
+                raise MissingGeneratorOptionsError()
             # OpenXR: this section was not under 'else:' previously, just fell through
             if alias:
                 # If the type is an alias, just emit a typedef declaration
@@ -338,6 +351,8 @@ class COutputGenerator(OutputGenerator):
 
     def typeMayAlias(self, typeName):
         if not self.may_alias:
+            if self.registry is None:
+                raise MissingRegistryError()
             # First time we've asked if a type may alias.
             # So, let's populate the set of all names of types that may.
 
@@ -384,7 +399,7 @@ class COutputGenerator(OutputGenerator):
             # This is an OpenXR-specific alternative where aliasing refers
             # to an inheritance hierarchy of types rather than C-level type
             # aliases.
-            if self.genOpts.genAliasMacro and self.typeMayAlias(typeName):
+            if self.genOpts and self.genOpts.genAliasMacro and self.typeMayAlias(typeName):
                 body += ' ' + self.genOpts.aliasMacro
 
             body += ' ' + typeName + ' {\n'
@@ -422,6 +437,8 @@ class COutputGenerator(OutputGenerator):
             body = 'typedef ' + alias + ' ' + groupName + ';\n'
             self.appendSection(section, body)
         else:
+            if self.genOpts is None:
+                raise MissingGeneratorOptionsError()
             (section, body) = self.buildEnumCDecl(self.genOpts.genEnumBeginEndRange, groupinfo, groupName)
             self.appendSection(section, "\n" + body)
 
@@ -443,6 +460,8 @@ class COutputGenerator(OutputGenerator):
         #     prefix = '// ' + name + ' is an alias of command ' + alias + '\n'
         # else:
         #     prefix = ''
+        if self.genOpts is None:
+            raise MissingGeneratorOptionsError()
 
         prefix = ''
         decls = self.makeCDecls(cmdinfo.elem)
