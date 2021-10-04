@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   enable-background="new 0 0 24 24"
+   height="24"
+   viewBox="0 0 24 24"
+   width="24"
+   version="1.1"
+   id="svg869"
+   sodipodi:docname="helloxr-vk-24px.svg"
+   inkscape:version="1.0.2 (e86c870879, 2021-01-15)">
+  <title
+     id="title838">Hello XR Icon (OpenGLES variant)</title>
+  <metadata
+     id="metadata875">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Hello XR Icon (OpenGLES variant)</dc:title>
+        <cc:license
+           rdf:resource="Apache-2.0" />
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Ryan Pavlik</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:description>Based on a Material Icons asset (&quot;emoji-people&quot;) with added text in &quot;Miriam Libre&quot; Bold, converted to path and manually simplified.</dc:description>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs873" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1553"
+     inkscape:window-height="1205"
+     id="namedview871"
+     showgrid="false"
+     inkscape:zoom="32"
+     inkscape:cx="15.397917"
+     inkscape:cy="17.463409"
+     inkscape:window-x="2942"
+     inkscape:window-y="165"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg869"
+     inkscape:document-rotation="0"
+     showguides="true"
+     inkscape:guide-bbox="true">
+    <sodipodi:guide
+       position="9.5976562,15.634766"
+       orientation="1,0"
+       id="guide838" />
+    <sodipodi:guide
+       position="14.519685,12.850394"
+       orientation="1,0"
+       id="guide840" />
+  </sodipodi:namedview>
+  <g
+     id="g857">
+    <rect
+       fill="none"
+       height="24"
+       width="24"
+       id="rect855" />
+  </g>
+  <g
+     id="g859" />
+  <path
+     id="circle861"
+     d="M 14,4 A 2,2 0 0 1 12,6 2,2 0 0 1 10,4 2,2 0 0 1 12,2 2,2 0 0 1 14,4 Z" />
+  <path
+     id="path863"
+     d="M 4,2 C 4,5.16 6.11,7.8409375 9,8.7109375 V 22 h 2 v -6 h 2 v 6 h 2 V 10.050781 L 18.949219,14 20.359375,12.589844 15.890625,8.109375 C 15.500625,7.719375 14.829297,7 13.529297,7 H 10.990234 C 8.2402348,6.99 6,4.75 6,2 Z m 5.6835938,6.2167969 h 0.3730472 c 0.03401,0 0.07284,0.017122 0.08984,0.046875 l 0.632813,1.0039062 0.632812,-1.0039062 c 0.017,-0.029753 0.05584,-0.046875 0.08984,-0.046875 h 0.375 c 0.13098,0 0.100099,0.1228961 0.08398,0.148437 l -0.875,1.3867187 0.853515,1.3554684 c 0.0583,0.09259 -0.06677,0.14844 -0.08398,0.14844 h -0.375 c -0.03401,0 -0.07284,-0.01713 -0.08984,-0.04687 l -0.611328,-0.96875 -0.611328,0.96875 c -0.017,0.02975 -0.05584,0.04687 -0.08984,0.04687 H 9.7050781 c -0.1320513,0 -0.1018826,-0.123118 -0.085938,-0.14844 L 10.472656,9.7519531 9.5976562,8.3652344 c -0.05519,-0.087466 0,-0.1528821 0.085938,-0.1484375 z m 3.0000002,0 h 0.794922 c 0.527044,0 0.947265,0.411833 0.947265,0.921875 0,0.4165343 -0.275671,0.7579429 -0.658203,0.8769531 l 0.705078,1.091797 c 0.0127,0.02125 0.01758,0.03734 0.01758,0.05859 0,0.05101 -0.03815,0.08984 -0.09766,0.08984 h -0.349609 c -0.04251,0 -0.08387,-0.02034 -0.109375,-0.05859 L 13.228516,10.0625 h -0.208985 v 1.103516 c 0,0.05101 -0.03884,0.08984 -0.08984,0.08984 h -0.339844 c -0.05101,0 -0.08984,-0.03884 -0.08984,-0.08984 V 8.4003906 c 0,-0.1020081 0.08159,-0.1835937 0.183594,-0.1835937 z m 0.335937,0.4882812 v 0.8671875 h 0.433594 c 0.259271,0 0.445312,-0.181214 0.445313,-0.4277344 0,-0.2550208 -0.186042,-0.4394531 -0.445313,-0.4394531 z M 9.7753906,11.814453 h 0.2714844 c 0.06851,0 0.106856,0.05018 0.11914,0.08984 l 0.623046,2.011719 0.625,-2.011719 c 0.02081,-0.06697 0.07897,-0.08984 0.11914,-0.08984 H 11.8125 c 0.08665,0 0.09693,0.09133 0.08789,0.11914 l -0.835938,2.572265 c -0.02211,0.06804 -0.07067,0.08976 -0.121094,0.08399 h -0.300781 c -0.07275,0 -0.106746,-0.04585 -0.11914,-0.08399 L 9.6875,11.933594 c -0.026454,-0.0814 0.046936,-0.119141 0.087891,-0.119141 z m 2.6660154,0 H 12.75 c 0.06272,0 0.08008,0.05336 0.08008,0.08203 v 1.085938 h 0.126953 l 0.886719,-1.113281 c 0.02827,-0.03598 0.06836,-0.05469 0.117188,-0.05469 h 0.349609 c 0.09297,0 0.07287,0.101454 0.0586,0.11914 l -1.001953,1.242187 1.005859,1.279297 c 0.06004,0.07637 -0.03528,0.121344 -0.0586,0.12109 l -0.357422,-0.0039 c -0.04626,0 -0.08501,-0.01871 -0.113281,-0.05469 L 12.976564,13.417965 H 12.83008 v 1.072265 c 0,0.06298 -0.05242,0.08203 -0.08008,0.08203 h -0.308594 c -0.06415,0 -0.08203,-0.05327 -0.08203,-0.08203 v -2.59375 c 0,-0.06415 0.043,-0.07766 0.08203,-0.08203 z"
+     sodipodi:nodetypes="ccccccccccccsccccscccssscssscccssscsccssccssscccsssssscsssscsssscssssssssssssscsscsssssccssssssscs" />
+</svg>

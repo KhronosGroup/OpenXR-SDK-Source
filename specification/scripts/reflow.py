@@ -33,6 +33,7 @@ import re
 import sys
 from reflib import loadFile, logDiag, logWarn, setLogFile
 from reflow_count import startVUID
+from pathlib import Path
 
 from xrconventions import OpenXRConventions as APIConventions
 conventions = APIConventions()
@@ -555,12 +556,19 @@ def reflowFile(filename, args):
     if args.overwrite:
         outFilename = filename
     else:
-        outFilename = args.outDir + '/' + os.path.basename(filename) + args.suffix
+        outDir = Path(args.outDir).resolve()
+        # TOCTOU-safe directory creation
+        try:
+            outDir.mkdir()
+        except FileExistsError:
+            pass
+
+        outFilename = str(outDir / (os.path.basename(filename) + args.suffix))
 
     try:
         fp = open(outFilename, 'w', encoding='utf8', newline=newline_string)
     except:
-        logWarn('Cannot open output file', filename, ':', sys.exc_info()[0])
+        logWarn('Cannot open output file', outFilename, ':', sys.exc_info()[0])
         return
 
     state = ReflowState(filename,

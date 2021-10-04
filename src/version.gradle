@@ -1,0 +1,49 @@
+// Copyright (c) 2020 The Khronos Group Inc.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+class OpenXRVersion {
+    public int major;
+    public int minor;
+    public int patch;
+
+    int getPacked() {
+        (((major & 0xffff) << 48) | ((minor & 0xffff) << 32) | (patch & 0xffffffff))
+    }
+
+    @Override
+    String toString() {
+        "${major}.${minor}.${patch}"
+    }
+
+    /**
+     * Parses the registry (as a text file) or the openxr.h header to get the version.
+     * @param project Gradle project
+     * @param fn registry or header filename
+     * @return version parsed
+     */
+    static def parseOpenXRVersionFile(Project project, def fn) {
+        def matches = project.file(fn).readLines().find {
+            it.contains('XR_CURRENT_API_VERSION')
+        } =~ ~/\(([^\)]+)\)/
+        def components = matches[0][1].split(',').collect { it.replace(' ', '').trim() }
+        def version = new OpenXRVersion()
+        version.major = Integer.parseInt(components[0])
+        version.minor = Integer.parseInt(components[1])
+        version.patch = Integer.parseInt(components[2])
+        version
+    }
+}
+
+class OpenXRVersionPlugin implements Plugin<Project> {
+
+    void apply(Project project) {
+        project.ext.versionOpenXR = OpenXRVersion.parseOpenXRVersionFile(project,
+                "${project.repoRoot}/specification/registry/xr.xml")
+        project.group = "org.khronos.openxr"
+
+        project.ext.versionQualifier = ""
+    }
+}
+
+apply plugin: OpenXRVersionPlugin

@@ -16,6 +16,12 @@ namespace {
 void ShowHelp() { Log::Write(Log::Level::Info, "adb shell setprop debug.xr.graphicsPlugin OpenGLES|Vulkan"); }
 
 bool UpdateOptionsFromSystemProperties(Options& options) {
+#if defined(DEFAULT_GRAPHICS_PLUGIN_OPENGLES)
+    options.GraphicsPlugin = "OpenGLES";
+#elif defined(DEFAULT_GRAPHICS_PLUGIN_VULKAN)
+    options.GraphicsPlugin = "Vulkan";
+#endif
+
     char value[PROP_VALUE_MAX] = {};
     if (__system_property_get("debug.xr.graphicsPlugin", value) != 0) {
         options.GraphicsPlugin = value;
@@ -222,6 +228,8 @@ void android_main(struct android_app* app) {
 
             program->PollEvents(&exitRenderLoop, &requestRestart);
             if (!program->IsSessionRunning()) {
+                // Throttle loop since xrWaitFrame won't be called.
+                std::this_thread::sleep_for(std::chrono::milliseconds(250));
                 continue;
             }
 

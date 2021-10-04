@@ -1,40 +1,60 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-		package="com.khronos.hello_xr"
-		android:versionCode="1"
-		android:versionName="1.0" android:installLocation="auto" >
-<!--
-Copyright (c) 2017-2021, The Khronos Group Inc.
+  xmlns:tools="http://schemas.android.com/tools"
+  package="com.khronos.hello_xr"
+  android:installLocation="auto"
+  android:versionCode="1"
+  android:versionName="1.0">
+  <!--
+  Copyright (c) 2017-2021, The Khronos Group Inc.
 
-SPDX-License-Identifier: Apache-2.0
--->
-	<!--<uses-sdk android:minSdkVersion="24" android:targetSdkVersion="24" />-->
-	<!-- Tell the system this app requires OpenGL ES 3.2. -->
-	<uses-feature android:glEsVersion="0x00030002" android:required="true"/>
-	<!-- Tell the system this app works in either 3dof or 6dof mode -->
-	<uses-feature android:name="android.hardware.vr.headtracking" android:required="true" />
+  SPDX-License-Identifier: Apache-2.0
+  -->
+  <!-- Tell the system this app requires OpenGL ES 3.2. -->
+  <uses-feature
+    android:glEsVersion="0x00030002"
+    android:required="true" />
+  <!-- Tell the system this app works in either 3dof or 6dof mode -->
+  <uses-feature
+    android:name="android.hardware.vr.headtracking"
+    android:required="false"
+    android:version="1" />
 
-	<application android:allowBackup="false" android:label="Hello XR" android:hasCode="false">
+  <!-- If building externally with the OpenXR AAR, this would be merged in automatically. -->
+  <uses-permission android:name="org.khronos.openxr.permission.OPENXR" />
+  <uses-permission android:name="org.khronos.openxr.permission.OPENXR_SYSTEM" />
+  <queries>
+    <provider android:authorities="org.khronos.openxr.runtime_broker;org.khronos.openxr.system_runtime_broker" />
+  </queries>
 
-		<!-- The activity is the built-in NativeActivity framework class. -->
-		<!-- launchMode is set to singleTask because there should never be multiple copies of the app running. -->
-		<!-- Theme.Black.NoTitleBar.Fullscreen gives solid black instead of a (bad stereoscopic) gradient on app transition. -->
-		<!-- If targeting API level 24+, configChanges should additionally include 'density'. -->
-		<!-- If targeting API level 24+, android:resizeableActivity="false" should be added. -->
-		<activity
-				android:name="android.app.NativeActivity"
-				android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
-				android:launchMode="singleTask"
-				android:screenOrientation="landscape"
-				android:excludeFromRecents="false"
-				android:configChanges="screenSize|screenLayout|orientation|keyboardHidden|keyboard|navigation|uiMode">
-			<!-- Tell NativeActivity the name of the .so -->
-			<meta-data android:name="android.app.lib_name" android:value="hello_xr" />
-			<!-- This filter lets the apk show up as a launchable icon. -->
-			<intent-filter>
-				<action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.LAUNCHER" />
-			</intent-filter>
-		</activity>
-	</application>
+  <application
+    android:allowBackup="true"
+    android:hasCode="false"
+    android:icon="@mipmap/ic_helloxr_launcher"
+    android:label="@string/app_name"
+    android:roundIcon="@mipmap/ic_helloxr_launcher">
+
+    <!-- The activity is the built-in NativeActivity framework class. -->
+    <!-- launchMode is set to singleTask because there should never be multiple copies of the app running. -->
+    <!-- Theme.Black.NoTitleBar.Fullscreen gives solid black instead of a (bad stereoscopic) gradient on app transition. -->
+    <activity
+      android:name="android.app.NativeActivity"
+      android:configChanges="screenSize|screenLayout|orientation|keyboardHidden|keyboard|navigation|uiMode|density"
+      android:excludeFromRecents="false"
+      android:launchMode="singleTask"
+      android:resizeableActivity="false"
+      android:screenOrientation="landscape"
+      android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+      tools:ignore="NonResizeableActivity">
+      <!-- Tell NativeActivity the name of the .so -->
+      <meta-data
+        android:name="android.app.lib_name"
+        android:value="hello_xr" />
+      <!-- This filter lets the apk show up as a launchable icon. -->
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+        <category android:name="android.intent.category.LAUNCHER" />
+      </intent-filter>
+    </activity>
+  </application>
 </manifest>

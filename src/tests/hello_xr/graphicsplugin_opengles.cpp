@@ -333,12 +333,6 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         glBindVertexArray(0);
         glUseProgram(0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        // Swap our window every other eye for RenderDoc
-        static int everyOther = 0;
-        if ((everyOther++ & 1) != 0) {
-            ksGpuWindow_SwapBuffers(&window);
-        }
     }
 
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return 1; }

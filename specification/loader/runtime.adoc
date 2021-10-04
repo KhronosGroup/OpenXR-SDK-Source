@@ -101,6 +101,105 @@ An example "ActiveRuntime" value might look something like the following:
 C:\windows\system32\my_system_runtime.json
 ```
 
+[[android-active-runtime-location]]
+===== Android Active Runtime Location
+
+The Android OpenXR active runtime data, equivalent to the contents of a
+runtime manifest JSON file, is determined by a ContentProvider.
+Vendors producing Android-based devices where only a single runtime would
+make sense may consider implementing the "System" content provider directly.
+Others can use a working-group-provided installable "RuntimeBroker"
+implementation of the content provider and associated preference UI, and
+will only need to add metadata to their manifest file as described in
+<<android-runtime-metadata>>.
+The RuntimeBroker package's responsibility is to externalize runtime finding
+logic and the runtime state user preferences.
+
+An OpenXR runtime selection ContentProvider responds to one of two
+authorities:
+
+* `org.khronos.openxr.runtime_broker` - For use only by the
+  working-group-provided package with the user preferences activity.
+  This should not be installed or modified by vendors: it will be
+  distributed through typical end-user channels for application packages and
+  is intended for user-controlled installable (e.g. plug-in) devices.
+  Read access is guarded by a permission of "normal" protection level named
+  `org.khronos.openxr.permission.OPENXR`.
+* `org.khronos.openxr.system_runtime_broker` - This may be provided by
+  vendors in system-installed packages.
+  Read access is guarded by a permission of "normal" protection level named
+  `org.khronos.openxr.permission.OPENXR_SYSTEM`.
+
+The installable RuntimeBroker content provider defines the permission group
+`org.khronos.openxr.permission-group.OPENXR`, containing the above two
+permissions.
+The runtime brokers may use their respective permissions to guard read
+access to the ContentProvider.
+Write permission should not be allowed, or should be limited to explicit
+choices by the device user.
+The defined URIs for the ContentProvider authorities are as follows:
+
+* `/openxr/__major_ver__/abi/__abi__/runtimes/active` - This URI represents
+  a "table" containing at most one item, the currently active runtime.
+  The policy of which runtime is chosen to be active (if more than one is
+  installed) is left to the content provider.
+  No sort order is required to be honored by the content provider.
+  Available columns include:
+** `package_name` - Name of the package providing the runtime
+** `native_lib_dir` - ABI-specific directory containing the runtime's shared
+   library
+** `so_filename` - The filename to load as the runtime: Combines with
+   `native_lib_dir` to provide the absolute path of the shared object.
+** `has_functions` - Boolean, if true, it indicates the loader should query
+   the `functions/` URI to identify the names of entry points it should
+   query.
+* `/openxr/__major_ver__/abi/__abi__/runtimes/__package__/functions` - This
+ URI is for package-specific function name remapping.
+ Since this is an optional field in the corresponding JSON manifests for
+ OpenXR, it is optional here as well.
+ If the active runtime contains "true" in its "has_functions" column, then
+ this table must exist and be queryable.
+ No sort order is required to be honored by the content provider.
+ Available columns include:
+** `function_name` - Corresponds to the "key" in the JSON manifest field.
+** `symbol_name` - Corresponds to the "value" in the JSON manifest field.
+
+Within the loader, the results from either content provider are used to
+construct an object corresponding to an equivalent JSON runtime manifest
+file as used on other platforms.
+
+
+[NOTE]
+.Note
+====
+Use of a content provider does mean that OpenXR applications on Android will
+need the following in their manifest.
+
+[source,xml]
+```
+<uses-permission android:name="org.khronos.openxr.permission.OPENXR" />
+<uses-permission android:name="org.khronos.openxr.permission.OPENXR_SYSTEM" />
+
+<queries>
+  <provider android:authorities="org.khronos.openxr.runtime_broker;org.khronos.openxr.system_runtime_broker" />
+</queries>
+```
+
+Additionally, applications should **not target API levels higher than 29**
+for maximum compatibility, as runtimes may need to query and load classes
+from their own packages, which are necessarily not listed in the `<queries>`
+tag above.
+====
+
+If no runtime is found this way, as a fall-back, a similar process as on
+Linux takes place, searching for `active_runtime.json` files in:
+
+* `/odm/etc/openxr/1`
+* `/vendor/etc/openxr/1`
+* `/system/etc/openxr/1`
+
+
+
 [[runtime-enumeration]]
 ==== Runtime Enumeration
 
@@ -283,6 +382,73 @@ The fields of the 1.0.0 file format include:
    As it is not used by the loader nor does it introduce incompatibility, it
    was added to the format described here without incrementing the manifest
    file format version number.
+
+[[android-runtime-metadata]]
+===== Android Runtime Metadata for Installable Broker
+
+The working-group-provided installable RuntimeBroker provides a
+ContentProvider matching the specification of
+<<android-active-runtime-location>>.
+The returned data is determined by a combination of user settings and
+package metadata, rather than a JSON manifest file.
+To be identified by the RuntimeBroker as an OpenXR runtime, a package must:
+
+* Specify the `<application>` attribute `android:extractNativeLibs="true"`,
+  to allow the runtime .so to be loaded dynamically from another package.
+* Provide an exported Service (no specific methods are required)
+** With an intent-filter for the action name
+   `org.khronos.openxr.OpenXRRuntimeService`
+** Exposing a meta-data value named
+   `org.khronos.openxr.OpenXRRuntime.SoFilename` with the filename of the
+   runtime .so file
+** Exposing a meta-data value named
+   `org.khronos.openxr.OpenXRRuntime.MajorVersion` with the major version
+   number of the OpenXR runtime standard supported.
+** Optionally exposing meta-data values named
+   `org.khronos.openxr.OpenXRRuntime.Functions.__function_name__` with value
+   of the symbol name, if any functions to be loaded do not have symbol
+   names matching the specification's function name.
+
+For example, the following markup could be added within the `<application>`
+tag to expose a runtime with no function name remapping:
+
+[source,xml]
+```
+<service
+    android:name=".MyOpenXRService"
+    android:label="@string/service_name"
+    android:exported="true">
+    <meta-data
+        android:name="org.khronos.openxr.OpenXRRuntime.SoFilename"
+        android:value="libopenxr_sample.so" />
+    <meta-data
+        android:name="org.khronos.openxr.OpenXRRuntime.MajorVersion"
+        android:value="1" />
+
+    <intent-filter>
+        <action android:name="org.khronos.openxr.OpenXRRuntimeService" />
+    </intent-filter>
+</service>
+```
+
+To find a runtime, the RuntimeBroker first retrieves all services that
+advertise the `org.khronos.openxr.OpenXRRuntimeService` intent with the
+correct `org.khronos.openxr.OpenXRRuntime.MajorVersion` value.
+If exactly one runtime is found (and it is not disabled by user preference
+in the broker), it is considered the active OpenXR runtime.
+If more than one is found, user preferences are used to identify the
+"active" runtime.
+
+The path containing the dynamic library is computed from
+`ApplicationInfo.getNativeLibraryDir()` and the specified ABI, and the
+filename is returned using the filename found in the OpenXR metadata value.
+The "hasFunctions" column is dynamically generated based on the presence of
+any function metadata entries.
+
+Note that system-provided runtimes exposed using the "System" content
+provider do not need to expose this same metadata, as the implementation of
+the system content provider can be used to store and report this
+information.
 
 
 [[loader-distribution]]
@@ -483,7 +649,6 @@ The loader will leave the remaining fields uninitialized to allow each
 runtime to fill in the appropriate information for itself.
 The loader will then individually call each runtime's
 flink:xrNegotiateLoaderRuntimeInterface function and each runtime then must:
-:
 
 * Determine if it can support the loader's request:
 ** Does the runtime support any <<runtime-interface-versions, loader/runtime

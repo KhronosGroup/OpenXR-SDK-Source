@@ -1,0 +1,98 @@
+// Copyright (c) 2020-2021 The Khronos Group Inc.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+// Open this directory in Android Studio, or build with Gradle,
+// to build the "hello_xr" sample application
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:4.1.3'
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+apply plugin: 'com.android.application'
+
+// These next few lines are just to make the version match the OpenXR release.
+project.ext.repoRoot = file('../../../')
+apply from: file('../../version.gradle')
+
+android {
+    compileSdkVersion 29
+    buildToolsVersion "30.0.3"
+    ndkVersion "21.3.6528147"
+
+    defaultConfig {
+        applicationId "com.khronos.openxr.hello_xr"
+        // for Vulkan, need at least 24
+        minSdkVersion 24
+        compileSdkVersion 26
+
+        versionName = project.versionOpenXR.toString() + project.versionQualifier
+        versionCode = project.versionOpenXR.getPacked()
+
+        externalNativeBuild {
+            cmake {
+                arguments '-DANDROID_STL=c++_shared',
+                        '-DBUILD_API_LAYERS=OFF',
+                        '-DBUILD_TESTS=ON',
+                        '-DBUILD_LOADER=ON',
+                        '-DBUILD_CONFORMANCE_TESTS=OFF',
+                        '-DBUILD_ALL_EXTENSIONS=ON'
+                targets "openxr_loader", "hello_xr"
+            }
+        }
+    }
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            res.srcDir 'android_resources'
+        }
+        Vulkan {
+            res.srcDir 'android_resources/vulkan'
+        }
+        OpenGLES {
+            res.srcDir 'android_resources/opengles'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "${project.repoRoot}/CMakeLists.txt"
+        }
+    }
+
+    flavorDimensions 'api'
+
+    productFlavors {
+        OpenGLES {
+            dimension 'api'
+            applicationIdSuffix '.opengles'
+            externalNativeBuild.cmake.cppFlags '-DDEFAULT_GRAPHICS_PLUGIN_OPENGLES'
+
+            resValue "string", "app_name", "Hello XR (OpenGL ES)"
+        }
+        Vulkan {
+            dimension 'api'
+            applicationIdSuffix '.vulkan'
+            externalNativeBuild.cmake.cppFlags '-DDEFAULT_GRAPHICS_PLUGIN_VULKAN'
+
+            resValue "string", "app_name", "Hello XR (Vulkan)"
+        }
+    }
+}
+

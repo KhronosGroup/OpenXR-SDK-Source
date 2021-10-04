@@ -203,12 +203,20 @@ set(TARGET_NAMES
     XrApiLayer_core_validation)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     foreach(TARGET_NAME ${TARGET_NAMES})
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}.json DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/openxr/${MAJOR}/api_layers/explicit.d)
-        install(TARGETS ${TARGET_NAME} DESTINATION ${CMAKE_INSTALL_LIBDIR})
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}.json
+            DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/openxr/${MAJOR}/api_layers/explicit.d
+            COMPONENT Layers)
+        install(TARGETS ${TARGET_NAME}
+            DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            COMPONENT Layers)
     endforeach()
 elseif(WIN32)
     foreach(TARGET_NAME ${TARGET_NAMES})
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}.json DESTINATION ${CMAKE_INSTALL_BINDIR}/api_layers)
-        install(TARGETS ${TARGET_NAME} RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/api_layers)
+        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}.json
+            DESTINATION ${CMAKE_INSTALL_BINDIR}/api_layers
+            COMPONENT Layers)
+        install(TARGETS ${TARGET_NAME} 
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/api_layers
+            COMPONENT Layers)
     endforeach()
 endif()

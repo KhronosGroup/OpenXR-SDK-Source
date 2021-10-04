@@ -687,7 +687,8 @@ def genExtension(baseDir, name, info):
             continue
 
         if req_name not in genDict:
-            logWarn('ERROR: {} (in extension {}) does not have a ref page.'.format(req_name, name))
+            logWarn('ERROR: {} (in extension {}) does not have a ref page, skipping the link.'.format(req_name, name))
+            continue
 
         declares.append(req_name)
     pageName = baseDir + '/' + name + '.txt'
