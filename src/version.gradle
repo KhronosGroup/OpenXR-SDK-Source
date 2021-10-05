@@ -42,7 +42,7 @@ class OpenXRVersionPlugin implements Plugin<Project> {
                 "${project.repoRoot}/specification/registry/xr.xml")
         project.group = "org.khronos.openxr"
 
-        project.ext.versionQualifier = ""
+        project.ext.versionQualifier = "-SNAPSHOT"
     }
 }
 

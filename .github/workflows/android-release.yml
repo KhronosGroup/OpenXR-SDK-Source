@@ -23,10 +23,17 @@ jobs:
           distribution: "adopt"
           cache: gradle
       - run: ./maintainer-scripts/build-aar.sh
-      - run: cd maintainer-scripts/publish-aar && ./gradlew publishMavenPublicationToBuildDirRepository
+      - run: cd maintainer-scripts/publish-aar && ./gradlew publishMavenPublicationToBuildDirRepository publishMavenPublicationToOSSRH-SnapshotsRepository
         env:
           ORG_GRADLE_PROJECT_signingKey: ${{secrets.ORG_GRADLE_PROJECT_signingKey}}
           ORG_GRADLE_PROJECT_signingKeyId: ${{secrets.ORG_GRADLE_PROJECT_signingKeyId}}
           ORG_GRADLE_PROJECT_signingPassword: ${{secrets.ORG_GRADLE_PROJECT_signingPassword}}
           OSSRH_USER: ${{secrets.OSSRH_USER}}
           OSSRH_PASSWORD: ${{secrets.OSSRH_PASSWORD}}
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: aar
+          path: |
+            openxr_loader_for_android*
+            maintainer-scripts/publish-aar/build/repo/
