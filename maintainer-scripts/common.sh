@@ -171,6 +171,10 @@ getSDKSourceFilenames() {
         maintainer-scripts/common.sh \
         maintainer-scripts/archive-sdk.sh \
         maintainer-scripts/check-changelog-fragments.sh \
+        maintainer-scripts/build-aar.sh \
+        maintainer-scripts/build-and-publish-aar-mavencentral.sh \
+        maintainer-scripts/build-and-publish-aar-snapshot.sh \
+        maintainer-scripts/publish-aar \
         specification/.gitignore \
         specification/registry/*.xml \
         specification/scripts \
