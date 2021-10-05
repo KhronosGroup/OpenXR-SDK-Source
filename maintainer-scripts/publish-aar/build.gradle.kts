@@ -19,9 +19,10 @@ signing {
     val signingKeyId: String? by project
     val signingKey: String? by project
     val signingPassword: String? by project
-    useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
-    // sign(file(File(root, "openxr_loader_for_android-${version}.aar")))
-    sign(publishing.publications)
+    if (signingKeyId != null) {
+        useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+        sign(publishing.publications)
+    }
 }
 
 publishing {
@@ -51,12 +52,17 @@ publishing {
                         id.set("openxr-speceditor")
                         name.set("The Khronos Group, Inc. OpenXR Working Group")
                         email.set("openxr-speceditor AT khronos DOT org")
+                        url.set("https://khronos.org/openxr")
                     }
                 }
                 scm {
                     connection.set(gitUrl)
                     developerConnection.set(gitUrl)
                     url.set(siteUrl)
+                }
+                issueManagement {
+                    system.set("GitHub Issues")
+                    url.set("${siteUrl}/issues")
                 }
             }
         }

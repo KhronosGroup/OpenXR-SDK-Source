@@ -1,4 +1,4 @@
-// Copyright (c) 2020 The Khronos Group Inc.
+// Copyright (c) 2020-2021 The Khronos Group Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -42,7 +42,11 @@ class OpenXRVersionPlugin implements Plugin<Project> {
                 "${project.repoRoot}/specification/registry/xr.xml")
         project.group = "org.khronos.openxr"
 
-        project.ext.versionQualifier = ""
+        if (project.file("${project.repoRoot}/SNAPSHOT").exists()) {
+            project.ext.versionQualifier = "-SNAPSHOT"
+        } else {
+            project.ext.versionQualifier = ""
+        }
     }
 }
 

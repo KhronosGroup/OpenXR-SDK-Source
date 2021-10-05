@@ -1,10 +1,8 @@
 # Copyright 2021, Collabora, Ltd.
 # SPDX-License-Identifier: CC0-1.0
 
-name: Android Builds - Release
+name: Android Builds - Publish Snapshot
 on:
-  release:
-    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -21,7 +19,7 @@ jobs:
           distribution: "adopt"
           cache: gradle
       - name: Build, sign, and publish AAR
-        run: ./maintainer-scripts/build-and-publish-aar-mavencentral.sh
+        run: ./maintainer-scripts/build-and-publish-aar-snapshot.sh
         env:
           ORG_GRADLE_PROJECT_signingKey: ${{secrets.ORG_GRADLE_PROJECT_signingKey}}
           ORG_GRADLE_PROJECT_signingKeyId: ${{secrets.ORG_GRADLE_PROJECT_signingKeyId}}

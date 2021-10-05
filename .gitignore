@@ -13,6 +13,9 @@ CMakeLists.txt.user
 *.log
 pregen/
 
+# Marker file for a snapshot build
+SNAPSHOT
+
 # Cached python scripts in bytecode form
 *.pyc
 applyfixes.sh
