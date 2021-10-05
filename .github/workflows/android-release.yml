@@ -7,6 +7,7 @@ on:
     branches: [$default-branch]
   pull_request:
     branches: [$default-branch]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -21,3 +22,7 @@ jobs:
           cache: gradle
       - run: ./maintainer-scripts/build-aar.sh
       - run: cd maintainer-scripts/publish-aar && ./gradlew publishMavenPublicationToBuildDirRepository
+        env:
+          ORG_GRADLE_PROJECT_signingKey: ${{secrets.ORG_GRADLE_PROJECT_signingKey}}
+          ORG_GRADLE_PROJECT_signingKeyId: ${{secrets.ORG_GRADLE_PROJECT_signingKeyId}}
+          ORG_GRADLE_PROJECT_signingPassword: ${{secrets.ORG_GRADLE_PROJECT_signingPassword}}

@@ -16,10 +16,10 @@ val siteUrl = "https://github.com/KhronosGroup/OpenXR-SDK-Source"
 val gitUrl = "scm:git:https://github.com/KhronosGroup/OpenXR-SDK-Source.git"
 
 signing {
-    // val signingKeyId: String? by project
-    // val signingKey: String? by project
-    // val signingPassword: String? by project
-    // useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+    val signingKeyId: String? by project
+    val signingKey: String? by project
+    val signingPassword: String? by project
+    useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
     // sign(file(File(root, "openxr_loader_for_android-${version}.aar")))
     sign(publishing.publications)
 }
