@@ -1,11 +1,16 @@
 #!/usr/bin/env bash
-# Copyright (c) 2020 Collabora, Ltd.
+# Copyright (c) 2020-2021 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
 
 set -e
 ROOT=$(cd $(dirname $0) && cd .. && pwd)
-OPENXR_ANDROID_VERSION_SUFFIX=$1
+
+OPENXR_ANDROID_VERSION_SUFFIX=
+if [ -f "${ROOT}/SNAPSHOT" ]; then
+    OPENXR_ANDROID_VERSION_SUFFIX=-SNAPSHOT
+    echo "Building a -SNAPSHOT version"
+fi
 
 BUILD_DIR=${BUILD_DIR:-${ROOT}/build-android}
 INSTALL_DIR=${INSTALL_DIR:-${ROOT}/build-android-install}
@@ -13,6 +18,8 @@ INSTALL_DIR=${INSTALL_DIR:-${ROOT}/build-android-install}
 ANDROID_STL=c++_shared
 
 rm -rf "${INSTALL_DIR}"
+find "${BUILD_DIR}" -name "*.pom" --delete
+
 for arch in x86 x86_64 armeabi-v7a arm64-v8a; do
     cmake -S "${ROOT}" \
       -B "${BUILD_DIR}/${arch}" \
