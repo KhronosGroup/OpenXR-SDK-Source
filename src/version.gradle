@@ -7,8 +7,12 @@ class OpenXRVersion {
     public int minor;
     public int patch;
 
-    int getPacked() {
-        (((major & 0xffff) << 48) | ((minor & 0xffff) << 32) | (patch & 0xffffffff))
+    /// Returns a version code for Android usage.
+    int getVersionCode() {
+        if (major != 1 || minor != 0) {
+            throw new RuntimeException("Version code mapping needs update for OpenXR 1.1+")
+        }
+        patch - 19
     }
 
     @Override

@@ -1,0 +1,31 @@
+# Copyright 2021, Collabora, Ltd.
+# SPDX-License-Identifier: CC0-1.0
+
+name: Android HelloXR - Check
+on:
+  pull_request:
+
+jobs:
+  build-helloxr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install ninja-build tool
+        uses: seanmiddleditch/gha-setup-ninja@v3
+      - name: set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: "11"
+          distribution: "adopt"
+          cache: gradle
+
+      # HelloXR OpenGLES version
+      - name: Build HelloXR OpenGLES for Android
+        run: |
+          cd src/tests/hello_xr
+          ./gradlew assembleOpenGLESDebug
+      - name: Upload HelloXR OpenGLES Android
+        uses: actions/upload-artifact@v2
+        with:
+          name: HelloXR OpenGLES Android
+          path: src/tests/hello_xr/build/outputs/apk/OpenGLES/debug/

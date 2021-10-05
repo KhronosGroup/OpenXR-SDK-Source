@@ -10,7 +10,7 @@ ROOT=$(cd $(dirname $0) && cd .. && pwd)
 touch "${ROOT}/SNAPSHOT"
 
 # Build AAR
-"${ROOT}/build-aar.sh"
+"${MAINT_SCRIPTS}/build-aar.sh"
 
 # Publish AAR using Gradle
 cd "${MAINT_SCRIPTS}/publish-aar"

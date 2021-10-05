@@ -18,7 +18,9 @@ INSTALL_DIR=${INSTALL_DIR:-${ROOT}/build-android-install}
 ANDROID_STL=c++_shared
 
 rm -rf "${INSTALL_DIR}"
-find "${BUILD_DIR}" -name "*.pom" --delete
+if [ -d "${BUILD_DIR}" ]; then
+    find "${BUILD_DIR}" -name "*.pom" -delete
+fi
 
 for arch in x86 x86_64 armeabi-v7a arm64-v8a; do
     cmake -S "${ROOT}" \
