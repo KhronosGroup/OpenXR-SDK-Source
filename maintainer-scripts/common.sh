@@ -215,6 +215,8 @@ getSDKFilenames() {
         src/loader \
         src/external/CMakeLists.txt \
         src/external/jsoncpp \
+        src/external/jnipp \
+        src/external/android-jni-wrap \
         src/.clang-format \
         | grep -v "${COMMON_EXCLUDE_PATTERN}" \
         | grep -v "gfxwrapper" \
