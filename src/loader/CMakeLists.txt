@@ -46,6 +46,8 @@ else() # build static lib
 endif()
 
 add_library(openxr_loader ${LIBRARY_TYPE}
+    android_utilities.cpp
+    android_utilities.h
     api_layer_interface.cpp
     api_layer_interface.hpp
     loader_core.cpp
@@ -231,8 +233,6 @@ elseif(ANDROID)
         CXX_STANDARD_REQUIRED TRUE)
     target_sources(openxr_loader
         PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/android_utilities.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/android_utilities.h
         ${ANDROID_WRAP_SOURCES}
         ${JNIPP_ROOT}/jnipp.cpp
     )
