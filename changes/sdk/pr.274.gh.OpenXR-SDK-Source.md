@@ -1,0 +1,1 @@
+- Loader: Add `ifdef` guards around contents of Android-specific files so all platforms may still glob all source files in OpenXR-SDK to build the loader with a custom build system.
