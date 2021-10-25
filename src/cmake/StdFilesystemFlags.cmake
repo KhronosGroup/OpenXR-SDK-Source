@@ -104,24 +104,28 @@ else()
     set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
     set(CMAKE_REQUIRED_INCLUDES "${_FILESYSTEM_UTILS_DIR}")
     unset(CMAKE_REQUIRED_LIBRARIES)
-    unset(CMAKE_REQUIRED_FLAGS)
-    check_cxx_source_compiles("${_stdfs_source}" HAVE_FILESYSTEM_IN_STD)
-    check_cxx_source_compiles("${_stdfs_experimental_source}" HAVE_FILESYSTEM_IN_STDEXPERIMENTAL)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 11.0)
+        # GCC 11+ defaults to C++17 mode and acts badly in these tests if we tell it to use a different version.
+        set(HAVE_FILESYSTEM_IN_STD_17 ON)
+        set(HAVE_FILESYSTEM_IN_STD OFF)
+    else()
+        set(CMAKE_REQUIRED_FLAGS "-DCMAKE_CXX_STANDARD=14 -DCMAKE_CXX_STANDARD_REQUIRED=TRUE")
+        check_cxx_source_compiles("${_stdfs_source}" HAVE_FILESYSTEM_IN_STD)
+        check_cxx_source_compiles("${_stdfs_experimental_source}" HAVE_FILESYSTEM_IN_STDEXPERIMENTAL)
 
-    # See if the "final" version builds if we try to specify C++17 explicitly
-    # TODO I think this should actually be compiler flags, not cmake flags...
-    set(CMAKE_REQUIRED_FLAGS "-DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_STANDARD_REQUIRED=TRUE")
-    check_cxx_source_compiles("${_stdfs_source}" HAVE_FILESYSTEM_IN_STD_17)
-    unset(CMAKE_REQUIRED_FLAGS)
+        # See if the "final" version builds if we try to specify C++17 explicitly
+        set(CMAKE_REQUIRED_FLAGS "-DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_STANDARD_REQUIRED=TRUE")
+        check_cxx_source_compiles("${_stdfs_source}" HAVE_FILESYSTEM_IN_STD_17)
+        unset(CMAKE_REQUIRED_FLAGS)
+    endif()
 
-    # If we found the final version of filesystem when specifying c++17 explicitly,
+    # If we found the final version of filesystem when specifying C++17 explicitly,
     # but found it no other way, then we record that we must use C++17 flags.
     if(HAVE_FILESYSTEM_IN_STD_17 AND NOT HAVE_FILESYSTEM_IN_STD)
         set(HAVE_FILESYSTEM_NEEDS_17
             ON
             CACHE INTERNAL ""
         )
-        # TODO I think this should actually be compiler flags, not cmake flags...
         set(CMAKE_REQUIRED_FLAGS "-DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_STANDARD_REQUIRED=TRUE")
     else()
         set(HAVE_FILESYSTEM_NEEDS_17
@@ -135,7 +139,7 @@ else()
     ###
 
     # Now, see if we need to link against libstdc++fs, and what it's called
-    # If we needed c++17 standard flags to find it, they've already been set above.
+    # If we needed C++17 standard flags to find it, they've already been set above.
     set(CMAKE_TRY_COMPILE_TARGET_TYPE EXECUTABLE)
 
     # Try with no lib specified
