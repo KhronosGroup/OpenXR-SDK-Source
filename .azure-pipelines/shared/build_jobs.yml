@@ -44,6 +44,8 @@ jobs:
 
   # This job computes the product of the config dimensions
   - job: generator
+    pool:
+      vmImage: "ubuntu-latest"
     steps:
       - task: PythonScript@0
         name: winmatrix
@@ -96,7 +98,7 @@ jobs:
 
   - job: combine_artifacts
     dependsOn: windows_build
-    condition: ${{ eq(parameters.isSdkSourceRepo, true) }}
+    condition: ${{ and(succeeded(), eq(parameters.isSdkSourceRepo, true)) }}
     displayName: "Organize artifacts"
     pool:
       vmImage: "windows-latest"
