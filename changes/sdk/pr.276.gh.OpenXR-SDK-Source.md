@@ -1,0 +1,5 @@
+---
+- issue.260.gh.OpenXR-SDK-Source
+- issue.1571.gl
+---
+- Fix detection of std::filesystem options on GCC 11 and newer.
