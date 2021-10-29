@@ -440,7 +440,7 @@ If more than one is found, user preferences are used to identify the
 "active" runtime.
 
 The path containing the dynamic library is computed from
-`ApplicationInfo.getNativeLibraryDir()` and the specified ABI, and the
+`ApplicationInfo.nativeLibraryDir` and the specified ABI, and the
 filename is returned using the filename found in the OpenXR metadata value.
 The "hasFunctions" column is dynamically generated based on the presence of
 any function metadata entries.
