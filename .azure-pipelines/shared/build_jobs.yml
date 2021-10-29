@@ -44,6 +44,8 @@ jobs:
 
   # This job computes the product of the config dimensions
   - job: generator
+    pool:
+      vmImage: "ubuntu-latest"
     steps:
       - task: PythonScript@0
         name: winmatrix
