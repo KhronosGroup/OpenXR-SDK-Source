@@ -6,6 +6,8 @@
 #else
   // UNIX Dependencies
 # include <dlfcn.h>
+# include <unistd.h>
+# include <tuple>
 #endif
 
 // External Dependencies
@@ -24,6 +26,10 @@ namespace jni
     static std::atomic_bool isVm(false);
     static JavaVM* javaVm = nullptr;
 
+    static bool isAttached(JavaVM *vm) {
+        JNIEnv *env = nullptr;
+        return vm->GetEnv((void **)&env, JNI_VERSION_1_2) == JNI_OK;
+    }
     /**
         Maintains the lifecycle of a JNIEnv.
      */
@@ -57,7 +63,7 @@ namespace jni
         if (vm == nullptr)
             throw InitializationException("JNI not initialized");
 
-        if (vm->GetEnv((void**)&_env, JNI_VERSION_1_2) != JNI_OK)
+        if (!isAttached(vm))
         {
 #ifdef __ANDROID__
             if (vm->AttachCurrentThread(&_env, nullptr) != 0)
@@ -150,8 +156,17 @@ namespace jni
     {
         static thread_local ScopedEnv env;
 
+        if (env.get() != nullptr && !isAttached(javaVm))
+        {
+            // we got detached, so clear it.
+            // will be re-populated from static javaVm below.
+            env = ScopedEnv{};
+        }
+
         if (env.get() == nullptr)
+        {
             env.init(javaVm);
+        }
 
         return env.get();
     }
@@ -1270,7 +1285,57 @@ namespace jni
 
     typedef jint (JNICALL *CreateVm_t)(JavaVM**, void**, void*);
 
+#ifndef _WIN32
+    static bool fileExists(const std::string& filePath)
+    {
+        return access(filePath.c_str(), F_OK) != -1;
+    }
 
+    template <size_t N>
+    static ssize_t readlink_safe(const char *pathname, char (&output)[N]) {
+        auto len = readlink(pathname, output, N - 1);
+        if (len > 0) {
+            output[len] = '\0';
+        }
+        return len;
+    }
+
+    static std::pair<ssize_t, std::string>
+    readlink_as_string(const char *pathname) {
+        char buf[2048] = {};
+        auto len = readlink_safe(pathname, buf);
+        if (len <= 0) {
+            return {len, {}};
+        }
+        return {len, std::string{buf, static_cast<size_t>(len)}};
+    }
+    static std::string readlink_deep(const char *pathname) {
+        std::string prev{pathname};
+        ssize_t len = 0;
+        std::string next;
+        while (true) {
+            std::tie(len, next) = readlink_as_string(prev.c_str());
+            if (!next.empty()) {
+                prev = next;
+            } else {
+                return prev;
+            }
+        }
+    }
+
+    static std::string drop_path_components(const std::string & path, size_t num_components) {
+        size_t pos = std::string::npos;
+        size_t slash_pos = std::string::npos;
+        for (size_t i = 0; i < num_components; ++i) {
+            slash_pos = path.find_last_of('/', pos);
+            if (slash_pos == std::string::npos || slash_pos == 0) {
+                return {};
+            }
+            pos = slash_pos - 1;
+        }
+        return std::string{path.c_str(), slash_pos};
+    }
+#endif
     static std::string detectJvmPath()
     {
         std::string result;
@@ -1321,7 +1386,7 @@ namespace jni
                     javaHome + "\\bin\\server\\jvm.dll"
                 };
 
-                for (auto i : options)
+                for (auto const& i : options)
                     if (fileExists(i))
                         return i;
             }
@@ -1338,6 +1403,28 @@ namespace jni
             #endif
             result = libJvmPath;
         } else {
+            std::string path = readlink_deep("/usr/bin/java");
+            if (!path.empty()) {
+                // drop bin and java
+                auto javaHome = drop_path_components(path, 2);
+                if (!javaHome.empty()) {
+                    std::string options[] = {
+                        javaHome + "/jre/lib/amd64/server/libjvm.so",
+                        javaHome + "/jre/lib/amd64/client/libjvm.so",
+                        javaHome + "/jre/lib/server/libjvm.so",
+                        javaHome + "/jre/lib/client/libjvm.so",
+                        javaHome + "/lib/server/libjvm.so",
+                        javaHome + "/lib/client/libjvm.so",
+                    };
+
+                    for (auto const &i : options) {
+                        fprintf(stderr, "trying %s\n", i.c_str());
+                        if (fileExists(i)) {
+                            return i;
+                        }
+                    }
+                }
+            }
             // Best guess so far.
             result = "/usr/lib/jvm/default-java/jre/lib/amd64/server/libjvm.so";
         }
@@ -1388,6 +1475,7 @@ namespace jni
             }
 
 #else
+            fprintf(stderr, "opening %s\n", path.c_str());
 
             void* lib = ::dlopen(path.c_str(), RTLD_NOW | RTLD_GLOBAL);
 
