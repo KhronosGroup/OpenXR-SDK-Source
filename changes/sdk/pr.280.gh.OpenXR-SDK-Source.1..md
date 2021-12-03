@@ -1,0 +1,1 @@
+- Update jnipp to fix crash on Android if app detatches thread from JVM (e.g. on shutdown).
