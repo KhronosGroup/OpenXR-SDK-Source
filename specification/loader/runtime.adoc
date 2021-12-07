@@ -194,7 +194,7 @@ tag above.
 If no runtime is found this way, as a fall-back, a similar process as on
 Linux takes place, searching for `active_runtime.json` files in:
 
-* `/odm/etc/openxr/1`
+* `/oem/etc/openxr/1`
 * `/vendor/etc/openxr/1`
 * `/system/etc/openxr/1`
 
