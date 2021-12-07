@@ -637,6 +637,8 @@ XrResult RuntimeManifestFile::FindManifestFiles(std::vector<std::unique_ptr<Runt
             LoaderLogger::LogErrorMessage(
                 "", "RuntimeManifestFile::FindManifestFiles - failed to determine active runtime file path for this environment");
             return XR_ERROR_RUNTIME_UNAVAILABLE;
+        } else {
+          result = XR_SUCCESS;
         }
         LoaderLogger::LogInfoMessage("", "RuntimeManifestFile::FindManifestFiles - using global runtime file " + filename);
 #endif
