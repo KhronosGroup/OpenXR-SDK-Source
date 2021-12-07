@@ -63,7 +63,7 @@ namespace jni
         if (vm == nullptr)
             throw InitializationException("JNI not initialized");
 
-        if ( vm->GetEnv((void **)&_env, JNI_VERSION_1_2) != JNI_OK)
+        if (vm->GetEnv((void **)&_env, JNI_VERSION_1_2) != JNI_OK)
         {
 #ifdef __ANDROID__
             if (vm->AttachCurrentThread(&_env, nullptr) != 0)
