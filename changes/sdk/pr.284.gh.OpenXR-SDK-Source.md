@@ -1,0 +1,3 @@
+- Loader: Fixed incorrect return value when no broker is present on Android but runtime defined via active_runtime.json.
+- Loader: Added /system to the search path on Android as per documentation.
+- Docs: Fixed typo in docs. 
