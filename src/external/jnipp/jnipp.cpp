@@ -26,9 +26,13 @@ namespace jni
     static std::atomic_bool isVm(false);
     static JavaVM* javaVm = nullptr;
 
+    static bool getEnv(JavaVM *vm, JNIEnv **env) {
+        return vm->GetEnv((void **)env, JNI_VERSION_1_2) == JNI_OK;
+    }
+
     static bool isAttached(JavaVM *vm) {
         JNIEnv *env = nullptr;
-        return vm->GetEnv((void **)&env, JNI_VERSION_1_2) == JNI_OK;
+        return getEnv(vm, &env);
     }
     /**
         Maintains the lifecycle of a JNIEnv.
@@ -63,7 +67,7 @@ namespace jni
         if (vm == nullptr)
             throw InitializationException("JNI not initialized");
 
-        if (!isAttached(vm))
+        if (!getEnv(vm, &_env))
         {
 #ifdef __ANDROID__
             if (vm->AttachCurrentThread(&_env, nullptr) != 0)
@@ -368,20 +372,20 @@ namespace jni
         return _handle == nullptr || env()->IsSameObject(_handle, nullptr);
     }
 
-    template <> void Object::callMethod(method_t method, internal::value_t* args) const
+    void Object::callMethod(method_t method, internal::value_t* args, internal::ReturnTypeWrapper<void> const&) const
     {
         env()->CallVoidMethodA(_handle, method, (jvalue*) args);
         handleJavaExceptions();
     }
 
-    template <> bool Object::callMethod(method_t method, internal::value_t* args) const
+    bool Object::callMethod(method_t method, internal::value_t* args, internal::ReturnTypeWrapper<bool> const&) const
     {
         auto result = env()->CallBooleanMethodA(_handle, method, (jvalue*) args);
         handleJavaExceptions();
         return result != 0;
     }
 
-    template <> bool Object::get(field_t field) const
+    bool Object::getFieldValue(field_t field, internal::ReturnTypeWrapper<bool> const&) const
     {
         return env()->GetBooleanField(_handle, field) != 0;
     }
@@ -391,122 +395,122 @@ namespace jni
         env()->SetBooleanField(_handle, field, value);
     }
 
-    template <> byte_t Object::callMethod(method_t method, internal::value_t* args) const
+    byte_t Object::callMethod(method_t method, internal::value_t* args, internal::ReturnTypeWrapper<byte_t> const&) const
     {
         auto result = env()->CallByteMethodA(_handle, method, (jvalue*) args);
         handleJavaExceptions();
         return result;
     }
 
-    template <> wchar_t Object::callMethod(method_t method, internal::value_t* args) const
+    wchar_t Object::callMethod(method_t method, internal::value_t* args, internal::ReturnTypeWrapper<wchar_t> const&) const
     {
         auto result = env()->CallCharMethodA(_handle, method, (jvalue*) args);
         handleJavaExceptions();
         return result;
     }
 
-    template <> short Object::callMethod(method_t method, internal::value_t* args) const
+    short Object::callMethod(method_t method, internal::value_t* args, internal::ReturnTypeWrapper<short> const&) const
     {
         auto result = env()->CallShortMethodA(_handle, method, (jvalue*) args);
         handleJavaExceptions();
         return result;
     }
 
-    template <> int Object::callMethod(method_t method, internal::value_t* args) const
+    int Object::callMethod(method_t method, internal::value_t* args, internal::ReturnTypeWrapper<int> const&) const
     {
         auto result = env()->CallIntMethodA(_handle, method, (jvalue*) args);
         handleJavaExceptions();
         return result;
     }
 
-    template <> long long Object::callMethod(method_t method, internal::value_t* args) const
+    long long Object::callMethod(method_t method, internal::value_t* args, internal::ReturnTypeWrapper<long long> const&) const
     {
         auto result = env()->CallLongMethodA(_handle, method, (jvalue*) args);
         handleJavaExceptions();
         return result;
     }
 
-    template <> float Object::callMethod(method_t method, internal::value_t* args) const
+    float Object::callMethod(method_t method, internal::value_t* args, internal::ReturnTypeWrapper<float> const&) const
     {
         auto result = env()->CallFloatMethodA(_handle, method, (jvalue*) args);
         handleJavaExceptions();
         return result;
     }
 
-    template <> double Object::callMethod(method_t method, internal::value_t* args) const
+    double Object::callMethod(method_t method, internal::value_t* args, internal::ReturnTypeWrapper<double> const&) const
     {
         auto result = env()->CallDoubleMethodA(_handle, method, (jvalue*) args);
         handleJavaExceptions();
         return result;
     }
 
-    template <> std::string Object::callMethod(method_t method, internal::value_t* args) const
+    std::string Object::callMethod(method_t method, internal::value_t* args, internal::ReturnTypeWrapper<std::string> const&) const
     {
         auto result = env()->CallObjectMethodA(_handle, method, (jvalue*) args);
         handleJavaExceptions();
         return toString(result);
     }
 
-    template <> std::wstring Object::callMethod(method_t method, internal::value_t* args) const
+    std::wstring Object::callMethod(method_t method, internal::value_t* args, internal::ReturnTypeWrapper<std::wstring> const&) const
     {
         auto result = env()->CallObjectMethodA(_handle, method, (jvalue*) args);
         handleJavaExceptions();
         return toWString(result);
     }
 
-    template <> jni::Object Object::callMethod(method_t method, internal::value_t* args) const
+    jni::Object Object::callMethod(method_t method, internal::value_t* args, internal::ReturnTypeWrapper<jni::Object> const&) const
     {
         auto result = env()->CallObjectMethodA(_handle, method, (jvalue*) args);
         handleJavaExceptions();
         return Object(result, DeleteLocalInput);
     }
 
-    template <> byte_t Object::get(field_t field) const
+    byte_t Object::getFieldValue(field_t field, internal::ReturnTypeWrapper<byte_t> const&) const
     {
         return env()->GetByteField(_handle, field);
     }
 
-    template <> wchar_t Object::get(field_t field) const
+    wchar_t Object::getFieldValue(field_t field, internal::ReturnTypeWrapper<wchar_t> const&) const
     {
         return env()->GetCharField(_handle, field);
     }
 
-    template <> short Object::get(field_t field) const
+    short Object::getFieldValue(field_t field, internal::ReturnTypeWrapper<short> const&) const
     {
         return env()->GetShortField(_handle, field);
     }
 
-    template <> int Object::get(field_t field) const
+    int Object::getFieldValue(field_t field, internal::ReturnTypeWrapper<int> const&) const
     {
         return env()->GetIntField(_handle, field);
     }
 
-    template <> long long Object::get(field_t field) const
+    long long Object::getFieldValue(field_t field, internal::ReturnTypeWrapper<long long> const&) const
     {
         return env()->GetLongField(_handle, field);
     }
 
-    template <> float Object::get(field_t field) const
+    float Object::getFieldValue(field_t field, internal::ReturnTypeWrapper<float> const&) const
     {
         return env()->GetFloatField(_handle, field);
     }
 
-    template <> double Object::get(field_t field) const
+    double Object::getFieldValue(field_t field, internal::ReturnTypeWrapper<double> const&) const
     {
         return env()->GetDoubleField(_handle, field);
     }
 
-    template <> std::string Object::get(field_t field) const
+    std::string Object::getFieldValue(field_t field, internal::ReturnTypeWrapper<std::string> const&) const
     {
         return toString(env()->GetObjectField(_handle, field));
     }
 
-    template <> std::wstring Object::get(field_t field) const
+    std::wstring Object::getFieldValue(field_t field, internal::ReturnTypeWrapper<std::wstring> const&) const
     {
         return toWString(env()->GetObjectField(_handle, field));
     }
 
-    template <> Object Object::get(field_t field) const
+    Object Object::getFieldValue(field_t field, internal::ReturnTypeWrapper<Object> const&) const
     {
         return Object(env()->GetObjectField(_handle, field), DeleteLocalInput);
     }
@@ -1475,7 +1479,6 @@ namespace jni
             }
 
 #else
-            fprintf(stderr, "opening %s\n", path.c_str());
 
             void* lib = ::dlopen(path.c_str(), RTLD_NOW | RTLD_GLOBAL);
 

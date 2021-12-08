@@ -622,8 +622,6 @@ int main()
         RUN_TEST(Arg_ObjectPtr);
     }
 
-    std::cout << "Press a key to continue..." << std::endl;
-    std::cin.get();
     return 0;
 }
 
