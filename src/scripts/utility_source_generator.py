@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2017-2021, The Khronos Group Inc.
+# Copyright (c) 2017-2022, The Khronos Group Inc.
 # Copyright (c) 2017-2019 Valve Corporation
 # Copyright (c) 2017-2019 LunarG, Inc.
 #
@@ -30,7 +30,7 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
     #   self            the UtilitySourceOutputGenerator object
     def outputGeneratedHeaderWarning(self):
         generated_warning = ''
-        generated_warning += '// Copyright (c) 2017-2021, The Khronos Group Inc.\n'
+        generated_warning += '// Copyright (c) 2017-2022, The Khronos Group Inc.\n'
         generated_warning += '// Copyright (c) 2017-2019 Valve Corporation\n'
         generated_warning += '// Copyright (c) 2017-2019 LunarG, Inc.\n'
         # Broken string is to avoid confusing the REUSE tool here.

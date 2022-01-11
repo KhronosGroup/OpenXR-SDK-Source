@@ -1,10 +1,10 @@
-// Copyright (c) 2017-2021, The Khronos Group Inc.
+// Copyright (c) 2017-2022, The Khronos Group Inc.
 // Copyright notice at https://www.khronos.org/registry/speccopyright.html
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
 = OpenXR^(R)^  Loader - Design and Operation [DRAFT] {apititle}
-Copyright (c) 2017-2021, The Khronos Group Inc.
+Copyright (c) 2017-2022, The Khronos Group Inc.
 :data-uri:
 :icons: font
 :toc2:
@@ -14,7 +14,7 @@ Copyright (c) 2017-2021, The Khronos Group Inc.
 :imagewidth: 800
 :fullimagewidth: width="800"
 
-Copyright (c) 2017-2021, The Khronos Group Inc.
+Copyright (c) 2017-2022, The Khronos Group Inc.
 All Rights reserved.
 
 toc::[]

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2019-2021, The Khronos Group Inc.
+# Copyright (c) 2019-2022, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -156,6 +156,7 @@ getSDKSourceFilenames() {
         openxr-codespell.exclude \
         runClangFormat.sh \
         tox.ini \
+        .github/workflows/OpenXR-SDK-Source \
         .azure-pipelines/shared \
         .azure-pipelines/nuget \
         .azure-pipelines/openxr-sdk.yml \

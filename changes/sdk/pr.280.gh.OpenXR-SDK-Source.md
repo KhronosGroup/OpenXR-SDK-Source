@@ -1,5 +1,0 @@
----
-- issue.275.gh.OpenXR-SDK-Source
-- issue.1616.gl
----
-- Update android-jni-wrappers to fix missing include.

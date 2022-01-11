@@ -138,7 +138,7 @@ static void Error(const char *format, ...) {
 #endif
     // Without exiting, the application will likely crash.
     if (format != NULL) {
-        exit(0);
+        exit(1);
     }
 }
 

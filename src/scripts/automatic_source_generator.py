@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2017-2021, The Khronos Group Inc.
+# Copyright (c) 2017-2022, The Khronos Group Inc.
 # Copyright (c) 2017-2019 Valve Corporation
 # Copyright (c) 2017-2019 LunarG, Inc.
 #
@@ -124,7 +124,9 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                                          # None or a comma-delimited list indicating #define values to use around this handle
                                          'protect_value',
                                          # Empty string or string to use after #if to protect this handle
-                                         'protect_string'])
+                                         'protect_string',
+                                         # Name of extension this handle is associated with (or None)
+                                         'ext_name'])
         # Flag data
         self.FlagBits = namedtuple('FlagBits',
                                    [  # The name of the flag
@@ -446,7 +448,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     # overridden by a derived class.
     #   self            the AutomaticSourceOutputGenerator object
     def outputCopywriteHeader(self):
-        notice = '// Copyright (c) 2017-2021, The Khronos Group Inc.\n'
+        notice = '// Copyright (c) 2017-2022, The Khronos Group Inc.\n'
         notice += '// Copyright (c) 2017-2019 Valve Corporation\n'
         notice += '// Copyright (c) 2017-2019 LunarG, Inc.\n'
         notice += '//\n'
@@ -778,6 +780,9 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         type_category = type_elem.get('category')
         protect_value, protect_string = self.genProtectInfo(
             self.featureExtraProtect, type_elem.get('protect'))
+        extension_to_check = self.currentExtension
+        if type_elem.get('extname') is not None:
+            extension_to_check = type_elem.get('extname')
         has_proper_ending = True
         if not self.isCoreExtensionName(self.currentExtension) and not type_name.endswith(self.current_vendor_tag):
             has_proper_ending = False
@@ -800,7 +805,8 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                     parent=self.getHandleParent(type_name),
                     ancestors=self.getHandleAncestors(type_name),
                     protect_value=protect_value,
-                    protect_string=protect_string))
+                    protect_string=protect_string,
+                    ext_name=extension_to_check))
         elif type_category == 'basetype':
             # Save the base type information just so we can convert to the base type when
             # outputting to a file.
@@ -827,9 +833,6 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             mask_type = mask_info[0]
             mask_name = mask_info[1]
             bitvalues = type_elem.get('bitvalues')
-            extension_to_check = self.currentExtension
-            if type_elem.get('extname') is not None:
-                extension_to_check = type_elem.get('extname')
             # Record a bitmask and all it's valid flag bit values
             self.api_flags.append(
                 self.FlagBits(

@@ -11,7 +11,7 @@
 import re
 import sys
 from pathlib import Path
-from typing import Set
+from typing import Dict, List, Set, Tuple, Union
 
 from check_spec_links import XREntityDatabase as OrigEntityDatabase
 from reg import Registry
@@ -92,6 +92,13 @@ def get_extension_source(extname):
     return str(SPECIFICATION_DIR / 'sources' / 'chapters' / 'extensions' / lower_tag / fn)
 
 
+def get_extension_vendor(extname):
+    match = EXT_DECOMPOSE_RE.match(extname)
+    if not match:
+        raise RuntimeError("Could not decompose " + extname)
+    return match.group('tag')
+
+
 def pluralize(s):
     if s.endswith('y'):
         return s[:-1] + 'ies'
@@ -168,9 +175,15 @@ class Checker(XMLChecker):
         )
 
         # Keys are entity names, values are tuples or lists of message text to suppress.
-        suppressions = {
+        suppressions: Dict[str, Union[Tuple[str, ...], List[str]]] = {
             # path to string can take any path
-            "xrPathToString": ("Missing expected return code(s) XR_ERROR_PATH_UNSUPPORTED implied because of input of type XrPath",)
+            "xrPathToString": ("Missing expected return code(s) XR_ERROR_PATH_UNSUPPORTED implied because of input of type XrPath",),
+            # Just a case error, vendor declined to modify
+            "XR_OCULUS_audio_device_guid": ("Extension-defined name xrGetAudioInputDeviceGuidOculus has wrong or missing vendor tag: expected to end with OCULUS",
+                                            "Extension-defined name xrGetAudioOutputDeviceGuidOculus has wrong or missing vendor tag: expected to end with OCULUS",),
+            # This is warning about compatibility aliases, we already fixed this.
+            "XR_FB_hand_tracking_capsules": ("Extension-defined name XR_FB_HAND_TRACKING_CAPSULE_POINT_COUNT has wrong or missing vendor tag: expected to end with FB",
+                                             "Extension-defined name XR_FB_HAND_TRACKING_CAPSULE_COUNT has wrong or missing vendor tag: expected to end with FB",),
         }
 
         conventions = APIConventions()
@@ -565,6 +578,21 @@ class Checker(XMLChecker):
             if name_val != expected_name:
                 self.record_error("Incorrect name enum: expected", expected_name,
                                   "got", name_val)
+
+        vendor = get_extension_vendor(name)
+        for category in ('enum', 'type', 'command'):
+            items = elem.findall('./require/%s' % category)
+            for item in items:
+                item_name = item.get('name')
+                # print(item.attrib)
+                if not item_name:
+                    continue
+                if item_name in (version_name, name_define):
+                    continue
+                # print(name, item_name)
+                if not item_name.endswith(vendor):
+                    self.record_warning("Extension-defined name", item_name,
+                                        "has wrong or missing vendor tag: expected to end with", vendor)
 
 
 if __name__ == "__main__":

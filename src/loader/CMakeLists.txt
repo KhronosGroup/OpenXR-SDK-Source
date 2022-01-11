@@ -233,6 +233,8 @@ elseif(ANDROID)
         CXX_STANDARD_REQUIRED TRUE)
     target_sources(openxr_loader
         PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/android_utilities.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/android_utilities.h
         ${ANDROID_WRAP_SOURCES}
         ${JNIPP_ROOT}/jnipp.cpp
     )
