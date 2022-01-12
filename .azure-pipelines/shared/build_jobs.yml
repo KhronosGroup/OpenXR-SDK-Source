@@ -98,7 +98,9 @@ jobs:
   #         useVulkan: 'true'
 
   - job: combine_artifacts
-    dependsOn: windows_build
+    dependsOn:
+      - generator
+      - windows_build
     condition: ${{ eq(parameters.isSdkSourceRepo, true) }}
     displayName: "Organize artifacts"
     pool:
