@@ -62,7 +62,7 @@ stages:
               presentationBackend: wayland
         pool:
           vmImage: "ubuntu-latest"
-        container: khronosgroup/docker-images:openxr-sdk.202102
+        container: khronosgroup/docker-images:openxr-sdk.202110
         steps:
           - task: DownloadPipelineArtifact@2
             displayName: Download archived OpenXR-SDK
