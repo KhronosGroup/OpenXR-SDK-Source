@@ -40,6 +40,11 @@ jobs:
         with:
           name: repo
           path: maintainer-scripts/publish-aar/build/repo/
+      - name: Add to release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/release-')
+        with:
+          files: openxr_loader_for_android*
 
   # Hello XR
   build-helloxr-release:
