@@ -44,7 +44,7 @@ ifneq (,$(strip $(VERY_STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level WARN
 endif
 
-SPECREVISION = 1.0.21
+SPECREVISION = 1.0.22
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -101,7 +101,6 @@ default:
 	    echo "release-htmlpdf:  build html pdf and copy output to an OpenXR-Registry-like layout"; \
 	    echo "release:          build html pdf manhtmlpages loader styleguide extprocess and copy output to an OpenXR-Registry-like layout"; \
 	fi
-
 	$(ECHO) "reflow:           reflow AsciiDoctor source files in-place"
 	$(ECHO) "clean_dirt:       remove intermediate files"
 	$(ECHO) "clean:            remove targets and intermediate files"
@@ -536,20 +535,25 @@ all:
 
 
 ################################################
-# Meta build for releases. Also copies into approximately the right layout for the OpenXR-Registry repo.
+# Meta builds for releases. Also copies into approximately the right layout for the OpenXR-Registry repo.
 REGISTRYOUTDIR = $(OUTDIR)/../registry-release/specs/$(MAJORMINORVER)$(RELEASE_SPECS_SUFFIX)
 
 $(REGISTRYOUTDIR):
 	$(QUIET)$(MKDIR) $@
 
-$(REGISTRYOUTDIR)/pdf $(REGISTRYOUTDIR)/html $(REGISTRYOUTDIR)/man: $(REGISTRYOUTDIR)
+$(REGISTRYOUTDIR)/pdf $(REGISTRYOUTDIR)/html $(REGISTRYOUTDIR)/man $(REGISTRYOUTDIR)/headers: $(REGISTRYOUTDIR)
+	$(QUIET)$(MKDIR) $@
+
+$(REGISTRYOUTDIR)/headers/openxr: $(REGISTRYOUTDIR)/headers
 	$(QUIET)$(MKDIR) $@
 
 release-htmlpdf: html pdf $(REGISTRYOUTDIR)/pdf $(REGISTRYOUTDIR)/html
 	-asciidoctor-pdf-optimize $(PDFSPEC)
-	$(QUIET)$(CP) $(PDFSPEC) $(REGISTRYOUTDIR)/pdf/xrspec.pdf
-	$(QUIET)$(CP) $(HTMLSPEC) $(REGISTRYOUTDIR)/html/xrspec.html
+	$(QUIET)$(CP) $(PDFSPEC) $(REGISTRYOUTDIR)/pdf/$(SPEC_FILENAME_STEM).pdf
+	$(QUIET)$(CP) $(HTMLSPEC) $(REGISTRYOUTDIR)/html/$(SPEC_FILENAME_STEM).html
 .PHONY: release-htmlpdf
+
+
 release: release-htmlpdf manhtmlpages loader styleguide extprocess $(REGISTRYOUTDIR) $(REGISTRYOUTDIR)/man
 	$(QUIET)$(CP) $(OUTDIR)/styleguide.html $(OUTDIR)/extprocess.html $(OUTDIR)/loader.html $(REGISTRYOUTDIR)
 	$(QUIET)$(CP) -R $(MANHTMLDIR) $(REGISTRYOUTDIR)/man/html
