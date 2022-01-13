@@ -42,6 +42,7 @@ jobs:
   msvc-build:
     runs-on: windows-latest
     steps:
+      - uses: actions/checkout@v2
       - run: ./.azure-pipelines/shared/install_vulkan.ps1
         name: Install Vulkan SDK
         if: inputs.useVulkan
