@@ -1,0 +1,91 @@
+# SPDX-FileCopyrightText: 2022, Collabora, Ltd.
+# SPDX-License-Identifier: CC0-1.0
+
+on:
+  workflow_call:
+    inputs:
+      complete:
+        type: boolean
+        required: true
+        default: false
+        description: "Whether we should be complete or fast"
+      # configurePreset:
+      #   description: "CMake generator"
+      #   type: string
+      #   required: true
+      #   default: "Visual Studio 16 2019"
+      # buildType:
+      #   description: "Build configuration"
+      #   type: string
+      #   required: true
+      #   default: RelWithDebInfo
+      # cmakeArgs:
+      #   description: "Additional arguments for CMake"
+      #   type: string
+      #   required: false
+      #   default: ""
+      # artifactName:
+      #   description: "Artifact name to upload to."
+      #   type: string
+      #   required: false
+      useVulkan:
+        type: boolean
+        required: true
+        default: true
+      # sourceDir:
+      #   type: string
+      #   required: true
+      #   default: ${{ github.workspace }}
+    # type: string
+
+jobs:
+  msvc-build:
+    runs-on: windows-latest
+    steps:
+      - run: ./.azure-pipelines/shared/install_vulkan.ps1
+        name: Install Vulkan SDK
+        if: inputs.useVulkan
+        working-directory: ${{ github.workspace }}
+      - run: $env:VULKAN_SDK="${{ github.workspace }}/vulkan_sdk/$env:VULKAN_SDK_VERSION"
+        # cmake -S ${{ inputs.sourceDir }} -B $env:RUNNER_TEMP -G "${{ inputs.generator }}" -DCMAKE_INSTALL_PREFIX=${{ parameters.sourceDir }}/install ${{ inputs.cmakeArgs }}
+        name: Generate build system
+      # - name: Add msbuild to PATH
+      # uses: microsoft/setup-msbuild@v1.1
+
+      - name: Build win32
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: "win32"
+          buildPreset: "win32_release"
+
+      - name: Build win32_uwp
+        uses: lukka/run-cmake@v10
+        if: inputs.complete
+        with:
+          configurePreset: "win32_uwp"
+          buildPreset: "win32_uwp_release"
+
+      - name: Build x64
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: "x64"
+          buildPreset: "x64_release"
+
+      - name: Build x64_uwp
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: "x64_uwp"
+          buildPreset: "x64_uwp_release"
+
+      - name: Build arm_uwp
+        uses: lukka/run-cmake@v10
+        if: inputs.complete
+        with:
+          configurePreset: "arm_uwp"
+          buildPreset: "arm_uwp_release"
+
+      - name: Build arm64_uwp
+        uses: lukka/run-cmake@v10
+        with:
+          configurePreset: "arm64_uwp"
+          buildPreset: "arm64_uwp_release"
