@@ -9,29 +9,10 @@ on:
         required: true
         default: false
         description: "Whether we should be complete or fast"
-      # configurePreset:
-      #   description: "CMake generator"
-      #   type: string
-      #   required: true
-      #   default: "Visual Studio 16 2019"
-      # buildType:
-      #   description: "Build configuration"
-      #   type: string
-      #   required: true
-      #   default: RelWithDebInfo
-      # cmakeArgs:
-      #   description: "Additional arguments for CMake"
-      #   type: string
-      #   required: false
-      #   default: ""
-      # artifactName:
-      #   description: "Artifact name to upload to."
-      #   type: string
-      #   required: false
       useVulkan:
         type: boolean
         required: true
-        default: true
+        default: false
       # sourceDir:
       #   type: string
       #   required: true
@@ -49,49 +30,34 @@ jobs:
         if: inputs.useVulkan
         working-directory: ${{ github.workspace }}
       - run: $env:VULKAN_SDK="${{ github.workspace }}/vulkan_sdk/$env:VULKAN_SDK_VERSION"
-        # cmake -S ${{ inputs.sourceDir }} -B $env:RUNNER_TEMP -G "${{ inputs.generator }}" -DCMAKE_INSTALL_PREFIX=${{ parameters.sourceDir }}/install ${{ inputs.cmakeArgs }}
-        name: Generate build system
-      # - name: Add msbuild to PATH
-      # uses: microsoft/setup-msbuild@v1.1
+        name: Set Vulkan SDK path
 
-      # - name: Build win32
-      #   uses: lukka/run-cmake@v10
-      #   with:
-      #     configurePreset: "win32"
-      #     buildPreset: "win32_release"
+      - name: Build Win32
+        run: |
+          cmake --preset "Win32"
+          cmake --build --preset "win32_release" --parallel
 
-      - name: Build win32
+      - name: Build Win32_UWP
         run: |
           cmake --preset "Win32_UWP"
           cmake --build --preset "win32_uwp_release" --parallel
-      # - name: Build win32_uwp
-      #   uses: lukka/run-cmake@v10
-      #   if: inputs.complete
-      #   with:
-      #     configurePreset: "win32_uwp"
-      #     buildPreset: "win32_uwp_release"
 
-      # - name: Build x64
-      #   uses: lukka/run-cmake@v10
-      #   with:
-      #     configurePreset: "x64"
-      #     buildPreset: "x64_release"
+      - name: Build x64
+        run: |
+          cmake --preset "x64"
+          cmake --build --preset "x64_release" --parallel
 
-      # - name: Build x64_uwp
-      #   uses: lukka/run-cmake@v10
-      #   with:
-      #     configurePreset: "x64_uwp"
-      #     buildPreset: "x64_uwp_release"
+      - name: Build x64_UWP
+        run: |
+          cmake --preset "x64_UWP"
+          cmake --build --preset "x64_uwp_release" --parallel
 
-      # - name: Build arm_uwp
-      #   uses: lukka/run-cmake@v10
-      #   if: inputs.complete
-      #   with:
-      #     configurePreset: "arm_uwp"
-      #     buildPreset: "arm_uwp_release"
+      - name: Build arm_UWP
+        run: |
+          cmake --preset "arm_UWP"
+          cmake --build --preset "arm_uwp_release" --parallel
 
-      # - name: Build arm64_uwp
-      #   uses: lukka/run-cmake@v10
-      #   with:
-      #     configurePreset: "arm64_uwp"
-      #     buildPreset: "arm64_uwp_release"
+      - name: Build arm64_UWP
+        run: |
+          cmake --preset "arm64_UWP"
+          cmake --build --preset "arm64_uwp_release" --parallel

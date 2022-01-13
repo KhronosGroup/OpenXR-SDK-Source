@@ -17,10 +17,11 @@
                 "rhs": "Windows"
             },
             "cacheVariables": {
-                "DYNAMIC_LOADER": "ON"
+                "DYNAMIC_LOADER": "ON",
+                "INSTALL_TO_ARCHITECTURE_PREFIXES": "ON"
             },
             "binaryDir": "build/${presetName}",
-            "installDir": "install/${presetName}"
+            "installDir": "install"
         },
         {
             "name": "msvc_uwp_base",
@@ -41,7 +42,7 @@
             }
         },
         {
-            "name": "Win32_UWP",
+            "name": "Win32_uwp",
             "inherits": "msvc_uwp_base",
             "architecture": {
                 "strategy": "set",
@@ -57,7 +58,7 @@
             }
         },
         {
-            "name": "x64_UWP",
+            "name": "x64_uwp",
             "inherits": "msvc_uwp_base",
             "architecture": {
                 "strategy": "set",
@@ -65,7 +66,7 @@
             }
         },
         {
-            "name": "ARM_UWP",
+            "name": "ARM_uwp",
             "inherits": "msvc_uwp_base",
             "architecture": {
                 "strategy": "set",
@@ -73,12 +74,21 @@
             }
         },
         {
-            "name": "ARM64_UWP",
+            "name": "ARM64_uwp",
             "inherits": "msvc_uwp_base",
             "architecture": {
                 "strategy": "set",
                 "value": "ARM64"
             }
+        },
+        {
+            "name": "Linux_Ninja",
+            "generator": "Ninja",
+            "cacheVariables": {
+                "DYNAMIC_LOADER": "ON"
+            },
+            "binaryDir": "build",
+            "installDir": "install"
         }
     ],
     "buildPresets": [
@@ -100,7 +110,7 @@
         },
         {
             "name": "win32_uwp_release",
-            "configurePreset": "Win32_UWP",
+            "configurePreset": "Win32_uwp",
             "inherits": "msvc_base_release"
         },
         {
@@ -110,17 +120,17 @@
         },
         {
             "name": "x64_uwp_release",
-            "configurePreset": "x64_UWP",
+            "configurePreset": "x64_uwp",
             "inherits": "msvc_base_release"
         },
         {
             "name": "arm_uwp_release",
-            "configurePreset": "ARM_UWP",
+            "configurePreset": "ARM_uwp",
             "inherits": "msvc_base_release"
         },
         {
             "name": "arm64_uwp_release",
-            "configurePreset": "ARM64_UWP",
+            "configurePreset": "ARM64_uwp",
             "inherits": "msvc_base_release"
         }
     ]
