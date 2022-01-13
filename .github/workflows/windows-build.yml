@@ -6,4 +6,4 @@ on:
 
 jobs:
   windows:
-    uses: "rpavlik/OpenXR-SDK-Source/.github/workflows/msvc-build-preset.yml@${{github.ref}}"
+    uses: "rpavlik/OpenXR-SDK-Source/.github/workflows/msvc-build-preset.yml@actions"
