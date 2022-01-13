@@ -54,40 +54,44 @@ jobs:
       # - name: Add msbuild to PATH
       # uses: microsoft/setup-msbuild@v1.1
 
+      # - name: Build win32
+      #   uses: lukka/run-cmake@v10
+      #   with:
+      #     configurePreset: "win32"
+      #     buildPreset: "win32_release"
+
       - name: Build win32
-        uses: lukka/run-cmake@v10
-        with:
-          configurePreset: "win32"
-          buildPreset: "win32_release"
+        run: |
+          cmake --preset "win32_uwp"
+          cmake --build --preset "win32_uwp_release" --parallel
+      # - name: Build win32_uwp
+      #   uses: lukka/run-cmake@v10
+      #   if: inputs.complete
+      #   with:
+      #     configurePreset: "win32_uwp"
+      #     buildPreset: "win32_uwp_release"
 
-      - name: Build win32_uwp
-        uses: lukka/run-cmake@v10
-        if: inputs.complete
-        with:
-          configurePreset: "win32_uwp"
-          buildPreset: "win32_uwp_release"
+      # - name: Build x64
+      #   uses: lukka/run-cmake@v10
+      #   with:
+      #     configurePreset: "x64"
+      #     buildPreset: "x64_release"
 
-      - name: Build x64
-        uses: lukka/run-cmake@v10
-        with:
-          configurePreset: "x64"
-          buildPreset: "x64_release"
+      # - name: Build x64_uwp
+      #   uses: lukka/run-cmake@v10
+      #   with:
+      #     configurePreset: "x64_uwp"
+      #     buildPreset: "x64_uwp_release"
 
-      - name: Build x64_uwp
-        uses: lukka/run-cmake@v10
-        with:
-          configurePreset: "x64_uwp"
-          buildPreset: "x64_uwp_release"
+      # - name: Build arm_uwp
+      #   uses: lukka/run-cmake@v10
+      #   if: inputs.complete
+      #   with:
+      #     configurePreset: "arm_uwp"
+      #     buildPreset: "arm_uwp_release"
 
-      - name: Build arm_uwp
-        uses: lukka/run-cmake@v10
-        if: inputs.complete
-        with:
-          configurePreset: "arm_uwp"
-          buildPreset: "arm_uwp_release"
-
-      - name: Build arm64_uwp
-        uses: lukka/run-cmake@v10
-        with:
-          configurePreset: "arm64_uwp"
-          buildPreset: "arm64_uwp_release"
+      # - name: Build arm64_uwp
+      #   uses: lukka/run-cmake@v10
+      #   with:
+      #     configurePreset: "arm64_uwp"
+      #     buildPreset: "arm64_uwp_release"
