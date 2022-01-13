@@ -65,3 +65,6 @@ local.properties
 # Output artifact
 *.aar
 *.pom
+
+# CMake user presets
+CMakeUserPresets.json

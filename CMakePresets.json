@@ -1,0 +1,127 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "msvc_base",
+            "displayName": "Base build using MSVC",
+            "generator": "Visual Studio 16 2019",
+            "hidden": true,
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "cacheVariables": {
+                "DYNAMIC_LOADER": "ON"
+            },
+            "binaryDir": "build/${presetName}",
+            "installDir": "install/${presetName}"
+        },
+        {
+            "name": "msvc_uwp_base",
+            "displayName": "Base build using MSVC for UWP",
+            "inherits": "msvc_base",
+            "cacheVariables": {
+                "CMAKE_SYSTEM_NAME": "WindowsStore",
+                "CMAKE_SYSTEM_VERSION": "10.0"
+            },
+            "hidden": true
+        },
+        {
+            "name": "Win32",
+            "inherits": "msvc_base",
+            "architecture": {
+                "strategy": "set",
+                "value": "Win32"
+            }
+        },
+        {
+            "name": "Win32_UWP",
+            "inherits": "msvc_uwp_base",
+            "architecture": {
+                "strategy": "set",
+                "value": "Win32"
+            }
+        },
+        {
+            "name": "x64",
+            "inherits": "msvc_base",
+            "architecture": {
+                "strategy": "set",
+                "value": "x64"
+            }
+        },
+        {
+            "name": "x64_UWP",
+            "inherits": "msvc_uwp_base",
+            "architecture": {
+                "strategy": "set",
+                "value": "x64"
+            }
+        },
+        {
+            "name": "ARM_UWP",
+            "inherits": "msvc_uwp_base",
+            "architecture": {
+                "strategy": "set",
+                "value": "ARM"
+            }
+        },
+        {
+            "name": "ARM64_UWP",
+            "inherits": "msvc_uwp_base",
+            "architecture": {
+                "strategy": "set",
+                "value": "ARM64"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "msvc_base_release",
+            "configuration": "RelWithDebInfo",
+            "hidden": true,
+            "targets": [
+                "ALL_BUILD",
+                "install"
+            ],
+            "cleanFirst": true,
+            "verbose": true
+        },
+        {
+            "name": "win32_release",
+            "configurePreset": "Win32",
+            "inherits": "msvc_base_release"
+        },
+        {
+            "name": "win32_uwp_release",
+            "configurePreset": "Win32_UWP",
+            "inherits": "msvc_base_release"
+        },
+        {
+            "name": "x64_release",
+            "configurePreset": "x64",
+            "inherits": "msvc_base_release"
+        },
+        {
+            "name": "x64_uwp_release",
+            "configurePreset": "x64_UWP",
+            "inherits": "msvc_base_release"
+        },
+        {
+            "name": "arm_uwp_release",
+            "configurePreset": "ARM_UWP",
+            "inherits": "msvc_base_release"
+        },
+        {
+            "name": "arm64_uwp_release",
+            "configurePreset": "ARM64_UWP",
+            "inherits": "msvc_base_release"
+        }
+    ]
+}
