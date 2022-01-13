@@ -42,7 +42,7 @@ jobs:
   msvc-build:
     runs-on: windows-latest
     steps:
-      - uses: lukka/get-cmake@latest
+      # - uses: lukka/get-cmake@latest
       - uses: actions/checkout@v2
       - run: ./.azure-pipelines/shared/install_vulkan.ps1
         name: Install Vulkan SDK
@@ -62,7 +62,7 @@ jobs:
 
       - name: Build win32
         run: |
-          cmake --preset "win32_uwp"
+          cmake --preset "Win32_UWP"
           cmake --build --preset "win32_uwp_release" --parallel
       # - name: Build win32_uwp
       #   uses: lukka/run-cmake@v10
