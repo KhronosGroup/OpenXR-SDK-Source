@@ -1,8 +1,9 @@
-// Copyright 2021, Collabora, Ltd.
+// Copyright 2021-2022, Collabora, Ltd.
 // SPDX-License-Identifier: BSL-1.0
 plugins {
     id("maven-publish")
     signing
+    id("io.codearte.nexus-staging").version("0.30.0")
 }
 
 // These next few lines are just to make the version match the OpenXR release.
@@ -93,4 +94,9 @@ publishing {
             }
         }
     }
+}
+nexusStaging {
+    serverUrl = "https://s01.oss.sonatype.org/service/local/"
+    username = System.getenv("OSSRH_USER") ?: return@nexusStaging
+    password = System.getenv("OSSRH_PASSWORD") ?: return@nexusStaging
 }

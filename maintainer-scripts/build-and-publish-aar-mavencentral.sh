@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright (c) 2020-2021 Collabora, Ltd.
+# Copyright (c) 2020-2022 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
 set -e
@@ -15,3 +15,6 @@ rm -f "${ROOT}/SNAPSHOT"
 # Publish AAR using Gradle
 cd "${MAINT_SCRIPTS}/publish-aar"
 ./gradlew publishMavenPublicationToBuildDirRepository publishMavenPublicationToOSSRHRepository
+
+# Need to explicitly "close and release" it then
+./gradlew closeAndReleaseRepository
