@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
-= OpenXR^(R)^  Loader - Design and Operation [DRAFT] {apititle}
+= OpenXR^(R)^  Loader - Design and Operation {apititle}
 Copyright (c) 2017-2022, The Khronos Group Inc.
 :data-uri:
 :icons: font
