@@ -108,5 +108,5 @@ stages:
             parameters:
               sourceDir: $(Pipeline.Workspace)/pregen
               buildType: RelWithDebInfo
-              generator: "Visual Studio 16 2019"
+              generator: "Visual Studio 17 2022"
               useVulkan: "false"
