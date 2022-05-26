@@ -14,9 +14,9 @@
 // Favor the high performance NVIDIA or AMD GPUs
 extern "C" {
 // http://developer.download.nvidia.com/devzone/devcenter/gamegraphics/files/OptimusRenderingPolicies.pdf
-_declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
+__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
 // https://gpuopen.com/learn/amdpowerxpressrequesthighperformance/
-_declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000001;
+__declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000001;
 }
 #endif  // defined(_WIN32)
 
