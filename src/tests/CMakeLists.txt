@@ -19,6 +19,7 @@
 
 add_subdirectory(hello_xr)
 if(NOT ANDROID)
+    add_subdirectory(c_compile_test)
     add_subdirectory(list)
     if(BUILD_LOADER)
         add_subdirectory(loader_test)

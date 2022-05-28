@@ -2681,7 +2681,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 has_return = False
                 is_sempath_query = False
                 last_param = cur_cmd.params[-1]
-                if ('xrCreate' in cur_cmd.name or 'xrConnect' in cur_cmd.name) and last_param.is_handle:
+                if any(prefix in cur_cmd.name for prefix in ('xrCreate', 'xrTryCreate', 'xrConnect')) and last_param.is_handle:
                     is_create = True
                     has_return = True
                 elif ('xrDestroy' in cur_cmd.name or 'xrDisconnect' in cur_cmd.name) and last_param.is_handle:

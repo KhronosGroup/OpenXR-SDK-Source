@@ -6,7 +6,7 @@ scripts/__pycache__
 scripts/xrapi.py
 out/*
 generated/*
-sources/chapters/extensions/meta/*
+sources/chapters/extensions/metadata/*
 example-builds/generated/
 man/*
 artifacts/

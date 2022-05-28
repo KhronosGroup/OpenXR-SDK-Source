@@ -1069,7 +1069,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 is_destroy = False
                 has_return = False
 
-                if ('xrCreate' in cur_cmd.name or 'xrConnect' in cur_cmd.name) and cur_cmd.params[-1].is_handle:
+                if any(prefix in cur_cmd.name for prefix in ('xrCreate', 'xrTryCreate', 'xrConnect')) and cur_cmd.params[-1].is_handle:
                     is_create = True
                     has_return = True
                 elif ('xrDestroy' in cur_cmd.name or 'xrDisconnect' in cur_cmd.name) and cur_cmd.params[-1].is_handle:

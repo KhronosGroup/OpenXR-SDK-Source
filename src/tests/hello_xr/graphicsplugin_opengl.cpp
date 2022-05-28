@@ -72,6 +72,8 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
                 glDeleteTextures(1, &colorToDepth.second);
             }
         }
+
+        ksGpuWindow_Destroy(&window);
     }
 
     std::vector<std::string> GetInstanceExtensions() const override { return {XR_KHR_OPENGL_ENABLE_EXTENSION_NAME}; }
@@ -350,12 +352,6 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
         glBindVertexArray(0);
         glUseProgram(0);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-        // Swap our window every other eye for RenderDoc
-        static int everyOther = 0;
-        if ((everyOther++ & 1) != 0) {
-            ksGpuWindow_SwapBuffers(&window);
-        }
     }
 
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return 1; }

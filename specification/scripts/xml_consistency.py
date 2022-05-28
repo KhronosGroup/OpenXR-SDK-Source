@@ -28,7 +28,10 @@ TWO_CALL_STRING_NAME = "buffer"
 CAPACITY_INPUT_RE = re.compile(r'(?P<itemname>[a-z]*)CapacityInput')
 COUNT_OUTPUT_RE = re.compile(r'(?P<itemname>[a-z]*)CountOutput')
 
-_CREATE_PREFIX = "xrCreate"
+_CREATE_PREFIXES = {
+    "xrCreate",
+    "xrTryCreate",
+}
 _DESTROY_PREFIX = "xrDestroy"
 _TYPEENUM = "XrStructureType"
 
@@ -73,6 +76,10 @@ ENUM_NAMING_EXCEPTIONS = set((
     # Legacy mistake (shortened and not caught before release)
     # See https://gitlab.khronos.org/openxr/openxr/issues/1317
     "XrPerfSettingsNotificationLevelEXT",
+
+    # Longest shared prefix is very long, and we want to remain able
+    # to add additional flags with a shorter shared prefix.
+    "XrRenderModelFlagBitsFB",
 ))
 
 SPECIFICATION_DIR = Path(__file__).parent.parent
@@ -211,8 +218,8 @@ class Checker(XMLChecker):
         super().check()
 
     def check_enum_naming(self, enum_type):
-        stripped_enum_type, tag = self.strip_extension_tag(enum_type)
-        end = "_{}".format(tag) if tag else ""
+        stripped_enum_type, enum_tag = self.strip_extension_tag(enum_type)
+        end = "_{}".format(enum_tag) if enum_tag else ""
         bare_end = None
         if stripped_enum_type.endswith("FlagBits"):
             bare_end = "_BIT"
@@ -240,8 +247,11 @@ class Checker(XMLChecker):
                                       'plus a vendor/author tag, due to typename being', enum_type)
             elif end:
                 if not name.endswith(end):
-                    self.record_error('Got an enum value whose name does not match the pattern: got', name,
-                                      'but expected something that ended with', end, 'due to typename being', enum_type)
+                    # Allow extension of all enums, provided an appropriate tag is provided.
+                    if tag is None and enum_tag is not None:
+                        self.record_error('Got an enum value whose name does not match the pattern: got', name,
+                                          'but expected an appropriate KHR, EXT or vendor due to typename being',
+                                          enum_type)
 
         # Check that the expected beginning is the longest common prefix (meaning the type is named right)
         if len(value_names) > 1:
@@ -276,7 +286,7 @@ class Checker(XMLChecker):
         """Return a set of return codes required due to having a particular name."""
         codes = set()
 
-        if cmd_name.startswith(_CREATE_PREFIX):
+        if any(cmd_name.startswith(prefix) for prefix in _CREATE_PREFIXES):
             codes.update(_CREATE_REQUIRED_CODES)
 
         return codes

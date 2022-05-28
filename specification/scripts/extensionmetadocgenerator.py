@@ -260,7 +260,7 @@ class Extension:
 
         if self.conventions.write_refpage_include:
             # Now make the refpage include
-            fp = self.generator.newFile(self.filename.replace('meta/', 'meta/refpage.'))
+            fp = self.generator.newFile(self.filename.replace('metadata/', 'metadata/refpage.'))
 
             write('== Registered Extension Number', file=fp)
             write(self.number, file=fp)

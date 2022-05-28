@@ -1535,7 +1535,7 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
     // Do NOT use eglChooseConfig, because the Android EGL code pushes in multisample
     // flags in eglChooseConfig when the user has selected the "force 4x MSAA" option in
     // settings, and that is completely wasted on the time warped frontbuffer.
-    const int MAX_CONFIGS = 1024;
+    enum { MAX_CONFIGS = 1024 };
     EGLConfig configs[MAX_CONFIGS];
     EGLint numConfigs = 0;
     EGL(eglGetConfigs(display, configs, MAX_CONFIGS, &numConfigs));
@@ -1661,7 +1661,7 @@ bool ksGpuContext_CreateShared(ksGpuContext *context, const ksGpuContext *other,
         Error("eglQueryContext EGL_CONFIG_ID failed: %s", EglErrorString(eglGetError()));
         return false;
     }
-    const int MAX_CONFIGS = 1024;
+    enum { MAX_CONFIGS = 1024 };
     EGLConfig configs[MAX_CONFIGS];
     EGLint numConfigs = 0;
     EGL(eglGetConfigs(context->display, configs, MAX_CONFIGS, &numConfigs));

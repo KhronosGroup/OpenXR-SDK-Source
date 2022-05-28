@@ -627,9 +627,9 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                         self.featureExtraProtect, elem.get('protect'))
                     elem_name = elem.get('name')
                     # TODO this variable is never read
-                    if is_extension and not elem_name.endswith(self.current_vendor_tag):
+                    if is_extension and not elem_name.endswith(tuple(self.vendor_tags)):
                         self.printCodeGenErrorMessage('Enum value %s in XML (for extension %s) does'
-                                                      ' not end with the expected vendor tag \"%s\"' % (
+                                                      ' not end with a suitable vendor tag (such as\"%s\")' % (
                                                           elem_name, self.currentExtension, self.current_vendor_tag))
                     extension_to_check = elem.get('extname', self.currentExtension)
                     alias = elem.get('alias')
@@ -788,8 +788,13 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             has_proper_ending = False
         if type_category in ('struct', 'union'):
             if not has_proper_ending:
-                self.printCodeGenErrorMessage('Struct/union %s in XML (for extension %s) does not end with the expected vendor tag \"%s\"' % (
-                    type_name, self.currentExtension, self.current_vendor_tag))
+                frame = currentframe()
+                frameinfo = getframeinfo(frame) if frame is not None else None
+                self.printCodeGenWarningMessage(
+                    frameinfo.filename if frameinfo is not None else None,
+                    (frameinfo.lineno + 1) if frameinfo is not None else None,
+                    'Struct/union %s in XML (for extension %s) does not end with the expected vendor tag \"%s\"' % (
+                        type_name, self.currentExtension, self.current_vendor_tag))
             self.genStructUnion(type_info, type_category, type_name, alias)
         elif type_category == 'handle':
             if not has_proper_ending:
@@ -1108,7 +1113,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             required_exts.append(ext_name)
 
         # Identify this command as either a create or destroy command for later use
-        if 'xrCreate' in name or 'Connect' in name:
+        if any(keyword in name for keyword in ('xrCreate', 'Connect', 'xrTryCreate')):
             is_create_connect = True
         elif 'xrDestroy' in name or 'Disconnect' in name:
             is_destroy_disconnect = True

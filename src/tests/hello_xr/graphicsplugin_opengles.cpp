@@ -72,6 +72,8 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
                 glDeleteTextures(1, &colorToDepth.second);
             }
         }
+
+        ksGpuWindow_Destroy(&window);
     }
 
     std::vector<std::string> GetInstanceExtensions() const override { return {XR_KHR_OPENGL_ES_ENABLE_EXTENSION_NAME}; }

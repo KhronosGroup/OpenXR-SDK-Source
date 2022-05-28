@@ -208,7 +208,7 @@ class OpenXRConventions(ConventionsBase):
     @property
     def specification_path(self):
         """Return relpath to the Asciidoctor specification sources in this project."""
-        return '../sources/chapters/extensions/meta'
+        return '../sources/chapters/extensions/metadata'
 
     @property
     def extra_refpage_headers(self):

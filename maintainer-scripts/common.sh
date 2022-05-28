@@ -261,6 +261,7 @@ getConformanceFilenames() {
         specification/Makefile \
         specification/README.md \
         specification/requirements.txt \
+        src/version.gradle \
         src/cmake \
         src/common \
         src/conformance \

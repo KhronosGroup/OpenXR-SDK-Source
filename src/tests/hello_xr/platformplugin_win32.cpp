@@ -11,7 +11,7 @@ namespace {
 struct Win32PlatformPlugin : public IPlatformPlugin {
     Win32PlatformPlugin(const std::shared_ptr<Options>&) { CHECK_HRCMD(CoInitializeEx(nullptr, COINIT_MULTITHREADED)); }
 
-    virtual ~Win32PlatformPlugin() { CoUninitialize(); }
+    virtual ~Win32PlatformPlugin() override { CoUninitialize(); }
 
     std::vector<std::string> GetInstanceExtensions() const override { return {}; }
 

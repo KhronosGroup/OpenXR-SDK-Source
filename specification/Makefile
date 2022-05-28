@@ -44,7 +44,7 @@ ifneq (,$(strip $(VERY_STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level WARN
 endif
 
-SPECREVISION = 1.0.22
+SPECREVISION = 1.0.23
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -63,7 +63,7 @@ GENOPTS =
 SCRIPTS       := ./scripts
 SPECTOOLS     := $(SCRIPTS)/spec_tools
 XRAPI         := scripts/xrapi.py
-METADIR       := sources/chapters/extensions/meta
+METADIR       := sources/chapters/extensions/metadata
 
 VK_REF_PAGE_ROOT := https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html
 

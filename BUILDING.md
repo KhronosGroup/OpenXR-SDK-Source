@@ -141,6 +141,13 @@ cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo ../..
 make
 ```
 
+### Android
+
+```sh
+cd src/conformance
+./gradlew clean && ./gradlew build
+```
+
 ## Running the HELLO_XR sample
 
 ### OpenXR runtime installation

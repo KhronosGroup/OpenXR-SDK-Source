@@ -167,6 +167,10 @@ Platform headers / declarations
 #pragma warning(disable : 4774)  // 'printf' : format string expected in argument 1 is not a string literal
 #endif
 
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wunused-function"
+#endif  // defined(__clang__)
+
 #define OPENGL_VERSION_MAJOR 4
 #define OPENGL_VERSION_MINOR 3
 #define GLSL_VERSION "430"
@@ -383,10 +387,19 @@ Common headers
 #include <errno.h>   // for EBUSY, ETIMEDOUT etc.
 #include <ctype.h>   // for isspace, isdigit
 
+#if defined(__clang__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-function"
+#endif  // defined(__clang__)
+
 #include <utils/sysinfo.h>
 #include <utils/nanoseconds.h>
 #include <utils/threading.h>
 #include <utils/algebra.h>
+
+#if defined(__clang__)
+#pragma clang diagnostic pop
+#endif  // defined(__clang__)
 
 /*
 ================================
