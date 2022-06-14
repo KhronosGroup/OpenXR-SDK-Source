@@ -1,12 +1,12 @@
-# Copyright 2021, Collabora, Ltd.
+# Copyright 2022, Collabora, Ltd.
 # SPDX-License-Identifier: CC0-1.0
 
-name: Android HelloXR - Check
+name: OpenXR Loader for Android - Check
 on:
   pull_request:
 
 jobs:
-  build-helloxr:
+  build-loader:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -19,13 +19,12 @@ jobs:
           distribution: "adopt"
           cache: gradle
 
-      # HelloXR OpenGLES version
-      - name: Build HelloXR OpenGLES for Android
+      - name: Build OpenXR Loader with Gradle for Android
         run: |
-          cd src/tests/hello_xr
-          ./gradlew assembleOpenGLESDebug
-      - name: Upload HelloXR OpenGLES Android
+          cd src/loader
+          ./gradlew build
+      - name: Upload OpenXR Loader for Android
         uses: actions/upload-artifact@v2
         with:
-          name: HelloXR OpenGLES Android
-          path: src/tests/hello_xr/build/outputs/apk/OpenGLES/debug/
+          name: OpenXR Loader for Android
+          path: src/loader/build/outputs/aar/
