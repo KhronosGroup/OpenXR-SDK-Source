@@ -17,4 +17,5 @@ cd "${MAINT_SCRIPTS}/publish-aar"
 ./gradlew publishMavenPublicationToBuildDirRepository publishMavenPublicationToOSSRHRepository
 
 # Need to explicitly "close and release" it then
-./gradlew closeAndReleaseRepository
+# TODO disabled because it errors out
+# ./gradlew closeAndReleaseRepository
