@@ -15,8 +15,8 @@
 namespace {
 constexpr float DarkSlateGray[] = {0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
 
-static const char* VertexShaderGlsl = R"_(
-    #version 320 es
+// The version statement has come on first line.
+static const char* VertexShaderGlsl = R"_(#version 320 es
 
     in vec3 VertexPos;
     in vec3 VertexColor;
@@ -31,8 +31,8 @@ static const char* VertexShaderGlsl = R"_(
     }
     )_";
 
-static const char* FragmentShaderGlsl = R"_(
-    #version 320 es
+// The version statement has come on first line.
+static const char* FragmentShaderGlsl = R"_(#version 320 es
 
     in lowp vec3 PSVertexColor;
     out lowp vec4 FragColor;
