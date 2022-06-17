@@ -1545,6 +1545,8 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         auto swapchainContext = m_swapchainImageContextMap[swapchainImage];
         uint32_t imageIndex = swapchainContext->ImageIndex(swapchainImage);
 
+        // XXX Should double-buffer the command buffers, for now just flush
+        m_cmdBuffer.Wait();
         m_cmdBuffer.Reset();
         m_cmdBuffer.Begin();
 
@@ -1605,8 +1607,6 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 
         m_cmdBuffer.End();
         m_cmdBuffer.Exec(m_vkQueue);
-        // XXX Should double-buffer the command buffers, for now just flush
-        m_cmdBuffer.Wait();
 
 #if defined(USE_MIRROR_WINDOW)
         // Cycle the window's swapchain on the last view rendered
