@@ -17,30 +17,22 @@ constexpr float DarkSlateGray[] = {0.184313729f, 0.309803933f, 0.309803933f, 1.0
 
 // The version statement has come on first line.
 static const char* VertexShaderGlsl = R"_(#version 320 es
-
-    in vec3 VertexPos;
-    in vec3 VertexColor;
-
-    out vec3 PSVertexColor;
-
-    uniform mat4 ModelViewProjection;
-
-    void main() {
-       gl_Position = ModelViewProjection * vec4(VertexPos, 1.0);
-       PSVertexColor = VertexColor;
-    }
-    )_";
+in vec3 VertexPos;
+in vec3 VertexColor;
+out vec3 PSVertexColor;
+uniform mat4 ModelViewProjection;
+void main() {
+gl_Position = ModelViewProjection * vec4(VertexPos, 1.0);
+PSVertexColor = VertexColor;
+})_";
 
 // The version statement has come on first line.
 static const char* FragmentShaderGlsl = R"_(#version 320 es
-
-    in lowp vec3 PSVertexColor;
-    out lowp vec4 FragColor;
-
-    void main() {
-       FragColor = vec4(PSVertexColor, 1);
-    }
-    )_";
+in lowp vec3 PSVertexColor;
+out lowp vec4 FragColor;
+void main() {
+FragColor = vec4(PSVertexColor, 1);
+})_";
 
 struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
     OpenGLESGraphicsPlugin(const std::shared_ptr<Options>& /*unused*/, const std::shared_ptr<IPlatformPlugin> /*unused*/&){};
