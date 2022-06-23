@@ -5,6 +5,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdarg>
 #include <cstdio>

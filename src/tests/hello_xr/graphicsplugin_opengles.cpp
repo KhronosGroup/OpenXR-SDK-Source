@@ -6,6 +6,7 @@
 #include "common.h"
 #include "geometry.h"
 #include "graphicsplugin.h"
+#include "options.h"
 
 #ifdef XR_USE_GRAPHICS_API_OPENGL_ES
 
@@ -13,7 +14,6 @@
 #include <common/xr_linear.h>
 
 namespace {
-constexpr float DarkSlateGray[] = {0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
 
 // The version statement has come on first line.
 static const char* VertexShaderGlsl = R"_(#version 320 es
@@ -43,7 +43,8 @@ static const char* FragmentShaderGlsl = R"_(#version 320 es
     )_";
 
 struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
-    OpenGLESGraphicsPlugin(const std::shared_ptr<Options>& /*unused*/, const std::shared_ptr<IPlatformPlugin> /*unused*/&){};
+    OpenGLESGraphicsPlugin(const std::shared_ptr<Options>& options, const std::shared_ptr<IPlatformPlugin> /*unused*/&)
+        : m_clearColor(options->GetBackgroundClearColor()) {}
 
     OpenGLESGraphicsPlugin(const OpenGLESGraphicsPlugin&) = delete;
     OpenGLESGraphicsPlugin& operator=(const OpenGLESGraphicsPlugin&) = delete;
@@ -298,7 +299,7 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
 
         // Clear swapchain and depth buffer.
-        glClearColor(DarkSlateGray[0], DarkSlateGray[1], DarkSlateGray[2], DarkSlateGray[3]);
+        glClearColor(m_clearColor[0], m_clearColor[1], m_clearColor[2], m_clearColor[3]);
         glClearDepthf(1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
@@ -357,6 +358,7 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
 
     // Map color buffer to associated depth buffer. This map is populated on demand.
     std::map<uint32_t, uint32_t> m_colorToDepthMap;
+    const std::array<float, 4> m_clearColor;
 };
 }  // namespace
 

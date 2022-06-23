@@ -6,6 +6,7 @@
 #include "common.h"
 #include "geometry.h"
 #include "graphicsplugin.h"
+#include "options.h"
 
 #if defined(XR_USE_GRAPHICS_API_D3D12) && !defined(MISSING_DIRECTX_COLORS)
 
@@ -158,9 +159,10 @@ class SwapchainImageContext {
 };
 
 struct D3D12GraphicsPlugin : public IGraphicsPlugin {
-    D3D12GraphicsPlugin(const std::shared_ptr<Options>&, std::shared_ptr<IPlatformPlugin>)
+    D3D12GraphicsPlugin(const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin>)
         : m_vertexShaderBytes(CompileShader(ShaderHlsl, "MainVS", "vs_5_1")),
-          m_pixelShaderBytes(CompileShader(ShaderHlsl, "MainPS", "ps_5_1")) {}
+          m_pixelShaderBytes(CompileShader(ShaderHlsl, "MainPS", "ps_5_1")),
+          m_clearColor(options->GetBackgroundClearColor()) {}
 
     ~D3D12GraphicsPlugin() override { CloseHandle(m_fenceEvent); }
 
@@ -484,8 +486,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         m_device->CreateDepthStencilView(depthStencilTexture, &depthStencilViewDesc, depthStencilView);
 
         // Clear swapchain and depth buffer. NOTE: This will clear the entire render target view, not just the specified view.
-        // TODO: Do not clear to a color when using a pass-through view configuration.
-        cmdList->ClearRenderTargetView(renderTargetView, DirectX::Colors::DarkSlateGray, 0, nullptr);
+        cmdList->ClearRenderTargetView(renderTargetView, static_cast<const FLOAT*>(m_clearColor.data()), 0, nullptr);
         cmdList->ClearDepthStencilView(depthStencilView, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
 
         D3D12_CPU_DESCRIPTOR_HANDLE renderTargets[] = {renderTargetView};
@@ -593,6 +594,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
     ComPtr<ID3D12Resource> m_cubeIndexBuffer;
     ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
     ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
+    const std::array<float, 4> m_clearColor;
 };
 }  // namespace
 

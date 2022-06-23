@@ -23,7 +23,12 @@ __declspec(dllexport) DWORD AmdPowerXpressRequestHighPerformance = 0x00000001;
 namespace {
 
 #ifdef XR_USE_PLATFORM_ANDROID
-void ShowHelp() { Log::Write(Log::Level::Info, "adb shell setprop debug.xr.graphicsPlugin OpenGLES|Vulkan"); }
+void ShowHelp() {
+    Log::Write(Log::Level::Info, "adb shell setprop debug.xr.graphicsPlugin OpenGLES|Vulkan");
+    Log::Write(Log::Level::Info, "adb shell setprop debug.xr.formFactor Hmd|Handheld");
+    Log::Write(Log::Level::Info, "adb shell setprop debug.xr.viewConfiguration Stereo|Mono");
+    Log::Write(Log::Level::Info, "adb shell setprop debug.xr.blendMode Opaque|Additive|AlphaBlend");
+}
 
 bool UpdateOptionsFromSystemProperties(Options& options) {
 #if defined(DEFAULT_GRAPHICS_PLUGIN_OPENGLES)
@@ -37,13 +42,25 @@ bool UpdateOptionsFromSystemProperties(Options& options) {
         options.GraphicsPlugin = value;
     }
 
-    // Check for required parameters.
-    if (options.GraphicsPlugin.empty()) {
-        Log::Write(Log::Level::Error, "GraphicsPlugin parameter is required");
+    if (__system_property_get("debug.xr.formFactor", value) != 0) {
+        options.FormFactor = value;
+    }
+
+    if (__system_property_get("debug.xr.viewConfiguration", value) != 0) {
+        options.ViewConfiguration = value;
+    }
+
+    if (__system_property_get("debug.xr.blendMode", value) != 0) {
+        options.EnvironmentBlendMode = value;
+    }
+
+    try {
+        options.ParseStrings();
+    } catch (std::invalid_argument& ia) {
+        Log::Write(Log::Level::Error, ia.what());
         ShowHelp();
         return false;
     }
-
     return true;
 }
 #else
@@ -99,6 +116,13 @@ bool UpdateOptionsFromCommandLine(Options& options, int argc, char* argv[]) {
         return false;
     }
 
+    try {
+        options.ParseStrings();
+    } catch (std::invalid_argument& ia) {
+        Log::Write(Log::Level::Error, ia.what());
+        ShowHelp();
+        return false;
+    }
     return true;
 }
 #endif

@@ -6,11 +6,11 @@
 #include "common.h"
 #include "geometry.h"
 #include "graphicsplugin.h"
+#include "options.h"
 
 #ifdef XR_USE_GRAPHICS_API_VULKAN
 
 #include <common/xr_linear.h>
-#include <array>
 
 #ifdef USE_ONLINE_VULKAN_SHADERC
 #include <shaderc/shaderc.hpp>
@@ -1260,7 +1260,8 @@ void Swapchain::Present(VkQueue queue, VkSemaphore drawComplete) {
 #endif  // defined(USE_MIRROR_WINDOW)
 
 struct VulkanGraphicsPlugin : public IGraphicsPlugin {
-    VulkanGraphicsPlugin(const std::shared_ptr<Options>& /*unused*/, std::shared_ptr<IPlatformPlugin> /*unused*/) {
+    VulkanGraphicsPlugin(const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> /*unused*/)
+        : m_clearColor(options->GetBackgroundClearColor()) {
         m_graphicsBinding.type = GetGraphicsBindingType();
     };
 
@@ -1554,12 +1555,11 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         swapchainContext->depthBuffer.TransitionLayout(&m_cmdBuffer, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
         // Bind and clear eye render target
-        static XrColor4f darkSlateGrey = {0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
         static std::array<VkClearValue, 2> clearValues;
-        clearValues[0].color.float32[0] = darkSlateGrey.r;
-        clearValues[0].color.float32[1] = darkSlateGrey.g;
-        clearValues[0].color.float32[2] = darkSlateGrey.b;
-        clearValues[0].color.float32[3] = darkSlateGrey.a;
+        clearValues[0].color.float32[0] = m_clearColor[0];
+        clearValues[0].color.float32[1] = m_clearColor[1];
+        clearValues[0].color.float32[2] = m_clearColor[2];
+        clearValues[0].color.float32[3] = m_clearColor[3];
         clearValues[1].depthStencil.depth = 1.0f;
         clearValues[1].depthStencil.stencil = 0;
         VkRenderPassBeginInfo renderPassBeginInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
@@ -1636,6 +1636,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
     CmdBuffer m_cmdBuffer{};
     PipelineLayout m_pipelineLayout{};
     VertexBuffer<Geometry::Vertex> m_drawBuffer{};
+    const std::array<float, 4> m_clearColor;
 
 #if defined(USE_MIRROR_WINDOW)
     Swapchain m_swapchain{};

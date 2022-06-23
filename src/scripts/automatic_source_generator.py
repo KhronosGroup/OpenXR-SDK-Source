@@ -1691,39 +1691,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   self            the AutomaticSourceOutputGenerator object
     #   type_name       the name of the type to convert to the XrStructureType enum
     def genXrStructureType(self, type_name):
-        value = type_name.replace('D3D', 'D3d')
-        value = value.replace('OpenGL', 'Opengl')
-        value = value.replace('OpenglES', 'OpenglEs')
-        value = value.replace('iOS', 'Ios')
-        value = value.replace('RGB', 'Rgb')
-        # Find any place where a lowercase letter is followed by an uppercase
-        # letter, and insert an underscore between them
-        value = re.sub('([a-z0-9])([A-Z])', r'\1_\2', value)
-        # Change the whole string to uppercase
-        value = value.upper()
-        # Add "TYPE_" after the XR_ prefix
-        structure_type_name = re.sub('XR_', 'XR_TYPE_', value, 1)
-        # If this structure is part of an extension, and the suffix doesn't have an underscore
-        # in front of it at this point, add one.
-        for cur_vendor_tag in self.vendor_tags:
-            if structure_type_name.endswith(cur_vendor_tag):
-                vendor_tag_len = len(cur_vendor_tag)
-                if structure_type_name[-(vendor_tag_len + 1)].isalpha():
-                    prefix = structure_type_name[:-vendor_tag_len]
-                    suffix = structure_type_name[-vendor_tag_len:]
-                    structure_type_name = prefix + '_' + suffix
-        invalid_type = True
-        if not (type_name in self.structs_with_no_type):
-            for structure_type in self.api_structure_types:
-                if structure_type.name == structure_type_name:
-                    invalid_type = False
-                    break
-            if invalid_type:
-                self.printCodeGenErrorMessage('Generated XrStructureType %s for structure %s does not exist!' % (
-                    structure_type_name, type_name))
-        else:
-            structure_type_name = ''
-        return structure_type_name
+        return self.conventions.generate_structure_type_from_name(type_name)
 
     # Generate a structure typename based on a XrStructureType
     #   self            the AutomaticSourceOutputGenerator object

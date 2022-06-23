@@ -17,10 +17,19 @@ from spec_tools.conventions import ConventionsBase
 # Note that while Vulkan is listed as a special case,
 # it doesn't actually break the rules, so it's not treated specially
 MAIN_RE = re.compile(
-    r'(?P<d3d>D3D[0-9]*)|(?P<egl>EGL)|(?P<gl>OpenGL(ES)?)|(?P<word>([A-Z][a-z]+[a-z0-9]*)|([A-Z][A-Z0-9]+))')
+    r'''(?P<d3d>D3D[0-9]*)|    # Take D3D as a group of its own
+        (?P<egl>EGL)|          # EGL as a word of its own
+        (?P<gl>OpenGL(ES)?)|   # OpenGL and OpenGLES as words
+        (?P<dimension>[0-9]D)| # Things like 2D are words
+        (?P<word>              # Normal-ish words, which are....
+            ([A-Z]([a-z]+([0-9](?!D))*)+)|  # Capital letter followed by at least one lowercase letter, possibly ending in some digits as long as the digits aren't followed by "D"
+            ([A-Z][A-Z0-9]+(?![a-z]))       # Or, all-caps letter and digit mix starting with a letter, excluding the last capital before some lowercase
+        )''', re.VERBOSE)
 
 
 class OpenXRConventions(ConventionsBase):
+    """The specifics of how OpenXR writes a spec."""
+
     @property
     def null(self):
         """Preferred spelling of NULL."""
@@ -28,7 +37,7 @@ class OpenXRConventions(ConventionsBase):
 
     @property
     def constFlagBits(self):
-        """Returns True if static const flag bits should be generated, False if an enumerated type should be generated."""
+        """Return True if static const flag bits should be generated, False if an enumerated type should be generated."""
         return True
 
     @property
@@ -82,6 +91,10 @@ class OpenXRConventions(ConventionsBase):
                 # OpenGLES ⇒ _OPENGL_ES
                 structure_type_parts.append(
                     elem.group().upper().replace('ES', '_ES'))
+            elif elem.group('dimension'):
+                # 2D ⇒ _2D
+                structure_type_parts.append(
+                    elem.group())
             else:
                 word = elem.group('word')
                 if word == 'Xr':
