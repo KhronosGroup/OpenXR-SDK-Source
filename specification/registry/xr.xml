@@ -34,6 +34,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <tag name="EXT"        author="Multivendor"                 contact="Ryan Pavlik @rpavlik"/>
         <tag name="EXTX"       author="Multivendor experimental"    contact="Brad Grantham @bradgrantham-lunarg"/>
         <tag name="FB"         author="Facebook"                    contact="Cass Everitt @casseveritt, Jonathan Wright @Nelno"/>
+        <tag name="FREDEMMOTT" author="Frederick Emmott"            contact="Frederick Emmott @fredemmott"/>
         <tag name="GOOGLE"     author="Google"                      contact="Kaye Mason @chaleur"/>
         <tag name="HTC"        author="HTC"                         contact="Chris Kuo @ggkuo, Kyle Chen @kylechen76"/>
         <tag name="HTCX"       author="HTC"                         contact="Chris Kuo @ggkuo, Kyle Chen @kylechen76"/>
