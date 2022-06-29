@@ -69,6 +69,20 @@ struct ApiDumpRecordInfo {
 static ApiDumpRecordInfo g_record_info = {};
 static std::mutex g_record_mutex = {};
 
+// For routing platform_utils.hpp messages.
+void LogPlatformUtilsError(const std::string &message) {
+    std::cerr << message << std::endl;
+#if defined(XR_OS_WINDOWS)
+    OutputDebugStringA((message + "\n").c_str());
+#endif
+}
+void LogPlatformUtilsWarning(const std::string &message) {
+    std::cout << message << std::endl;
+#if defined(XR_OS_WINDOWS)
+    OutputDebugStringA((message + "\n").c_str());
+#endif
+}
+
 // HTML utilities
 bool ApiDumpLayerWriteHtmlHeader() {
     try {

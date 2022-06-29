@@ -26,6 +26,10 @@
 #include <utility>
 #include <vector>
 
+// For routing platform_utils.hpp messages into the LoaderLogger.
+void LogPlatformUtilsError(const std::string& message) { LoaderLogger::LogErrorMessage("platform_utils", message); }
+void LogPlatformUtilsWarning(const std::string& message) { LoaderLogger::LogWarningMessage("platform_utils", message); }
+
 bool LoaderLogRecorder::LogDebugUtilsMessage(XrDebugUtilsMessageSeverityFlagsEXT /*message_severity*/,
                                              XrDebugUtilsMessageTypeFlagsEXT /*message_type*/,
                                              const XrDebugUtilsMessengerCallbackDataEXT* /*callback_data*/) {
