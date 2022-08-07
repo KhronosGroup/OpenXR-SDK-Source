@@ -50,6 +50,8 @@ elseif(ANDROID)
         set(VULKAN_INCOMPATIBLE TRUE)
         message(STATUS "Vulkan disabled due to incompatibility: need to target at least API 24")
     endif()
+elseif(APPLE)
+    set(OPENGL_INCOMPATIBLE TRUE)
 endif()
 
 if(NOT OPENGL_INCOMPATIBLE)
