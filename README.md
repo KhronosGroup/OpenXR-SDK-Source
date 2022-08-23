@@ -6,6 +6,12 @@ Copyright (c) 2017-2022, The Khronos Group Inc.
 SPDX-License-Identifier: CC-BY-4.0
 -->
 
+BRANCH: QUEST CLIENT USING OCULUS INSTRUCTIONS FROM HERE:
+
+https://developer.oculus.com/documentation/native/android/mobile-build-run-hello-xr-app/
+
+
+
 This repository contains source code and build scripts for implementations
 of the OpenXR loader, validation layers, and code samples.
 
