@@ -263,7 +263,7 @@ gen: {script}
 .PHONY: gen
 
 {deps}
-""".format(out=(ROOT / 'specification' / 'out' / '1.0').relative_to(Path('.').resolve()),
+""".format(out=(ROOT / 'specification' / 'generated' / 'out' / '1.0').relative_to(Path('.').resolve()),
                 codedir=CODEDIR.relative_to(Path('.').resolve()),
                 c=generated_c_string,
                 cpp=generated_cpp_string,

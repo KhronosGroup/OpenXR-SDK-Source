@@ -454,7 +454,7 @@ if __name__ == "__main__":
     SPECDIR = Path(__file__).resolve().parent.parent
     assert(SPECDIR.name == "specification")
     ORIG = SPECDIR / 'compare-base' / 'openxr.pdf'
-    NEW = SPECDIR / 'out' / '1.0' / 'openxr.pdf'
+    NEW = SPECDIR / 'generated' / 'out' / '1.0' / 'openxr.pdf'
     DIFFDIR = SPECDIR / 'diffs'
     DIFFDIR.mkdir(exist_ok=True)
 

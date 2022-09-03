@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Copyright (c) 2013-2017 The Khronos Group Inc.
+# Copyright 2013-2022 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -21,6 +21,7 @@ import os
 import re
 import sys
 import time
+import xml.etree.ElementTree as etree
 
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 sys.path.append(os.path.join(base_dir, 'src', 'scripts'))
@@ -30,11 +31,11 @@ from api_dump_generator import ApiDumpOutputGenerator
 from automatic_source_generator import AutomaticSourceGeneratorOptions
 from generator import write
 from loader_source_generator import LoaderSourceOutputGenerator
+from reflib import logDiag, logWarn, logErr, setLogFile
 from reg import Registry
 from utility_source_generator import UtilitySourceOutputGenerator
 from validation_layer_generator import ValidationSourceOutputGenerator
-from xrconventions import OpenXRConventions
-
+from apiconventions import APIConventions
 try:
     from conformance_generator import ConformanceGenerator
     from conformance_layer_generator import ConformanceLayerGenerator
@@ -45,29 +46,36 @@ except ImportError:
 # Simple timer functions
 startTime = None
 
+
 def startTimer(timeit):
     global startTime
-    startTime = time.process_time()
+    if timeit:
+        startTime = time.process_time()
+
 
 def endTimer(timeit, msg):
     global startTime
-    endTime = time.process_time()
     if timeit and startTime is not None:
-        write(msg, endTime - startTime, file=sys.stderr)
+        endTime = time.process_time()
+        logDiag(msg, endTime - startTime)
         startTime = None
 
-def makeREstring(strings, default=None):
+
+def makeREstring(strings, default=None, strings_are_regex=False):
     """Turn a list of strings into a regexp string matching exactly those strings."""
     if strings or default is None:
-        return '^(' + '|'.join((re.escape(s) for s in strings)) + ')$'
+        if not strings_are_regex:
+            strings = (re.escape(s) for s in strings)
+        return '^(' + '|'.join(strings) + ')$'
     return default
 
-# Returns a directory of [ generator function, generator options ] indexed
-# by specified short names. The generator options incorporate the following
-# parameters:
-#
-# args is an parsed argument object; see below for the fields that are used.
+
 def makeGenOpts(args):
+    """Returns a directory of [ generator function, generator options ] indexed
+    by specified short names. The generator options incorporate the following
+    parameters:
+
+    args is an parsed argument object; see below for the fields that are used."""
     global genOpts
     genOpts = {}
 
@@ -82,7 +90,7 @@ def makeGenOpts(args):
 
     # Descriptive names for various regexp patterns used to select
     # versions and extensions
-    allFeatures     = allExtensions = '.*'
+    allFeatures = allExtensions = r'.*'
 
     # Turn lists of names/patterns into matching regular expressions
     emitExtensionsPat    = makeREstring(emitExtensions, allExtensions)
@@ -118,7 +126,7 @@ def makeGenOpts(args):
     ]
 
     # An API style conventions object
-    conventions = OpenXRConventions()
+    conventions = APIConventions()
 
     if HAVE_CONFORMANCE:
         genOpts['function_info.cpp'] = [
@@ -341,19 +349,23 @@ def makeGenOpts(args):
             apientryp         = 'XRAPI_PTR *')
         ]
 
-# Generate a target based on the options in the matching genOpts{} object.
-# This is encapsulated in a function so it can be profiled and/or timed.
-# The args parameter is an parsed argument object containing the following
-# fields that are used:
-#   target - target to generate
-#   directory - directory to generate it in
-#   protect - True if re-inclusion wrappers should be created
-#   extensions - list of additional extensions to include in generated
-#   interfaces
 def genTarget(args):
+    """Create an API generator and corresponding generator options based on
+    the requested target and command line options.
+
+    This is encapsulated in a function so it can be profiled and/or timed.
+    The args parameter is an parsed argument object containing the following
+    fields that are used:
+
+    - target - target to generate
+    - directory - directory to generate it in
+    - protect - True if re-inclusion wrappers should be created
+    - extensions - list of additional extensions to include in generated interfaces"""
+
     # Create generator options with specified parameters
     makeGenOpts(args)
 
+    # Select a generator matching the requested target
     if args.target in genOpts.keys():
         createGenerator = genOpts[args.target][0]
         options = genOpts[args.target][1]
@@ -371,15 +383,11 @@ def genTarget(args):
         gen = createGenerator(errFile=errWarn,
                               warnFile=errWarn,
                               diagFile=diag)
-        reg.setGenerator(gen)
-        reg.apiGen(options)
-
-        if not args.quiet:
-            write('* Generated', options.filename, file=sys.stderr)
-        endTimer(args.time, '* Time to generate ' + options.filename + ' =')
+        return (gen, options)
     else:
         write('No generator options for unknown target:',
               args.target, file=sys.stderr)
+        sys.exit(1)
 
 # -feature name
 # -extension name
@@ -405,8 +413,6 @@ if __name__ == '__main__':
                         help='Specify a core API feature name or names to add to targets')
     parser.add_argument('-debug', action='store_true',
                         help='Enable debugging')
-    parser.add_argument('-dump', action='store_true',
-                        help='Enable dump to stderr')
     parser.add_argument('-diagfile', action='store',
                         default=None,
                         help='Write diagnostics to specified file')
@@ -418,12 +424,12 @@ if __name__ == '__main__':
     parser.add_argument('-profile', action='store_true',
                         help='Enable profiling')
     parser.add_argument('-registry', action='store',
-                        default='vk.xml',
-                        help='Use specified registry file instead of vk.xml')
+                        default='xr.xml',
+                        help='Use specified registry file instead of xr.xml')
     parser.add_argument('-time', action='store_true',
                         help='Enable timing')
-    parser.add_argument('-validate', action='store_true',
-                        help='Enable group validation')
+    parser.add_argument('-genpath', action='store', default='gen',
+                        help='Path to generated files')
     parser.add_argument('-o', action='store', dest='directory',
                         default='.',
                         help='Create target and related files in specified directory')
@@ -431,6 +437,8 @@ if __name__ == '__main__':
                         help='Specify target')
     parser.add_argument('-quiet', action='store_true', default=False,
                         help='Suppress script output during normal execution.')
+    parser.add_argument('-verbose', action='store_false', dest='quiet', default=True,
+                        help='Enable script output during normal execution.')
 
     args = parser.parse_args()
 
@@ -438,32 +446,45 @@ if __name__ == '__main__':
     args.feature = [name for arg in args.feature for name in arg.split()]
     args.extension = [name for arg in args.extension for name in arg.split()]
 
-    # Load & parse registry
-    reg = Registry()
-
-    startTimer(args.time)
-    reg.loadFile(args.registry)
-    endTimer(args.time, '* Time to make and parse ElementTree =')
-
-    if args.validate:
-        reg.validateGroups()
-
-    if args.dump:
-        write('* Dumping registry to regdump.txt', file=sys.stderr)
-        reg.dumpReg(filehandle = open('regdump.txt', 'w', encoding='utf-8'))
-
     # create error/warning & diagnostic files
-    errWarn = open(args.errfile, 'w', encoding='utf-8') if args.errfile else sys.stderr
-    diag = open(args.diagfile, 'w', encoding='utf-8') if args.diagfile else None
-
-    if args.debug:
-        import pdb
-        pdb.run('genTarget(args)')
-    elif args.profile:
-        import cProfile
-        import pstats
-        cProfile.run('genTarget(args)', 'profile.txt')
-        p = pstats.Stats('profile.txt')
-        p.strip_dirs().sort_stats('time').print_stats(50)
+    if args.errfile:
+        errWarn = open(args.errfile, 'w', encoding='utf-8')
     else:
-        genTarget(args)
+        errWarn = sys.stderr
+
+    if args.diagfile:
+        diag = open(args.diagfile, 'w', encoding='utf-8')
+    else:
+        diag = None
+
+    if args.time:
+        # Log diagnostics and warnings
+        setLogFile(setDiag = True, setWarn = True, filename = '-')
+
+    # Create the API generator & generator options
+    (gen, options) = genTarget(args)
+
+    # Create the registry object with the specified generator and generator
+    # options. The options are set before XML loading as they may affect it.
+    reg = Registry(gen, options)
+
+    # Parse the specified registry XML into an ElementTree object
+    startTimer(args.time)
+    tree = etree.parse(args.registry)
+    endTimer(args.time, '* Time to make ElementTree =')
+
+    # Load the XML tree into the registry object
+    startTimer(args.time)
+    reg.loadElementTree(tree)
+    endTimer(args.time, '* Time to parse ElementTree =')
+
+    # Finally, use the output generator to create the requested target
+    if args.debug:
+        pdb.run('reg.apiGen()')
+    else:
+        startTimer(args.time)
+        reg.apiGen()
+        endTimer(args.time, '* Time to generate ' + options.filename + ' =')
+
+    if not args.quiet:
+        logDiag('* Generated', options.filename)

@@ -3,12 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
 scripts/__pycache__
-scripts/xrapi.py
-out/*
 generated/*
-sources/chapters/extensions/metadata/*
 example-builds/generated/
-man/*
 artifacts/
 temp/
 diffs/
@@ -19,4 +15,5 @@ registry/regenerated.rnc
 
 # Schematron-related files
 registry/schxslt-cli.jar
+registry/cli-*.jar
 registry/report.srvl

@@ -19,7 +19,7 @@ from spec_tools.algo import longest_common_token_prefix
 from spec_tools.attributes import LengthEntry
 from spec_tools.consistency_tools import XMLChecker
 from spec_tools.util import findNamedElem, getElemName, getElemType
-from xrconventions import OpenXRConventions as APIConventions
+from apiconventions import APIConventions
 
 INVALID_HANDLE = "XR_ERROR_HANDLE_INVALID"
 UNSUPPORTED = "XR_ERROR_FUNCTION_UNSUPPORTED"

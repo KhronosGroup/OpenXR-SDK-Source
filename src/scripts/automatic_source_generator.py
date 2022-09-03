@@ -787,14 +787,6 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         if not self.isCoreExtensionName(self.currentExtension) and not type_name.endswith(self.current_vendor_tag):
             has_proper_ending = False
         if type_category in ('struct', 'union'):
-            if not has_proper_ending:
-                frame = currentframe()
-                frameinfo = getframeinfo(frame) if frame is not None else None
-                self.printCodeGenWarningMessage(
-                    frameinfo.filename if frameinfo is not None else None,
-                    (frameinfo.lineno + 1) if frameinfo is not None else None,
-                    'Struct/union %s in XML (for extension %s) does not end with the expected vendor tag \"%s\"' % (
-                        type_name, self.currentExtension, self.current_vendor_tag))
             self.genStructUnion(type_info, type_category, type_name, alias)
         elif type_category == 'handle':
             if not has_proper_ending:
@@ -831,9 +823,6 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                 # The API Header Version (typically used as the patch or build version)
                 self.header_version = noneStr(nameElem.tail).strip()
         elif type_category == 'bitmask':
-            if not has_proper_ending:
-                self.printCodeGenErrorMessage('Bitmask %s in XML (for extension %s) does not end with the expected vendor tag \"%s\"' % (
-                    type_name, self.currentExtension, self.current_vendor_tag))
             mask_info = self.getTypeNameTuple(type_info.elem)
             mask_type = mask_info[0]
             mask_name = mask_info[1]

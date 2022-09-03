@@ -12,6 +12,7 @@
 #include <common/xr_linear.h>
 #include <array>
 #include <cmath>
+#include <set>
 
 namespace {
 
@@ -89,7 +90,11 @@ inline XrReferenceSpaceCreateInfo GetXrReferenceSpaceCreateInfo(const std::strin
 struct OpenXrProgram : IOpenXrProgram {
     OpenXrProgram(const std::shared_ptr<Options>& options, const std::shared_ptr<IPlatformPlugin>& platformPlugin,
                   const std::shared_ptr<IGraphicsPlugin>& graphicsPlugin)
-        : m_options(*options), m_platformPlugin(platformPlugin), m_graphicsPlugin(graphicsPlugin) {}
+        : m_options(options),
+          m_platformPlugin(platformPlugin),
+          m_graphicsPlugin(graphicsPlugin),
+          m_acceptableBlendModes{XR_ENVIRONMENT_BLEND_MODE_OPAQUE, XR_ENVIRONMENT_BLEND_MODE_ADDITIVE,
+                                 XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND} {}
 
     ~OpenXrProgram() override {
         if (m_input.actionSet != XR_NULL_HANDLE) {
@@ -224,7 +229,7 @@ struct OpenXrProgram : IOpenXrProgram {
         Log::Write(Log::Level::Info, Fmt("Available View Configuration Types: (%d)", viewConfigTypeCount));
         for (XrViewConfigurationType viewConfigType : viewConfigTypes) {
             Log::Write(Log::Level::Verbose, Fmt("  View Configuration Type: %s %s", to_string(viewConfigType),
-                                                viewConfigType == m_options.Parsed.ViewConfigType ? "(Selected)" : ""));
+                                                viewConfigType == m_options->Parsed.ViewConfigType ? "(Selected)" : ""));
 
             XrViewConfigurationProperties viewConfigProperties{XR_TYPE_VIEW_CONFIGURATION_PROPERTIES};
             CHECK_XRCMD(xrGetViewConfigurationProperties(m_instance, m_systemId, viewConfigType, &viewConfigProperties));
@@ -272,7 +277,7 @@ struct OpenXrProgram : IOpenXrProgram {
 
         bool blendModeFound = false;
         for (XrEnvironmentBlendMode mode : blendModes) {
-            const bool blendModeMatch = (mode == m_options.Parsed.EnvironmentBlendMode);
+            const bool blendModeMatch = (mode == m_options->Parsed.EnvironmentBlendMode);
             Log::Write(Log::Level::Info,
                        Fmt("Environment Blend Mode (%s) : %s", to_string(mode), blendModeMatch ? "(Selected)" : ""));
             blendModeFound |= blendModeMatch;
@@ -280,19 +285,35 @@ struct OpenXrProgram : IOpenXrProgram {
         CHECK(blendModeFound);
     }
 
+    XrEnvironmentBlendMode GetPreferredBlendMode() const override {
+        uint32_t count;
+        CHECK_XRCMD(xrEnumerateEnvironmentBlendModes(m_instance, m_systemId, m_options->Parsed.ViewConfigType, 0, &count, nullptr));
+        CHECK(count > 0);
+
+        std::vector<XrEnvironmentBlendMode> blendModes(count);
+        CHECK_XRCMD(xrEnumerateEnvironmentBlendModes(m_instance, m_systemId, m_options->Parsed.ViewConfigType, count, &count,
+                                                     blendModes.data()));
+        for (const auto& blendMode : blendModes) {
+            if (m_acceptableBlendModes.count(blendMode)) return blendMode;
+        }
+        THROW("No acceptable blend mode returned from the xrEnumerateEnvironmentBlendModes");
+    }
+
     void InitializeSystem() override {
         CHECK(m_instance != XR_NULL_HANDLE);
         CHECK(m_systemId == XR_NULL_SYSTEM_ID);
 
         XrSystemGetInfo systemInfo{XR_TYPE_SYSTEM_GET_INFO};
-        systemInfo.formFactor = m_options.Parsed.FormFactor;
+        systemInfo.formFactor = m_options->Parsed.FormFactor;
         CHECK_XRCMD(xrGetSystem(m_instance, &systemInfo, &m_systemId));
 
         Log::Write(Log::Level::Verbose,
-                   Fmt("Using system %d for form factor %s", m_systemId, to_string(m_options.Parsed.FormFactor)));
+                   Fmt("Using system %d for form factor %s", m_systemId, to_string(m_options->Parsed.FormFactor)));
         CHECK(m_instance != XR_NULL_HANDLE);
         CHECK(m_systemId != XR_NULL_SYSTEM_ID);
+    }
 
+    void InitializeDevice() override {
         LogViewConfigurations();
 
         // The graphics API can initialize the graphics device now that the systemId and instance
@@ -553,7 +574,7 @@ struct OpenXrProgram : IOpenXrProgram {
         CreateVisualizedSpaces();
 
         {
-            XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = GetXrReferenceSpaceCreateInfo(m_options.AppSpace);
+            XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = GetXrReferenceSpaceCreateInfo(m_options->AppSpace);
             CHECK_XRCMD(xrCreateReferenceSpace(m_session, &referenceSpaceCreateInfo, &m_appSpace));
         }
     }
@@ -581,15 +602,15 @@ struct OpenXrProgram : IOpenXrProgram {
         // Note: No other view configurations exist at the time this code was written. If this
         // condition is not met, the project will need to be audited to see how support should be
         // added.
-        CHECK_MSG(m_options.Parsed.ViewConfigType == XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
+        CHECK_MSG(m_options->Parsed.ViewConfigType == XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
                   "Unsupported view configuration type");
 
         // Query and cache view configuration views.
         uint32_t viewCount;
         CHECK_XRCMD(
-            xrEnumerateViewConfigurationViews(m_instance, m_systemId, m_options.Parsed.ViewConfigType, 0, &viewCount, nullptr));
+            xrEnumerateViewConfigurationViews(m_instance, m_systemId, m_options->Parsed.ViewConfigType, 0, &viewCount, nullptr));
         m_configViews.resize(viewCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
-        CHECK_XRCMD(xrEnumerateViewConfigurationViews(m_instance, m_systemId, m_options.Parsed.ViewConfigType, viewCount,
+        CHECK_XRCMD(xrEnumerateViewConfigurationViews(m_instance, m_systemId, m_options->Parsed.ViewConfigType, viewCount,
                                                       &viewCount, m_configViews.data()));
 
         // Create and cache view buffer for xrLocateViews later.
@@ -730,7 +751,7 @@ struct OpenXrProgram : IOpenXrProgram {
             case XR_SESSION_STATE_READY: {
                 CHECK(m_session != XR_NULL_HANDLE);
                 XrSessionBeginInfo sessionBeginInfo{XR_TYPE_SESSION_BEGIN_INFO};
-                sessionBeginInfo.primaryViewConfigurationType = m_options.Parsed.ViewConfigType;
+                sessionBeginInfo.primaryViewConfigurationType = m_options->Parsed.ViewConfigType;
                 CHECK_XRCMD(xrBeginSession(m_session, &sessionBeginInfo));
                 m_sessionRunning = true;
                 break;
@@ -869,7 +890,7 @@ struct OpenXrProgram : IOpenXrProgram {
 
         XrFrameEndInfo frameEndInfo{XR_TYPE_FRAME_END_INFO};
         frameEndInfo.displayTime = frameState.predictedDisplayTime;
-        frameEndInfo.environmentBlendMode = m_options.Parsed.EnvironmentBlendMode;
+        frameEndInfo.environmentBlendMode = m_options->Parsed.EnvironmentBlendMode;
         frameEndInfo.layerCount = (uint32_t)layers.size();
         frameEndInfo.layers = layers.data();
         CHECK_XRCMD(xrEndFrame(m_session, &frameEndInfo));
@@ -884,7 +905,7 @@ struct OpenXrProgram : IOpenXrProgram {
         uint32_t viewCountOutput;
 
         XrViewLocateInfo viewLocateInfo{XR_TYPE_VIEW_LOCATE_INFO};
-        viewLocateInfo.viewConfigurationType = m_options.Parsed.ViewConfigType;
+        viewLocateInfo.viewConfigurationType = m_options->Parsed.ViewConfigType;
         viewLocateInfo.displayTime = predictedDisplayTime;
         viewLocateInfo.space = m_appSpace;
 
@@ -971,7 +992,7 @@ struct OpenXrProgram : IOpenXrProgram {
 
         layer.space = m_appSpace;
         layer.layerFlags =
-            m_options.Parsed.EnvironmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND
+            m_options->Parsed.EnvironmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND
                 ? XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT | XR_COMPOSITION_LAYER_UNPREMULTIPLIED_ALPHA_BIT
                 : 0;
         layer.viewCount = (uint32_t)projectionLayerViews.size();
@@ -980,7 +1001,7 @@ struct OpenXrProgram : IOpenXrProgram {
     }
 
    private:
-    const Options m_options;
+    const std::shared_ptr<const Options> m_options;
     std::shared_ptr<IPlatformPlugin> m_platformPlugin;
     std::shared_ptr<IGraphicsPlugin> m_graphicsPlugin;
     XrInstance m_instance{XR_NULL_HANDLE};
@@ -1002,6 +1023,8 @@ struct OpenXrProgram : IOpenXrProgram {
 
     XrEventDataBuffer m_eventDataBuffer;
     InputState m_input;
+
+    const std::set<XrEnvironmentBlendMode> m_acceptableBlendModes;
 };
 }  // namespace
 

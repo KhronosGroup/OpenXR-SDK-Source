@@ -13,6 +13,9 @@ struct IPlatformPlugin {
 
     // OpenXR instance-level extensions required by this platform.
     virtual std::vector<std::string> GetInstanceExtensions() const = 0;
+
+    // Perform required steps after updating Options
+    virtual void UpdateOptions(const std::shared_ptr<struct Options>& options) = 0;
 };
 
 // Create a platform plugin for the platform specified at compile time.

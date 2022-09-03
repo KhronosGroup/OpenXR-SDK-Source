@@ -28,11 +28,11 @@ def test_openxr_refpage_mismatch(ckr):
     assert(not ckr.check(
         """[open,refpage='MyFlags']
         --
-        include::../../generated/api/enums/MyFlagBits.txt[]""").messages)
+        include::{generated}/api/enums/MyFlagBits.txt[]""").messages)
     assert(not ckr.check(
         """[open,refpage='MyFlags']
         --
-        include::../../generated/validity/enums/MyFlagBits.txt[]""").messages)
+        include::{generated}/validity/enums/MyFlagBits.txt[]""").messages)
 
 
 def test_openxr_refpage_missing(ckr):
@@ -41,7 +41,7 @@ def test_openxr_refpage_missing(ckr):
 
     # Should not error: all flags includes are stuck in the Appendix for now.
     assert(not ckr.check(
-        "include::../../generated/api/flags/XrEndFrameDescriptionFlags.txt[]").messages)
+        "include::{generated}/api/flags/XrEndFrameDescriptionFlags.txt[]").messages)
 
 
 def test_openxr_refpage_block(ckr):

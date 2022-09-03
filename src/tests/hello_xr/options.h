@@ -39,6 +39,19 @@ inline XrEnvironmentBlendMode GetXrEnvironmentBlendMode(const std::string& envir
     throw std::invalid_argument(Fmt("Unknown environment blend mode '%s'", environmentBlendModeStr.c_str()));
 }
 
+inline const char* GetXrEnvironmentBlendModeStr(XrEnvironmentBlendMode environmentBlendMode) {
+    switch (environmentBlendMode) {
+        case XR_ENVIRONMENT_BLEND_MODE_OPAQUE:
+            return "Opaque";
+        case XR_ENVIRONMENT_BLEND_MODE_ADDITIVE:
+            return "Additive";
+        case XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND:
+            return "AlphaBlend";
+        default:
+            throw std::invalid_argument(Fmt("Unknown environment blend mode '%s'", to_string(environmentBlendMode)));
+    }
+}
+
 struct Options {
     std::string GraphicsPlugin;
 
@@ -79,5 +92,10 @@ struct Options {
             default:
                 return SlateGrey;
         }
+    }
+
+    void SetEnvironmentBlendMode(XrEnvironmentBlendMode environmentBlendMode) {
+        EnvironmentBlendMode = GetXrEnvironmentBlendModeStr(environmentBlendMode);
+        Parsed.EnvironmentBlendMode = environmentBlendMode;
     }
 };

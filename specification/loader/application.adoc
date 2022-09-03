@@ -376,8 +376,9 @@ layer) then only extensions from that API layer are enumerated.
 
 Duplicate extensions (e.g. an implicit API layer and runtime might report
 support for the same extension) are eliminated by the loader.
-For duplicates, the runtime version is reported and the API layer version is
-culled.
+For duplicates, the API layer version is reported and the runtime version
+is culled according to the loader ordering - an extension name is removed
+from the extension request list after loading the layer.
 
 If an application fails to enable the extension using the
 "enabledExtensionNames" field in the `XrInstanceCreateInfo` structure passed

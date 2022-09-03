@@ -340,6 +340,8 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
 
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return 1; }
 
+    void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
+
    private:
 #ifdef XR_USE_PLATFORM_ANDROID
     XrGraphicsBindingOpenGLESAndroidKHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_OPENGL_ES_ANDROID_KHR};
@@ -358,7 +360,7 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
 
     // Map color buffer to associated depth buffer. This map is populated on demand.
     std::map<uint32_t, uint32_t> m_colorToDepthMap;
-    const std::array<float, 4> m_clearColor;
+    std::array<float, 4> m_clearColor;
 };
 }  // namespace
 
