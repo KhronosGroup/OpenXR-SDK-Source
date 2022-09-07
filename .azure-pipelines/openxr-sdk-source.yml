@@ -26,7 +26,7 @@ stages:
           - script: make loader
             workingDirectory: specification
             displayName: Build loader document
-          - publish: $(System.DefaultWorkingDirectory)/specification/out/1.0/loader.html
+          - publish: $(System.DefaultWorkingDirectory)/specification/generated/out/1.0/loader.html
             artifact: LoaderDoc
 
   - stage: Generate
