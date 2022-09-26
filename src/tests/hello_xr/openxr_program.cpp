@@ -14,6 +14,9 @@
 #include <cmath>
 #include <set>
 
+#define ADD_AIM_POSE 0
+#define ADD_EXTRA_CUBES 1
+
 namespace {
 
 #if !defined(XR_USE_PLATFORM_WIN32)
@@ -345,6 +348,11 @@ struct OpenXrProgram : IOpenXrProgram {
         std::array<XrSpace, Side::COUNT> handSpace;
         std::array<float, Side::COUNT> handScale = {{1.0f, 1.0f}};
         std::array<XrBool32, Side::COUNT> handActive;
+
+#if ADD_AIM_POSE
+        XrAction aimAction{XR_NULL_HANDLE};
+        std::array<XrSpace, Side::COUNT> aimSpace;
+#endif
     };
 
     void InitializeActions() {
@@ -404,6 +412,7 @@ struct OpenXrProgram : IOpenXrProgram {
         std::array<XrPath, Side::COUNT> squeezeForcePath;
         std::array<XrPath, Side::COUNT> squeezeClickPath;
         std::array<XrPath, Side::COUNT> posePath;
+        std::array<XrPath, Side::COUNT> aimPath;
         std::array<XrPath, Side::COUNT> hapticPath;
         std::array<XrPath, Side::COUNT> menuClickPath;
         std::array<XrPath, Side::COUNT> bClickPath;
@@ -418,6 +427,8 @@ struct OpenXrProgram : IOpenXrProgram {
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/squeeze/click", &squeezeClickPath[Side::RIGHT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/input/grip/pose", &posePath[Side::LEFT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/grip/pose", &posePath[Side::RIGHT]));
+        CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/input/aim/pose", &aimPath[Side::LEFT]));
+        CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/aim/pose", &aimPath[Side::RIGHT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/output/haptic", &hapticPath[Side::LEFT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/output/haptic", &hapticPath[Side::RIGHT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/input/menu/click", &menuClickPath[Side::LEFT]));
@@ -455,6 +466,10 @@ struct OpenXrProgram : IOpenXrProgram {
                                                             {m_input.grabAction, squeezeValuePath[Side::RIGHT]},
                                                             {m_input.poseAction, posePath[Side::LEFT]},
                                                             {m_input.poseAction, posePath[Side::RIGHT]},
+#if ADD_AIM_POSE
+                                                            {m_input.aimAction, aimPath[Side::LEFT]},
+                                                            {m_input.aimAction, aimPath[Side::RIGHT]},
+#endif
                                                             {m_input.quitAction, menuClickPath[Side::LEFT]},
                                                             {m_input.vibrateAction, hapticPath[Side::LEFT]},
                                                             {m_input.vibrateAction, hapticPath[Side::RIGHT]}}};
@@ -530,6 +545,15 @@ struct OpenXrProgram : IOpenXrProgram {
         CHECK_XRCMD(xrCreateActionSpace(m_session, &actionSpaceInfo, &m_input.handSpace[Side::LEFT]));
         actionSpaceInfo.subactionPath = m_input.handSubactionPath[Side::RIGHT];
         CHECK_XRCMD(xrCreateActionSpace(m_session, &actionSpaceInfo, &m_input.handSpace[Side::RIGHT]));
+
+#if ADD_AIM_POSE
+        actionSpaceInfo.action = m_input.aimAction;
+        actionSpaceInfo.poseInActionSpace.orientation.w = 1.f;
+        actionSpaceInfo.subactionPath = m_input.handSubactionPath[Side::LEFT];
+        CHECK_XRCMD(xrCreateActionSpace(m_session, &actionSpaceInfo, &m_input.aimSpace[Side::LEFT]));
+        actionSpaceInfo.subactionPath = m_input.handSubactionPath[Side::RIGHT];
+        CHECK_XRCMD(xrCreateActionSpace(m_session, &actionSpaceInfo, &m_input.aimSpace[Side::RIGHT]));
+#endif
 
         XrSessionActionSetsAttachInfo attachInfo{XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
         attachInfo.countActionSets = 1;
@@ -925,6 +949,48 @@ struct OpenXrProgram : IOpenXrProgram {
         // For each locatable space that we want to visualize, render a 25cm cube.
         std::vector<Cube> cubes;
 
+#if ADD_EXTRA_CUBES
+        const int num_cubes_x = 5;
+        const int num_cubes_y = 5;
+        const int num_cubes_z = 20;
+
+        const float offset_x = (float)(num_cubes_x - 1) * 0.5f;
+        const float offset_y = (float)(num_cubes_y - 1) * 0.5f;
+        const float offset_z = 1.0f;
+
+#if defined(WIN32)
+        const int hand_for_cube_scale = Side::LEFT;
+#else
+        const int hand_for_cube_scale = Side::RIGHT;
+#endif
+
+        XrPosef cube_pose;
+        cube_pose.orientation = {0.0f, 0.0f, 0.0f, 1.0f};
+
+        float hand_scale = 0.1f * m_input.handScale[hand_for_cube_scale];
+        XrVector3f scale_vec{hand_scale, hand_scale, hand_scale};
+
+        for (int cube_z_index = 0; cube_z_index < num_cubes_z; cube_z_index++) 
+        {
+            for (int cube_y_index = 0; cube_y_index < num_cubes_y; cube_y_index++) 
+            {
+                for (int cube_x_index = 0; cube_x_index < num_cubes_x; cube_x_index++) 
+                {
+                    cube_pose.position =
+                    {
+                        (float)cube_x_index - offset_x, 
+                        (float)cube_y_index - offset_y, 
+                        -(float)cube_z_index - offset_z
+                    };
+
+                    Cube cube{cube_pose, scale_vec};
+                    cubes.push_back(cube);
+                }
+            }
+        }
+#endif
+
+#if 0
         for (XrSpace visualizedSpace : m_visualizedSpaces) {
             XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
             res = xrLocateSpace(visualizedSpace, m_appSpace, predictedDisplayTime, &spaceLocation);
@@ -938,6 +1004,7 @@ struct OpenXrProgram : IOpenXrProgram {
                 Log::Write(Log::Level::Verbose, Fmt("Unable to locate a visualized reference space in app space: %d", res));
             }
         }
+#endif
 
         // Render a 10cm cube scaled by grabAction for each hand. Note renderHand will only be
         // true when the application has focus.
@@ -960,6 +1027,24 @@ struct OpenXrProgram : IOpenXrProgram {
                                Fmt("Unable to locate %s hand action space in app space: %d", handName[hand], res));
                 }
             }
+
+#if ADD_AIM_POSE
+            {
+                XrSpaceLocation aimSpaceLocation{XR_TYPE_SPACE_LOCATION};
+                res = xrLocateSpace(m_input.aimSpace[hand], m_appSpace, predictedDisplayTime, &aimSpaceLocation);
+                CHECK_XRRESULT(res, "xrLocateSpace");
+
+                if (XR_UNQUALIFIED_SUCCESS(res)) 
+                {
+                    if ((spaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
+                        (spaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0) 
+                    {
+                        float scale = 0.1f * m_input.handScale[hand];
+                        cubes.push_back(Cube{spaceLocation.pose, { scale, scale, scale }});
+                    }
+                } 
+            }
+#endif
         }
 
         // Render view to the appropriate part of the swapchain image.
