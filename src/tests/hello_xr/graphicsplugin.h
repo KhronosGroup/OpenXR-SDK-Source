@@ -39,6 +39,9 @@ struct IGraphicsPlugin {
     virtual uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView& view) {
         return view.recommendedSwapchainSampleCount;
     }
+
+    // Perform required steps after updating Options
+    virtual void UpdateOptions(const std::shared_ptr<struct Options>& options) = 0;
 };
 
 // Create a graphics plugin for the graphics API specified in the options.

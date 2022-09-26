@@ -1,10 +1,11 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2013-2022, The Khronos Group Inc.
+# Copyright 2013-2022 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
 from pathlib import Path
+from typing import List, Optional
 
 from generator import GeneratorOptions, OutputGenerator, noneStr, write
 
@@ -23,6 +24,46 @@ _FLAG_BLOCK_PREFIX = """.Flag Descriptions
 
 _BLOCK_SUFFIX = """****"""
 
+def orgLevelKey(name):
+    # Sort key for organization levels of features / extensions
+    # From highest to lowest, core versions, KHR extensions, EXT extensions,
+    # and vendor extensions
+
+    prefixes = (
+        'VK_VERSION_',
+        'VKSC_VERSION_',
+        'VK_KHR_',
+        'VK_EXT_')
+
+    i = 0
+    for prefix in prefixes:
+        if name.startswith(prefix):
+            return i
+        i += 1
+
+    # Everything else (e.g. vendor extensions) is least important
+    return i
+
+
+def orgLevelKey(name):
+    # Sort key for organization levels of features / extensions
+    # From highest to lowest, core versions, KHR extensions, EXT extensions,
+    # and vendor extensions
+
+    prefixes = (
+        'VK_VERSION_',
+        'VKSC_VERSION_',
+        'VK_KHR_',
+        'VK_EXT_')
+
+    i = 0
+    for prefix in prefixes:
+        if name.startswith(prefix):
+            return i
+        i += 1
+
+    # Everything else (e.g. vendor extensions) is least important
+    return i
 
 class DocGeneratorOptions(GeneratorOptions):
     """DocGeneratorOptions - subclass of GeneratorOptions for
@@ -32,7 +73,7 @@ class DocGeneratorOptions(GeneratorOptions):
     both are writing C-style declarations."""
 
     def __init__(self,
-                 prefixText="",
+                 prefixText: Optional[List[str]]=None,
                  apicall='',
                  apientry='',
                  apientryp='',
@@ -80,6 +121,11 @@ class DocGeneratorOptions(GeneratorOptions):
         marked-up extension name will be passed.
         """
         GeneratorOptions.__init__(self, **kwargs)
+
+        # Can't have [] as the default argument for annoying Python reasons
+        if prefixText is None:
+            prefixText = []
+
         self.prefixText = prefixText
         """list of strings to prefix generated header with (usually a copyright statement + calling convention macros)."""
 
@@ -127,8 +173,6 @@ class DocOutputGenerator(OutputGenerator):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Keep track of all extension numbers
-        self.extension_numbers = set()
 
     def beginFile(self, genOpts):
         OutputGenerator.beginFile(self, genOpts)
@@ -144,12 +188,51 @@ class DocOutputGenerator(OutputGenerator):
         # Start processing in superclass
         OutputGenerator.beginFeature(self, interface, emit)
 
-        # Decide if we're in a core <feature> or an <extension>
+        # Decide if we are in a core <feature> or an <extension>
         self.in_core = (interface.tag == 'feature')
 
     def endFeature(self):
         # Finish processing in superclass
         OutputGenerator.endFeature(self)
+
+    def genRequirements(self, name, mustBeFound = True):
+        """Generate text showing what core versions and extensions introduce
+        an API. This relies on the map in apimap.py, which may be loaded at
+        runtime into self.apidict. If not present, no message is
+        generated.
+
+        - name - name of the API
+        - mustBeFound - If True, when requirements for 'name' cannot be
+          determined, a warning comment is generated.
+        """
+
+        if self.apidict:
+            if name in self.apidict.requiredBy:
+                # It is possible to get both 'A with B' and 'B with A' for
+                # the same API.
+                # To simplify this, sort the (base,dependency) requirements
+                # and put them in a set to ensure they are unique.
+                features = set()
+                for (base,dependency) in self.apidict.requiredBy[name]:
+                    if dependency is not None:
+                        l = sorted(
+                                sorted((base, dependency)),
+                                key=orgLevelKey)
+                        features.add(' with '.join(l))
+                    else:
+                        features.add(base)
+                # Sort the overall dependencies so core versions are first
+                provider = ', '.join(sorted(
+                                        sorted(features),
+                                        key=orgLevelKey))
+                return f'// Provided by {provider}\n'
+            else:
+                if mustBeFound:
+                    self.logMsg('warn', 'genRequirements: API {} not found'.format(name))
+                return ''
+        else:
+            # No API dictionary available, return nothing
+            return ''
 
     def writeInclude(self, directory, basename, contents):
         """Generate an include file.
@@ -158,12 +241,12 @@ class DocOutputGenerator(OutputGenerator):
         - basename - base name of the file
         - contents - contents of the file (Asciidoc boilerplate aside)"""
         # Create subdirectory, if needed
-        directory = self.genOpts.directory + '/' + directory
+        directory = Path(self.genOpts.directory) / directory
         self.makeDir(directory)
 
         # Create file
-        filename = directory + '/' + basename + '.txt'
-        self.logMsg('diag', '# Generating include file:', filename)
+        filename = directory / (basename + '.txt')
+        self.logMsg('diag', '# Generating include file:', str(filename))
         fp = open(filename, 'w', encoding='utf-8')
 
         # Asciidoc anchor
@@ -189,7 +272,7 @@ class DocOutputGenerator(OutputGenerator):
 
         if self.genOpts.secondaryInclude:
             # Create secondary no cross-reference include file
-            filename = directory + '/' + basename + '.no-xref.txt'
+            filename = directory / (basename + '.no-xref.txt')
             self.logMsg('diag', '# Generating include file:', filename)
             fp = open(filename, 'w', encoding='utf-8')
 
@@ -205,7 +288,7 @@ class DocOutputGenerator(OutputGenerator):
     def writeEnumTable(self, basename, values):
         """Output a table of enumerants."""
         directory = Path(self.genOpts.directory) / 'enums'
-        self.makeDir(str(directory))
+        self.makeDir(directory)
 
         filename = str(directory / '{}.comments.txt'.format(basename))
         self.logMsg('diag', '# Generating include file:', filename)
@@ -236,7 +319,7 @@ class DocOutputGenerator(OutputGenerator):
     def writeEnumBox(self, basename, values):
         """Output a box of enumerants."""
         directory = Path(self.genOpts.directory) / 'enums'
-        self.makeDir(str(directory))
+        self.makeDir(directory)
 
         filename = str(directory / '{}.comments-box.txt'.format(basename))
         self.writeBox(filename, _ENUM_BLOCK_PREFIX,
@@ -246,7 +329,7 @@ class DocOutputGenerator(OutputGenerator):
     def writeFlagBox(self, basename, values):
         """Output a box of flag bit comments."""
         directory = Path(self.genOpts.directory) / 'enums'
-        self.makeDir(str(directory))
+        self.makeDir(directory)
 
         filename = str(directory / '{}.comments.txt'.format(basename))
         self.writeBox(filename, _FLAG_BLOCK_PREFIX,
@@ -261,22 +344,26 @@ class DocOutputGenerator(OutputGenerator):
         # generating a structure. Otherwise, emit the tag text.
         category = typeElem.get('category')
 
-        body = ''
         if category in ('struct', 'union'):
             # If the type is a struct type, generate it using the
             # special-purpose generator.
             self.genStruct(typeinfo, name, alias)
+        elif category not in OutputGenerator.categoryToPath:
+            # If there is no path, do not write output
+            self.logMsg('diag', 'NOT writing include for {} category {}'.format(
+                        name, category))
         else:
+            body = self.genRequirements(name)
             if alias:
                 # If the type is an alias, just emit a typedef declaration
-                body = 'typedef ' + alias + ' ' + name + ';\n'
+                body += 'typedef ' + alias + ' ' + name + ';\n'
                 self.writeInclude(OutputGenerator.categoryToPath[category],
                                   name, body)
             else:
                 # Replace <apientry /> tags with an APIENTRY-style string
                 # (from self.genOpts). Copy other text through unchanged.
-                # If the resulting text is an empty string, don't emit it.
-                body = noneStr(typeElem.text)
+                # If the resulting text is an empty string, do not emit it.
+                body += noneStr(typeElem.text)
                 for elem in typeElem:
                     if elem.tag == 'apientry':
                         body += self.genOpts.apientry + noneStr(elem.tail)
@@ -284,14 +371,10 @@ class DocOutputGenerator(OutputGenerator):
                         body += noneStr(elem.text) + noneStr(elem.tail)
 
                 if body:
-                    if category in OutputGenerator.categoryToPath:
-                        self.writeInclude(OutputGenerator.categoryToPath[category],
-                                          name, body + '\n')
-                    else:
-                        self.logMsg('diag', '# NOT writing include file for type:',
-                                    name, '- bad category: ', category)
+                    self.writeInclude(OutputGenerator.categoryToPath[category],
+                                      name, body + '\n')
                 else:
-                    self.logMsg('diag', '# NOT writing empty include file for type', name)
+                    self.logMsg('diag', 'NOT writing empty include file for type', name)
 
     def genStructBody(self, typeinfo, typeName):
         """
@@ -313,8 +396,8 @@ class DocOutputGenerator(OutputGenerator):
         """Generate struct."""
         OutputGenerator.genStruct(self, typeinfo, typeName, alias)
 
+        body = self.genRequirements(typeName)
         if alias:
-            body = ''
             if self.conventions.duplicate_aliased_structs:
                 # TODO maybe move this outside the conditional? This would be a visual change.
                 body += '// {} is an alias for {}\n'.format(typeName, alias)
@@ -323,7 +406,7 @@ class DocOutputGenerator(OutputGenerator):
                 body += '\n\n'
             body += 'typedef ' + alias + ' ' + typeName + ';\n'
         else:
-            body = self.genStructBody(typeinfo, typeName)
+            body += self.genStructBody(typeinfo, typeName)
 
         self.writeInclude('structs', typeName, body)
 
@@ -350,7 +433,7 @@ class DocOutputGenerator(OutputGenerator):
 
             added_by_extension_to_core = (extname is not None and self.in_core)
             if added_by_extension_to_core and not self.genOpts.extEnumerantAdditions:
-                # We're skipping such values
+                # We are skipping such values
                 continue
 
             comment = elem.get('comment')
@@ -361,7 +444,8 @@ class DocOutputGenerator(OutputGenerator):
                 # Just skip this silently
                 continue
             else:
-                # Skip but record this in case it's an odd-one-out missing a comment.
+                # Skip but record this in case it is an odd-one-out missing
+                # a comment.
                 missing_comments.append(name)
                 continue
 
@@ -402,26 +486,34 @@ class DocOutputGenerator(OutputGenerator):
         """Generate group (e.g. C "enum" type)."""
         OutputGenerator.genGroup(self, groupinfo, groupName, alias)
 
+        body = self.genRequirements(groupName)
         if alias:
             # If the group name is aliased, just emit a typedef declaration
             # for the alias.
-            body = 'typedef ' + alias + ' ' + groupName + ';\n'
+            body += 'typedef ' + alias + ' ' + groupName + ';\n'
         else:
             expand = self.genOpts.expandEnumerants
-            (_, body) = self.buildEnumCDecl(expand, groupinfo, groupName)
+            (_, enumbody) = self.buildEnumCDecl(expand, groupinfo, groupName)
+            body += enumbody
             if self.genOpts.conventions.generate_enum_table:
                 self.genEnumTable(groupinfo, groupName)
 
         self.writeInclude('enums', groupName, body)
 
     def genEnum(self, enuminfo, name, alias):
-        """Generate enumerant."""
+        """Generate the C declaration for a constant (a single <enum> value)."""
+
         OutputGenerator.genEnum(self, enuminfo, name, alias)
-        self.logMsg('diag', '# NOT writing compile time constant', name)
+
+        body = self.buildConstantCDecl(enuminfo, name, alias)
+
+        self.writeInclude('enums', name, body)
 
     def genCmd(self, cmdinfo, name, alias):
         "Generate command."
         OutputGenerator.genCmd(self, cmdinfo, name, alias)
 
+        body = self.genRequirements(name)
         decls = self.makeCDecls(cmdinfo.elem)
-        self.writeInclude('protos', name, decls[0])
+        body += decls[0]
+        self.writeInclude('protos', name, body)

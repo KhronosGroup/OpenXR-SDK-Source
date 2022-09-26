@@ -577,6 +577,8 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         CpuWaitForFence(m_fenceValue);
     }
 
+    void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
+
    private:
     const ComPtr<ID3DBlob> m_vertexShaderBytes;
     const ComPtr<ID3DBlob> m_pixelShaderBytes;
@@ -594,7 +596,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
     ComPtr<ID3D12Resource> m_cubeIndexBuffer;
     ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
     ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
-    const std::array<float, 4> m_clearColor;
+    std::array<float, 4> m_clearColor;
 };
 }  // namespace
 

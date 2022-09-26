@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2013-2022, The Khronos Group Inc.
+# Copyright 2013-2022 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -9,6 +9,7 @@
 
 from enum import Enum
 import abc
+import re
 
 # Type categories that respond "False" to isStructAlwaysValid
 # basetype is home to typedefs like ..Bool32
@@ -30,6 +31,8 @@ TYPES_KNOWN_ALWAYS_VALID = set(('char',
                                 'int',
                                 ))
 
+# Split an extension name into vendor ID and name portions
+EXT_NAME_DECOMPOSE_RE = re.compile(r'[A-Z]+_(?P<vendor>[A-Z]+)_(?P<name>[\w_]+)')
 
 class ProseListFormats(Enum):
     """A connective, possibly with a quantifier."""
@@ -73,7 +76,7 @@ class ConventionsBase(abc.ABC):
         self._type_prefix = None
 
     def formatExtension(self, name):
-        """Mark up a name as an extension for the spec."""
+        """Mark up an extension name as a link the spec."""
         return '`<<{}>>`'.format(name)
 
     @property
@@ -174,9 +177,9 @@ class ConventionsBase(abc.ABC):
         Optionally adds a quantifier (like 'any') before a list of 2 or more,
         if specified by fmt.
 
-        Don't edit these defaults, override self.makeProseList().
+        Do not edit these defaults, override self.makeProseList().
         """
-        assert(serial_comma)  # didn't implement what we didn't need
+        assert(serial_comma)  # did not implement what we did not need
         if isinstance(fmt, str):
             fmt = ProseListFormats.from_string(fmt)
 
@@ -361,25 +364,59 @@ class ConventionsBase(abc.ABC):
            group should be generated as part of group generation."""
         return False
 
-    @abc.abstractmethod
-    def extension_include_string(self, ext):
-        """Return format string for include:: line for an extension appendix
-           file. ext is an object with the following members:
-            - name - extension string string
-            - vendor - vendor portion of name
-            - barename - remainder of name
+    @property
+    def generate_max_enum_in_docs(self):
+        """Return True if MAX_ENUM tokens should be generated in
+           documentation includes."""
+        return False
 
-        Must implement."""
+    def extension_name_split(self, name):
+        """Split an extension name, returning (vendor, rest of name).
+           The API prefix of the name is ignored."""
+
+        match = EXT_NAME_DECOMPOSE_RE.match(name)
+        vendor = match.group('vendor')
+        bare_name = match.group('name')
+
+        return (vendor, bare_name)
+
+    @abc.abstractmethod
+    def extension_file_path(self, name):
+        """Return file path to an extension appendix relative to a directory
+           containing all such appendices.
+           - name - extension name
+
+           Must implement."""
         raise NotImplementedError
+
+    def extension_include_string(self, name):
+        """Return format string for include:: line for an extension appendix
+           file.
+            - name - extension name"""
+
+        return 'include::{appendices}/{}[]'.format(
+                self.extension_file_path(self, name))
 
     @property
-    @abc.abstractmethod
-    def refpage_generated_include_path(self):
-        """Return path relative to the generated reference pages, to the
-           generated API include files.
+    def provisional_extension_warning(self):
+        """Return True if a warning should be included in extension
+           appendices for provisional extensions."""
+        return True
 
-        Must implement."""
-        raise NotImplementedError
+    @property
+    def generated_include_path(self):
+        """Return path relative to the generated reference pages, to the
+           generated API include files."""
+
+        return '{generated}'
+
+    @property
+    def include_extension_appendix_in_refpage(self):
+        """Return True if generating extension refpages by embedding
+           extension appendix content (default), False otherwise
+           (OpenXR)."""
+
+        return True
 
     def valid_flag_bit(self, bitpos):
         """Return True if bitpos is an allowed numeric bit position for
@@ -396,4 +433,10 @@ class ConventionsBase(abc.ABC):
         Should aliased structs have the original struct definition listed in the
         generated docs snippet?
         """
+        return False
+
+    @property
+    def protectProtoComment(self):
+        """Return True if generated #endif should have a comment matching
+           the protection symbol used in the opening #ifdef/#ifndef."""
         return False

@@ -247,21 +247,24 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
         // If we have instance information, see if we need to log this information out to a debug messenger
         // callback.
         if (nullptr != instance_info) {
-            if (!instance_info->debug_data.Empty() && !instance_info->debug_messengers.empty()) {
+            if (!instance_info->debug_messengers.empty()) {
                 std::vector<XrSdkLogObjectInfo> objects;
                 objects.reserve(objects_info.size());
                 std::transform(objects_info.begin(), objects_info.end(), std::back_inserter(objects),
                                [](GenValidUsageXrObjectInfo const &info) {
                                    return XrSdkLogObjectInfo{info.handle, info.type};
                                });
-                names_and_labels = instance_info->debug_data.PopulateNamesAndLabels(std::move(objects));
+
                 // Setup our callback data once
                 XrDebugUtilsMessengerCallbackDataEXT callback_data = {};
                 callback_data.type = XR_TYPE_DEBUG_UTILS_MESSENGER_CALLBACK_DATA_EXT;
                 callback_data.messageId = message_id.c_str();
                 callback_data.functionName = command_name.c_str();
                 callback_data.message = message.c_str();
-                names_and_labels.PopulateCallbackData(callback_data);
+                if (!instance_info->debug_data.Empty()) {
+                    names_and_labels = instance_info->debug_data.PopulateNamesAndLabels(std::move(objects));
+                    names_and_labels.PopulateCallbackData(callback_data);
+                }
 
                 // Loop through all active messengers and give each a chance to output information
                 for (const auto &debug_messenger : instance_info->debug_messengers) {

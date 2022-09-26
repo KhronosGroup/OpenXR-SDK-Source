@@ -490,7 +490,7 @@ struct VertexBuffer : public VertexBufferBase {
         return true;
     }
 
-    void UpdateIndicies(const uint16_t* data, uint32_t elements, uint32_t offset = 0) {
+    void UpdateIndices(const uint16_t* data, uint32_t elements, uint32_t offset = 0) {
         uint16_t* map = nullptr;
         CHECK_VKCMD(vkMapMemory(m_vkDevice, idxMem, sizeof(map[0]) * offset, sizeof(map[0]) * elements, 0, (void**)&map));
         for (size_t i = 0; i < elements; ++i) {
@@ -1486,7 +1486,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         uint32_t numCubeIdicies = sizeof(Geometry::c_cubeIndices) / sizeof(Geometry::c_cubeIndices[0]);
         uint32_t numCubeVerticies = sizeof(Geometry::c_cubeVertices) / sizeof(Geometry::c_cubeVertices[0]);
         m_drawBuffer.Create(numCubeIdicies, numCubeVerticies);
-        m_drawBuffer.UpdateIndicies(Geometry::c_cubeIndices, numCubeIdicies, 0);
+        m_drawBuffer.UpdateIndices(Geometry::c_cubeIndices, numCubeIdicies, 0);
         m_drawBuffer.UpdateVertices(Geometry::c_cubeVertices, numCubeVerticies, 0);
 
 #if defined(USE_MIRROR_WINDOW)
@@ -1619,6 +1619,8 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return VK_SAMPLE_COUNT_1_BIT; }
 
+    void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
+
    protected:
     XrGraphicsBindingVulkan2KHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
     std::list<SwapchainImageContext> m_swapchainImageContexts;
@@ -1636,7 +1638,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
     CmdBuffer m_cmdBuffer{};
     PipelineLayout m_pipelineLayout{};
     VertexBuffer<Geometry::Vertex> m_drawBuffer{};
-    const std::array<float, 4> m_clearColor;
+    std::array<float, 4> m_clearColor;
 
 #if defined(USE_MIRROR_WINDOW)
     Swapchain m_swapchain{};

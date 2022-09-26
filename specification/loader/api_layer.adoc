@@ -373,13 +373,30 @@ export XR_API_LAYER_PATH=<my_api_layer_path_1>:<my_api_layer_path_2>:<my_api_lay
 ----
 ====
 
+[[android-api-layer-discovery]]
+==== Android API Layer Discovery ====
+
+On Android the loader finds API layers by reading all
+<<api-layer-manifest-file-format, Manifest files>> with the extension
+.json. The following directories inside APK assets are used for explicit
+and implicit layers.
+
+----
+openxr/1/api_layers/implicit.d
+openxr/1/api_layers/explicit.d
+----
+
+[Note]
+====
+The loader accesses these using the Android AssetManager classes.
+====
 
 [[api-layer-manifest-file-format]]
-===== API Layer Manifest File Format =====
+==== API Layer Manifest File Format ====
 
-On Windows and Linux, the desktop loader uses manifest files to discover API
-layers.
-The desktop loader doesn't load the API layer libraries (e.g. DLL or .so
+On Windows, Linux and Android, the loader uses manifest files to discover
+API layers.
+The loader doesn't load the API layer libraries (e.g. DLL or .so
 files) for each of the enabled API layers except during `xrCreateInstance`
 when it sets up the call chain.
 This is to reduce the likelihood of loading a malicious API layer into
@@ -539,7 +556,7 @@ files for each (all of which may point to the same shared library).
 
 
 [[api-layer-manifest-file-version-history]]
-====== API Layer Manifest File Version History ======
+===== API Layer Manifest File Version History =====
 
 The current highest supported API layer manifest file format supported is
 1.0.0.

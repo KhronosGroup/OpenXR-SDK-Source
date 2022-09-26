@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Copyright (c) 2016-2022, The Khronos Group Inc.
+# Copyright 2016-2022 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -107,19 +107,19 @@ def isempty(s):
     return len(''.join(s.split())) == 0
 
 class pageInfo:
-    """Information about a ref page relative to the file it's extracted from."""
+    """Information about a ref page relative to the file it is extracted from."""
     def __init__(self):
         self.extractPage = True
         """True if page should be extracted"""
 
         self.Warning  = None
-        """string warning if page is suboptimal or can't be generated"""
+        """string warning if page is suboptimal or cannot be generated"""
 
         self.embed    = False
         """False or the name of the ref page this include is embedded within"""
 
         self.type     = None
-        """'structs', 'protos', 'funcpointers', 'flags', 'enums'"""
+        """refpage type attribute - 'structs', 'protos', 'freeform', etc."""
 
         self.name     = None
         """struct/proto/enumerant/etc. name"""
@@ -250,14 +250,13 @@ def loadFile(filename):
         logWarn('Cannot open file', filename, ':', sys.exc_info()[0])
         return None, None
 
-
     return lines, newline_string
 
 def clampToBlock(line, minline, maxline):
     """Clamp a line number to be in the range [minline,maxline].
 
     If the line number is None, just return it.
-    If minline is None, don't clamp to that value."""
+    If minline is None, do not clamp to that value."""
     if line is None:
         return line
     if minline and line < minline:
@@ -294,7 +293,7 @@ def fixupRefs(pageMap, specFile, file):
         #     continue
 
         # Using open block delimiters, ref pages must *always* have a
-        # defined begin and end. If either is undefined, that's fatal.
+        # defined begin and end. If either is undefined, that is fatal.
         if pi.begin is None:
             pi.extractPage = False
             pi.Warning = 'Can\'t identify begin of ref page open block'
@@ -305,7 +304,7 @@ def fixupRefs(pageMap, specFile, file):
             pi.Warning = 'Can\'t identify end of ref page open block'
             continue
 
-        # If there's no description of the page, infer one from the type
+        # If there is no description of the page, infer one from the type
         if pi.desc is None:
             if pi.type is not None:
                 # pi.desc = pi.type[0:len(pi.type)-1] + ' (no short description available)'
@@ -319,6 +318,9 @@ def fixupRefs(pageMap, specFile, file):
         # begin. funcpointer, proto, and struct pages infer the location of
         # the parameter and body sections. Other pages infer the location of
         # the body, but have no parameter sections.
+        #
+        # Probably some other types infer this as well - refer to list of
+        # all page types in genRef.py:emitPage()
         if pi.include is not None:
             if pi.type in ['funcpointers', 'protos', 'structs']:
                 pi.param = nextPara(file, pi.include)
@@ -330,13 +332,13 @@ def fixupRefs(pageMap, specFile, file):
         else:
             pi.Warning = 'Page does not have an API definition include::'
 
-        # It's possible for the inferred param and body lines to run past
+        # It is possible for the inferred param and body lines to run past
         # the end of block, if, for example, there is no parameter section.
         pi.param = clampToBlock(pi.param, pi.include, pi.end)
         pi.body = clampToBlock(pi.body, pi.param, pi.end)
 
         # We can get to this point with .include, .param, and .validity
-        # all being None, indicating those sections weren't found.
+        # all being None, indicating those sections were not found.
 
         logDiag('fixupRefs: after processing,', pi.name, 'looks like:')
         printPageInfo(pi, file)
@@ -345,7 +347,7 @@ def fixupRefs(pageMap, specFile, file):
     # inferences about invalid pages.
     #
     # If a reference without a .end is entirely inside a valid reference,
-    # then it's intentionally embedded - may want to create an indirect
+    # then it is intentionally embedded - may want to create an indirect
     # page that links into the embedding page. This is done by a very
     # inefficient double loop, but the loop depth is small.
     for name in sorted(pageMap.keys()):
@@ -355,7 +357,7 @@ def fixupRefs(pageMap, specFile, file):
             for embedName in sorted(pageMap.keys()):
                 logDiag('fixupRefs: comparing', pi.name, 'to', embedName)
                 embed = pageMap[embedName]
-                # Don't check embeddings which are themselves invalid
+                # Do not check embeddings which are themselves invalid
                 if not embed.extractPage:
                     logDiag('Skipping check for embedding in:', embed.name)
                     continue
@@ -382,7 +384,6 @@ def fixupRefs(pageMap, specFile, file):
 
 # Patterns used to recognize interesting lines in an asciidoc source file.
 # These patterns are only compiled once.
-INCSVAR_DEF = re.compile(r':INCS-VAR: (?P<value>.*)')
 endifPat   = re.compile(r'^endif::(?P<condition>[\w_+,]+)\[\]')
 beginPat   = re.compile(r'^\[open,(?P<attribs>refpage=.*)\]')
 # attribute key/value pairs of an open block
@@ -397,7 +398,7 @@ errorPat   = re.compile(r'^// *refError')
 # (category), and API name (entity_name). It could be put into the API
 # conventions object.
 INCLUDE = re.compile(
-        r'include::(?P<directory_traverse>((../){1,4}|\{INCS-VAR\}/|\{generated\}/)(generated/)?)(?P<generated_type>[\w]+)/(?P<category>\w+)/(?P<entity_name>[^./]+).txt[\[][\]]')
+        r'include::(?P<directory_traverse>((../){1,4}|\{generated\}/)(generated/)?)(?P<generated_type>[\w]+)/(?P<category>\w+)/(?P<entity_name>[^./]+).txt[\[][\]]')
 
 
 def findRefs(file, filename):
@@ -410,7 +411,7 @@ def findRefs(file, filename):
     # first detect the '[open,refpage=...]' markup delimiting the block;
     # skip past the '--' block delimiter on the next line; and identify the
     # '--' block delimiter closing the page.
-    # This can't be done solely with pattern matching, and requires state to
+    # This cannot be done solely with pattern matching, and requires state to
     # track 'inside/outside block'.
     # When looking for open blocks, possible states are:
     #   'outside' - outside a block
@@ -427,25 +428,9 @@ def findRefs(file, filename):
 
     # Track the pageInfo object corresponding to the current open block
     pi = None
-    incsvar = None
 
     while (line < numLines):
         setLogLine(line)
-
-        # Look for a file-wide definition
-        matches = INCSVAR_DEF.match(file[line])
-        if matches:
-            incsvar = matches.group('value')
-            logDiag('Matched INCS-VAR definition:', incsvar)
-
-            line = line + 1
-            continue
-
-        # Perform INCS-VAR substitution immediately.
-        if incsvar and '{INCS-VAR}' in file[line]:
-            newLine = file[line].replace('{INCS-VAR}', incsvar)
-            logDiag('PERFORMING SUBSTITUTION', file[line], '->', newLine)
-            file[line] = newLine
 
         # Only one of the patterns can possibly match. Add it to
         # the dictionary for that name.
@@ -456,7 +441,7 @@ def findRefs(file, filename):
             logDiag('Matched open block pattern')
             attribs = matches.group('attribs')
 
-            # If the previous open block wasn't closed, raise an error
+            # If the previous open block was not closed, raise an error
             if openBlockState != 'outside':
                 logErr('Nested open block starting at line', line, 'of',
                        filename)
@@ -648,7 +633,7 @@ def getBranch():
     """Determine current git branch
 
     Returns (branch name, ''), or (None, stderr output) if the branch name
-    can't be determined"""
+    cannot be determined"""
 
     command = [ 'git', 'symbolic-ref', '--short', 'HEAD' ]
     results = subprocess.run(command,

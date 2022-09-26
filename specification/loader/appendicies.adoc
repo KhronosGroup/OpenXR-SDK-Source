@@ -80,9 +80,11 @@ discovery.
 | Discovery
     | The process the loader performs to determine the available list of
     OpenXR <<runtime-discovery, runtimes>> and <<api-layer-discovery, API layers>>.
-    On Windows/Linux, the discovery process typically focuses on searching
-    for Manifest files.  While on Android, the process focuses on searching
-    for library files.
+    On Windows and Linux, the discovery process typically focuses on searching
+    for Manifest files.  While on Android, the discovery process uses
+    <<android-api-layer-discovery, APK packaged Manifest json>> files for API
+    layers and the <<android-active-runtime-location, ContentProvider>> for the
+    runtime.
 | Extension
     | A concept of OpenXR used to expand the core OpenXR functionality.
     Extensions may be vendor-specific, platform-specific, or more broadly

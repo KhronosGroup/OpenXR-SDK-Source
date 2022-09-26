@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Copyright (c) 2013-2022, The Khronos Group Inc.
+# Copyright 2013-2022 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -23,9 +23,11 @@ from generator import write
 from hostsyncgenerator import HostSynchronizationOutputGenerator
 from indexgenerator import DocIndexOutputGenerator
 from pygenerator import PyOutputGenerator
+from rubygenerator import RubyOutputGenerator
+from reflib import logDiag, logWarn, logErr, setLogFile
 from reg import Registry
 from validitygenerator import ValidityOutputGenerator
-from xrconventions import OpenXRConventions
+from apiconventions import APIConventions
 
 # Simple timer functions
 startTime = None
@@ -41,7 +43,7 @@ def endTimer(timeit, msg):
     global startTime
     if timeit and startTime is not None:
         endTime = time.process_time()
-        write(msg, endTime - startTime, file=sys.stderr)
+        logDiag(msg, endTime - startTime)
         startTime = None
 
 
@@ -84,6 +86,9 @@ def makeGenOpts(args):
     # Output target directory
     directory = args.directory
 
+    # Path to generated files, particularly apimap.py
+    genpath = args.genpath
+
     # Descriptive names for various regexp patterns used to select
     # versions and extensions
     allFeatures = allExtensions = r'.*'
@@ -97,7 +102,7 @@ def makeGenOpts(args):
     # Copyright text prefixing all headers (list of strings).
     prefixStrings = [
         '/*',
-        '** Copyright (c) 2017-2022, The Khronos Group Inc.',
+        '** Copyright 2017-2022 The Khronos Group Inc.',
         '**',
         # The following split string is to avoid confusing the "REUSE" tool
         '** SPDX-License-Identifier' + ': Apache-2.0 OR MIT',
@@ -123,7 +128,7 @@ def makeGenOpts(args):
     protectFile = protect
 
     # An API style conventions object
-    conventions = OpenXRConventions()
+    conventions = APIConventions()
 
     # OpenXR 1.0 - header for core API + extensions.
     # To generate just the core API,
@@ -155,6 +160,7 @@ def makeGenOpts(args):
             apientryp         = 'XRAPI_PTR *',
             alignFuncParam    = 48,
             genAliasMacro     = True,
+            genStructExtendsComment = True,
             aliasMacro        = 'XR_MAY_ALIAS')
         ]
 
@@ -186,6 +192,7 @@ def makeGenOpts(args):
             apientryp         = 'XRAPI_PTR *',
             alignFuncParam    = 48,
             genAliasMacro     = True,
+            genStructExtendsComment = True,
             aliasMacro        = 'XR_MAY_ALIAS')
         ]
 
@@ -215,6 +222,7 @@ def makeGenOpts(args):
             apientryp         = 'XRAPI_PTR *',
             alignFuncParam    = 48,
             genAliasMacro     = True,
+            genStructExtendsComment = True,
             aliasMacro        = 'XR_MAY_ALIAS')
         ]
 
@@ -231,6 +239,7 @@ def makeGenOpts(args):
             conventions       = conventions,
             filename          = 'apiinc',
             directory         = directory,
+            genpath           = genpath,
             apiname           = 'openxr',
             profile           = None,
             versions          = featuresPat,
@@ -249,12 +258,31 @@ def makeGenOpts(args):
             extEnumerantAdditions = True)
         ]
 
-    # API names to validate man/api spec includes & links
-    genOpts['xrapi.py'] = [
+    # Python and Ruby representations of API information, used by scripts
+    # that do not need to load the full XML.
+    genOpts['apimap.py'] = [
           PyOutputGenerator,
           DocGeneratorOptions(
             conventions       = conventions,
-            filename          = 'xrapi.py',
+            filename          = 'apimap.py',
+            directory         = directory,
+            apiname           = 'openxr',
+            profile           = None,
+            versions          = featuresPat,
+            emitversions      = featuresPat,
+            defaultExtensions = None,
+            addExtensions     = addExtensionsPat,
+            removeExtensions  = removeExtensionsPat,
+            emitExtensions    = emitExtensionsPat)
+        ]
+
+    # Python and Ruby representations of API information, used by scripts
+    # that do not need to load the full XML.
+    genOpts['apimap.rb'] = [
+          RubyOutputGenerator,
+          DocGeneratorOptions(
+            conventions       = conventions,
+            filename          = 'apimap.rb',
             directory         = directory,
             apiname           = 'openxr',
             profile           = None,
@@ -335,7 +363,8 @@ def makeGenOpts(args):
         ]
 
 def genTarget(args):
-    """Generate a target based on the options in the matching genOpts{} object.
+    """Create an API generator and corresponding generator options based on
+    the requested target and command line options.
 
     This is encapsulated in a function so it can be profiled and/or timed.
     The args parameter is an parsed argument object containing the following
@@ -345,9 +374,11 @@ def genTarget(args):
     - directory - directory to generate it in
     - protect - True if re-inclusion wrappers should be created
     - extensions - list of additional extensions to include in generated interfaces"""
+
     # Create generator options with specified parameters
     makeGenOpts(args)
 
+    # Select a generator matching the requested target
     if args.target in genOpts:
         createGenerator = genOpts[args.target][0]
         options = genOpts[args.target][1]
@@ -361,19 +392,17 @@ def genTarget(args):
             write('* options.removeExtensions  =', options.removeExtensions, file=sys.stderr)
             write('* options.emitExtensions    =', options.emitExtensions, file=sys.stderr)
 
+
+
         startTimer(args.time)
         gen = createGenerator(errFile=errWarn,
                               warnFile=errWarn,
                               diagFile=diag)
-        reg.setGenerator(gen)
-        reg.apiGen(options)
-
-        if not args.quiet:
-            write('* Generated', options.filename, file=sys.stderr)
-        endTimer(args.time, '* Time to generate ' + options.filename + ' =')
+        return (gen, options)
     else:
         write('No generator options for unknown target:',
               args.target, file=sys.stderr)
+        return None
 
 
 # -feature name
@@ -417,8 +446,8 @@ if __name__ == '__main__':
                         help='Use specified registry file instead of xr.xml')
     parser.add_argument('-time', action='store_true',
                         help='Enable timing')
-    parser.add_argument('-validate', action='store_true',
-                        help='Enable group validation')
+    parser.add_argument('-genpath', action='store', default='generated',
+                        help='Path to generated files')
     parser.add_argument('-o', action='store', dest='directory',
                         default='.',
                         help='Create target and related files in specified directory')
@@ -426,6 +455,8 @@ if __name__ == '__main__':
                         help='Specify target')
     parser.add_argument('-quiet', action='store_true', default=False,
                         help='Suppress script output during normal execution.')
+    parser.add_argument('-verbose', action='store_false', dest='quiet', default=True,
+                        help='Enable script output during normal execution.')
 
     args = parser.parse_args()
 
@@ -433,38 +464,49 @@ if __name__ == '__main__':
     args.feature = [name for arg in args.feature for name in arg.split()]
     args.extension = [name for arg in args.extension for name in arg.split()]
 
-    # Load & parse registry
-    reg = Registry()
+    # create error/warning & diagnostic files
+    if args.errfile:
+        errWarn = open(args.errfile, 'w', encoding='utf-8')
+    else:
+        errWarn = sys.stderr
 
+    if args.diagfile:
+        diag = open(args.diagfile, 'w', encoding='utf-8')
+    else:
+        diag = None
+
+    if args.time:
+        # Log diagnostics and warnings
+        setLogFile(setDiag = True, setWarn = True, filename = '-')
+
+    # Create the API generator & generator options
+    (gen, options) = genTarget(args)
+
+    # Create the registry object with the specified generator and generator
+    # options. The options are set before XML loading as they may affect it.
+    reg = Registry(gen, options)
+
+    # Parse the specified registry XML into an ElementTree object
     startTimer(args.time)
     tree = etree.parse(args.registry)
     endTimer(args.time, '* Time to make ElementTree =')
 
-    if args.debug:
-        pdb.run('reg.loadElementTree(tree)')
-    else:
-        startTimer(args.time)
-        reg.loadElementTree(tree)
-        endTimer(args.time, '* Time to parse ElementTree =')
-
-    if args.validate:
-        reg.validateGroups()
+    # Load the XML tree into the registry object
+    startTimer(args.time)
+    reg.loadElementTree(tree)
+    endTimer(args.time, '* Time to parse ElementTree =')
 
     if args.dump:
         write('* Dumping registry to regdump.txt', file=sys.stderr)
         reg.dumpReg(filehandle=open('regdump.txt', 'w', encoding='utf-8'))
 
-    # create error/warning & diagnostic files
-    errWarn = open(args.errfile, 'w', encoding='utf-8') if args.errfile else sys.stderr
-    diag = open(args.diagfile, 'w', encoding='utf-8') if args.diagfile else None
-
+    # Finally, use the output generator to create the requested target
     if args.debug:
-        pdb.run('genTarget(args)')
-    elif args.profile:
-        import cProfile
-        import pstats
-        cProfile.run('genTarget(args)', 'profile.txt')
-        p = pstats.Stats('profile.txt')
-        p.strip_dirs().sort_stats('time').print_stats(50)
+        pdb.run('reg.apiGen()')
     else:
-        genTarget(args)
+        startTimer(args.time)
+        reg.apiGen()
+        endTimer(args.time, '* Time to generate ' + options.filename + ' =')
+
+    if not args.quiet:
+        logDiag('* Generated', options.filename)

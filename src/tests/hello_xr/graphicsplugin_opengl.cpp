@@ -357,6 +357,8 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
 
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return 1; }
 
+    void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
+
    private:
 #ifdef XR_USE_PLATFORM_WIN32
     XrGraphicsBindingOpenGLWin32KHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR};
@@ -380,7 +382,7 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
 
     // Map color buffer to associated depth buffer. This map is populated on demand.
     std::map<uint32_t, uint32_t> m_colorToDepthMap;
-    const std::array<float, 4> m_clearColor;
+    std::array<float, 4> m_clearColor;
 };
 }  // namespace
 

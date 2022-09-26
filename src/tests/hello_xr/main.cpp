@@ -238,6 +238,13 @@ void android_main(struct android_app* app) {
 
         program->CreateInstance();
         program->InitializeSystem();
+
+        options->SetEnvironmentBlendMode(program->GetPreferredBlendMode());
+        UpdateOptionsFromSystemProperties(*options);
+        platformPlugin->UpdateOptions(options);
+        graphicsPlugin->UpdateOptions(options);
+
+        program->InitializeDevice();
         program->InitializeSession();
         program->CreateSwapchains();
 
@@ -261,6 +268,10 @@ void android_main(struct android_app* app) {
             }
 
             program->PollEvents(&exitRenderLoop, &requestRestart);
+            if (exitRenderLoop) {
+                break;
+            }
+
             if (!program->IsSessionRunning()) {
                 // Throttle loop since xrWaitFrame won't be called.
                 std::this_thread::sleep_for(std::chrono::milliseconds(250));
@@ -311,6 +322,13 @@ int main(int argc, char* argv[]) {
 
             program->CreateInstance();
             program->InitializeSystem();
+
+            options->SetEnvironmentBlendMode(program->GetPreferredBlendMode());
+            UpdateOptionsFromCommandLine(*options, argc, argv);
+            platformPlugin->UpdateOptions(options);
+            graphicsPlugin->UpdateOptions(options);
+
+            program->InitializeDevice();
             program->InitializeSession();
             program->CreateSwapchains();
 

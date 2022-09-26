@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2013-2022, The Khronos Group Inc.
+# Copyright 2013-2022 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -8,6 +8,7 @@ from generator import OutputGenerator, write
 from spec_tools.attributes import ExternSyncEntry
 from spec_tools.validity import ValidityCollection, ValidityEntry
 from spec_tools.util import getElemName
+from pathlib import Path
 
 
 class HostSynchronizationOutputGenerator(OutputGenerator):
@@ -41,7 +42,7 @@ class HostSynchronizationOutputGenerator(OutputGenerator):
         - directory - subdirectory to put file in
         - basename - base name of the file
         - contents - contents of the file (Asciidoc boilerplate aside)"""
-        filename = self.genOpts.directory + '/' + basename
+        filename = Path(self.genOpts.directory) / basename
         self.logMsg('diag', '# Generating include file:', filename)
         with open(filename, 'w', encoding='utf-8') as fp:
             write(self.genOpts.conventions.warning_comment, file=fp)
@@ -66,15 +67,6 @@ class HostSynchronizationOutputGenerator(OutputGenerator):
         self.writeBlock('implicit.txt',
                         'Implicit Externally Synchronized Parameters',
                         self.threadsafety['implicit'])
-
-    def paramIsArray(self, param):
-        """Check if the parameter passed in is a pointer to an array."""
-        return param.get('len') is not None
-
-    def paramIsPointer(self, param):
-        """Check if the parameter passed in is a pointer."""
-        tail = param.find('type').tail
-        return tail is not None and '*' in tail
 
     def makeThreadSafetyBlocks(self, cmd, paramtext):
         # See also makeThreadSafetyBlock in validitygenerator.py - similar but not entirely identical

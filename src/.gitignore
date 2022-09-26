@@ -6,3 +6,4 @@
 xr_generated_dispatch_table.*
 xr_generated_utilities.*
 loader/xr_generated_loader.*
+doc/

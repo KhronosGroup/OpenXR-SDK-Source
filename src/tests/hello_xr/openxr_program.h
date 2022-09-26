@@ -10,9 +10,11 @@ struct IOpenXrProgram {
     // Create an Instance and other basic instance-level initialization.
     virtual void CreateInstance() = 0;
 
-    // Select a System for the view configuration specified in the Options and initialize the graphics device for the selected
-    // system.
+    // Select a System for the view configuration specified in the Options
     virtual void InitializeSystem() = 0;
+
+    // Initialize the graphics device for the selected system.
+    virtual void InitializeDevice() = 0;
 
     // Create a Session and other basic session-level initialization.
     virtual void InitializeSession() = 0;
@@ -35,6 +37,9 @@ struct IOpenXrProgram {
 
     // Create and submit a frame.
     virtual void RenderFrame() = 0;
+
+    // Get preferred blend mode based on the view configuration specified in the Options
+    virtual XrEnvironmentBlendMode GetPreferredBlendMode() const = 0;
 };
 
 struct Swapchain {

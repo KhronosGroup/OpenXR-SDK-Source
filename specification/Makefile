@@ -1,30 +1,19 @@
-# Copyright (c) 2013-2022, The Khronos Group Inc.
+# Copyright 2013-2022 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 SHELL = /usr/bin/env bash
 
-QUIET      ?= @
-PYTHON     ?= python3
+QUIET	   ?= @
+VERYQUIET  ?= @
+PYTHON	   ?= python3
 ASCIIDOC   ?= asciidoctor
-RM          = rm -f
-RMRF        = rm -rf
-MKDIR       = mkdir -p
-CP          = cp -p
-MV          = mv
-ECHO        = @echo
+RM	    = rm -f
+RMRF	    = rm -rf
+MKDIR	    = mkdir -p
+CP	    = cp -p
+MV	    = mv
+ECHO	    = @echo
 
 # Use GENXR_OPTIONS to add arguments like -time to scripts/genxr.py invocations
 GENXR_ARGS += $(GENXR_OPTIONS) -registry $(REGISTRY)
@@ -37,24 +26,26 @@ endif
 
 ifneq (,$(strip $(STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level ERROR
-GENXR_ARGS += -validate
 endif
 
 ifneq (,$(strip $(VERY_STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level WARN
 endif
 
-SPECREVISION = 1.0.24
+SPECREVISION = 1.0.25
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
 # Target directory for output files.
-OUTDIR	 ?= out/$(MAJORMINORVER)
+OUTDIR	 ?= $(GENDIR)/out/$(MAJORMINORVER)
 
-# Target directory for generated files.
-# This is shorthand; can't be moved because the spec source
-# files expect to find these here.
-GENDIR    = generated
+# Target directory for all generated files.
+# This can be overridden.
+GENDIR	  = $(CURDIR)/generated
+REFPATH   = $(GENDIR)/refpage
+
+# Path to directory containing handcoded extension appendices
+APPENDICES= $(CURDIR)/sources/chapters/extensions
 
 # Generator scripts and options
 # GENOPTS can be e.g. '-noprotect'
@@ -62,8 +53,8 @@ GENOPTS =
 
 SCRIPTS       := ./scripts
 SPECTOOLS     := $(SCRIPTS)/spec_tools
-XRAPI         := scripts/xrapi.py
-METADIR       := sources/chapters/extensions/metadata
+XRAPI	      := $(GENDIR)/apimap.py
+METADIR       := $(GENDIR)/meta
 
 VK_REF_PAGE_ROOT := https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html
 
@@ -107,6 +98,7 @@ default:
 	$(ECHO) ""
 	$(ECHO) "Variables controlling options:"
 	$(ECHO) "Pass QUIET= to disable quiet mode (echos all commands)"
+	$(ECHO) "Pass VERYQUIET= to disable very quiet mode (prints full build command for each refpage)"
 	$(ECHO) "Pass VERBOSE=1 to invoke asciidoctor with the --verbose option and genxr.py without the -q option"
 	$(ECHO) "Pass STRICT=1 to invoke asciidoctor with the --failure-level ERROR option"
 	$(ECHO) "Pass VERY_STRICT=1 to invoke asciidoctor with the --failure-level WARN option"
@@ -121,7 +113,7 @@ default:
 APITITLE ?= OpenXR
 EXTS := $(sort $(EXTENSIONS))
 
-CONFIG_STAMP_FN := $(OUTDIR)/config-stamp
+CONFIG_STAMP_FN := $(GENDIR)/config-stamp
 
 # This is the stuff stored/checked
 STAMP_DATA := $(EXTS) "$(APITITLE)"
@@ -129,14 +121,14 @@ STAMP_DATA := $(EXTS) "$(APITITLE)"
 # Depend on this target to force checking the config for changes.
 config_stamp:
 	$(QUIET)$(MKDIR) $(dir $(CONFIG_STAMP_FN))
-	$(QUIET)if ! $(PYTHON) $(SCRIPTS)/check_stamp.py $(CONFIG_STAMP_FN) $(STAMP_DATA); then $(MAKE) clean_generated; fi
+	$(QUIET)if ! $(PYTHON) $(SCRIPTS)/check_stamp.py "$(CONFIG_STAMP_FN)" $(STAMP_DATA); then $(MAKE) clean_generated; fi
 .PHONY: config_stamp
 
 ################################################
 ## OpenXR header file targets
 
 HEADER_DIR    := $(OUTDIR)/openxr
-HEADER        := $(HEADER_DIR)/openxr.h
+HEADER	      := $(HEADER_DIR)/openxr.h
 PLATHEAD      := $(HEADER_DIR)/openxr_platform.h
 REFLECTHEAD   := $(HEADER_DIR)/openxr_reflection.h
 GENHEADERS    := $(HEADER) $(PLATHEAD) $(REFLECTHEAD)
@@ -144,7 +136,7 @@ DEFINESHEAD   := $(HEADER_DIR)/openxr_platform_defines.h
 
 # Platform header (just copy)
 $(DEFINESHEAD): ../include/openxr/openxr_platform_defines.h
-	$(QUIET)$(MKDIR) $(@D)
+	$(QUIET)$(MKDIR) "$(@D)"
 	$(QUIET)$(CP) $< $@
 
 # Named target to generate all headers
@@ -165,7 +157,7 @@ header-test: header $(TESTSRC)
 # Some nominal targets are just "stamp" files generated.
 
 REGISTRY    := registry/xr.xml
-GENXR       := $(SCRIPTS)/genxr.py
+GENXR	    := $(SCRIPTS)/genxr.py
 BASIC_GENERATED_DEPENDS := \
   $(REGISTRY) \
   $(GENXR) \
@@ -185,20 +177,20 @@ GENSTAMPS := \
   $(METADIR)/extinc \
 
 # The actual generated index
-GENDEPENDS := $(GENSTAMPS) $(GENDIR)/index.adoc
+GENDEPENDS := $(XRAPI) $(GENSTAMPS) $(GENDIR)/index.adoc
 
 # The rule for every genxr-generated file
-$(GENDEPENDS) $(GENHEADERS) $(XRAPI): $(BASIC_GENERATED_DEPENDS)
+$(GENDEPENDS) $(GENHEADERS): $(BASIC_GENERATED_DEPENDS)
 	$(ECHO) "[genxr]       $(REGISTRY) -> $@"
 	@if [ "x$(STAMP_NOTE)" != "x" ]; then echo "                                 $(STAMP_NOTE)"; fi
-	$(QUIET)$(MKDIR) $(@D)
-	$(QUIET)$(PYTHON) $(GENXR) $(GENXR_ARGS) $(EXTOPTIONS) -o $(@D) $(@F)
+	$(QUIET)$(MKDIR) "$(@D)"
+	$(QUIET)$(PYTHON) $(GENXR) $(GENXR_ARGS) $(EXTOPTIONS) -o "$(@D)" $(@F)
 
 # Print an extra note for stamp files
 $(GENSTAMPS): STAMP_NOTE = (and additional files in $(@D))
 
 # Extra deps
-$(GENDIR)/api/apiinc: $(SCRIPTS)/docgenerator.py
+$(GENDIR)/api/apiinc: $(XRAPI) $(SCRIPTS)/docgenerator.py
 $(GENDIR)/validity/validinc: $(SCRIPTS)/validitygenerator.py $(SPECTOOLS)/validity.py $(SPECTOOLS)/attributes.py $(SPECTOOLS)/data_structures.py
 $(XRAPI): $(SCRIPTS)/pygenerator.py $(SCRIPTS)/docgenerator.py
 $(GENHEADERS): $(SCRIPTS)/cgenerator.py
@@ -208,8 +200,12 @@ $(REFLECTHEAD): $(SCRIPTS)/creflectiongenerator.py $(SCRIPTS)/jinja_helpers.py
 GENAPI = $(wildcard $(GENDIR)/api/*/[A-Za-z]*.txt)
 $(GENAPI): $(GENDIR)/api/apiinc
 
+apiinc: $(GENDIR)/api/apiinc
+
 GENVALIDITY = $(wildcard $(GENDIR)/validity/*/[A-Za-z]*.txt)
 $(GENVALIDITY): $(GENDIR)/validity/validinc
+
+validinc: $(GENDIR)/validity/validinc
 
 GENSYNC := \
   $(GENDIR)/hostsynctable/implicit.txt \
@@ -217,13 +213,17 @@ GENSYNC := \
   $(GENDIR)/hostsynctable/parameters.txt
 $(GENSYNC): $(GENDIR)/hostsynctable/hostsyncinc
 
+hostsyncinc: $(GENDIR)/hostsynctable/hostsyncinc
+
 GENMETA = $(wildcard $(METADIR)/extinc/[A-Za-z]*.adoc)
 $(GENMETA): $(METADIR)/extinc
+
+extinc: $(METADIR)/extinc
 
 # The actual generated include files
 GENINCLUDE = $(GENAPI) $(GENVALIDITY) $(GENSYNC) $(GENMETA)
 .PHONY: generated
-generated: $(GENDEPENDS)
+generated: $(GENDEPENDS) $(XRAPI)
 
 ################################################
 # OpenXR Style Guide
@@ -336,14 +336,16 @@ endif
 GITREMARK  ?= from git branch: $(GITBRANCH)
 
 ATTRIBOPTS   = -a revnumber="$(SPECREVISION)" \
-               -a revremark="$(SPECREMARK)" \
-               -a apititle="$(APITITLE)" \
-               -a stem=latexmath \
-               -a config=$(CURDIR)/man \
-               -a pdf-page-size=$(PAGESIZE) \
-               -a pdf-stylesdir=config \
-               -a pdf-style=pdf \
-               $(EXTATTRIBS)
+	       -a revremark="$(SPECREMARK)" \
+	       -a apititle="$(APITITLE)" \
+	       -a stem=latexmath \
+	       -a config=$(CURDIR)/config \
+	       -a pdf-page-size=$(PAGESIZE) \
+	       -a pdf-stylesdir=config \
+	       -a pdf-style=pdf \
+	       -a generated=$(abspath $(GENDIR)) \
+	       -a appendices=$(APPENDICES) \
+	       $(EXTATTRIBS)
 
 ADOCOPTS = --doctype book -a data-uri -r $(CURDIR)/scripts/openxr-macros.rb $(ATTRIBOPTS)
 
@@ -357,7 +359,7 @@ SPECREMARK   ?= $(GITREMARK)
 else
 ATTRIBOPTS   += -a revdate="$(SPECDATE)"
 SPECREMARK   ?= $(GITREMARK) \
-                commit: $(shell echo `git log -1 --format="%H"`)
+		commit: $(shell echo `git log -1 --format="%H"`)
 
 endif
 
@@ -373,7 +375,7 @@ BACKEND_ARGS=--backend html5
 # AsciiDoctor rule - customized by the places where these are described
 $(ASCIIDOCTOR_TARGETS):
 	$(ECHO) "[asciidoctor] $(SPECSRC) -> $@"
-	$(QUIET)$(MKDIR) $(@D)
+	$(QUIET)$(MKDIR) "$(@D)"
 	$(QUIET)if [ $$(uname -s | cut -c 1-6) == "CYGWIN" ]; then \
 	OUTSPEC_DOS=$$(cygpath -w $@) ;\
 	SPECSRC_DOS=$$(cygpath -w $(SPECSRC)) ;\
@@ -386,6 +388,7 @@ $(ASCIIDOCTOR_TARGETS):
 	else \
 	$(ASCIIDOC) $(ADOCOPTS) $(BACKEND_ARGS) --out-file $@ $(SPECSRC) 2>&1 | tee $(LOGFILE) ;\
 	if [ -s $(LOGFILE) ]; then \
+		echo "Failure: $(LOGFILE) exists and is not empty!"; \
 		false; \
 	else \
 		rm $(LOGFILE); \
@@ -398,24 +401,32 @@ $(ASCIIDOCTOR_TARGETS):
 ################################################
 # Reference "man" pages extracted from spec
 
-MANDIR      := man
 MANHTMLDIR   = $(OUTDIR)/man/html
-KHRSOURCES   = $(wildcard $(MANDIR)/*KHR.txt)
-MACROSOURCES = $(wildcard $(MANDIR)/XR_*[A-Z][A-Z].txt)
-VENSOURCES   = $(filter-out $(KHRSOURCES) $(MACROSOURCES),$(wildcard $(MANDIR)/*[A-Z][A-Z].txt))
-CORESOURCES  = $(filter-out $(KHRSOURCES) $(VENSOURCES),$(wildcard $(MANDIR)/[Xx][Rr]*.txt $(MANDIR)/PFN*.txt))
+KHRSOURCES   = $(wildcard $(REFPATH)/*KHR.txt)
+MACROSOURCES = $(wildcard $(REFPATH)/XR_*[A-Z][A-Z].txt)
+VENSOURCES   = $(filter-out $(KHRSOURCES) $(MACROSOURCES),$(wildcard $(REFPATH)/*[A-Z][A-Z].txt))
+CORESOURCES  = $(filter-out $(KHRSOURCES) $(VENSOURCES),$(wildcard $(REFPATH)/[Xx][Rr]*.txt $(REFPATH)/PFN*.txt))
 MANSOURCES   = $(CORESOURCES) $(VENSOURCES) $(KHRSOURCES)
-MANCOPYRIGHT = $(MANDIR)/copyright-ccby.txt $(MANDIR)/footer.txt
-MANGENERATED = $(filter-out $(MANCOPYRIGHT),$(wildcard $(MANDIR)/*))
-MANHTML      = $(MANSOURCES:$(MANDIR)/%.txt=$(MANHTMLDIR)/%.html)
-MANDEPS      = $(MANCOPYRIGHT) $(GENINCLUDE) $(GENDEPENDS)
+MANGENERATED = $(wildcard $(REFPATH)/*)
+MANHTML      = $(MANSOURCES:$(REFPATH)/%.txt=$(MANHTMLDIR)/%.html)
+MANDEPS      = $(GENINCLUDE) $(GENDEPENDS)
 HTML_SPEC_RELATIVE ?= ../../$(SPEC_FILENAME_STEM).html
-MANATTRIBOPTS := -a stylesheet=khronos.css \
-				 -a stylesdir=$(CURDIR)/config \
-				 -a html_spec_relative='$(HTML_SPEC_RELATIVE)' \
-				 -a imagesdir=$(CURDIR)/sources \
-				 -a vkRefPageRoot='$(VK_REF_PAGE_ROOT)'
 
+# Asciidoctor options to build refpages
+#
+# ADOCREFOPTS *must* be placed after ADOCOPTS in the command line, so
+# that it can override spec attribute values.
+#
+# refprefix includes the refpage (not spec) extension metadata.
+# isrefpage is for refpage-specific content
+# html_spec_relative is where to find the full specification
+ADOCREFOPTS  = -a stylesheet=khronos.css \
+	       -a stylesdir=$(CURDIR)/config \
+	       -a refprefix='refpage.' \
+	       -a isrefpage \
+	       -a html_spec_relative='$(HTML_SPEC_RELATIVE)' \
+	       -a imagesdir=$(CURDIR)/sources \
+	       -a vkRefPageRoot='$(VK_REF_PAGE_ROOT)'
 
 # Pure makefile lowercase function, generated by a script.
 make_lower = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r,$(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x,$(subst Y,y,$(subst Z,z,$(1)))))))))))))))))))))))))))
@@ -427,47 +438,83 @@ make_extension_source = sources/chapters/extensions/$(word 1,$(subst _, ,$(1)))/
 # Call make_extension_source on every enabled extension, after lowercasing and stripping the leading XR prefix.
 EXTENSION_SOURCES := $(foreach ext,$(patsubst xr_%,%,$(EXTENSIONS_LOWER)),$(call make_extension_source,$(ext)))
 
-# Generation of ref page asciidoctor sources by extraction from the
+# Generation of refpage asciidoctor sources by extraction from the
 # specification.
 #
+# Adding '-extpath $(CURDIR)/sources/chapters/extensions' will change
+# refpage generation to be like Vulkan - not ready for this yet.
+#
+# Should have a proper dependency causing the man page sources to be
+# generated by running genRef (once), but adding $(MANSOURCES) to the
+# targets causes genRef to run once/target.
+#
+# Should pass in $(EXTOPTIONS) to determine which pages to generate.
+# For now, all core and extension refpages are extracted by genRef.py.
+#
 # Treating the all-in-one ref page source apispec.txt as the "stamp" for genRef.
-LOGFILE := man/logfile
-man/apispec.txt: $(SPECFILES) $(EXTENSION_SOURCES) $(SCRIPTS)/genRef.py $(SCRIPTS)/reflib.py $(SCRIPTS)/xrapi.py
+GENREF = $(SCRIPTS)/genRef.py
+LOGFILE = $(REFPATH)/refpage.log
+refpages: $(REFPATH)/apispec.txt
+$(REFPATH)/apispec.txt: $(SPECFILES) $(EXTENSION_SOURCES) $(GENREF) $(SCRIPTS)/reflib.py $(XRAPI)
 	$(ECHO) "[genRef.py]   $(REGISTRY) and spec -> $@"
 	$(ECHO) "                                          (and additional files in $(@D))"
-	$(QUIET)$(PYTHON) $(SCRIPTS)/genRef.py -log $(LOGFILE) -registry $(REGISTRY) $(EXTOPTIONS) $(SPECFILES) $(EXTENSION_SOURCES)
+	$(QUIET)$(MKDIR) "$(REFPATH)"
+	$(QUIET)$(PYTHON) $(GENREF) -genpath $(abspath $(GENDIR)) -basedir $(REFPATH) \
+	    -log $(LOGFILE) \
+	    -registry $(REGISTRY) $(EXTOPTIONS) $(SPECFILES) $(EXTENSION_SOURCES)
 	$(QUIET)grep "ERROR:" $(LOGFILE)
 
+# These targets are HTML5 refpages
+#
 # The recursive $(MAKE) is an apparently unavoidable hack, since the
 # actual list of man page sources isn't known until after
-# man/apispec.txt is generated.
-manhtmlpages: man/apispec.txt
-	$(QUIET)$(MAKE) buildmanpages
+# $(REFPATH)/apispec.txt is generated. $(GENDEPENDS) is generated before
+# running the recursive make, so it does not trigger twice
+# $(SUBMAKEOPTIONS) suppresses the redundant "Entering / leaving"
+# messages make normally prints out, similarly to suppressing make
+# command output logging in the individual refpage actions below.
+SUBMAKEOPTIONS = --no-print-directory
+manhtmlpages: $(REFPATH)/apispec.txt $(GENDEPENDS)
+	$(QUIET) echo "manhtmlpages: building HTML refpages with these options:"
+	$(QUIET) echo $(ASCIIDOC) -b html5 $(ADOCOPTS) $(ADOCHTMLOPTS) \
+	    $(ADOCREFOPTS) -d manpage -o REFPAGE.html REFPAGE.txt
+	$(QUIET)$(MAKE) $(SUBMAKEOPTIONS) -e buildmanpages
 
+# Build the individual refpages, then the symbolic links from aliases
 buildmanpages: $(MANHTML) $(MANHTMLDIR)/openxr.html
+	$(MAKE) $(SUBMAKEOPTIONS) -e manaliases
+
+# This target does not at present, since OpenXR does not alias refpage
+# content yet.
+manaliases: $(XRAPI)
 
 # This is the single-page ref page.
-# Manually defining doctype-manpage so that we can use "book" style but still enable the refpage-only portions.
-$(MANHTMLDIR)/openxr.html: man/apispec.txt $(MANDEPS)
+# 'doctype-manpage' allows use of the "book" style but still enable the
+# refpage-only portions.
+$(MANHTMLDIR)/openxr.html: $(REFPATH)/apispec.txt $(MANDEPS)
 	$(ECHO) "[asciidoctor] $< -> $@"
-	$(QUIET)$(MKDIR) $(@D)
-	$(QUIET)$(ASCIIDOC) -b html5 $(MANATTRIBOPTS) $(ADOCOPTS) -a doctype-manpage -d book -o $@ $<
+	$(QUIET)$(MKDIR) "$(@D)"
+	$(QUIET)$(ASCIIDOC) -b html5 $(ADOCOPTS) $(ADOCREFOPTS) -a doctype-manpage -d book -o $@ $<
 
+# The refpage build process normally generates far too much output, so
+# use VERYQUIET instead of QUIET
+# 'cross-file-links' causes the *link: macros to link to other refpages,
+# instead of internal anchors.
+$(MANHTML): $(MANHTMLDIR)/%.html: $(REFPATH)/%.txt $(MANDEPS)
+	$(VERYQUIET)echo "Building $@ from $< using default options"
+	$(VERYQUIET)$(MKDIR) "$(MANHTMLDIR)"
+	$(VERYQUIET)$(ASCIIDOC) -b html5 $(ADOCOPTS) $(ADOCHTMLOPTS) $(ADOCREFOPTS) \
+	    -a cross-file-links -d manpage -o $@ $<
+
+# Defer for now - there is no latexmath in the XR spec, unlike Vulkan
+#
+# Running translate_math.js on every refpage is slow and most of them
+# do not contain math, so do a quick search for latexmath delimiters.
 # This is all the individual-page ref pages.
-$(MANHTML): $(MANHTMLDIR)/%.html: $(MANDIR)/%.txt $(MANDEPS)
-	$(ECHO) "[asciidoctor] $< -> $@"
-	$(QUIET)$(MKDIR) $(@D)
-	$(QUIET)$(ASCIIDOC) -b html5 $(MANATTRIBOPTS) $(ADOCOPTS) -a cross-file-links -d manpage -o $@ $<
-
-################################################
-# Extension dependency script
-
-DEPSCRIPT = $(SCRIPTS)/make_ext_dependency.py
-DEPSCRIPTOUT := out/extDependency.sh
-$(DEPSCRIPTOUT): $(REGISTRY) $(DEPSCRIPT)
-	$(ECHO) "[mk_ext_dep]  $(REGISTRY) -> $@"
-	$(QUIET)$(MKDIR) $(@D)
-	$(QUIET)$(PYTHON) $(DEPSCRIPT) -registry $< -outscript $@
+#
+#	 $(VERYQUIET)if egrep -q '\\[([]' $@ ; then \
+#	     $(TRANSLATEMATH) $@ ; \
+#	 fi
 
 ################################################
 # Embedded example code
@@ -539,13 +586,13 @@ all:
 REGISTRYOUTDIR = $(OUTDIR)/../registry-release/specs/$(MAJORMINORVER)$(RELEASE_SPECS_SUFFIX)
 
 $(REGISTRYOUTDIR):
-	$(QUIET)$(MKDIR) $@
+	$(QUIET)$(MKDIR) "$@"
 
 $(REGISTRYOUTDIR)/pdf $(REGISTRYOUTDIR)/html $(REGISTRYOUTDIR)/man $(REGISTRYOUTDIR)/headers: $(REGISTRYOUTDIR)
-	$(QUIET)$(MKDIR) $@
+	$(QUIET)$(MKDIR) "$@"
 
 $(REGISTRYOUTDIR)/headers/openxr: $(REGISTRYOUTDIR)/headers
-	$(QUIET)$(MKDIR) $@
+	$(QUIET)$(MKDIR) "$@"
 
 release-htmlpdf: html pdf $(REGISTRYOUTDIR)/pdf $(REGISTRYOUTDIR)/html
 	-asciidoctor-pdf-optimize $(PDFSPEC)
@@ -571,15 +618,17 @@ DIRT = $(PYDIRT) $(MANDIRT) ERRS \#*
 clean_dirt:
 	$(RM) $(DIRT)
 
-# Clean generated targets.
+# Clean intermediate generated files
+# Don't remove OUTDIR, since it contains the config stamp and final output targets
 clean_generated:
-	$(RMRF) $(GENDIR) $(METADIR) man/apispec.txt
+	$(RMRF) $(XRAPI) $(GENDIR)/index.adoc
+	$(RMRF) $(GENDIR)/api $(GENDIR)/validity $(GENDIR)/hostsynctable $(METADIR) $(REFPATH)
 
 # Clean generated targets as well as intermediates.
 clean clobber: clean_dirt clean_generated
-	$(RM) $(HEADER) $(PLATHEAD) $(REFLECTHEAD) $(DEFINESHEAD) $(HTMLSPEC) $(PDFSPEC) $(PDFA4SPEC) $(STYLEGUIDE) $(LOADERGUIDE) $(DEPSCRIPTOUT) config_stamp
+	$(RM) $(HEADER) $(PLATHEAD) $(REFLECTHEAD) $(DEFINESHEAD) $(HTMLSPEC) $(PDFSPEC) $(PDFA4SPEC) $(STYLEGUIDE) $(LOADERGUIDE) $(CONFIG_STAMP_FN)
 	# Clean up extracted code
 	if [ -f $(EXAMPLES_MAKEFILE) ]; then $(MAKE) -f $(EXAMPLES_MAKEFILE) clean-examples; fi
 	$(RM) $(EXAMPLES_MAKEFILE)
-	# Clean up man pages
-	$(RMRF) $(MANHTMLDIR)
+	# Clean up man pages and specs
+	$(RMRF) $(OUTDIR) $(MANHTMLDIR)

@@ -16,6 +16,8 @@ struct Win32PlatformPlugin : public IPlatformPlugin {
     std::vector<std::string> GetInstanceExtensions() const override { return {}; }
 
     XrBaseInStructure* GetInstanceCreateExtension() const override { return nullptr; }
+
+    void UpdateOptions(const std::shared_ptr<struct Options>& /*unused*/) override {}
 };
 }  // namespace
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Copyright (c) 2016-2022, The Khronos Group Inc.
+# Copyright 2016-2022 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -14,28 +14,51 @@ import os
 import re
 import sys
 from collections import OrderedDict
-from reflib import (findRefs, fixupRefs, loadFile, logDiag, logWarn,
+from reflib import (findRefs, fixupRefs, loadFile, logDiag, logWarn, logErr,
                     printPageInfo, setLogFile)
 from reg import Registry
-import xrapi as api
-from xrconventions import OpenXRConventions as APIConventions
+from generator import GeneratorOptions
+from apiconventions import APIConventions
+
+
+# refpage 'type' attributes which are API entities and contain structured
+# content such as API includes, valid usage blocks, etc.
+refpage_api_types = (
+    'basetypes',
+    'consts',
+    'defines',
+    'enums',
+    'flags',
+    'funcpointers',
+    'handles',
+    'protos',
+    'structs',
+)
+
+# Other refpage types - SPIR-V builtins, API feature blocks, etc. - which do
+# not have structured content.
+refpage_other_types = (
+    'freeform',
+)
 
 
 def makeExtensionInclude(name):
-    """Return an include command, given an extension name."""
-    return 'include::{}/refpage.{}{}[]'.format(
-        conventions.specification_path,
-        name,
-        conventions.file_suffix)
+    """Return an include command for a generated extension interface.
+       - name - extension name"""
+
+    return 'include::{}/meta/refpage.{}{}[]'.format(
+            conventions.generated_include_path,
+            name,
+            conventions.file_suffix)
 
 
 def makeAPIInclude(type, name):
     """Return an include command for a generated API interface
-    - type - type of the API, e.g. 'flags', 'handles', etc
-    - name - name of the API"""
+       - type - type of the API, e.g. 'flags', 'handles', etc
+       - name - name of the API"""
 
     return 'include::{}/api/{}/{}{}\n'.format(
-            conventions.refpage_generated_include_path,
+            conventions.generated_include_path,
             type, name, conventions.file_suffix)
 
 
@@ -52,23 +75,30 @@ def printCopyrightSourceComments(fp):
 
     Writes an asciidoc comment block, which copyrights the source
     file."""
-    print('// Copyright (c) 2014-2022, The Khronos Group Inc.', file=fp)
+    print('// Copyright 2014-2022 The Khronos Group Inc.', file=fp)
     print('//', file=fp)
     # This works around constraints of the 'reuse' tool
     print('// SPDX' + '-License-Identifier: CC-BY-4.0', file=fp)
     print('', file=fp)
 
 
-def printFooter(fp):
+def printFooter(fp, leveloffset=0):
     """Print footer material at the end of each refpage on open file fp.
 
     If generating separate refpages, adds the copyright.
-    If generating the single combined refpage, just add a separator."""
+    If generating the single combined refpage, just add a separator.
+
+    - leveloffset - number of levels to bias section titles up or down."""
+
+    # Generate the section header.
+    # Default depth is 2.
+    depth = max(0, leveloffset + 2)
+    prefix = '=' * depth
 
     print('ifdef::doctype-manpage[]',
-          '== Copyright',
+          f'{prefix} Copyright',
           '',
-          'include::{config}/copyright-ccby.txt[]',
+          'include::{config}/copyright-ccby' + conventions.file_suffix + '[]',
           'endif::doctype-manpage[]',
           '',
           'ifndef::doctype-manpage[]',
@@ -104,29 +134,46 @@ def macroPrefix(name):
     return 'reflink:' + name
 
 
-def seeAlsoList(apiName, explicitRefs=None):
+def seeAlsoList(apiName, explicitRefs=None, apiAliases=[]):
     """Return an asciidoc string with a list of 'See Also' references for the
     API entity 'apiName', based on the relationship mapping in the api module.
 
     'explicitRefs' is a list of additional cross-references.
+
+    If apiAliases is not None, it is a list of aliases of apiName whose
+    cross-references will also be included.
+
     If no relationships are available, return None."""
-    refs = {}
+
+    refs = set(())
+
+    # apiName and its aliases are treated equally
+    allApis = apiAliases.copy()
+    allApis.append(apiName)
 
     # Add all the implicit references to refs
-    if apiName in api.mapDict:
-        for name in sorted(api.mapDict[apiName]):
-            refs[name] = None
+    for name in allApis:
+        if name in api.mapDict:
+            refs.update(api.mapDict[name])
 
     # Add all the explicit references
     if explicitRefs is not None:
         if isinstance(explicitRefs, str):
             explicitRefs = explicitRefs.split()
-        for name in explicitRefs:
-            refs[name] = None
+        refs.update(name for name in explicitRefs)
 
-    if not refs:
+    # Add extensions / core versions based on dependencies
+    for name in allApis:
+        if name in api.requiredBy:
+            for (base,dependency) in api.requiredBy[name]:
+                refs.add(base)
+                if dependency is not None:
+                    refs.add(dependency)
+
+    if len(refs) == 0:
         return None
-    return ', '.join(macroPrefix(name) for name in sorted(refs.keys())) + '\n'
+    else:
+        return ', '.join(macroPrefix(name) for name in sorted(refs)) + '\n'
 
 
 def remapIncludes(lines, baseDir, specDir):
@@ -164,7 +211,17 @@ def remapIncludes(lines, baseDir, specDir):
     return newLines
 
 
-def refPageShell(pageName, pageDesc, fp, sections=None, tail_content=None, man_section=3):
+def refPageShell(pageName, pageDesc, fp, head_content = None, sections=None, tail_content=None, man_section=3):
+    """Generate body of a reference page.
+
+    - pageName - string name of the page
+    - pageDesc - string short description of the page
+    - fp - file to write to
+    - head_content - text to include before the sections
+    - sections - iterable returning (title,body) for each section.
+    - tail_content - text to include after the sections
+    - man_section - Unix man page section"""
+
     printCopyrightSourceComments(fp)
 
     print(':data-uri:',
@@ -186,7 +243,12 @@ def refPageShell(pageName, pageDesc, fp, sections=None, tail_content=None, man_s
           '',
           sep='\n', file=fp)
 
-    if sections:
+    if head_content is not None:
+        print(head_content,
+              '',
+              sep='\n', file=fp)
+
+    if sections is not None:
         for title, content in sections.items():
             print('== {}'.format(title),
                   '',
@@ -194,7 +256,7 @@ def refPageShell(pageName, pageDesc, fp, sections=None, tail_content=None, man_s
                   '',
                   sep='\n', file=fp)
 
-    if tail_content:
+    if tail_content is not None:
         print(tail_content,
               '',
               sep='\n', file=fp)
@@ -226,7 +288,7 @@ def refPageHead(pageName, pageDesc, specText, fieldName, fieldText, descText, fp
     if descText is not None:
         sections['Description'] = descText
 
-    refPageShell(pageName, pageDesc, fp, sections=sections)
+    refPageShell(pageName, pageDesc, fp, head_content=None, sections=sections)
 
 
 def refPageTail(pageName,
@@ -234,7 +296,8 @@ def refPageTail(pageName,
                 specAnchor=None,
                 seeAlso=None,
                 fp=None,
-                auto=False):
+                auto=False,
+                leveloffset=0):
     """Generate end boilerplate of a reference page.
 
     - pageName - name of the page
@@ -242,7 +305,12 @@ def refPageTail(pageName,
       identifying the specification name and URL this refpage links to.
     - specAnchor - None or the 'anchor' attribute from the refpage block,
       identifying the anchor in the specification this refpage links to. If
-      None, the pageName is assumed to be a valid anchor."""
+      None, the pageName is assumed to be a valid anchor.
+    - seeAlso - text of the "See Also" section
+    - fp - file to write the page to
+    - auto - True if this is an entirely generated refpage, False if it is
+      handwritten content from the spec.
+    - leveloffset - number of levels to bias section titles up or down."""
 
     specName = conventions.api_name(specType)
     specURL = conventions.specURL(specType)
@@ -271,20 +339,73 @@ def refPageTail(pageName,
             'not directly.',
         ))
 
-    print('== See Also',
+    # Generate the section header.
+    # Default depth is 2.
+    depth = max(0, leveloffset + 2)
+    prefix = '=' * depth
+
+    print(f'{prefix} See Also',
           '',
           seeAlso,
           '',
           sep='\n', file=fp)
 
-    print('== Document Notes',
+    print(f'{prefix} Document Notes',
           '',
           '\n'.join(notes),
           '',
           sep='\n', file=fp)
 
-    printFooter(fp)
+    printFooter(fp, leveloffset)
 
+
+def xrefRewriteInitialize():
+    """Initialize substitution patterns for asciidoctor xrefs."""
+
+    global refLinkPattern, refLinkSubstitute
+    global refLinkTextPattern, refLinkTextSubstitute
+    global specLinkPattern, specLinkSubstitute
+
+    # These are xrefs to API entities, rewritten to link to refpages
+    # The refLink variants are for xrefs with only an anchor and no text.
+    # The refLinkText variants are for xrefs with both anchor and text
+    refLinkPattern = re.compile(r'<<([Vv][Kk][A-Za-z0-9_]+)>>')
+    refLinkSubstitute = r'link:\1.html[\1^]'
+
+    refLinkTextPattern = re.compile(r'<<([Vv][Kk][A-Za-z0-9_]+)[,]?[ \t\n]*([^>,]*)>>')
+    refLinkTextSubstitute = r'link:\1.html[\2^]'
+
+    # These are xrefs to other anchors, rewritten to link to the spec
+    specLinkPattern = re.compile(r'<<([^>,]+)[,]?[ \t\n]*([^>,]*)>>')
+
+    # Unfortunately, specLinkSubstitute depends on the link target,
+    # so cannot be constructed in advance.
+    specLinkSubstitute = None
+
+
+def xrefRewrite(text, specURL):
+    """Rewrite asciidoctor xrefs in text to resolve properly in refpages.
+    Xrefs which are to refpages are rewritten to link to those
+    refpages. The remainder are rewritten to generate external links into
+    the supplied specification document URL.
+
+    - text - string to rewrite, or None
+    - specURL - URL to target
+
+    Returns rewritten text, or None, respectively"""
+
+    global refLinkPattern, refLinkSubstitute
+    global refLinkTextPattern, refLinkTextSubstitute
+    global specLinkPattern, specLinkSubstitute
+
+    specLinkSubstitute = r'link:{}#\1[\2^]'.format(specURL)
+
+    if text is not None:
+        text, _ = refLinkPattern.subn(refLinkSubstitute, text)
+        text, _ = refLinkTextPattern.subn(refLinkTextSubstitute, text)
+        text, _ = specLinkPattern.subn(specLinkSubstitute, text)
+
+    return text
 
 def emitPage(baseDir, specDir, pi, file):
     """Extract a single reference page into baseDir.
@@ -308,8 +429,8 @@ def emitPage(baseDir, specDir, pi, file):
     field = None
     fieldText = None
 
-    if pi.type != 'freeform':
-        # Not sure how this happens yet
+    # Only do structural checks on API pages
+    if pi.type in refpage_api_types:
         if pi.include is None:
             logWarn('emitPage:', pageName, 'INCLUDE is None, no page generated')
             return
@@ -338,21 +459,19 @@ def emitPage(baseDir, specDir, pi, file):
             logWarn('emitPage: INCLUDE == BODY, so description will be empty for', pi.name)
             if pi.begin != pi.include:
                 logWarn('emitPage: Note: BEGIN != INCLUDE, so the description might be incorrectly located before the API include!')
-    else:
+    elif pi.type in refpage_other_types:
         specText = None
         descText = ''.join(file[pi.begin:pi.end + 1])
+    else:
+        # This should be caught in the spec markup checking tests
+        logErr(f"emitPage: refpage type='{pi.type}' is unrecognized")
 
+    # Rewrite asciidoctor xrefs to resolve properly in refpages
     specURL = conventions.specURL(pi.spec)
 
-    # Substitute xrefs to point at the main spec
-    specLinksPattern = re.compile(r'<<([^>,]+)[,]?[ \t\n]*([^>,]*)>>')
-    specLinksSubstitute = r'link:{}#\1[\2^]'.format(specURL)
-    if specText is not None:
-        specText, _ = specLinksPattern.subn(specLinksSubstitute, specText)
-    if fieldText is not None:
-        fieldText, _ = specLinksPattern.subn(specLinksSubstitute, fieldText)
-    if descText is not None:
-        descText, _ = specLinksPattern.subn(specLinksSubstitute, descText)
+    specText = xrefRewrite(specText, specURL)
+    fieldText = xrefRewrite(fieldText, specURL)
+    descText = xrefRewrite(descText, specURL)
 
     fp = open(pageName, 'w', encoding='utf-8')
     refPageHead(pi.name,
@@ -364,7 +483,7 @@ def emitPage(baseDir, specDir, pi, file):
     refPageTail(pageName=pi.name,
                 specType=pi.spec,
                 specAnchor=pi.anchor,
-                seeAlso=seeAlsoList(pi.name, pi.refs),
+                seeAlso=seeAlsoList(pi.name, pi.refs, pi.alias.split()),
                 fp=fp,
                 auto=False)
     fp.close()
@@ -415,7 +534,7 @@ def autoGenEnumsPage(baseDir, pi, file):
     refPageTail(pageName=pi.name,
                 specType=pi.spec,
                 specAnchor=pi.anchor,
-                seeAlso=seeAlsoList(pi.name, pi.refs),
+                seeAlso=seeAlsoList(pi.name, pi.refs, pi.alias.split()),
                 fp=fp,
                 auto=True)
     fp.close()
@@ -524,7 +643,7 @@ def genRef(specFile, baseDir):
 
     - specFile - filename to extract from
     - baseDir - output directory to generate page in"""
-    # We don't care the newline format used here.
+    # We do not care the newline format used here.
     file, _ = loadFile(specFile)
     if file is None:
         return
@@ -546,6 +665,28 @@ def genRef(specFile, baseDir):
     for name in sorted(pageMap):
         pi = pageMap[name]
 
+        # Only generate the page if it is in the requested build
+        # 'freeform' pages are always generated
+        # 'feature' pages (core versions & extensions) are generated if they are in
+        # the requested feature list
+        # All other pages (APIs) are generated if they are in the API map for
+        # the build.
+        if pi.type in refpage_api_types:
+            if name not in api.typeCategory:
+                # Also check aliases of name - api.nonexistent is the same
+                # mapping used to rewrite *link: macros in this build.
+                if name not in api.nonexistent:
+                    logWarn(f'genRef: NOT generating feature page {name} - API not in this build')
+                    continue
+                else:
+                    logWarn(f'genRef: generating feature page {name} because its alias {api.nonexistent[name]} exists')
+        elif pi.type in refpage_other_types:
+            # The only non-API type which can be checked is a feature refpage
+            if pi.type == 'feature':
+                if name not in api.features:
+                    logWarn(f'genRef: NOT generating feature page {name} - feature not in this build')
+                    continue
+
         printPageInfo(pi, file)
 
         if pi.Warning:
@@ -558,7 +699,7 @@ def genRef(specFile, baseDir):
         elif pi.type == 'flags':
             autoGenFlagsPage(baseDir, pi.name)
         else:
-            # Don't extract this page
+            # Do not extract this page
             logWarn('genRef: Cannot extract or autogenerate:', pi.name)
 
         pages[pi.name] = pi
@@ -571,7 +712,7 @@ def genRef(specFile, baseDir):
 def genSinglePageRef(baseDir):
     """Generate baseDir/apispec.txt, the single-page version of the ref pages.
 
-    This assumes there's a page for everything in the api module dictionaries.
+    This assumes there is a page for everything in the api module dictionaries.
     Extensions (KHR, EXT, etc.) are currently skipped"""
     # Accumulate head of page
     head = io.StringIO()
@@ -590,8 +731,11 @@ def genSinglePageRef(baseDir):
           '',
           sep='\n', file=head)
 
-    print('include::copyright-ccby.txt[]', file=head)
+    print('== Copyright', file=head)
     print('', file=head)
+    print('include::{config}/copyright-ccby' + conventions.file_suffix + '[]', file=head)
+    print('', file=head)
+
     # Inject the table of contents. Asciidoc really ought to be generating
     # this for us.
 
@@ -627,7 +771,7 @@ def genSinglePageRef(baseDir):
             keys = sorted(apiDict.keys())
 
         for refPage in keys:
-            # Don't generate links for aliases, which are included with the
+            # Do not generate links for aliases, which are included with the
             # aliased page
             if refPage not in api.alias:
                 # Add page to body
@@ -663,53 +807,104 @@ def genSinglePageRef(baseDir):
     fp.close()
 
 
-def genExtension(baseDir, name, info):
+def genExtension(baseDir, extpath, name, info):
+    """Generate refpage, and add dictionary entry for an extension
+
+    - baseDir - output directory to generate page in
+    - extpath - None, or path to per-extension specification sources if
+                those are to be included in extension refpages
+    - name - extension name
+    - info - <extension> Element from XML"""
+
     # Add a dictionary entry for this page
     global genDict
     genDict[name] = None
     declares = []
     elem = info.elem
 
+    # Type of extension (instance, device, etc.)
     ext_type = elem.get('type')
 
+    # Autogenerate interfaces from <extension> entry
     for required in elem.find('require'):
         req_name = required.get('name')
         if not req_name:
-            # This isn't what we're looking for
+            # This is not what we are looking for
             continue
         if req_name.endswith('_SPEC_VERSION') or req_name.endswith('_EXTENSION_NAME'):
-            # Don't link to spec version or extension name - those ref pages aren't created.
+            # Do not link to spec version or extension name - those ref pages are not created.
             continue
 
         if required.get('extends'):
-            # These are either extensions of enums,
-            # or enum values: neither of which get a ref page.
+            # These are either extensions of enumerated types, or const enum
+            # values: neither of which get a ref page - although we could
+            # include the enumerated types in the See Also list.
             continue
 
         if req_name not in genDict:
-            logWarn('ERROR: {} (in extension {}) does not have a ref page, skipping the link.'.format(req_name, name))
-            continue
+            logWarn('ERROR: {} (in extension {}) does not have a ref page.'.format(req_name, name))
 
         declares.append(req_name)
+
+    appbody = None
+    tail_content = None
+    if extpath is not None:
+        try:
+            appPath = extpath + '/' + conventions.extension_file_path(name)
+            appfp = open(appPath, 'r', encoding='utf-8')
+            appbody = appfp.read()
+            appfp.close()
+
+            # Transform internal links to crosslinks
+            specURL = conventions.specURL()
+            appbody = xrefRewrite(appbody, specURL)
+        except FileNotFoundError:
+            print('Cannot find extension appendix for', name)
+            logWarn('Cannot find extension appendix for', name)
+
+            # Fall through to autogenerated page
+            extpath = None
+            appbody = None
+
+            appbody = f'Cannot find extension appendix {appPath} for {name}\n'
+    else:
+        tail_content = makeExtensionInclude(name)
+
+    # Write the extension refpage
     pageName = baseDir + '/' + name + '.txt'
     logDiag('genExtension:', pageName)
-
     fp = open(pageName, 'w', encoding='utf-8')
 
+    # OpenXR-specific
     sections = OrderedDict()
     sections['Specification'] = 'See link:{html_spec_relative}#%s[ %s] in the main specification for complete information.' % (
         name, name)
+
     refPageShell(name,
                  "{} extension".format(ext_type),
                  fp,
+                 appbody,
                  sections=sections,
-                 tail_content=makeExtensionInclude(name))
+                 tail_content=tail_content)
+
+    # Restore leveloffset for boilerplate in refPageTail
+    if conventions.include_extension_appendix_in_refpage:
+        # The generated metadata include (refpage.extensionname.adoc) moved
+        # the leveloffset attribute by -1 to account for the relative
+        # structuring of the spec extension appendix section structure vs.
+        # the refpages.
+        # This restores leveloffset for the boilerplate in refPageTail.
+        leveloffset = 1
+    else:
+        leveloffset = 0
+
     refPageTail(pageName=name,
                 specType=None,
                 specAnchor=name,
                 seeAlso=seeAlsoList(name, declares),
                 fp=fp,
-                auto=True)
+                auto=True,
+                leveloffset=leveloffset)
     fp.close()
 
 
@@ -728,8 +923,11 @@ if __name__ == '__main__':
                         help='Set the warning file')
     parser.add_argument('-log', action='store', dest='logFile',
                         help='Set the log file for both diagnostics and warnings')
+    parser.add_argument('-genpath', action='store',
+                        default='generated',
+                        help='Path to directory containing generated files')
     parser.add_argument('-basedir', action='store', dest='baseDir',
-                        default='man',
+                        default=None,
                         help='Set the base directory in which pages are generated')
     parser.add_argument('-noauto', action='store_true',
                         help='Don\'t generate inferred ref pages automatically')
@@ -748,14 +946,27 @@ if __name__ == '__main__':
     parser.add_argument('-registry', action='store',
                         default=conventions.registry_path,
                         help='Use specified registry file instead of default')
+    parser.add_argument('-extpath', action='store',
+                        default=None,
+                        help='Use extension descriptions from this directory instead of autogenerating extension refpages')
 
     results = parser.parse_args()
+
+    # Load the generated apimap module
+    sys.path.insert(0, results.genpath)
+    import apimap as api
 
     setLogFile(True,  True, results.logFile)
     setLogFile(True, False, results.diagFile)
     setLogFile(False, True, results.warnFile)
 
-    baseDir = results.baseDir
+    # Initialize static rewrite patterns for spec xrefs
+    xrefRewriteInitialize()
+
+    if results.baseDir is None:
+        baseDir = results.genpath + '/ref'
+    else:
+        baseDir = results.baseDir
 
     # Dictionary of pages & aliases
     pages = {}
@@ -764,18 +975,20 @@ if __name__ == '__main__':
         d = genRef(file, baseDir)
         pages.update(d)
 
-    # Now figure out which pages *weren't* generated from the spec.
+    # Now figure out which pages were not generated from the spec.
     # This relies on the dictionaries of API constructs in the api module.
 
     if not results.noauto:
-
-        registry = Registry()
+        # Must have an apiname selected to avoid complaints from
+        # registry.loadFile, even though it is irrelevant to our uses.
+        genOpts = GeneratorOptions(apiname = conventions.xml_api_name)
+        registry = Registry(genOpts = genOpts)
         registry.loadFile(results.registry)
 
         if conventions.write_refpage_include:
             # Only extensions with a supported="..." attribute in this set
             # will be considered for extraction/generation.
-            supported_strings = set((conventions.xml_supported_name_of_api,))
+            supported_strings = set((conventions.xml_api_name,))
             ext_names = set(k for k, v in registry.extdict.items()
                             if v.supported in supported_strings)
 
@@ -786,8 +999,9 @@ if __name__ == '__main__':
                     [name for name in desired_extensions
                      if name.startswith(prefix) and name not in extensions])
                 for name in filtered_extensions:
+                    # logWarn('NOT autogenerating extension refpage for', name)
                     extensions[name] = None
-                    genExtension(baseDir, name, registry.extdict[name])
+                    genExtension(baseDir, results.extpath, name, registry.extdict[name])
 
         # autoGenFlagsPage is no longer needed because they are added to
         # the spec sources now.
@@ -811,12 +1025,12 @@ if __name__ == '__main__':
             (extensions,       apiName + ' Extensions'),
         ]
 
-        # Summarize pages that weren't generated, for good or bad reasons
+        # Summarize pages that were not generated, for good or bad reasons
 
         for (apiDict, title) in sections:
             # OpenXR was keeping a 'flagged' state which only printed out a
             # warning for the first non-generated page, but was otherwise
-            # unused. This doesn't seem helpful.
+            # unused. This does not seem helpful.
             for page in apiDict:
                 if page not in genDict:
                     # Page was not generated - why not?
