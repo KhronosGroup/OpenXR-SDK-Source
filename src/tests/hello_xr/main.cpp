@@ -76,6 +76,10 @@ void ShowHelp() {
     Log::Write(Log::Level::Info, "Spaces:                   View, Local, Stage");
 }
 
+#if (defined(WIN32) && !defined(DEFAULT_GRAPHICS_PLUGIN_VULKAN))
+#define DEFAULT_GRAPHICS_PLUGIN_OPENGL 1
+#endif
+
 bool UpdateOptionsFromCommandLine(Options& options, int argc, char* argv[]) {
     int i = 1;  // Index 0 is the program name and is skipped.
 
@@ -86,6 +90,12 @@ bool UpdateOptionsFromCommandLine(Options& options, int argc, char* argv[]) {
 
         return std::string(argv[i++]);
     };
+
+#if defined(DEFAULT_GRAPHICS_PLUGIN_OPENGL)
+    options.GraphicsPlugin = "OpenGL";
+#elif defined(DEFAULT_GRAPHICS_PLUGIN_VULKAN)
+    options.GraphicsPlugin = "Vulkan";
+#endif
 
     while (i < argc) {
         const std::string arg = getNextArg();
