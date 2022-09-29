@@ -13,6 +13,8 @@
 #include <common/gfxwrapper_opengl.h>
 #include <common/xr_linear.h>
 
+#define HARDCODE_VIEW_FOR_CUBES 1 
+
 namespace {
 
 static const char* VertexShaderGlsl = R"_(
@@ -331,6 +333,34 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
         XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose.position, &pose.orientation, &scale);
         XrMatrix4x4f view;
         XrMatrix4x4f_InvertRigidBody(&view, &toView);
+
+#if HARDCODE_VIEW_FOR_CUBES
+        {
+            XrPosef hardcoded_pose;
+            hardcoded_pose.position.x = 0.0f;
+            hardcoded_pose.position.y = 1.0f;
+            hardcoded_pose.position.z = 0.0f;
+
+            hardcoded_pose.orientation.x = 0.0f;
+            hardcoded_pose.orientation.y = 0.0f;
+            hardcoded_pose.orientation.z = 0.0f;
+            hardcoded_pose.orientation.w = 1.0f;
+
+            XrMatrix4x4f head;
+            XrMatrix4x4f_CreateTranslationRotationScale(&head, &hardcoded_pose.position, &hardcoded_pose.orientation, &scale);
+
+            static int eye = 1;
+            const float ipd = 0.0680999979f;
+            const float half_ipd = ipd / 2.0f;
+
+            XrMatrix4x4f shift;
+            XrMatrix4x4f_CreateTranslation(&shift, half_ipd * ((eye == 0) ? -1.0f : 1.0f), 0.0f, 0.0f);
+            XrMatrix4x4f_Multiply(&view, &head, &shift);
+
+            eye = 1 - eye;
+        }
+#endif
+
         XrMatrix4x4f vp;
         XrMatrix4x4f_Multiply(&vp, &proj, &view);
 
