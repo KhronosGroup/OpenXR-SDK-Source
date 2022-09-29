@@ -36,10 +36,9 @@
 #include "common_config.h"
 #endif  // OPENXR_HAVE_COMMON_CONFIG
 
-// Consumers of this file must ensure these two functions are implemented. For example, the loader will implement these functions so
-// that it can route messages through the loader's logging system.
+// Consumers of this file must ensure this function is implemented. For example, the loader will implement this function so that it
+// can route messages through the loader's logging system.
 void LogPlatformUtilsError(const std::string& message);
-void LogPlatformUtilsWarning(const std::string& message);
 
 // Environment variables
 #if defined(XR_OS_LINUX) || defined(XR_OS_APPLE)
@@ -85,9 +84,9 @@ static inline std::string PlatformUtilsGetSecureEnv(const char* name) {
     if (str == nullptr) {
         str = detail::ImplGetEnv(name);
         if (!str.empty()) {
-            LogPlatformUtilsWarning(std::string("!!! WARNING !!! Environment variable ") + name +
-                                    " is being ignored due to running with secure execution. The value '" + str +
-                                    "' will NOT be used.");
+            LogPlatformUtilsError(std::string("!!! WARNING !!! Environment variable ") + name +
+                                  " is being ignored due to running with secure execution. The value '" + str +
+                                  "' will NOT be used.");
         }
         return {};
     }
@@ -266,9 +265,9 @@ static inline std::string PlatformUtilsGetSecureEnv(const char* name) {
     // Do not allow high integrity processes to act on data that can be controlled by medium integrity processes.
     if (IsHighIntegrityLevel()) {
         if (!envValue.empty()) {
-            LogPlatformUtilsWarning(std::string("!!! WARNING !!! Environment variable ") + name +
-                                    " is being ignored due to running from an elevated context. The value '" + envValue +
-                                    "' will NOT be used.");
+            LogPlatformUtilsError(std::string("!!! WARNING !!! Environment variable ") + name +
+                                  " is being ignored due to running from an elevated context. The value '" + envValue +
+                                  "' will NOT be used.");
         }
         return {};
     }
