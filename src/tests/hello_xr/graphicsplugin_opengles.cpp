@@ -341,6 +341,7 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return 1; }
 
     void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
+    void SaveScreenShot(const std::string& filename) override { (void)filename; }
 
    private:
 #ifdef XR_USE_PLATFORM_ANDROID

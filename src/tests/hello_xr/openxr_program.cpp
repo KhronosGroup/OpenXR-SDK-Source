@@ -727,6 +727,30 @@ struct OpenXrProgram : IOpenXrProgram {
         }
     }
 
+    bool take_screenshot_ = false;
+
+    void TakeScreenShot() override 
+    {
+        if (!take_screenshot_) 
+        {
+            Log::Write(Log::Level::Verbose, "TakeScreenShot");
+            take_screenshot_ = true;
+        }
+    }
+
+    void SaveScreenShotIfNecessary()
+    {
+        if (!take_screenshot_ || !m_graphicsPlugin) 
+        {
+            return;
+        }
+
+        Log::Write(Log::Level::Verbose, "SaveScreenShotIfNecessary");
+        const std::string filename = "d:\\hello_xr_screenshot.png";
+        m_graphicsPlugin->SaveScreenShot(filename);
+        take_screenshot_ = false;
+    }
+
     // Return event if one is available, otherwise return null.
     const XrEventDataBaseHeader* TryReadNextEvent() {
         // It is sufficient to clear the just the XrEventDataBuffer header to
@@ -941,6 +965,8 @@ struct OpenXrProgram : IOpenXrProgram {
         frameEndInfo.layerCount = (uint32_t)layers.size();
         frameEndInfo.layers = layers.data();
         CHECK_XRCMD(xrEndFrame(m_session, &frameEndInfo));
+
+        SaveScreenShotIfNecessary();
     }
 
     bool RenderLayer(XrTime predictedDisplayTime, std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,

@@ -312,10 +312,20 @@ int main(int argc, char* argv[]) {
 
         // Spawn a thread to wait for a keypress
         static bool quitKeyPressed = false;
+        static bool takeScreenShot = false;
         auto exitPollingThread = std::thread{[] {
-            Log::Write(Log::Level::Info, "Press any key to shutdown...");
-            (void)getchar();
-            quitKeyPressed = true;
+            Log::Write(Log::Level::Info, "Press q to shutdown, s to save screenshot...");
+            int c = getchar();
+
+            if (c == 's') 
+            {
+                takeScreenShot = true;
+            } 
+            else if (c == 'q')
+            {
+                quitKeyPressed = true;
+            }
+            
         }};
         exitPollingThread.detach();
 
@@ -351,7 +361,14 @@ int main(int argc, char* argv[]) {
 
                 if (program->IsSessionRunning()) {
                     program->PollActions();
+
+                    if (takeScreenShot) {
+                        program->TakeScreenShot();
+                        takeScreenShot = false;
+                    }
+
                     program->RenderFrame();
+
                 } else {
                     // Throttle loop since xrWaitFrame won't be called.
                     std::this_thread::sleep_for(std::chrono::milliseconds(250));

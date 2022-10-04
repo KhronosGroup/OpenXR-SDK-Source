@@ -578,6 +578,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
     }
 
     void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
+    void SaveScreenShot(const std::string& filename) override { (void)filename; }
 
    private:
     const ComPtr<ID3DBlob> m_vertexShaderBytes;
