@@ -314,14 +314,10 @@ int main(int argc, char* argv[]) {
         static bool quitKeyPressed = false;
         static bool takeScreenShot = false;
         auto exitPollingThread = std::thread{[] {
-            Log::Write(Log::Level::Info, "Press q to shutdown, s to save screenshot...");
+            Log::Write(Log::Level::Info, "Press q to shutdown");
             int c = getchar();
 
-            if (c == 's') 
-            {
-                takeScreenShot = true;
-            } 
-            else if (c == 'q')
+            if (c == 'q')
             {
                 quitKeyPressed = true;
             }
@@ -361,12 +357,6 @@ int main(int argc, char* argv[]) {
 
                 if (program->IsSessionRunning()) {
                     program->PollActions();
-
-                    if (takeScreenShot) {
-                        program->TakeScreenShot();
-                        takeScreenShot = false;
-                    }
-
                     program->RenderFrame();
 
                 } else {

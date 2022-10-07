@@ -16,6 +16,7 @@
 
 #define ADD_AIM_POSE 1
 #define ADD_EXTRA_CUBES 1
+#define TAKE_SCREENSHOT_WITH_LEFT_GRAB 1
 
 namespace {
 
@@ -929,6 +930,23 @@ struct OpenXrProgram : IOpenXrProgram {
                     hapticActionInfo.subactionPath = m_input.handSubactionPath[hand];
                     CHECK_XRCMD(xrApplyHapticFeedback(m_session, &hapticActionInfo, (XrHapticBaseHeader*)&vibration));
                 }
+
+#if TAKE_SCREENSHOT_WITH_LEFT_GRAB
+                if (hand == Side::LEFT) 
+                {
+                    static bool currently_gripping = false;
+
+                    if (!currently_gripping && grabValue.currentState > 0.9f) 
+                    {
+                        TakeScreenShot();
+                        currently_gripping = true;
+                    } 
+                    else if (currently_gripping && grabValue.currentState < 0.5f) 
+                    {
+                        currently_gripping = false;
+                    }
+                }
+#endif
             }
 
             getInfo.action = m_input.poseAction;
