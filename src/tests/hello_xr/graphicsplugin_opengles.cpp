@@ -13,7 +13,50 @@
 #include "common/gfxwrapper_opengl.h"
 #include <common/xr_linear.h>
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+#include "stb_image_write.c"
+
+#define EGL_EGLEXT_PROTOTYPES
+#include "EGL/egl.h"
+#include "EGL/eglext.h"
+#include "GLES/gl.h"
+#define GL_GLEXT_PROTOTYPES
+#include "GLES/glext.h"
+
+#include <jni.h>
+#include <cassert>
+#include <cstdint>
+#include <dlfcn.h>
+#include <android/log.h>
+#include <sys/time.h>
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <GLES/gl.h>
+#include <GLES/glext.h>
+#include <GLES2/gl2.h>
+#include <GLES3/gl3.h>
+#include <map>
+
 namespace {
+
+
+bool check_gl_errors()
+{
+    bool no_error_occurred = true;
+    int error =  eglGetError();
+
+    while (error != EGL_SUCCESS)
+    {
+        //const char* error_string = EglErrorString(error);
+        Log::Write(Log::Level::Info, "check_gl_errors - " + std::to_string(error));
+
+        error = eglGetError();
+        no_error_occurred = false;
+    }
+
+    return no_error_occurred;
+}
 
 // The version statement has come on first line.
 static const char* VertexShaderGlsl = R"_(#version 320 es
@@ -355,7 +398,7 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         int width = viewport[2];
         int height = viewport[3];
 
-        int num_components = 3;  // RGB
+        int num_components = 4;  // 3 = RGB or 4 = RGBA
         char* data = (char*)malloc((size_t)(width * height * num_components));
 
         if (!data) 
@@ -364,7 +407,7 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         }
 
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
 
         int write_status = stbi_write_png(filename.c_str(), width, height, num_components, data, 0);
         Log::Write(Log::Level::Info, Fmt("SaveScreenShot %s status = %d", filename.c_str(), write_status));
@@ -372,6 +415,8 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         free(data);
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        check_gl_errors();
     }
 
    private:
