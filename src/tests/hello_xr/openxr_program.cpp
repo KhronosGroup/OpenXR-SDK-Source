@@ -746,7 +746,13 @@ struct OpenXrProgram : IOpenXrProgram {
         }
 
         Log::Write(Log::Level::Verbose, "SaveScreenShotIfNecessary");
-        const std::string filename = "d:\\hello_xr_screenshot.png";
+
+#ifdef XR_USE_PLATFORM_WIN32
+        const std::string filename = "d:\\TEST\\windows_hello_xr_screenshot.png";
+#else
+        const std::string filename = "android_hello_xr_screenshot.png";
+#endif
+
         m_graphicsPlugin->SaveScreenShot(filename);
         take_screenshot_ = false;
     }
@@ -965,8 +971,6 @@ struct OpenXrProgram : IOpenXrProgram {
         frameEndInfo.layerCount = (uint32_t)layers.size();
         frameEndInfo.layers = layers.data();
         CHECK_XRCMD(xrEndFrame(m_session, &frameEndInfo));
-
-        SaveScreenShotIfNecessary();
     }
 
     bool RenderLayer(XrTime predictedDisplayTime, std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
@@ -1119,6 +1123,11 @@ struct OpenXrProgram : IOpenXrProgram {
 
             const XrSwapchainImageBaseHeader* const swapchainImage = m_swapchainImages[viewSwapchain.handle][swapchainImageIndex];
             m_graphicsPlugin->RenderView(projectionLayerViews[i], swapchainImage, m_colorSwapchainFormat, cubes);
+
+            if (i == Side::LEFT) 
+            {
+                SaveScreenShotIfNecessary();
+            }
 
             XrSwapchainImageReleaseInfo releaseInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
             CHECK_XRCMD(xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo));

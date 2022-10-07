@@ -341,7 +341,38 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return 1; }
 
     void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
-    void SaveScreenShot(const std::string& filename) override { (void)filename; }
+
+    void SaveScreenShot(const std::string& filename) override 
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_swapchainFramebuffer);
+
+        GLint viewport[4] = {};
+        glGetIntegerv(GL_VIEWPORT, viewport);
+
+        int x = viewport[0];
+        int y = viewport[1];
+
+        int width = viewport[2];
+        int height = viewport[3];
+
+        int num_components = 3;  // RGB
+        char* data = (char*)malloc((size_t)(width * height * num_components));
+
+        if (!data) 
+        {
+            return;
+        }
+
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glReadPixels(x, y, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+        int write_status = stbi_write_png(filename.c_str(), width, height, num_components, data, 0);
+        Log::Write(Log::Level::Info, Fmt("SaveScreenShot %s status = %d", filename.c_str(), write_status));
+
+        free(data);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
 
    private:
 #ifdef XR_USE_PLATFORM_ANDROID
