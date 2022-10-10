@@ -38,6 +38,10 @@
 #include <GLES3/gl3.h>
 #include <map>
 
+#define HARDCODE_VIEW_MATRIX 1
+#define HARDCODE_PROJECTION_MATRIX 0
+#define HARDCODE_FOV 0
+
 namespace {
 
 
@@ -352,11 +356,38 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         const auto& pose = layerView.pose;
         XrMatrix4x4f proj;
         XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_OPENGL_ES, layerView.fov, 0.05f, 100.0f);
+
+#if HARDCODE_PROJECTION_MATRIX
+#endif
+        
         XrMatrix4x4f toView;
         XrVector3f scale{1.f, 1.f, 1.f};
         XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose.position, &pose.orientation, &scale);
+        
         XrMatrix4x4f view;
         XrMatrix4x4f_InvertRigidBody(&view, &toView);
+
+#if HARDCODE_VIEW_MATRIX
+        {
+            static int eye = 1;
+            const float ipd = 0.0680999979f;
+            const float half_ipd = ipd / 2.0f;
+
+            XrPosef hardcoded_pose;
+            hardcoded_pose.position.x = half_ipd * ((eye == 0) ? -1.0f : 1.0f);
+            hardcoded_pose.position.y = 1.0f;
+            hardcoded_pose.position.z = 0.0f;
+
+            hardcoded_pose.orientation.x = 0.0f;
+            hardcoded_pose.orientation.y = 0.0f;
+            hardcoded_pose.orientation.z = 0.0f;
+            hardcoded_pose.orientation.w = 1.0f;
+
+            XrMatrix4x4f_CreateTranslationRotationScale(&view, &hardcoded_pose.position, &hardcoded_pose.orientation, &scale);
+            eye = 1 - eye;
+        }
+#endif
+
         XrMatrix4x4f vp;
         XrMatrix4x4f_Multiply(&vp, &proj, &view);
 
