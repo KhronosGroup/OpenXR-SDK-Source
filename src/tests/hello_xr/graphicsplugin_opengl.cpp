@@ -343,8 +343,12 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
 
 #if HARDCODE_VIEW_FOR_CUBES
         {
+            static int eye = 1;
+            const float ipd = 0.0680999979f;
+            const float half_ipd = ipd / 2.0f;
+
             XrPosef hardcoded_pose;
-            hardcoded_pose.position.x = 0.0f;
+            hardcoded_pose.position.x = half_ipd * ((eye == 0) ? -1.0f : 1.0f);
             hardcoded_pose.position.y = 1.0f;
             hardcoded_pose.position.z = 0.0f;
 
@@ -353,17 +357,7 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
             hardcoded_pose.orientation.z = 0.0f;
             hardcoded_pose.orientation.w = 1.0f;
 
-            XrMatrix4x4f head;
-            XrMatrix4x4f_CreateTranslationRotationScale(&head, &hardcoded_pose.position, &hardcoded_pose.orientation, &scale);
-
-            static int eye = 1;
-            const float ipd = 0.0680999979f;
-            const float half_ipd = ipd / 2.0f;
-
-            XrMatrix4x4f shift;
-            XrMatrix4x4f_CreateTranslation(&shift, half_ipd * ((eye == 0) ? -1.0f : 1.0f), 0.0f, 0.0f);
-            XrMatrix4x4f_Multiply(&view, &head, &shift);
-
+            XrMatrix4x4f_CreateTranslationRotationScale(&view, &hardcoded_pose.position, &hardcoded_pose.orientation, &scale);
             eye = 1 - eye;
         }
 #endif
