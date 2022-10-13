@@ -90,6 +90,10 @@ else()
         target_compile_options(openxr_loader PRIVATE -Wno-unused-parameter)
     endif()
 endif()
+if(BUILD_WITH_WAYLAND_HEADERS)
+    target_include_directories(openxr_loader PRIVATE ${WAYLAND_CLIENT_INCLUDE_DIRS})
+endif()
+
 set_target_properties(openxr_loader PROPERTIES FOLDER ${LOADER_FOLDER})
 
 if(LOADER_EXTERNAL_GEN_DEPENDS)
