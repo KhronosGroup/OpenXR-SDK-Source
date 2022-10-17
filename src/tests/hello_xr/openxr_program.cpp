@@ -17,6 +17,7 @@
 #define ADD_AIM_POSE 1
 #define ADD_EXTRA_CUBES 1
 #define TAKE_SCREENSHOT_WITH_LEFT_GRAB 1
+#define LOG_MATRICES 1
 
 namespace {
 
@@ -1139,6 +1140,36 @@ struct OpenXrProgram : IOpenXrProgram {
             projectionLayerViews[i].subImage.swapchain = viewSwapchain.handle;
             projectionLayerViews[i].subImage.imageRect.offset = {0, 0};
             projectionLayerViews[i].subImage.imageRect.extent = {viewSwapchain.width, viewSwapchain.height};
+
+#if LOG_MATRICES
+            static bool log_projection_matrices = true;
+
+            if (log_projection_matrices) 
+            {
+				const float tanLeft = tanf(projectionLayerViews[i].fov.angleLeft);
+				const float tanRight = tanf(projectionLayerViews[i].fov.angleRight);
+
+				const float tanDown = tanf(projectionLayerViews[i].fov.angleDown);
+				const float tanUp = tanf(projectionLayerViews[i].fov.angleUp);
+
+                const std::string side_prefix = (i == Side::LEFT) ? "LEFT " : "RIGHT ";
+
+				Log::Write(Log::Level::Info, side_prefix + Fmt("FOV angleLeft = %.f (tan = %.f)", projectionLayerViews[i].fov.angleLeft, tanLeft));
+				Log::Write(Log::Level::Info, side_prefix + Fmt("FOV angleRight = %.f (tan = %.f)", projectionLayerViews[i].fov.angleRight, tanRight));
+				Log::Write(Log::Level::Info, side_prefix + Fmt("FOV angleDown = %.f (tan = %.f)", projectionLayerViews[i].fov.angleDown, tanDown));
+				Log::Write(Log::Level::Info, side_prefix + Fmt("FOV angleUp = %.f (tan = %.f)", projectionLayerViews[i].fov.angleUp, tanUp));
+
+                Log::Write(Log::Level::Info, side_prefix + " Projection matrix:\n\n");
+
+                XrMatrix4x4f proj;
+                XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_OPENGL, projectionLayerViews[i].fov, 0.05f, 100.0f);
+
+                Log::Write(Log::Level::Info, Fmt("%.f\t%.f\t%.f\t%.f", proj.m[0], proj.m[4], proj.m[8], proj.m[12]));
+                Log::Write(Log::Level::Info, Fmt("%.f\t%.f\t%.f\t%.f", proj.m[1], proj.m[5], proj.m[9], proj.m[13]));
+                Log::Write(Log::Level::Info, Fmt("%.f\t%.f\t%.f\t%.f", proj.m[2], proj.m[6], proj.m[10], proj.m[14]));
+                Log::Write(Log::Level::Info, Fmt("%.f\t%.f\t%.f\t%.f", proj.m[3], proj.m[7], proj.m[11], proj.m[15]));
+            }
+#endif
 
             const XrSwapchainImageBaseHeader* const swapchainImage = m_swapchainImages[viewSwapchain.handle][swapchainImageIndex];
             m_graphicsPlugin->RenderView(projectionLayerViews[i], swapchainImage, m_colorSwapchainFormat, cubes);
