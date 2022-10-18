@@ -1120,6 +1120,26 @@ struct OpenXrProgram : IOpenXrProgram {
 #endif
         }
 
+#if LOG_MATRICES
+        static bool log_IPD = true;
+
+        if(log_IPD)
+        {
+            const XrPosef& left_eye = m_views[Side::LEFT].pose;
+            const XrPosef& right_eye = m_views[Side::RIGHT].pose;
+
+            const XrVector3f left_to_right = 
+            {
+                (right_eye.position.x - left_eye.position.x), 
+                (right_eye.position.y - left_eye.position.y), 
+                (right_eye.position.z - left_eye.position.z)
+            };
+
+            const float IPD = sqrtf((left_to_right.x * left_to_right.x) + (left_to_right.y * left_to_right.y) + (left_to_right.z * left_to_right.z));
+            Log::Write(Log::Level::Info, Fmt("Computed IPD (mm) = %.2f", IPD * 1000.0f));
+        }
+#endif
+
         // Render view to the appropriate part of the swapchain image.
         for (uint32_t i = 0; i < viewCountOutput; i++) {
             // Each view has a separate swapchain which is acquired, rendered to, and released.
