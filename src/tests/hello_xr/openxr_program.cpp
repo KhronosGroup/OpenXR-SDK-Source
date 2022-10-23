@@ -1136,7 +1136,7 @@ struct OpenXrProgram : IOpenXrProgram {
             };
 
             const float IPD = sqrtf((left_to_right.x * left_to_right.x) + (left_to_right.y * left_to_right.y) + (left_to_right.z * left_to_right.z));
-            Log::Write(Log::Level::Info, Fmt("Computed IPD (mm) = %.2f", IPD * 1000.0f));
+            Log::Write(Log::Level::Info, Fmt("Computed IPD (mm) = %.7f", IPD * 1000.0f));
         }
 #endif
 
@@ -1179,7 +1179,7 @@ struct OpenXrProgram : IOpenXrProgram {
 				Log::Write(Log::Level::Info, side_prefix + Fmt("FOV angleDown = %.7f (tan = %.7f)", projectionLayerViews[i].fov.angleDown, tanDown));
 				Log::Write(Log::Level::Info, side_prefix + Fmt("FOV angleUp = %.7f (tan = %.7f)", projectionLayerViews[i].fov.angleUp, tanUp));
 
-                Log::Write(Log::Level::Info, side_prefix + " Projection matrix:\n");
+                Log::Write(Log::Level::Info, side_prefix + " Projection matrix:");
 
                 XrMatrix4x4f proj;
                 XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_OPENGL, projectionLayerViews[i].fov, 0.05f, 100.0f);
@@ -1187,7 +1187,7 @@ struct OpenXrProgram : IOpenXrProgram {
                 Log::Write(Log::Level::Info, Fmt("%.7f\t%.7f\t%.7f\t%.7f", proj.m[0], proj.m[4], proj.m[8], proj.m[12]));
                 Log::Write(Log::Level::Info, Fmt("%.7f\t%.7f\t%.7f\t%.7f", proj.m[1], proj.m[5], proj.m[9], proj.m[13]));
                 Log::Write(Log::Level::Info, Fmt("%.7f\t%.7f\t%.7f\t%.7f", proj.m[2], proj.m[6], proj.m[10], proj.m[14]));
-                Log::Write(Log::Level::Info, Fmt("%.7f\t%.7f\t%.7f\t%.7f\n\n", proj.m[3], proj.m[7], proj.m[11], proj.m[15]));
+                Log::Write(Log::Level::Info, Fmt("%.7f\t%.7f\t%.7f\t%.7f", proj.m[3], proj.m[7], proj.m[11], proj.m[15]));
             }
 #endif
 
