@@ -19,6 +19,58 @@
 #define TAKE_SCREENSHOT_WITH_LEFT_GRAB 1
 #define LOG_MATRICES 1
 
+#define ENABLE_OPENXR_FB_REFRESH_RATE 0
+#define ENABLE_OPENXR_FB_RENDER_MODEL 0
+
+#define ENABLE_OPENXR_FB_SUPERSAMPLING 0
+#define ENABLE_OPENXR_FB_SHARPENING 0
+#define ENABLE_OPENXR_FB_LOCAL_DIMMING 0
+
+#define ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS ((ENABLE_OPENXR_FB_SUPERSAMPLING || ENABLE_OPENXR_FB_SHARPENING) && 1)
+
+#if ENABLE_OPENXR_FB_REFRESH_RATE
+bool supports_refresh_rate_ = false;
+#define USE_MAX_REFRESH_RATE 0
+#define USE_PREFERRED_REFRESH_RATE (!USE_MAX_REFRESH_RATE && 1) 
+const float PREFERRED_REFRESH_RATE = 90.0f;
+const float DEFAULT_REFRESH_RATE = 72.0f;
+#endif
+
+#if ENABLE_OPENXR_FB_RENDER_MODEL
+bool supports_render_model_ = false;
+#endif
+
+#if ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS
+bool supports_composition_layer_ = false;
+XrCompositionLayerSettingsFB composition_layer_settings_ = { XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB };
+#endif
+
+#if ENABLE_OPENXR_FB_LOCAL_DIMMING
+//#include "openxr/meta_local_dimming.h"
+
+#ifndef XR_META_local_dimming
+#define XR_META_local_dimming 1
+#define XR_META_local_dimming_SPEC_VERSION 1
+#define XR_META_LOCAL_DIMMING_EXTENSION_NAME "XR_META_local_dimming"
+
+typedef enum XrLocalDimmingModeMETA {
+	XR_LOCAL_DIMMING_MODE_OFF_META = 0,
+	XR_LOCAL_DIMMING_MODE_ON_META = 1,
+	XR_LOCAL_DIMMING_MODE_MAX_ENUM_META = 0x7FFFFFFF
+} XrLocalDimmingModeMETA;
+
+struct XrLocalDimmingFrameEndInfoMETA {
+	XrStructureType type;
+	const void* XR_MAY_ALIAS next;
+	XrLocalDimmingModeMETA localDimmingMode;
+};
+
+XrLocalDimmingFrameEndInfoMETA local_dimming_settings_ = { (XrStructureType)1000216000, nullptr, XR_LOCAL_DIMMING_MODE_ON_META };
+bool supports_local_dimming_ = false;
+#endif
+
+#endif
+
 namespace {
 
 #if !defined(XR_USE_PLATFORM_WIN32)
@@ -150,9 +202,43 @@ struct OpenXrProgram : IOpenXrProgram {
 
             const std::string indentStr(indent, ' ');
             Log::Write(Log::Level::Verbose, Fmt("%sAvailable Extensions: (%d)", indentStr.c_str(), instanceExtensionCount));
+
             for (const XrExtensionProperties& extension : extensions) {
+
                 Log::Write(Log::Level::Verbose, Fmt("%s  Name=%s SpecVersion=%d", indentStr.c_str(), extension.extensionName,
                                                     extension.extensionVersion));
+
+#if ENABLE_OPENXR_FB_REFRESH_RATE
+				if (!strcmp(extension.extensionName, XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME))
+				{
+                    Log::Write(Log::Level::Info, "FB OPENXR REFRESH RATE - ENABLED");
+					supports_refresh_rate_ = true;
+				}
+#endif
+
+#if ENABLE_OPENXR_FB_RENDER_MODEL
+				if (!strcmp(extension.extensionName, XR_FB_RENDER_MODEL_EXTENSION_NAME))
+				{
+                    Log::Write(Log::Level::Info, "FB OPENXR RENDER MODEL - ENABLED");
+					supports_render_model_ = true;
+				}
+#endif
+
+#if ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS
+				if (!strcmp(extension.extensionName, XR_FB_COMPOSITION_LAYER_SETTINGS_EXTENSION_NAME))
+				{
+                    Log::Write(Log::Level::Info, "FB OPENXR COMPOSITION LAYER - ENABLED");
+					supports_composition_layer_ = true;
+				}
+#endif
+
+#if ENABLE_OPENXR_FB_LOCAL_DIMMING
+				if (!strcmp(extension.extensionName, XR_META_LOCAL_DIMMING_EXTENSION_NAME))
+				{
+                    Log::Write(Log::Level::Info, "FB OPENXR LOCAL DIMMING - ENABLED");
+					supports_local_dimming_ = true;
+				}
+#endif
             }
         };
 
@@ -199,11 +285,44 @@ struct OpenXrProgram : IOpenXrProgram {
 
         // Transform platform and graphics extension std::strings to C strings.
         const std::vector<std::string> platformExtensions = m_platformPlugin->GetInstanceExtensions();
+
         std::transform(platformExtensions.begin(), platformExtensions.end(), std::back_inserter(extensions),
                        [](const std::string& ext) { return ext.c_str(); });
+
         const std::vector<std::string> graphicsExtensions = m_graphicsPlugin->GetInstanceExtensions();
+
         std::transform(graphicsExtensions.begin(), graphicsExtensions.end(), std::back_inserter(extensions),
                        [](const std::string& ext) { return ext.c_str(); });
+
+#if ENABLE_OPENXR_FB_REFRESH_RATE
+        if (supports_refresh_rate_)
+        {
+            extensions.push_back(XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME);
+        }
+#endif
+
+#if ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS
+        if (supports_composition_layer_)
+        {
+            extensions.push_back(XR_FB_COMPOSITION_LAYER_SETTINGS_EXTENSION_NAME);
+
+			composition_layer_settings_.next = nullptr;
+			composition_layer_settings_.layerFlags = 0;
+
+#if ENABLE_OPENXR_FB_SHARPENING
+            composition_layer_settings_.layerFlags |= XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SHARPENING_BIT_FB;
+#endif
+
+        }
+#endif
+
+#if ENABLE_OPENXR_FB_LOCAL_DIMMING
+        if (supports_composition_layer_ && supports_local_dimming_)
+        {
+            extensions.push_back(XR_META_LOCAL_DIMMING_EXTENSION_NAME);
+            composition_layer_settings_.next = &local_dimming_settings_;
+        }
+#endif
 
         XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
         createInfo.next = m_platformPlugin->GetInstanceCreateExtension();
