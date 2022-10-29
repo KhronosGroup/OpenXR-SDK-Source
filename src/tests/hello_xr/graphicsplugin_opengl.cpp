@@ -13,7 +13,7 @@
 #include <common/gfxwrapper_opengl.h>
 #include <common/xr_linear.h>
 
-#define HARDCODE_VIEW_FOR_CUBES 1 
+#define HARDCODE_VIEW_FOR_CUBES 0
 
 //#define STB_IMAGE_IMPLEMENTATION
 //#include "stb_image.h"

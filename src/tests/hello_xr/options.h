@@ -84,7 +84,7 @@ struct Options {
 
         switch (Parsed.EnvironmentBlendMode) {
             case XR_ENVIRONMENT_BLEND_MODE_OPAQUE:
-                return SlateGrey;
+                return Black;// SlateGrey;
             case XR_ENVIRONMENT_BLEND_MODE_ADDITIVE:
                 return Black;
             case XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND:
