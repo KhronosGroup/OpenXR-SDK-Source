@@ -38,7 +38,7 @@
 #include <GLES3/gl3.h>
 #include <map>
 
-#define HARDCODE_VIEW_MATRIX 1
+#define HARDCODE_VIEW_MATRIX 0
 #define HARDCODE_PROJECTION_MATRIX 0
 #define HARDCODE_FOV 0
 
