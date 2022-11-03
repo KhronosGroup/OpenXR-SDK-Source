@@ -4,6 +4,9 @@
 
 #pragma once
 
+#define SUPPORT_SCREENSHOTS 1
+#define SUPPORT_REFRESH_RATES 1
+
 struct IOpenXrProgram {
     virtual ~IOpenXrProgram() = default;
 
@@ -41,7 +44,16 @@ struct IOpenXrProgram {
     // Get preferred blend mode based on the view configuration specified in the Options
     virtual XrEnvironmentBlendMode GetPreferredBlendMode() const = 0;
 
+#if SUPPORT_SCREENSHOTS
     virtual void TakeScreenShot() = 0;
+#endif
+
+#if SUPPORT_REFRESH_RATES
+    // Only works on Meta HMDs (SteamVR also supports it).
+    virtual std::vector<float>& GetSupportedRefreshRates() = 0;
+    virtual bool IsRefreshRateSupported(const float refresh_rate) = 0;
+    virtual void SetRefreshRate(const float refresh_rate) = 0; // 0.0 = system default
+#endif
 };
 
 struct Swapchain {

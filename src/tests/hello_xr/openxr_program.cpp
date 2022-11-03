@@ -16,7 +16,7 @@
 
 #define ADD_AIM_POSE 1
 #define ADD_EXTRA_CUBES 1
-#define TAKE_SCREENSHOT_WITH_LEFT_GRAB 0
+#define TAKE_SCREENSHOT_WITH_LEFT_GRAB (SUPPORT_SCREENSHOTS && 0)
 #define LOG_MATRICES 0
 
 #define ENABLE_OPENXR_FB_REFRESH_RATE 0
@@ -852,6 +852,7 @@ struct OpenXrProgram : IOpenXrProgram {
         }
     }
 
+#if SUPPORT_SCREENSHOTS
     bool take_screenshot_ = false;
 
     void TakeScreenShot() override 
@@ -882,6 +883,45 @@ struct OpenXrProgram : IOpenXrProgram {
         m_graphicsPlugin->SaveScreenShot(filename);
         take_screenshot_ = false;
     }
+#endif
+
+#if SUPPORT_REFRESH_RATES
+    bool refresh_rate_extension_enabled_ = false;
+    std::vector<float> supported_refresh_rates_;
+
+    void InitRefreshRateSupport()
+    {
+
+    }
+
+    std::vector<float>& GetSupportedRefreshRates() override
+    {
+        return supported_refresh_rates_;
+    }
+
+    bool IsRefreshRateSupported(const float refresh_rate) override
+    {
+        if (!refresh_rate_extension_enabled_)
+        {
+            return false;
+        }
+
+        (void)refresh_rate;
+
+        return true;
+    }
+
+    // 0.0 = system default
+    void SetRefreshRate(const float refresh_rate) override
+    {
+		if (!refresh_rate_extension_enabled_)
+		{
+			return;
+		}
+
+        (void)refresh_rate;
+    }
+#endif
 
     // Return event if one is available, otherwise return null.
     const XrEventDataBaseHeader* TryReadNextEvent() {
@@ -1317,10 +1357,12 @@ struct OpenXrProgram : IOpenXrProgram {
             const XrSwapchainImageBaseHeader* const swapchainImage = m_swapchainImages[viewSwapchain.handle][swapchainImageIndex];
             m_graphicsPlugin->RenderView(projectionLayerViews[i], swapchainImage, m_colorSwapchainFormat, cubes);
 
+#if SUPPORT_SCREENSHOTS
             if (i == Side::LEFT) 
             {
                 SaveScreenShotIfNecessary();
             }
+#endif
 
             XrSwapchainImageReleaseInfo releaseInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
             CHECK_XRCMD(xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo));
