@@ -17,6 +17,7 @@
 #define ADD_AIM_POSE 1
 #define ADD_EXTRA_CUBES 1
 #define TAKE_SCREENSHOT_WITH_LEFT_GRAB (SUPPORT_SCREENSHOTS && 0)
+#define ENABLE_LOCAL_DIMMING_WITH_RIGHT_GRAB (ENABLE_OPENXR_FB_LOCAL_DIMMING && 1)
 #define LOG_MATRICES 0
 
 #ifndef XR_LOAD
@@ -1058,7 +1059,7 @@ struct OpenXrProgram : IOpenXrProgram {
 
         // Only support one flag, sharpening, for now
         composition_layer_settings_.layerFlags = enabled ? XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SHARPENING_BIT_FB : 0;
-		is_sharpening_enabled_ = true;
+		is_sharpening_enabled_ = enabled;
 	}
 #endif
 
@@ -1069,25 +1070,28 @@ struct OpenXrProgram : IOpenXrProgram {
 
 
 #if ENABLE_OPENXR_FB_LOCAL_DIMMING
-	bool is_local_dimming_supported_ = false;
 	bool is_local_dimming_enabled_ = false;
 	XrLocalDimmingFrameEndInfoMETA local_dimming_settings_ = { XR_TYPE_FRAME_END_INFO, nullptr, XR_LOCAL_DIMMING_MODE_ON_META };
 
 	bool IsLocalDimmingEnabled() const override
 	{
-		return (is_local_dimming_supported_ && is_local_dimming_enabled_);
+		return (supports_local_dimming_ && is_local_dimming_enabled_);
 	}
 
 	void SetLocalDimmingEnabled(const bool enabled) override
 	{
-		if (!is_local_dimming_supported_)
+		if (!supports_local_dimming_)
 		{
-			is_local_dimming_supported_ = false;
+            is_local_dimming_enabled_ = false;
 			return;
 		}
-
-        local_dimming_settings_.localDimmingMode = enabled ? XR_LOCAL_DIMMING_MODE_ON_META : XR_LOCAL_DIMMING_MODE_OFF_META;
-		is_local_dimming_enabled_ = enabled;
+        
+        if (enabled != is_local_dimming_enabled_)
+        {
+            Log::Write(Log::Level::Info, Fmt("OPENXR LOCAL DIMMING = %s", enabled ? "ON" : "OFF"));
+            local_dimming_settings_.localDimmingMode = enabled ? XR_LOCAL_DIMMING_MODE_ON_META : XR_LOCAL_DIMMING_MODE_OFF_META;
+            is_local_dimming_enabled_ = enabled;
+        }
 	}
 #endif
 
@@ -1267,6 +1271,8 @@ struct OpenXrProgram : IOpenXrProgram {
 #if TAKE_SCREENSHOT_WITH_LEFT_GRAB
                 if (hand == Side::LEFT) 
                 {
+                    m_input.handScale[hand] = 1.0f;
+                    
                     static bool currently_gripping = false;
 
                     if (!currently_gripping && grabValue.currentState > 0.9f) 
@@ -1278,6 +1284,16 @@ struct OpenXrProgram : IOpenXrProgram {
                     {
                         currently_gripping = false;
                     }
+                }
+#endif
+
+#if ENABLE_LOCAL_DIMMING_WITH_RIGHT_GRAB
+                if (hand == Side::RIGHT)
+                {
+                    const bool enable_local_dimming = (grabValue.currentState > 0.9f);
+                    SetLocalDimmingEnabled(enable_local_dimming);
+
+                    m_input.handScale[hand] = 1.0f;
                 }
 #endif
             }
