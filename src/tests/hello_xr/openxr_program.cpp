@@ -19,12 +19,12 @@
 #define TAKE_SCREENSHOT_WITH_LEFT_GRAB (SUPPORT_SCREENSHOTS && 0)
 #define LOG_MATRICES 0
 
+#ifndef XR_LOAD
+#define XR_LOAD(instance, fn) CHECK_XRCMD(xrGetInstanceProcAddr(instance, #fn, reinterpret_cast<PFN_xrVoidFunction*>(&fn)))
+#endif
+
 #if ENABLE_OPENXR_FB_REFRESH_RATE
 bool supports_refresh_rate_ = false;
-#define USE_MAX_REFRESH_RATE 0
-#define USE_PREFERRED_REFRESH_RATE (!USE_MAX_REFRESH_RATE && 1) 
-const float PREFERRED_REFRESH_RATE = 90.0f;
-const float DEFAULT_REFRESH_RATE = 72.0f;
 #endif
 
 #if ENABLE_OPENXR_FB_RENDER_MODEL
@@ -876,42 +876,187 @@ struct OpenXrProgram : IOpenXrProgram {
     }
 #endif
 
-#if SUPPORT_REFRESH_RATES
-    bool refresh_rate_extension_enabled_ = false;
-    std::vector<float> supported_refresh_rates_;
+#if ENABLE_OPENXR_FB_REFRESH_RATE
+	//bool supports_refresh_rate_ = false;
+	std::vector<float> supported_refresh_rates_;
+	float current_refresh_rate_ = 0.0f;
+	float max_refresh_rate_ = 0.0f;
 
-    void InitRefreshRateSupport()
-    {
+	PFN_xrGetDisplayRefreshRateFB xrGetDisplayRefreshRateFB = nullptr;
+	PFN_xrEnumerateDisplayRefreshRatesFB xrEnumerateDisplayRefreshRatesFB = nullptr;
+	PFN_xrRequestDisplayRefreshRateFB xrRequestDisplayRefreshRateFB = nullptr;
 
-    }
+	const std::vector<float>& GetSupportedRefreshRates() override
+	{
+		if (!supported_refresh_rates_.empty())
+		{
+			return supported_refresh_rates_;
+		}
 
-    std::vector<float>& GetSupportedRefreshRates() override
-    {
-        return supported_refresh_rates_;
-    }
+		if (supports_refresh_rate_)
+		{
+			if (xrEnumerateDisplayRefreshRatesFB == nullptr)
+			{
+				XR_LOAD(m_instance, xrEnumerateDisplayRefreshRatesFB);
+			}
 
-    bool IsRefreshRateSupported(const float refresh_rate) override
-    {
-        if (!refresh_rate_extension_enabled_)
+			uint32_t num_refresh_rates = 0;
+			XrResult result = xrEnumerateDisplayRefreshRatesFB(m_session, 0, &num_refresh_rates, nullptr);
+
+			if ((result == XR_SUCCESS) && (num_refresh_rates > 0))
+			{
+				supported_refresh_rates_.resize(num_refresh_rates);
+				result = xrEnumerateDisplayRefreshRatesFB(m_session, num_refresh_rates, &num_refresh_rates, supported_refresh_rates_.data());
+
+				if (result == XR_SUCCESS)
+				{
+					std::sort(supported_refresh_rates_.begin(), supported_refresh_rates_.end());
+				}
+			}
+		}
+
+		return supported_refresh_rates_;
+	}
+
+	float GetCurrentRefreshRate() override
+	{
+		if (current_refresh_rate_ > 0.0f)
+		{
+			return current_refresh_rate_;
+		}
+
+		if (supports_refresh_rate_)
+		{
+			if (xrGetDisplayRefreshRateFB == nullptr)
+			{
+				XR_LOAD(m_instance, xrGetDisplayRefreshRateFB);
+			}
+
+			xrGetDisplayRefreshRateFB(m_session, &current_refresh_rate_);
+		}
+		else
+		{
+			current_refresh_rate_ = DEFAULT_REFRESH_RATE;
+		}
+
+		return current_refresh_rate_;
+	}
+
+	float GetMaxRefreshRate() override
+	{
+		if (max_refresh_rate_ > 0.0f)
+		{
+			return max_refresh_rate_;
+		}
+
+		GetSupportedRefreshRates();
+
+        if (supported_refresh_rates_.empty())
         {
-            return false;
+            max_refresh_rate_ = DEFAULT_REFRESH_RATE;
         }
+        else
+		{
+			// supported_refresh_rates_ is pre-sorted, so the last element is the highest supported refresh rate
+			max_refresh_rate_ = supported_refresh_rates_.back();
+		}
 
-        (void)refresh_rate;
+		return max_refresh_rate_;
+	}
 
-        return true;
-    }
+	bool IsRefreshRateSupported(const float refresh_rate) override
+	{
+		GetSupportedRefreshRates();
 
-    // 0.0 = system default
+		if (!supported_refresh_rates_.empty())
+		{
+			const bool found_it = (std::find(supported_refresh_rates_.begin(), supported_refresh_rates_.end(), refresh_rate) != supported_refresh_rates_.end());
+			return found_it;
+		}
+
+		return (refresh_rate == DEFAULT_REFRESH_RATE);
+	}
+
+	// 0.0 = system default
     void SetRefreshRate(const float refresh_rate) override
-    {
-		if (!refresh_rate_extension_enabled_)
+	{
+		if (!supports_refresh_rate_)
 		{
 			return;
 		}
 
-        (void)refresh_rate;
-    }
+		if (current_refresh_rate_ == 0.0f)
+		{
+			GetCurrentRefreshRate();
+		}
+
+		if (refresh_rate == current_refresh_rate_)
+		{
+			return;
+		}
+
+		if (xrRequestDisplayRefreshRateFB == nullptr)
+		{
+			XR_LOAD(m_instance, xrRequestDisplayRefreshRateFB);
+		}
+
+		XrResult result = xrRequestDisplayRefreshRateFB(m_session, refresh_rate);
+
+		if (result == XR_SUCCESS)
+		{
+			current_refresh_rate_ = refresh_rate;
+		}
+	}
+
+#endif
+
+#if ENABLE_OPENXR_FB_SHARPENING
+	bool is_sharpening_supported_ = false;
+	bool is_sharpening_enabled_ = false;
+
+	bool IsSharpeningEnabled() const
+	{
+		return (is_sharpening_supported_ && is_sharpening_enabled_);
+	}
+
+	void SetSharpeningEnabled(const bool enabled)
+	{
+		if (!is_sharpening_supported_)
+		{
+			is_sharpening_enabled_ = false;
+			return;
+		}
+
+		is_sharpening_enabled_ = true;
+	}
+#endif
+
+#if ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS
+	bool supports_composition_layer_ = false;
+	XrCompositionLayerSettingsFB composition_layer_settings_ = { XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB };
+#endif
+
+
+#if ENABLE_OPENXR_FB_LOCAL_DIMMING
+	bool is_local_dimming_supported_ = false;
+	bool is_local_dimming_enabled_ = false;
+	XrLocalDimmingFrameEndInfoMETA local_dimming_settings_ = { XR_TYPE_FRAME_END_INFO, nullptr, XR_LOCAL_DIMMING_MODE_ON_META };
+
+	bool IsLocalDimmingEnabled() const
+	{
+		return (is_local_dimming_supported_ && is_local_dimming_enabled_);
+	}
+
+	void SetLocalDimmingEnabled(const bool enabled)
+	{
+		if (!is_local_dimming_supported_)
+		{
+			is_local_dimming_supported_ = false;
+			return;
+		}
+
+		is_local_dimming_enabled_ = enabled;
+	}
 #endif
 
     // Return event if one is available, otherwise return null.
