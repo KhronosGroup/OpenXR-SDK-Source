@@ -305,7 +305,7 @@ struct OpenXrProgram : IOpenXrProgram {
 			composition_layer_settings_.layerFlags = 0;
 
 #if ENABLE_OPENXR_FB_SHARPENING
-            composition_layer_settings_.layerFlags |= XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SHARPENING_BIT_FB;
+            SetSharpeningEnabled(true);
 #endif
 
         }
@@ -315,6 +315,8 @@ struct OpenXrProgram : IOpenXrProgram {
         if (supports_local_dimming_)
         {
             extensions.push_back(XR_META_LOCAL_DIMMING_EXTENSION_NAME);
+
+            SetLocalDimmingEnabled(true);
         }
 #endif
 
@@ -1054,6 +1056,7 @@ struct OpenXrProgram : IOpenXrProgram {
 			return;
 		}
 
+        // Only support one flag, sharpening, for now
         composition_layer_settings_.layerFlags = enabled ? XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SHARPENING_BIT_FB : 0;
 		is_sharpening_enabled_ = true;
 	}
