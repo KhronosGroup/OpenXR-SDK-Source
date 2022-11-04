@@ -37,7 +37,10 @@ bool supports_composition_layer_ = false;
 #endif
 
 #if ENABLE_OPENXR_FB_LOCAL_DIMMING
-//#include "openxr/meta_local_dimming.h"
+
+#ifdef XR_USE_PLATFORM_ANDROID
+#include <openxr/meta_local_dimming.h>
+#else
 
 #ifndef XR_META_local_dimming
 #define XR_META_local_dimming 1
@@ -55,13 +58,13 @@ struct XrLocalDimmingFrameEndInfoMETA {
 	const void* XR_MAY_ALIAS next;
 	XrLocalDimmingModeMETA localDimmingMode;
 };
-
-//XrLocalDimmingFrameEndInfoMETA local_dimming_settings_ = { (XrStructureType)1000216000, nullptr, XR_LOCAL_DIMMING_MODE_ON_META };
-XrLocalDimmingFrameEndInfoMETA local_dimming_settings_ = { XR_TYPE_FRAME_END_INFO, nullptr, XR_LOCAL_DIMMING_MODE_ON_META };
-
-bool supports_local_dimming_ = false;
+#endif
 #endif
 
+XrLocalDimmingFrameEndInfoMETA local_dimming_settings_ = { (XrStructureType)1000216000, nullptr, XR_LOCAL_DIMMING_MODE_ON_META };
+//XrLocalDimmingFrameEndInfoMETA local_dimming_settings_ = { XR_TYPE_FRAME_END_INFO, nullptr, XR_LOCAL_DIMMING_MODE_ON_META };
+
+bool supports_local_dimming_ = false;
 #endif
 
 namespace {

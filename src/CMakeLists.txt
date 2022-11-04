@@ -186,6 +186,7 @@ if((OPENGL_FOUND OR OpenGLES_FOUND) AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/comm
     endif()
     if(ANDROID)
         target_include_directories(openxr-gfxwrapper PUBLIC ${ANDROID_NATIVE_APP_GLUE})
+        target_include_directories(openxr-gfxwrapper PUBLIC $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Include)
 
         # Note: For some reason, just adding this to the gfxwrapper library results in failure at load time.
         # So, each consuming target must add $<TARGET_OBJECTS:android_native_app_glue> to their sources
