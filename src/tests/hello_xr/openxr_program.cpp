@@ -1121,7 +1121,7 @@ struct OpenXrProgram : IOpenXrProgram
 
 	bool GetGazePose(const int eye, XrPosef& gaze_pose) override
 	{
-		if (eye_gazes_.gaze[eye].isValid)
+		if (eye_tracking_enabled_&& eye_gazes_.gaze[eye].isValid)
 		{
 			gaze_pose = eye_gazes_.gaze[eye].gazePose;
 			return true;
