@@ -33,7 +33,6 @@ bool supports_render_model_ = false;
 
 #if ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS
 bool supports_composition_layer_ = false;
-XrCompositionLayerSettingsFB composition_layer_settings_ = { XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB };
 #endif
 
 #if ENABLE_OPENXR_FB_LOCAL_DIMMING
@@ -242,7 +241,7 @@ struct OpenXrProgram : IOpenXrProgram {
 
         // Log layers and any of their extensions.
         {
-            uint32_t layerCount;
+            uint32_t layerCount = 0;
             CHECK_XRCMD(xrEnumerateApiLayerProperties(0, &layerCount, nullptr));
 
             std::vector<XrApiLayerProperties> layers(layerCount);
@@ -313,10 +312,9 @@ struct OpenXrProgram : IOpenXrProgram {
 #endif
 
 #if ENABLE_OPENXR_FB_LOCAL_DIMMING
-        if (supports_composition_layer_ && supports_local_dimming_)
+        if (supports_local_dimming_)
         {
             extensions.push_back(XR_META_LOCAL_DIMMING_EXTENSION_NAME);
-            composition_layer_settings_.next = &local_dimming_settings_;
         }
 #endif
 
@@ -889,7 +887,6 @@ struct OpenXrProgram : IOpenXrProgram {
 #endif
 
 #if ENABLE_OPENXR_FB_REFRESH_RATE
-	//bool supports_refresh_rate_ = false;
 	std::vector<float> supported_refresh_rates_;
 	float current_refresh_rate_ = 0.0f;
 	float max_refresh_rate_ = 0.0f;
@@ -1038,19 +1035,18 @@ struct OpenXrProgram : IOpenXrProgram {
 			current_refresh_rate_ = refresh_rate;
 		}
 	}
-
 #endif
 
 #if ENABLE_OPENXR_FB_SHARPENING
 	bool is_sharpening_supported_ = false;
 	bool is_sharpening_enabled_ = false;
 
-	bool IsSharpeningEnabled() const
+	bool IsSharpeningEnabled() const override
 	{
 		return (is_sharpening_supported_ && is_sharpening_enabled_);
 	}
 
-	void SetSharpeningEnabled(const bool enabled)
+	void SetSharpeningEnabled(const bool enabled) override
 	{
 		if (!is_sharpening_supported_)
 		{
@@ -1058,13 +1054,14 @@ struct OpenXrProgram : IOpenXrProgram {
 			return;
 		}
 
+        composition_layer_settings_.layerFlags = enabled ? XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SHARPENING_BIT_FB : 0;
 		is_sharpening_enabled_ = true;
 	}
 #endif
 
 #if ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS
-	bool supports_composition_layer_ = false;
-	XrCompositionLayerSettingsFB composition_layer_settings_ = { XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB };
+	//bool supports_composition_layer_ = false;
+	XrCompositionLayerSettingsFB composition_layer_settings_ = { XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB, nullptr, XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SHARPENING_BIT_FB };
 #endif
 
 
@@ -1073,12 +1070,12 @@ struct OpenXrProgram : IOpenXrProgram {
 	bool is_local_dimming_enabled_ = false;
 	XrLocalDimmingFrameEndInfoMETA local_dimming_settings_ = { XR_TYPE_FRAME_END_INFO, nullptr, XR_LOCAL_DIMMING_MODE_ON_META };
 
-	bool IsLocalDimmingEnabled() const
+	bool IsLocalDimmingEnabled() const override
 	{
 		return (is_local_dimming_supported_ && is_local_dimming_enabled_);
 	}
 
-	void SetLocalDimmingEnabled(const bool enabled)
+	void SetLocalDimmingEnabled(const bool enabled) override
 	{
 		if (!is_local_dimming_supported_)
 		{
@@ -1086,6 +1083,7 @@ struct OpenXrProgram : IOpenXrProgram {
 			return;
 		}
 
+        local_dimming_settings_.localDimmingMode = enabled ? XR_LOCAL_DIMMING_MODE_ON_META : XR_LOCAL_DIMMING_MODE_OFF_META;
 		is_local_dimming_enabled_ = enabled;
 	}
 #endif
@@ -1296,7 +1294,8 @@ struct OpenXrProgram : IOpenXrProgram {
         }
     }
 
-    void RenderFrame() override {
+    void RenderFrame() override 
+    {
         CHECK(m_session != XR_NULL_HANDLE);
 
         XrFrameWaitInfo frameWaitInfo{XR_TYPE_FRAME_WAIT_INFO};
@@ -1308,10 +1307,23 @@ struct OpenXrProgram : IOpenXrProgram {
 
         std::vector<XrCompositionLayerBaseHeader*> layers;
         XrCompositionLayerProjection layer{XR_TYPE_COMPOSITION_LAYER_PROJECTION};
+
         std::vector<XrCompositionLayerProjectionView> projectionLayerViews;
-        if (frameState.shouldRender == XR_TRUE) {
-            if (RenderLayer(frameState.predictedDisplayTime, projectionLayerViews, layer)) {
-                layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&layer));
+
+        if (frameState.shouldRender == XR_TRUE) 
+        {
+            if (RenderLayer(frameState.predictedDisplayTime, projectionLayerViews, layer)) 
+            {
+                XrCompositionLayerBaseHeader* header = reinterpret_cast<XrCompositionLayerBaseHeader*>(&layer);
+
+#if ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS
+				if (supports_composition_layer_)
+				{
+                    // Sharpening / Upscaling flags are set here. Mobile only (Quest)
+                    header->next = &composition_layer_settings_;
+				}
+#endif
+                layers.push_back(header);
             }
         }
 
@@ -1320,11 +1332,20 @@ struct OpenXrProgram : IOpenXrProgram {
         frameEndInfo.environmentBlendMode = m_options->Parsed.EnvironmentBlendMode;
         frameEndInfo.layerCount = (uint32_t)layers.size();
         frameEndInfo.layers = layers.data();
+
+#if ENABLE_OPENXR_FB_LOCAL_DIMMING
+		if (supports_local_dimming_)
+		{
+			local_dimming_settings_.localDimmingMode = is_local_dimming_enabled_ ? XR_LOCAL_DIMMING_MODE_ON_META : XR_LOCAL_DIMMING_MODE_OFF_META;
+			frameEndInfo.next = &local_dimming_settings_;
+		}
+#endif
         CHECK_XRCMD(xrEndFrame(m_session, &frameEndInfo));
     }
 
     bool RenderLayer(XrTime predictedDisplayTime, std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
-                     XrCompositionLayerProjection& layer) {
+                     XrCompositionLayerProjection& layer) 
+    {
         XrResult res;
 
         XrViewState viewState{XR_TYPE_VIEW_STATE};
@@ -1337,7 +1358,9 @@ struct OpenXrProgram : IOpenXrProgram {
         viewLocateInfo.space = m_appSpace;
 
         res = xrLocateViews(m_session, &viewLocateInfo, &viewState, viewCapacityInput, &viewCountOutput, m_views.data());
+
         CHECK_XRRESULT(res, "xrLocateViews");
+
         if ((viewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) == 0 ||
             (viewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) == 0) {
             return false;  // There is no valid tracking poses for the views.
