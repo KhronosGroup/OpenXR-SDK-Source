@@ -272,7 +272,8 @@ struct OpenXrProgram : IOpenXrProgram {
                                          GetXrVersionString(instanceProperties.runtimeVersion).c_str()));
     }
 
-    void CreateInstanceInternal() {
+    void CreateInstanceInternal() 
+    {
         CHECK(m_instance == XR_NULL_HANDLE);
 
         // Create union of extensions required by platform and graphics plugins.
@@ -719,7 +720,8 @@ struct OpenXrProgram : IOpenXrProgram {
         }
     }
 
-    void InitializeSession() override {
+    void InitializeSession() override 
+    {
         CHECK(m_instance != XR_NULL_HANDLE);
         CHECK(m_session == XR_NULL_HANDLE);
 
@@ -740,9 +742,15 @@ struct OpenXrProgram : IOpenXrProgram {
             XrReferenceSpaceCreateInfo referenceSpaceCreateInfo = GetXrReferenceSpaceCreateInfo(m_options->AppSpace);
             CHECK_XRCMD(xrCreateReferenceSpace(m_session, &referenceSpaceCreateInfo, &m_appSpace));
         }
+
+#if ENABLE_OPENXR_FB_REFRESH_RATE
+        GetMaxRefreshRate();
+		SetRefreshRate(DESIRED_REFRESH_RATE);
+#endif
     }
 
-    void CreateSwapchains() override {
+    void CreateSwapchains() override 
+    {
         CHECK(m_session != XR_NULL_HANDLE);
         CHECK(m_swapchains.empty());
         CHECK(m_configViews.empty());
@@ -754,10 +762,12 @@ struct OpenXrProgram : IOpenXrProgram {
         // Log system properties.
         Log::Write(Log::Level::Info,
                    Fmt("System Properties: Name=%s VendorId=%d", systemProperties.systemName, systemProperties.vendorId));
+
         Log::Write(Log::Level::Info, Fmt("System Graphics Properties: MaxWidth=%d MaxHeight=%d MaxLayers=%d",
                                          systemProperties.graphicsProperties.maxSwapchainImageWidth,
                                          systemProperties.graphicsProperties.maxSwapchainImageHeight,
                                          systemProperties.graphicsProperties.maxLayerCount));
+
         Log::Write(Log::Level::Info, Fmt("System Tracking Properties: OrientationTracking=%s PositionTracking=%s",
                                          systemProperties.trackingProperties.orientationTracking == XR_TRUE ? "True" : "False",
                                          systemProperties.trackingProperties.positionTracking == XR_TRUE ? "True" : "False"));
@@ -769,7 +779,7 @@ struct OpenXrProgram : IOpenXrProgram {
                   "Unsupported view configuration type");
 
         // Query and cache view configuration views.
-        uint32_t viewCount;
+        uint32_t viewCount = 0;
         CHECK_XRCMD(
             xrEnumerateViewConfigurationViews(m_instance, m_systemId, m_options->Parsed.ViewConfigType, 0, &viewCount, nullptr));
         m_configViews.resize(viewCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
@@ -780,7 +790,8 @@ struct OpenXrProgram : IOpenXrProgram {
         m_views.resize(viewCount, {XR_TYPE_VIEW});
 
         // Create the swapchain and get the images.
-        if (viewCount > 0) {
+        if (viewCount > 0) 
+        {
             // Select a swapchain format.
             uint32_t swapchainFormatCount;
             CHECK_XRCMD(xrEnumerateSwapchainFormats(m_session, 0, &swapchainFormatCount, nullptr));
@@ -808,7 +819,8 @@ struct OpenXrProgram : IOpenXrProgram {
             }
 
             // Create a swapchain for each view.
-            for (uint32_t i = 0; i < viewCount; i++) {
+            for (uint32_t i = 0; i < viewCount; i++) 
+            {
                 const XrViewConfigurationView& vp = m_configViews[i];
                 Log::Write(Log::Level::Info,
                            Fmt("Creating swapchain for view %d with dimensions Width=%d Height=%d SampleCount=%d", i,
@@ -912,6 +924,13 @@ struct OpenXrProgram : IOpenXrProgram {
 				{
 					std::sort(supported_refresh_rates_.begin(), supported_refresh_rates_.end());
 				}
+
+                Log::Write(Log::Level::Info, "OPENXR : GetSupportedRefreshRates:\n");
+
+                for (float refresh_rate : supported_refresh_rates_)
+                {
+                    Log::Write(Log::Level::Info, Fmt("OPENXR : \t %.2f Hz", refresh_rate));
+                }
 			}
 		}
 
@@ -932,7 +951,12 @@ struct OpenXrProgram : IOpenXrProgram {
 				XR_LOAD(m_instance, xrGetDisplayRefreshRateFB);
 			}
 
-			xrGetDisplayRefreshRateFB(m_session, &current_refresh_rate_);
+            XrResult result = xrGetDisplayRefreshRateFB(m_session, &current_refresh_rate_);
+
+            if (result == XR_SUCCESS)
+            {
+                Log::Write(Log::Level::Info, Fmt("OPENXR : GetCurrentRefreshRate => %.2f Hz", current_refresh_rate_));
+            }
 		}
 		else
 		{
@@ -959,6 +983,7 @@ struct OpenXrProgram : IOpenXrProgram {
 		{
 			// supported_refresh_rates_ is pre-sorted, so the last element is the highest supported refresh rate
 			max_refresh_rate_ = supported_refresh_rates_.back();
+            Log::Write(Log::Level::Info, Fmt("OPENXR : GetMaxRefreshRate => %.2f Hz", max_refresh_rate_));
 		}
 
 		return max_refresh_rate_;
@@ -980,7 +1005,7 @@ struct OpenXrProgram : IOpenXrProgram {
 	// 0.0 = system default
     void SetRefreshRate(const float refresh_rate) override
 	{
-		if (!supports_refresh_rate_)
+		if (!supports_refresh_rate_ || !m_session)
 		{
 			return;
 		}
@@ -995,6 +1020,11 @@ struct OpenXrProgram : IOpenXrProgram {
 			return;
 		}
 
+        if (!IsRefreshRateSupported(refresh_rate))
+        {
+            return;
+        }
+
 		if (xrRequestDisplayRefreshRateFB == nullptr)
 		{
 			XR_LOAD(m_instance, xrRequestDisplayRefreshRateFB);
@@ -1004,6 +1034,7 @@ struct OpenXrProgram : IOpenXrProgram {
 
 		if (result == XR_SUCCESS)
 		{
+			Log::Write(Log::Level::Info, Fmt("OPENXR : SetRefreshRate SUCCESSFULLY CHANGED from %.2f TO = %.2f Hz", current_refresh_rate_, refresh_rate));
 			current_refresh_rate_ = refresh_rate;
 		}
 	}
