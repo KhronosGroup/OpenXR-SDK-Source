@@ -1629,7 +1629,37 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
-		UpdateEyeTrackerGazes();
+        if (eye_tracking_enabled_)
+        {
+            UpdateEyeTrackerGazes();
+
+            for (int eye : { Side::LEFT, Side::RIGHT }) 
+            {
+                XrPosef gaze_pose;
+
+                if (GetGazePose(eye, gaze_pose))
+                {
+                    const float laser_length = 10.1f;
+                    const float half_laser_length = laser_length * 0.5f;
+                    const float distance_to_eye = 0.0f;
+
+                    // Apply an offset so the lasers aren't overlapping the eye directly
+                    XrVector3f local_laser_offset = { 0.0f, 0.0f, (-half_laser_length - distance_to_eye)};
+
+					XrMatrix4x4f rotation_matrix;
+					XrMatrix4x4f_CreateFromQuaternion(&rotation_matrix, &gaze_pose.orientation);
+
+                    XrVector3f world_laser_offset;
+                    XrMatrix4x4f_TransformVector3f(&world_laser_offset, &rotation_matrix, &local_laser_offset);
+
+                    XrVector3f_Add(&gaze_pose.position, &gaze_pose.position, &world_laser_offset);
+
+                    // Make a slender laser pointer-like box for gazes
+                    XrVector3f gaze_cube_scale{ 0.01f, 0.01f, laser_length };
+                    cubes.push_back(Cube{ gaze_pose, gaze_cube_scale });
+                }
+            }
+        }
 #endif
 
         // Render view to the appropriate part of the swapchain image.
