@@ -6,19 +6,21 @@
 
 #define SUPPORT_SCREENSHOTS 1
 
-#define ENABLE_OPENXR_FB_REFRESH_RATE 1
+#define ENABLE_OPENXR_FB_REFRESH_RATE 0
 #define DEFAULT_REFRESH_RATE 90.0f
 #define DESIRED_REFRESH_RATE 90.0f
 
 #define ENABLE_OPENXR_FB_RENDER_MODEL 0
 
-#define ENABLE_OPENXR_FB_SHARPENING 1
+#define ENABLE_OPENXR_FB_SHARPENING 0
 #define ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS ENABLE_OPENXR_FB_SHARPENING
 
-#define ENABLE_OPENXR_FB_LOCAL_DIMMING 1
+#define ENABLE_OPENXR_FB_LOCAL_DIMMING 0
+#define ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL 1
+#define LOG_EYE_TRACKING_DATA (ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL && 1)
 
-
-struct IOpenXrProgram {
+struct IOpenXrProgram 
+{
     virtual ~IOpenXrProgram() = default;
 
     // Create an Instance and other basic instance-level initialization.
@@ -76,6 +78,10 @@ struct IOpenXrProgram {
 #if ENABLE_OPENXR_FB_LOCAL_DIMMING
 	virtual bool IsLocalDimmingEnabled() const = 0;
 	virtual void SetLocalDimmingEnabled(const bool enabled) = 0;
+#endif
+
+#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
+	virtual bool GetGazePose(const int eye, XrPosef& gaze_pose) = 0;
 #endif
 };
 

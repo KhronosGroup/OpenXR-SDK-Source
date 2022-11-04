@@ -95,6 +95,8 @@ if(Vulkan_LIBRARY)
     target_link_libraries(hello_xr ${Vulkan_LIBRARY})
 endif()
 
+target_include_directories(hello_xr PUBLIC $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Include)
+
 if(NOT ANDROID)
     install(TARGETS hello_xr
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
