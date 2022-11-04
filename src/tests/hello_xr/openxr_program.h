@@ -5,7 +5,15 @@
 #pragma once
 
 #define SUPPORT_SCREENSHOTS 1
-#define SUPPORT_REFRESH_RATES 1
+
+#define ENABLE_OPENXR_FB_REFRESH_RATE 0
+#define DEFAULT_REFRESH_RATE 90.0f
+
+#define ENABLE_OPENXR_FB_SHARPENING 0
+#define ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS ENABLE_OPENXR_FB_SHARPENING
+
+#define ENABLE_OPENXR_FB_LOCAL_DIMMING 0
+
 
 struct IOpenXrProgram {
     virtual ~IOpenXrProgram() = default;
@@ -48,11 +56,23 @@ struct IOpenXrProgram {
     virtual void TakeScreenShot() = 0;
 #endif
 
-#if SUPPORT_REFRESH_RATES
+#if ENABLE_OPENXR_FB_REFRESH_RATE
     // Only works on Meta HMDs (SteamVR also supports it).
-    virtual std::vector<float>& GetSupportedRefreshRates() = 0;
+    virtual const std::vector<float>& GetSupportedRefreshRates() = 0;
+    virtual float GetCurrentRefreshRate() = 0;
+    virtual float GetMaxRefreshRate() = 0;
     virtual bool IsRefreshRateSupported(const float refresh_rate) = 0;
     virtual void SetRefreshRate(const float refresh_rate) = 0; // 0.0 = system default
+#endif
+
+#if ENABLE_OPENXR_FB_SHARPENING
+    virtual bool IsSharpeningEnabled() const = 0;
+    virtual void SetSharpeningEnabled(const bool enabled) = 0;
+#endif
+
+#if ENABLE_OPENXR_FB_LOCAL_DIMMING
+	virtual bool IsLocalDimmingEnabled() const = 0;
+	virtual void SetLocalDimmingEnabled(const bool enabled) = 0;
 #endif
 };
 
