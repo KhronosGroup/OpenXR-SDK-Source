@@ -10,7 +10,11 @@ BRANCH: QUEST CLIENT USING OCULUS INSTRUCTIONS FROM HERE:
 
 https://developer.oculus.com/documentation/native/android/mobile-build-run-hello-xr-app/
 
+QUEST PRO EYE TRACKING sample on PC VR via Link / AirLink (enable Dev mode + eye-tracking sliders in Oculus PC app):
 
+https://twitter.com/BattleAxeVR/status/1588640727197954048/video/1
+
+NB This same exact code should work on Quest Pro standalone mode, but I didn't add the request permissions Java code for eye-tracking (which needs to be accepted for it to work). There is no java code in this project so it will probably have to be done via JNI / Android Native somehow. I'll try to add that soon.
 
 This repository contains source code and build scripts for implementations
 of the OpenXR loader, validation layers, and code samples.
