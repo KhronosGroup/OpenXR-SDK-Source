@@ -20,10 +20,6 @@
     <uses-feature android:name="com.oculus.feature.RENDER_MODEL" android:required="false" />
     <uses-permission android:name="com.oculus.permission.RENDER_MODEL" />
 
-    <!-- Hand tracking -->
-    <uses-feature android:name="oculus.software.handtracking" android:required="false" />
-    <uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
-
     <!-- Tracked keyboard -->
     <uses-feature android:name="oculus.software.trackedkeyboard" android:required="false" />
     <uses-permission android:name="com.oculus.permission.TRACKED_KEYBOARD" />
@@ -31,18 +27,22 @@
     <!-- Passthrough -->
     <uses-feature android:name="com.oculus.feature.PASSTHROUGH" android:required="false" />
 
+    <!-- Hand tracking -->
+    <uses-feature android:name="oculus.software.handtracking" android:required="false" />
+    <uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
+
     <!-- Eye Tracking -->
-    <uses-feature android:name="oculus.software.eye_tracking" android:required="true" />
+    <uses-feature android:name="oculus.software.eye_tracking" android:required="false" />
     <uses-permission android:name="com.oculus.permission.EYE_TRACKING" />
 
     <!-- Face Tracking -->
-    <uses-feature android:name="oculus.software.face_tracking" android:required="true" />
+    <uses-feature android:name="oculus.software.face_tracking" android:required="false" />
     <uses-permission android:name="com.oculus.permission.FACE_TRACKING" />
 
     <!-- Body Tracking -->
     <uses-feature android:name="com.oculus.software.body_tracking" />
     <uses-permission android:name="com.oculus.permission.BODY_TRACKING" />
-    <uses-feature android:name="com.oculus.experimental.enabled" android:required="true" />
+    <uses-feature android:name="com.oculus.experimental.enabled" android:required="false" />
 
   <uses-permission android:name="org.khronos.openxr.permission.OPENXR" />
   <uses-permission android:name="org.khronos.openxr.permission.OPENXR_SYSTEM" />
@@ -70,13 +70,12 @@
       android:screenOrientation="landscape"
       android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
       tools:ignore="NonResizeableActivity">
-      <!-- Tell NativeActivity the name of the .so -->
-      <meta-data
-        android:name="android.app.lib_name"
-        android:value="hello_xr" />
 
-        <meta-data android:name="com.samsung.android.vr.application_mode" android:value="vr_only"/>
-        <meta-data android:name="com.oculus.supportedDevices" android:value="quest|quest2|questpro"/>
+      <!-- Tell NativeActivity the name of the .so -->
+      <meta-data android:name="android.app.lib_name" android:value="hello_xr" />
+      <meta-data android:name="com.samsung.android.vr.application_mode" android:value="vr_only"/>
+      <meta-data android:name="com.oculus.supportedDevices" android:value="quest|quest2|questpro"/>
+      <meta-data android:name="com.oculus.handtracking.version" android:value="V2.0"/>
 
         <!-- This filter lets the apk show up as a launchable icon. -->
       <intent-filter>

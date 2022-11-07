@@ -42,9 +42,23 @@ bool supports_local_dimming_ = false;
 XrLocalDimmingFrameEndInfoMETA local_dimming_settings_ = { (XrStructureType)1000216000, nullptr, XR_LOCAL_DIMMING_MODE_ON_META };
 #endif
 
+#if ENABLE_OPENXR_HAND_TRACKING
+bool supports_hand_tracking_ = false;
+#endif
+
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 #include <openxr/fb_eye_tracking_social.h>
 bool supports_eye_tracking_social_ = false;
+#endif
+
+#if ENABLE_OPENXR_FB_FACE_TRACKING
+#include <openxr/fb_face_tracking.h>
+bool supports_face_tracking_ = false;
+#endif
+
+#if ENABLE_OPENXR_FB_BODY_TRACKING
+#include <openxr/fb_body_tracking.h>
+bool supports_body_tracking_ = false;
 #endif
 
 
@@ -195,7 +209,7 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_FB_REFRESH_RATE
 				if (!strcmp(extension.extensionName, XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME))
 				{
-                    Log::Write(Log::Level::Info, "FB OPENXR REFRESH RATE - ENABLED");
+                    Log::Write(Log::Level::Info, "FB OPENXR XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME - DETECTED");
 					supports_refresh_rate_ = true;
 				}
 #endif
@@ -203,7 +217,7 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_FB_RENDER_MODEL
 				if (!strcmp(extension.extensionName, XR_FB_RENDER_MODEL_EXTENSION_NAME))
 				{
-                    Log::Write(Log::Level::Info, "FB OPENXR RENDER MODEL - ENABLED");
+                    Log::Write(Log::Level::Info, "FB OPENXR XR_FB_RENDER_MODEL_EXTENSION_NAME - DETECTED");
 					supports_render_model_ = true;
 				}
 #endif
@@ -211,7 +225,7 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS
 				if (!strcmp(extension.extensionName, XR_FB_COMPOSITION_LAYER_SETTINGS_EXTENSION_NAME))
 				{
-                    Log::Write(Log::Level::Info, "FB OPENXR COMPOSITION LAYER - ENABLED");
+                    Log::Write(Log::Level::Info, "FB OPENXR XR_FB_COMPOSITION_LAYER_SETTINGS_EXTENSION_NAME - DETECTED");
 					supports_composition_layer_ = true;
 				}
 #endif
@@ -219,16 +233,40 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_FB_LOCAL_DIMMING
 				if (!strcmp(extension.extensionName, XR_META_LOCAL_DIMMING_EXTENSION_NAME))
 				{
-                    Log::Write(Log::Level::Info, "FB OPENXR LOCAL DIMMING - ENABLED");
+                    Log::Write(Log::Level::Info, "FB OPENXR XR_META_LOCAL_DIMMING_EXTENSION_NAME - DETECTED");
 					supports_local_dimming_ = true;
+				}
+#endif
+
+#if ENABLE_OPENXR_HAND_TRACKING
+				if (!strcmp(extension.extensionName, XR_EXT_HAND_TRACKING_EXTENSION_NAME))
+				{
+					Log::Write(Log::Level::Info, "FB OPENXR XR_EXT_HAND_TRACKING_EXTENSION_NAME - DETECTED");
+                    supports_hand_tracking_ = true;
 				}
 #endif
 
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 				if (!strcmp(extension.extensionName, XR_FB_EYE_TRACKING_SOCIAL_EXTENSION_NAME))
 				{
-                    Log::Write(Log::Level::Info, "FB OPENXR EYE TRACKING EXTENSION DETECTED");
+					Log::Write(Log::Level::Info, "FB OPENXR XR_FB_EYE_TRACKING_SOCIAL_EXTENSION_NAME - DETECTED");
 					supports_eye_tracking_social_ = true;
+				}
+#endif
+
+#if ENABLE_OPENXR_FB_FACE_TRACKING
+				if (!strcmp(extension.extensionName, XR_FB_FACE_TRACKING_EXTENSION_NAME))
+				{
+					Log::Write(Log::Level::Info, "FB OPENXR XR_FB_FACE_TRACKING_EXTENSION_NAME - DETECTED");
+                    supports_face_tracking_ = true;
+				}
+#endif
+
+#if ENABLE_OPENXR_FB_BODY_TRACKING
+				if (!strcmp(extension.extensionName, XR_FB_BODY_TRACKING_EXTENSION_NAME))
+				{
+					Log::Write(Log::Level::Info, "FB OPENXR XR_FB_BODY_TRACKING_EXTENSION_NAME - DETECTED");
+                    supports_body_tracking_ = true;
 				}
 #endif
             }
@@ -320,6 +358,18 @@ struct OpenXrProgram : IOpenXrProgram
         }
 #endif
 
+#if ENABLE_OPENXR_HAND_TRACKING
+		if (supports_hand_tracking_)
+		{
+			Log::Write(Log::Level::Info, "Hand Tracking is supported");
+			extensions.push_back(XR_EXT_HAND_TRACKING_EXTENSION_NAME);
+		}
+		else
+		{
+			Log::Write(Log::Level::Info, "Hand Tracking is NOT supported");
+		}
+#endif
+
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 		if (supports_eye_tracking_social_)
 		{
@@ -329,6 +379,30 @@ struct OpenXrProgram : IOpenXrProgram
 		else
 		{
 			Log::Write(Log::Level::Info, "Eye Tracking is NOT supported");
+		}
+#endif
+
+#if ENABLE_OPENXR_FB_FACE_TRACKING
+		if (supports_face_tracking_)
+		{
+			Log::Write(Log::Level::Info, "Face Tracking is supported");
+			extensions.push_back(XR_EXT_HAND_TRACKING_EXTENSION_NAME);
+		}
+		else
+		{
+			Log::Write(Log::Level::Info, "Face Tracking is NOT supported");
+		}
+#endif
+
+#if ENABLE_OPENXR_FB_BODY_TRACKING
+		if (supports_body_tracking_)
+		{
+			Log::Write(Log::Level::Info, "Body Tracking is supported");
+			extensions.push_back(XR_FB_BODY_TRACKING_EXTENSION_NAME);
+		}
+		else
+		{
+			Log::Write(Log::Level::Info, "Body Tracking is NOT supported");
 		}
 #endif
 
@@ -343,7 +417,8 @@ struct OpenXrProgram : IOpenXrProgram
         CHECK_XRCMD(xrCreateInstance(&createInfo, &m_instance));
     }
 
-    void CreateInstance() override {
+    void CreateInstance() override 
+    {
         LogLayersAndExtensions();
 
         CreateInstanceInternal();
@@ -351,19 +426,23 @@ struct OpenXrProgram : IOpenXrProgram
         LogInstanceInfo();
     }
 
-    void LogViewConfigurations() {
+    void LogViewConfigurations() 
+    {
         CHECK(m_instance != XR_NULL_HANDLE);
         CHECK(m_systemId != XR_NULL_SYSTEM_ID);
 
-        uint32_t viewConfigTypeCount;
+        uint32_t viewConfigTypeCount = 0;
         CHECK_XRCMD(xrEnumerateViewConfigurations(m_instance, m_systemId, 0, &viewConfigTypeCount, nullptr));
+        
         std::vector<XrViewConfigurationType> viewConfigTypes(viewConfigTypeCount);
         CHECK_XRCMD(xrEnumerateViewConfigurations(m_instance, m_systemId, viewConfigTypeCount, &viewConfigTypeCount,
                                                   viewConfigTypes.data()));
         CHECK((uint32_t)viewConfigTypes.size() == viewConfigTypeCount);
 
         Log::Write(Log::Level::Info, Fmt("Available View Configuration Types: (%d)", viewConfigTypeCount));
-        for (XrViewConfigurationType viewConfigType : viewConfigTypes) {
+
+        for (XrViewConfigurationType viewConfigType : viewConfigTypes) 
+        {
             Log::Write(Log::Level::Verbose, Fmt("  View Configuration Type: %s %s", to_string(viewConfigType),
                                                 viewConfigType == m_options->Parsed.ViewConfigType ? "(Selected)" : ""));
 
@@ -375,12 +454,15 @@ struct OpenXrProgram : IOpenXrProgram
 
             uint32_t viewCount;
             CHECK_XRCMD(xrEnumerateViewConfigurationViews(m_instance, m_systemId, viewConfigType, 0, &viewCount, nullptr));
-            if (viewCount > 0) {
-                std::vector<XrViewConfigurationView> views(viewCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
-                CHECK_XRCMD(
-                    xrEnumerateViewConfigurationViews(m_instance, m_systemId, viewConfigType, viewCount, &viewCount, views.data()));
 
-                for (uint32_t i = 0; i < views.size(); i++) {
+            if (viewCount > 0) 
+            {
+                std::vector<XrViewConfigurationView> views(viewCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
+
+                CHECK_XRCMD(xrEnumerateViewConfigurationViews(m_instance, m_systemId, viewConfigType, viewCount, &viewCount, views.data()));
+
+                for (uint32_t i = 0; i < views.size(); i++) 
+                {
                     const XrViewConfigurationView& view = views[i];
 
                     Log::Write(Log::Level::Verbose, Fmt("    View [%d]: Recommended Width=%d Height=%d SampleCount=%d", i,
