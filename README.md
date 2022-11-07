@@ -12,7 +12,6 @@ https://developer.oculus.com/documentation/native/android/mobile-build-run-hello
 
 QUEST PRO EYE TRACKING sample on PC VR via Link / AirLink (enable Dev mode + eye-tracking sliders in Oculus PC app):
 
-https://twitter.com/BattleAxeVR/status/1588640727197954048/video/1
 
 ![image](https://user-images.githubusercontent.com/11604039/200199048-adeef6c8-d349-436f-80ff-d237c35244c4.png)
 
@@ -21,7 +20,6 @@ NB This same exact code should work on Quest Pro standalone mode, but I didn't a
 
 Body tracking extension works fine on Standalone but gives a runtime error on PC via Link.
 
-https://twitter.com/BattleAxeVR/status/1589544330032971776
 
 ![image](https://user-images.githubusercontent.com/11604039/200270625-e627a78b-5d4e-409f-80da-79bebe81bb63.png)
 
