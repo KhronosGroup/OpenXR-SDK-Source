@@ -57,6 +57,7 @@ bool supports_face_tracking_ = false;
 #endif
 
 #if ENABLE_OPENXR_FB_BODY_TRACKING
+//#define XR_FB_body_tracking_EXPERIMENTAL_VERSION 2
 #include <openxr/fb_body_tracking.h>
 bool supports_body_tracking_ = false;
 #endif
@@ -147,13 +148,18 @@ struct OpenXrProgram : IOpenXrProgram
 
     ~OpenXrProgram() override 
     {
+#if ENABLE_OPENXR_FB_BODY_TRACKING
+		DestroyBodyTracker();
+#endif
+
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 		DestroyEyeTracker();
 #endif
 
         if (m_input.actionSet != XR_NULL_HANDLE) 
         {
-            for (auto hand : {Side::LEFT, Side::RIGHT}) {
+            for (auto hand : {Side::LEFT, Side::RIGHT}) 
+            {
                 xrDestroySpace(m_input.handSpace[hand]);
 
 #if ADD_AIM_POSE
@@ -163,46 +169,54 @@ struct OpenXrProgram : IOpenXrProgram
             xrDestroyActionSet(m_input.actionSet);
         }
 
-        for (Swapchain swapchain : m_swapchains) {
+        for (Swapchain swapchain : m_swapchains) 
+        {
             xrDestroySwapchain(swapchain.handle);
         }
 
-        for (XrSpace visualizedSpace : m_visualizedSpaces) {
+        for (XrSpace visualizedSpace : m_visualizedSpaces) 
+        {
             xrDestroySpace(visualizedSpace);
         }
 
-        if (m_appSpace != XR_NULL_HANDLE) {
+        if (m_appSpace != XR_NULL_HANDLE) 
+        {
             xrDestroySpace(m_appSpace);
         }
 
-        if (m_session != XR_NULL_HANDLE) {
+        if (m_session != XR_NULL_HANDLE) 
+        {
             xrDestroySession(m_session);
         }
 
-        if (m_instance != XR_NULL_HANDLE) {
+        if (m_instance != XR_NULL_HANDLE) 
+        {
             xrDestroyInstance(m_instance);
         }
     }
 
-    static void LogLayersAndExtensions() {
+    static void LogLayersAndExtensions() 
+    {
         // Write out extension properties for a given layer.
-        const auto logExtensions = [](const char* layerName, int indent = 0) {
+        const auto logExtensions = [](const char* layerName, int indent = 0) 
+        {
             uint32_t instanceExtensionCount;
             CHECK_XRCMD(xrEnumerateInstanceExtensionProperties(layerName, 0, &instanceExtensionCount, nullptr));
 
             std::vector<XrExtensionProperties> extensions(instanceExtensionCount);
-            for (XrExtensionProperties& extension : extensions) {
+
+            for (XrExtensionProperties& extension : extensions) 
+            {
                 extension.type = XR_TYPE_EXTENSION_PROPERTIES;
             }
 
-            CHECK_XRCMD(xrEnumerateInstanceExtensionProperties(layerName, (uint32_t)extensions.size(), &instanceExtensionCount,
-                                                               extensions.data()));
+            CHECK_XRCMD(xrEnumerateInstanceExtensionProperties(layerName, (uint32_t)extensions.size(), &instanceExtensionCount, extensions.data()));
 
             const std::string indentStr(indent, ' ');
             Log::Write(Log::Level::Verbose, Fmt("%sAvailable Extensions: (%d)", indentStr.c_str(), instanceExtensionCount));
 
-            for (const XrExtensionProperties& extension : extensions) {
-
+            for (const XrExtensionProperties& extension : extensions) 
+            {
                 Log::Write(Log::Level::Verbose, Fmt("%s  Name=%s SpecVersion=%d", indentStr.c_str(), extension.extensionName,
                                                     extension.extensionVersion));
 
@@ -845,6 +859,10 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 		CreateEyeTracker();
 #endif
+
+#if ENABLE_OPENXR_FB_BODY_TRACKING
+		CreateBodyTracker();
+#endif
     }
 
     void CreateSwapchains() override 
@@ -1192,14 +1210,17 @@ struct OpenXrProgram : IOpenXrProgram
 	}
 #endif
 
+#if ENABLE_OPENXR_HAND_TRACKING
+#endif
+
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 	PFN_xrCreateEyeTrackerFB xrCreateEyeTrackerFB = nullptr;
 	PFN_xrDestroyEyeTrackerFB xrDestroyEyeTrackerFB = nullptr;
 	PFN_xrGetEyeGazesFB xrGetEyeGazesFB = nullptr;
 
+    bool eye_tracking_enabled_ = false;
 	XrEyeTrackerFB eye_tracker_ = nullptr;
 	XrEyeGazesFB eye_gazes_{ XR_TYPE_EYE_GAZES_FB, nullptr };
-	bool eye_tracking_enabled_ = false;
 
 	bool GetGazePose(const int eye, XrPosef& gaze_pose) override
 	{
@@ -1292,33 +1313,167 @@ struct OpenXrProgram : IOpenXrProgram
 	}
 #endif
 
+#if ENABLE_OPENXR_FB_FACE_TRACKING
+
+#endif
+
+#if ENABLE_OPENXR_FB_BODY_TRACKING
+	PFN_xrCreateBodyTrackerFB xrCreateBodyTrackerFB = nullptr;
+	PFN_xrDestroyBodyTrackerFB xrDestroyBodyTrackerFB = nullptr;
+	PFN_xrLocateBodyJointsFB xrLocateBodyJointsFB = nullptr;
+    
+    bool body_tracking_enabled_ = false;
+    XrBodyTrackerFB body_tracker_ = nullptr;
+    XrBodyJointLocationFB body_joints_[XR_BODY_JOINT_COUNT_FB] = {};
+    XrBodyJointLocationsFB body_joint_locations_{ XR_TYPE_BODY_JOINT_LOCATIONS_FB, nullptr };
+
+#if 0
+    bool display_skeleton_ = false;
+    PFN_xrGetSkeletonFB xrGetSkeletonFB = nullptr;
+    XrBodySkeletonJointFB skeleton_joints_[XR_BODY_JOINT_COUNT_FB] = {};
+    uint32_t skeleton_change_count_ = 0;
+#endif
+
+    void CreateBodyTracker()
+    {
+        if (!supports_body_tracking_ || !m_instance || !m_session || body_tracker_)
+        {
+            return;
+        }
+
+		if (xrCreateBodyTrackerFB == nullptr)
+		{
+			XR_LOAD(m_instance, xrCreateBodyTrackerFB);
+		}
+
+		if (xrCreateBodyTrackerFB == nullptr)
+		{
+			return;
+		}
+
+		XrBodyTrackerCreateInfoFB create_info{ XR_TYPE_BODY_TRACKER_CREATE_INFO_FB };
+        create_info.bodyJointSet = XR_BODY_JOINT_SET_DEFAULT_FB;
+
+		XrResult result = xrCreateBodyTrackerFB(m_session, &create_info, &body_tracker_);
+
+		if (result == XR_SUCCESS)
+		{
+			Log::Write(Log::Level::Info, "OPENXR - Body tracking enabled and running...");
+            body_tracking_enabled_ = true;
+		}
+    }
+
+	void DestroyBodyTracker()
+	{
+        if (!supports_body_tracking_ || !body_tracker_)
+        {
+            return;
+        }
+
+		if (xrDestroyBodyTrackerFB == nullptr)
+		{
+			XR_LOAD(m_instance, xrDestroyBodyTrackerFB);
+		}
+
+		if (xrDestroyBodyTrackerFB == nullptr)
+		{
+			return;
+		}
+
+        xrDestroyBodyTrackerFB(body_tracker_);
+        body_tracker_ = nullptr;
+		body_tracking_enabled_ = false;
+
+		Log::Write(Log::Level::Info, "OPENXR - Body tracker destroyed...");
+	}
+
+	void UpdateBodyTrackerLocations(const XrTime& predicted_display_time)
+	{
+        if (body_tracker_ && body_tracking_enabled_)
+        {
+            if (xrLocateBodyJointsFB == nullptr)
+            {
+                XR_LOAD(m_instance, xrLocateBodyJointsFB);
+            }
+
+            if (xrLocateBodyJointsFB == nullptr)
+            {
+                return;
+            }
+
+#if 0
+			if (xrGetSkeletonFB == nullptr)
+			{
+				XR_LOAD(m_instance, xrGetSkeletonFB);
+			}
+
+			if (xrGetSkeletonFB == nullptr)
+			{
+				return;
+			}
+#endif
+
+            XrBodyJointsLocateInfoFB locate_info{ XR_TYPE_BODY_JOINTS_LOCATE_INFO_FB };
+            locate_info.baseSpace = m_appSpace;
+            locate_info.time = predicted_display_time;
+
+            body_joint_locations_.next = nullptr;
+            body_joint_locations_.jointCount = XR_BODY_JOINT_COUNT_FB;
+            body_joint_locations_.jointLocations = body_joints_;
+
+#if LOG_BODY_TRACKING_DATA
+            XrResult result = xrLocateBodyJointsFB(body_tracker_, &locate_info, &body_joint_locations_);
+
+            if (result == XR_SUCCESS)
+            {
+                Log::Write(Log::Level::Info, Fmt("OPENXR UPDATE BODY LOCATIONS SUCCEEDED"));
+            }
+            else
+            {
+                Log::Write(Log::Level::Info, Fmt("OPENXR UPDATE BODY LOCATIONS FAILED"));
+            }
+#else
+            xrLocateBodyJointsFB(body_tracker_, &locate_info, &body_joint_locations_);
+#endif
+		}
+	}
+#endif
+
 
     // Return event if one is available, otherwise return null.
-    const XrEventDataBaseHeader* TryReadNextEvent() {
+    const XrEventDataBaseHeader* TryReadNextEvent() 
+    {
         // It is sufficient to clear the just the XrEventDataBuffer header to
         // XR_TYPE_EVENT_DATA_BUFFER
         XrEventDataBaseHeader* baseHeader = reinterpret_cast<XrEventDataBaseHeader*>(&m_eventDataBuffer);
         *baseHeader = {XR_TYPE_EVENT_DATA_BUFFER};
         const XrResult xr = xrPollEvent(m_instance, &m_eventDataBuffer);
-        if (xr == XR_SUCCESS) {
-            if (baseHeader->type == XR_TYPE_EVENT_DATA_EVENTS_LOST) {
+
+        if (xr == XR_SUCCESS) 
+        {
+            if (baseHeader->type == XR_TYPE_EVENT_DATA_EVENTS_LOST) 
+            {
                 const XrEventDataEventsLost* const eventsLost = reinterpret_cast<const XrEventDataEventsLost*>(baseHeader);
                 Log::Write(Log::Level::Warning, Fmt("%d events lost", eventsLost));
             }
 
             return baseHeader;
         }
-        if (xr == XR_EVENT_UNAVAILABLE) {
+
+        if (xr == XR_EVENT_UNAVAILABLE) 
+        {
             return nullptr;
         }
         THROW_XR(xr, "xrPollEvent");
     }
 
-    void PollEvents(bool* exitRenderLoop, bool* requestRestart) override {
+    void PollEvents(bool* exitRenderLoop, bool* requestRestart) override 
+    {
         *exitRenderLoop = *requestRestart = false;
 
         // Process all pending messages.
-        while (const XrEventDataBaseHeader* event = TryReadNextEvent()) {
+        while (const XrEventDataBaseHeader* event = TryReadNextEvent()) 
+        {
             switch (event->type) {
                 case XR_TYPE_EVENT_DATA_INSTANCE_LOSS_PENDING: {
                     const auto& instanceLossPending = *reinterpret_cast<const XrEventDataInstanceLossPending*>(event);
@@ -1347,15 +1502,16 @@ struct OpenXrProgram : IOpenXrProgram
         }
     }
 
-    void HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent, bool* exitRenderLoop,
-                                        bool* requestRestart) {
+    void HandleSessionStateChangedEvent(const XrEventDataSessionStateChanged& stateChangedEvent, bool* exitRenderLoop, bool* requestRestart) 
+    {
         const XrSessionState oldState = m_sessionState;
         m_sessionState = stateChangedEvent.state;
 
         Log::Write(Log::Level::Info, Fmt("XrEventDataSessionStateChanged: state %s->%s session=%lld time=%lld", to_string(oldState),
                                          to_string(m_sessionState), stateChangedEvent.session, stateChangedEvent.time));
 
-        if ((stateChangedEvent.session != XR_NULL_HANDLE) && (stateChangedEvent.session != m_session)) {
+        if ((stateChangedEvent.session != XR_NULL_HANDLE) && (stateChangedEvent.session != m_session)) 
+        {
             Log::Write(Log::Level::Error, "XrEventDataSessionStateChanged for unknown session");
             return;
         }
@@ -1392,16 +1548,20 @@ struct OpenXrProgram : IOpenXrProgram
         }
     }
 
-    void LogActionSourceName(XrAction action, const std::string& actionName) const {
+    void LogActionSourceName(XrAction action, const std::string& actionName) const 
+    {
         XrBoundSourcesForActionEnumerateInfo getInfo = {XR_TYPE_BOUND_SOURCES_FOR_ACTION_ENUMERATE_INFO};
         getInfo.action = action;
         uint32_t pathCount = 0;
         CHECK_XRCMD(xrEnumerateBoundSourcesForAction(m_session, &getInfo, 0, &pathCount, nullptr));
+
         std::vector<XrPath> paths(pathCount);
         CHECK_XRCMD(xrEnumerateBoundSourcesForAction(m_session, &getInfo, uint32_t(paths.size()), &pathCount, paths.data()));
 
         std::string sourceName;
-        for (uint32_t i = 0; i < pathCount; ++i) {
+
+        for (uint32_t i = 0; i < pathCount; ++i) 
+        {
             constexpr XrInputSourceLocalizedNameFlags all = XR_INPUT_SOURCE_LOCALIZED_NAME_USER_PATH_BIT |
                                                             XR_INPUT_SOURCE_LOCALIZED_NAME_INTERACTION_PROFILE_BIT |
                                                             XR_INPUT_SOURCE_LOCALIZED_NAME_COMPONENT_BIT;
@@ -1412,12 +1572,16 @@ struct OpenXrProgram : IOpenXrProgram
 
             uint32_t size = 0;
             CHECK_XRCMD(xrGetInputSourceLocalizedName(m_session, &nameInfo, 0, &size, nullptr));
-            if (size < 1) {
+
+            if (size < 1) 
+            {
                 continue;
             }
             std::vector<char> grabSource(size);
             CHECK_XRCMD(xrGetInputSourceLocalizedName(m_session, &nameInfo, uint32_t(grabSource.size()), &size, grabSource.data()));
-            if (!sourceName.empty()) {
+
+            if (!sourceName.empty()) 
+            {
                 sourceName += " and ";
             }
             sourceName += "'";
@@ -1433,7 +1597,8 @@ struct OpenXrProgram : IOpenXrProgram
 
     bool IsSessionFocused() const override { return m_sessionState == XR_SESSION_STATE_FOCUSED; }
 
-    void PollActions() override {
+    void PollActions() override 
+    {
         m_input.handActive = {XR_FALSE, XR_FALSE};
 
         // Sync actions
@@ -1444,17 +1609,22 @@ struct OpenXrProgram : IOpenXrProgram
         CHECK_XRCMD(xrSyncActions(m_session, &syncInfo));
 
         // Get pose and grab action state and start haptic vibrate when hand is 90% squeezed.
-        for (auto hand : {Side::LEFT, Side::RIGHT}) {
+        for (auto hand : {Side::LEFT, Side::RIGHT}) 
+        {
             XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO};
             getInfo.action = m_input.grabAction;
             getInfo.subactionPath = m_input.handSubactionPath[hand];
 
             XrActionStateFloat grabValue{XR_TYPE_ACTION_STATE_FLOAT};
             CHECK_XRCMD(xrGetActionStateFloat(m_session, &getInfo, &grabValue));
-            if (grabValue.isActive == XR_TRUE) {
+
+            if (grabValue.isActive == XR_TRUE) 
+            {
                 // Scale the rendered hand by 1.0f (open) to 0.5f (fully squeezed).
                 m_input.handScale[hand] = 1.0f - 0.5f * grabValue.currentState;
-                if (grabValue.currentState > 0.9f) {
+
+                if (grabValue.currentState > 0.9f) 
+                {
                     XrHapticVibration vibration{XR_TYPE_HAPTIC_VIBRATION};
                     vibration.amplitude = 0.5;
                     vibration.duration = XR_MIN_HAPTIC_DURATION;
@@ -1506,7 +1676,9 @@ struct OpenXrProgram : IOpenXrProgram
         XrActionStateGetInfo getInfo{XR_TYPE_ACTION_STATE_GET_INFO, nullptr, m_input.quitAction, XR_NULL_PATH};
         XrActionStateBoolean quitValue{XR_TYPE_ACTION_STATE_BOOLEAN};
         CHECK_XRCMD(xrGetActionStateBoolean(m_session, &getInfo, &quitValue));
-        if ((quitValue.isActive == XR_TRUE) && (quitValue.changedSinceLastSync == XR_TRUE) && (quitValue.currentState == XR_TRUE)) {
+
+        if ((quitValue.isActive == XR_TRUE) && (quitValue.changedSinceLastSync == XR_TRUE) && (quitValue.currentState == XR_TRUE)) 
+        {
             CHECK_XRCMD(xrRequestExitSession(m_session));
         }
     }
@@ -1560,8 +1732,7 @@ struct OpenXrProgram : IOpenXrProgram
         CHECK_XRCMD(xrEndFrame(m_session, &frameEndInfo));
     }
 
-    bool RenderLayer(XrTime predictedDisplayTime, std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
-                     XrCompositionLayerProjection& layer) 
+    bool RenderLayer(XrTime predictedDisplayTime, std::vector<XrCompositionLayerProjectionView>& projectionLayerViews, XrCompositionLayerProjection& layer) 
     {
         XrResult res;
 
@@ -1744,6 +1915,27 @@ struct OpenXrProgram : IOpenXrProgram
         }
 #endif
 
+#if ENABLE_OPENXR_FB_BODY_TRACKING
+        if (body_tracking_enabled_)
+        {
+            UpdateBodyTrackerLocations(predictedDisplayTime);
+
+			if (body_joint_locations_.isActive) 
+            {
+				for (int i = 0; i < XR_BODY_JOINT_COUNT_FB; ++i) 
+                {
+					if ((body_joints_[i].locationFlags & (XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT))) 
+                    {
+						XrVector3f body_joint_scale{ 0.05f, 0.05f, 0.05f };
+                        const XrPosef& body_joint_pose = body_joints_[i].pose;
+
+						cubes.push_back(Cube{ body_joint_pose, body_joint_scale });
+					}
+				}
+			}
+        }
+#endif
+
         // Render view to the appropriate part of the swapchain image.
         for (uint32_t i = 0; i < viewCountOutput; i++) 
         {
@@ -1811,10 +2003,8 @@ struct OpenXrProgram : IOpenXrProgram
         }
 
         layer.space = m_appSpace;
-        layer.layerFlags =
-            m_options->Parsed.EnvironmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND
-                ? XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT | XR_COMPOSITION_LAYER_UNPREMULTIPLIED_ALPHA_BIT
-                : 0;
+
+        layer.layerFlags = (m_options->Parsed.EnvironmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND) ? XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT | XR_COMPOSITION_LAYER_UNPREMULTIPLIED_ALPHA_BIT : 0;
         layer.viewCount = (uint32_t)projectionLayerViews.size();
         layer.views = projectionLayerViews.data();
         return true;
@@ -1824,6 +2014,7 @@ struct OpenXrProgram : IOpenXrProgram
     const std::shared_ptr<const Options> m_options;
     std::shared_ptr<IPlatformPlugin> m_platformPlugin;
     std::shared_ptr<IGraphicsPlugin> m_graphicsPlugin;
+
     XrInstance m_instance{XR_NULL_HANDLE};
     XrSession m_session{XR_NULL_HANDLE};
     XrSpace m_appSpace{XR_NULL_HANDLE};
