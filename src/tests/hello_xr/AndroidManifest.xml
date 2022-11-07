@@ -35,6 +35,15 @@
     <uses-feature android:name="oculus.software.eye_tracking" android:required="true" />
     <uses-permission android:name="com.oculus.permission.EYE_TRACKING" />
 
+    <!-- Face Tracking -->
+    <uses-feature android:name="oculus.software.face_tracking" android:required="true" />
+    <uses-permission android:name="com.oculus.permission.FACE_TRACKING" />
+
+    <!-- Body Tracking -->
+    <uses-feature android:name="com.oculus.software.body_tracking" />
+    <uses-permission android:name="com.oculus.permission.BODY_TRACKING" />
+    <uses-feature android:name="com.oculus.experimental.enabled" android:required="true" />
+
   <uses-permission android:name="org.khronos.openxr.permission.OPENXR" />
   <uses-permission android:name="org.khronos.openxr.permission.OPENXR_SYSTEM" />
 
