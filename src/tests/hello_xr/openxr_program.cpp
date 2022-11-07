@@ -14,11 +14,18 @@
 #include <cmath>
 #include <set>
 
+#define ADD_GRIP_POSE 1
+#define DRAW_GRIP_POSE (ADD_GRIP_POSE && !ENABLE_OPENXR_FB_BODY_TRACKING && 1)
+
 #define ADD_AIM_POSE 1
+#define DRAW_AIM_POSE (ADD_AIM_POSE && !ENABLE_OPENXR_FB_BODY_TRACKING && 1)
+
 #define ADD_EXTRA_CUBES 1
 #define TAKE_SCREENSHOT_WITH_LEFT_GRAB (SUPPORT_SCREENSHOTS && 0)
 #define ENABLE_LOCAL_DIMMING_WITH_RIGHT_GRAB (ENABLE_OPENXR_FB_LOCAL_DIMMING && 1)
 #define LOG_MATRICES 0
+
+#define BODY_CUBE_SIZE 0.02f
 
 #ifndef XR_LOAD
 #define XR_LOAD(instance, fn) CHECK_XRCMD(xrGetInstanceProcAddr(instance, #fn, reinterpret_cast<PFN_xrVoidFunction*>(&fn)))
@@ -1822,17 +1829,23 @@ struct OpenXrProgram : IOpenXrProgram
 
         // Render a 10cm cube scaled by grabAction for each hand. Note renderHand will only be
         // true when the application has focus.
-        for (auto hand : {Side::LEFT, Side::RIGHT}) {
+        for (auto hand : {Side::LEFT, Side::RIGHT}) 
+        {
+#if DRAW_GRIP_POSE
             XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
             res = xrLocateSpace(m_input.handSpace[hand], m_appSpace, predictedDisplayTime, &spaceLocation);
             CHECK_XRRESULT(res, "xrLocateSpace");
-            if (XR_UNQUALIFIED_SUCCESS(res)) {
+            
+            if (XR_UNQUALIFIED_SUCCESS(res)) 
+            {
                 if ((spaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
                     (spaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0) {
                     float scale = 0.1f * m_input.handScale[hand];
                     cubes.push_back(Cube{spaceLocation.pose, {scale, scale, scale}});
                 }
-            } else {
+            } 
+            else 
+            {
                 // Tracking loss is expected when the hand is not active so only log a message
                 // if the hand is active.
                 if (m_input.handActive[hand] == XR_TRUE) {
@@ -1841,8 +1854,9 @@ struct OpenXrProgram : IOpenXrProgram
                                Fmt("Unable to locate %s hand action space in app space: %d", handName[hand], res));
                 }
             }
+#endif
 
-#if ADD_AIM_POSE
+#if DRAW_AIM_POSE
             {
                 XrSpaceLocation aimSpaceLocation{XR_TYPE_SPACE_LOCATION};
                 res = xrLocateSpace(m_input.aimSpace[hand], m_appSpace, predictedDisplayTime, &aimSpaceLocation);
@@ -1926,7 +1940,7 @@ struct OpenXrProgram : IOpenXrProgram
                 {
 					if ((body_joints_[i].locationFlags & (XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT))) 
                     {
-						XrVector3f body_joint_scale{ 0.05f, 0.05f, 0.05f };
+						XrVector3f body_joint_scale{ BODY_CUBE_SIZE, BODY_CUBE_SIZE, BODY_CUBE_SIZE };
                         const XrPosef& body_joint_pose = body_joints_[i].pose;
 
 						cubes.push_back(Cube{ body_joint_pose, body_joint_scale });
