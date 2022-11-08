@@ -70,7 +70,7 @@ bool supports_body_tracking_ = false;
 #endif
 
 #if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
-GLMPose player_pose;
+BVR::GLMPose player_pose;
 const float movement_speed = 1.0f;
 const float rotation_speed = 1.0f;
 
@@ -88,6 +88,7 @@ void rotate_player(const float right_thumbstick_x_value)
     // Rotate player about +Y (UP) axis
     const float rotation_degrees = right_thumbstick_x_value * rotation_speed;
     player_pose.euler_angles_degrees_.y = fmodf(player_pose.euler_angles_degrees_.y + rotation_degrees, TWO_PI);
+    player_pose.update_rotation_from_euler();
 }
 #endif
 
@@ -621,8 +622,8 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
-		XrAction thumbstickXAction;
-		XrAction thumbstickYAction;
+		XrAction thumbstickXAction{ XR_NULL_HANDLE };
+		XrAction thumbstickYAction{ XR_NULL_HANDLE };
 #endif
     };
 
@@ -758,13 +759,6 @@ struct OpenXrProgram : IOpenXrProgram
 #if ADD_AIM_POSE
                                                             {m_input.aimPoseAction, aimPath[Side::LEFT]},
                                                             {m_input.aimPoseAction, aimPath[Side::RIGHT]},
-#endif
-#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
-															{m_input.thumbstickXAction, stickXPath[Side::LEFT]},
-															{m_input.thumbstickXAction, stickXPath[Side::RIGHT]},
-															{m_input.thumbstickYAction, stickYPath[Side::LEFT]},
-															{m_input.thumbstickYAction, stickYPath[Side::RIGHT]},
-
 #endif
                                                             {m_input.quitAction, menuClickPath[Side::LEFT]},
                                                             {m_input.quitAction, menuClickPath[Side::RIGHT]},

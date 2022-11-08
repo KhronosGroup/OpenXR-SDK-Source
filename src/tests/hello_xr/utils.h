@@ -35,7 +35,7 @@ const float ROOT_OF_HALF = 0.7071067690849304f;
 #define rad2deg(a) ((a)*RAD_TO_DEG)
 #define deg2rad(a) ((a)*DEG_TO_RAD)
 
-namespace
+namespace BVR
 {
     
 const glm::fquat no_rotation(1.0f, 0.0f, 0.0f, 0.0f);

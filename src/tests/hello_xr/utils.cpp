@@ -1,6 +1,6 @@
 #include "utils.h"
 
-namespace 
+namespace BVR
 {
 
 XrMatrix4x4f convert_to_xr(const glm::mat4& input)
