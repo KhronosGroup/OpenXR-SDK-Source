@@ -271,7 +271,8 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
         return swapchainImageBase;
     }
 
-    uint32_t GetDepthTexture(uint32_t colorTexture) {
+    uint32_t GetDepthTexture(uint32_t colorTexture) 
+    {
         // If a depth-stencil view has already been created for this back-buffer, use it.
         auto depthBufferIt = m_colorToDepthMap.find(colorTexture);
         if (depthBufferIt != m_colorToDepthMap.end()) {
@@ -301,7 +302,8 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
     }
 
     void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
-                    int64_t swapchainFormat, const std::vector<Cube>& cubes) override {
+                    int64_t swapchainFormat, const std::vector<Cube>& cubes) override 
+    {
         CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
         UNUSED_PARM(swapchainFormat);                    // Not used in this function for now.
 

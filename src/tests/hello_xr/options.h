@@ -68,7 +68,11 @@ struct Options {
 
         XrViewConfigurationType ViewConfigType{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
 
+#if USE_DUAL_LAYERS
+        XrEnvironmentBlendMode EnvironmentBlendMode{ XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND };
+#else
         XrEnvironmentBlendMode EnvironmentBlendMode{XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
+#endif
     } Parsed;
 
     void ParseStrings() {

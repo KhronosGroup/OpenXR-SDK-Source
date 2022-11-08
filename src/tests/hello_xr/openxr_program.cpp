@@ -2298,7 +2298,11 @@ struct OpenXrProgram : IOpenXrProgram
 
         layer.space = m_appSpace;
 
+#if USE_DUAL_LAYERS
+        layer.layerFlags = 0;// XR_COMPOSITION_LAYER_UNPREMULTIPLIED_ALPHA_BIT;
+#else
         layer.layerFlags = (m_options->Parsed.EnvironmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND) ? XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT | XR_COMPOSITION_LAYER_UNPREMULTIPLIED_ALPHA_BIT : 0;
+#endif
         layer.viewCount = (uint32_t)projectionLayerViews.size();
         layer.views = projectionLayerViews.data();
         return true;
@@ -2408,7 +2412,7 @@ struct OpenXrProgram : IOpenXrProgram
 
 		layer.space = m_appSpace;
 
-		layer.layerFlags = (m_options->Parsed.EnvironmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND) ? XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT | XR_COMPOSITION_LAYER_UNPREMULTIPLIED_ALPHA_BIT : 0;
+        layer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
 		layer.viewCount = (uint32_t)projectionLayerViews.size();
 		layer.views = projectionLayerViews.data();
 		return true;
