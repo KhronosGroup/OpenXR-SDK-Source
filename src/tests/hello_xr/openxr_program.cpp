@@ -610,6 +610,11 @@ struct OpenXrProgram : IOpenXrProgram
         std::array<XrPath, Side::COUNT> aimSubactionPath;
         std::array<XrSpace, Side::COUNT> aimSpace;
 #endif
+
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+		XrAction thumbstickXAction;
+		XrAction thumbstickYAction;
+#endif
     };
 
     void InitializeActions() {
@@ -654,6 +659,18 @@ struct OpenXrProgram : IOpenXrProgram
             CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionInfo, &m_input.aimPoseAction));
 #endif
 
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+            actionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+			strcpy_s(actionInfo.actionName, "thumbstick_x");
+			strcpy_s(actionInfo.localizedActionName, "Thumbstick X");
+			CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionInfo, &m_input.thumbstickXAction));
+
+            actionInfo.actionType = XR_ACTION_TYPE_FLOAT_INPUT;
+			strcpy_s(actionInfo.actionName, "thumbstick_y");
+			strcpy_s(actionInfo.localizedActionName, "Thumbstick Y");
+			CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionInfo, &m_input.thumbstickYAction));
+#endif
+
             // Create output actions for vibrating the left and right controller.
             actionInfo.actionType = XR_ACTION_TYPE_VIBRATION_OUTPUT;
             strcpy_s(actionInfo.actionName, "vibrate_hand");
@@ -681,6 +698,10 @@ struct OpenXrProgram : IOpenXrProgram
 #if ADD_AIM_POSE
         std::array<XrPath, Side::COUNT> aimPath;
 #endif
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+		std::array<XrPath, Side::COUNT> stickXPath;
+        std::array<XrPath, Side::COUNT> stickYPath;
+#endif
         std::array<XrPath, Side::COUNT> hapticPath;
         std::array<XrPath, Side::COUNT> menuClickPath;
         std::array<XrPath, Side::COUNT> bClickPath;
@@ -699,6 +720,13 @@ struct OpenXrProgram : IOpenXrProgram
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/input/aim/pose", &aimPath[Side::LEFT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/aim/pose", &aimPath[Side::RIGHT]));
 #endif
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+		CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/input/thumbstick/x", &stickXPath[Side::LEFT]));
+		CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/thumbstick/x", &stickXPath[Side::RIGHT]));
+
+		CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/input/thumbstick/y", &stickYPath[Side::LEFT]));
+		CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/thumbstick/y", &stickYPath[Side::RIGHT]));
+#endif
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/output/haptic", &hapticPath[Side::LEFT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/output/haptic", &hapticPath[Side::RIGHT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/input/menu/click", &menuClickPath[Side::LEFT]));
@@ -710,8 +738,8 @@ struct OpenXrProgram : IOpenXrProgram
         // Suggest bindings for KHR Simple.
         {
             XrPath khrSimpleInteractionProfilePath;
-            CHECK_XRCMD(
-                xrStringToPath(m_instance, "/interaction_profiles/khr/simple_controller", &khrSimpleInteractionProfilePath));
+            CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/khr/simple_controller", &khrSimpleInteractionProfilePath));
+
             std::vector<XrActionSuggestedBinding> bindings{{// Fall back to a click input for the grab action.
                                                             {m_input.grabAction, selectPath[Side::LEFT]},
                                                             {m_input.grabAction, selectPath[Side::RIGHT]},
@@ -721,10 +749,18 @@ struct OpenXrProgram : IOpenXrProgram
                                                             {m_input.aimPoseAction, aimPath[Side::LEFT]},
                                                             {m_input.aimPoseAction, aimPath[Side::RIGHT]},
 #endif
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+															{m_input.thumbstickXAction, stickXPath[Side::LEFT]},
+															{m_input.thumbstickXAction, stickXPath[Side::RIGHT]},
+															{m_input.thumbstickYAction, stickYPath[Side::LEFT]},
+															{m_input.thumbstickYAction, stickYPath[Side::RIGHT]},
+
+#endif
                                                             {m_input.quitAction, menuClickPath[Side::LEFT]},
                                                             {m_input.quitAction, menuClickPath[Side::RIGHT]},
                                                             {m_input.vibrateAction, hapticPath[Side::LEFT]},
                                                             {m_input.vibrateAction, hapticPath[Side::RIGHT]}}};
+
             XrInteractionProfileSuggestedBinding suggestedBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
             suggestedBindings.interactionProfile = khrSimpleInteractionProfilePath;
             suggestedBindings.suggestedBindings = bindings.data();
@@ -734,8 +770,8 @@ struct OpenXrProgram : IOpenXrProgram
         // Suggest bindings for the Oculus Touch.
         {
             XrPath oculusTouchInteractionProfilePath;
-            CHECK_XRCMD(
-                xrStringToPath(m_instance, "/interaction_profiles/oculus/touch_controller", &oculusTouchInteractionProfilePath));
+            CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/oculus/touch_controller", &oculusTouchInteractionProfilePath));
+
             std::vector<XrActionSuggestedBinding> bindings{{{m_input.grabAction, squeezeValuePath[Side::LEFT]},
                                                             {m_input.grabAction, squeezeValuePath[Side::RIGHT]},
                                                             {m_input.poseAction, posePath[Side::LEFT]},
@@ -744,9 +780,17 @@ struct OpenXrProgram : IOpenXrProgram
                                                             {m_input.aimPoseAction, aimPath[Side::LEFT]},
                                                             {m_input.aimPoseAction, aimPath[Side::RIGHT]},
 #endif
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+															{m_input.thumbstickXAction, stickXPath[Side::LEFT]},
+															{m_input.thumbstickXAction, stickXPath[Side::RIGHT]},
+															{m_input.thumbstickYAction, stickYPath[Side::LEFT]},
+															{m_input.thumbstickYAction, stickYPath[Side::RIGHT]},
+
+#endif
                                                             {m_input.quitAction, menuClickPath[Side::LEFT]},
                                                             {m_input.vibrateAction, hapticPath[Side::LEFT]},
                                                             {m_input.vibrateAction, hapticPath[Side::RIGHT]}}};
+
             XrInteractionProfileSuggestedBinding suggestedBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
             suggestedBindings.interactionProfile = oculusTouchInteractionProfilePath;
             suggestedBindings.suggestedBindings = bindings.data();
@@ -756,8 +800,8 @@ struct OpenXrProgram : IOpenXrProgram
         // Suggest bindings for the Vive Controller.
         {
             XrPath viveControllerInteractionProfilePath;
-            CHECK_XRCMD(
-                xrStringToPath(m_instance, "/interaction_profiles/htc/vive_controller", &viveControllerInteractionProfilePath));
+            CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/htc/vive_controller", &viveControllerInteractionProfilePath));
+
             std::vector<XrActionSuggestedBinding> bindings{{{m_input.grabAction, triggerValuePath[Side::LEFT]},
                                                             {m_input.grabAction, triggerValuePath[Side::RIGHT]},
                                                             {m_input.poseAction, posePath[Side::LEFT]},
@@ -776,8 +820,8 @@ struct OpenXrProgram : IOpenXrProgram
         // Suggest bindings for the Valve Index Controller.
         {
             XrPath indexControllerInteractionProfilePath;
-            CHECK_XRCMD(
-                xrStringToPath(m_instance, "/interaction_profiles/valve/index_controller", &indexControllerInteractionProfilePath));
+            CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/valve/index_controller", &indexControllerInteractionProfilePath));
+
             std::vector<XrActionSuggestedBinding> bindings{{{m_input.grabAction, squeezeForcePath[Side::LEFT]},
                                                             {m_input.grabAction, squeezeForcePath[Side::RIGHT]},
                                                             {m_input.poseAction, posePath[Side::LEFT]},
@@ -786,6 +830,7 @@ struct OpenXrProgram : IOpenXrProgram
                                                             {m_input.quitAction, bClickPath[Side::RIGHT]},
                                                             {m_input.vibrateAction, hapticPath[Side::LEFT]},
                                                             {m_input.vibrateAction, hapticPath[Side::RIGHT]}}};
+
             XrInteractionProfileSuggestedBinding suggestedBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
             suggestedBindings.interactionProfile = indexControllerInteractionProfilePath;
             suggestedBindings.suggestedBindings = bindings.data();
@@ -796,8 +841,8 @@ struct OpenXrProgram : IOpenXrProgram
         // Suggest bindings for the Microsoft Mixed Reality Motion Controller.
         {
             XrPath microsoftMixedRealityInteractionProfilePath;
-            CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/microsoft/motion_controller",
-                                       &microsoftMixedRealityInteractionProfilePath));
+            CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/microsoft/motion_controller", &microsoftMixedRealityInteractionProfilePath));
+
             std::vector<XrActionSuggestedBinding> bindings{{{m_input.grabAction, squeezeClickPath[Side::LEFT]},
                                                             {m_input.grabAction, squeezeClickPath[Side::RIGHT]},
                                                             {m_input.poseAction, posePath[Side::LEFT]},
@@ -806,6 +851,7 @@ struct OpenXrProgram : IOpenXrProgram
                                                             {m_input.quitAction, menuClickPath[Side::RIGHT]},
                                                             {m_input.vibrateAction, hapticPath[Side::LEFT]},
                                                             {m_input.vibrateAction, hapticPath[Side::RIGHT]}}};
+
             XrInteractionProfileSuggestedBinding suggestedBindings{XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
             suggestedBindings.interactionProfile = microsoftMixedRealityInteractionProfilePath;
             suggestedBindings.suggestedBindings = bindings.data();
@@ -1689,6 +1735,52 @@ struct OpenXrProgram : IOpenXrProgram
                     SetLocalDimmingEnabled(enable_local_dimming);
 
                     m_input.handScale[hand] = 1.0f;
+                }
+#endif
+
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+                XrActionStateFloat axis_state_x = { XR_TYPE_ACTION_STATE_FLOAT };
+                XrActionStateFloat axis_state_y = { XR_TYPE_ACTION_STATE_FLOAT };
+
+                XrActionStateGetInfo action_get_info = { XR_TYPE_ACTION_STATE_GET_INFO };
+                action_get_info.subactionPath = m_input.handSubactionPath[hand];
+
+                action_get_info.action = m_input.thumbstickXAction;
+				CHECK_XRCMD(xrGetActionStateFloat(m_session, &action_get_info, &axis_state_x));
+
+				action_get_info.action = m_input.thumbstickYAction;
+				CHECK_XRCMD(xrGetActionStateFloat(m_session, &action_get_info, &axis_state_y));
+
+                if (hand == Side::LEFT)
+                {
+                    // Left thumbstick X/Y = Movement (X,0,Z in 3D GLM coords)
+                    glm::vec2 left_thumbstick_values = {};
+
+					if (axis_state_x.isActive)
+					{
+                        left_thumbstick_values.x = axis_state_x.currentState;
+					}
+
+					if (axis_state_y.isActive)
+					{
+						left_thumbstick_values.y = axis_state_y.currentState;
+					}
+
+					const bool has_moved = (axis_state_x.isActive || axis_state_y.isActive);
+
+                    if (has_moved)
+                    {
+                        move_player(left_thumbstick_values);
+                    }
+                }
+                else
+                {
+                    // Right thumbstick X value = Rotation
+					if (axis_state_x.isActive)
+					{
+						const float right_thumbstick_x_value = axis_state_x.currentState;
+						rotate_player(right_thumbstick_x_value);
+					}
                 }
 #endif
             }
