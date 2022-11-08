@@ -521,7 +521,8 @@ struct OpenXrProgram : IOpenXrProgram
         }
     }
 
-    void LogEnvironmentBlendMode(XrViewConfigurationType type) {
+    void LogEnvironmentBlendMode(XrViewConfigurationType type) 
+    {
         CHECK(m_instance != XR_NULL_HANDLE);
         CHECK(m_systemId != 0);
 
@@ -535,7 +536,8 @@ struct OpenXrProgram : IOpenXrProgram
         CHECK_XRCMD(xrEnumerateEnvironmentBlendModes(m_instance, m_systemId, type, count, &count, blendModes.data()));
 
         bool blendModeFound = false;
-        for (XrEnvironmentBlendMode mode : blendModes) {
+        for (XrEnvironmentBlendMode mode : blendModes) 
+        {
             const bool blendModeMatch = (mode == m_options->Parsed.EnvironmentBlendMode);
             Log::Write(Log::Level::Info,
                        Fmt("Environment Blend Mode (%s) : %s", to_string(mode), blendModeMatch ? "(Selected)" : ""));
@@ -544,7 +546,8 @@ struct OpenXrProgram : IOpenXrProgram
         CHECK(blendModeFound);
     }
 
-    XrEnvironmentBlendMode GetPreferredBlendMode() const override {
+    XrEnvironmentBlendMode GetPreferredBlendMode() const override 
+    {
         uint32_t count;
         CHECK_XRCMD(xrEnumerateEnvironmentBlendModes(m_instance, m_systemId, m_options->Parsed.ViewConfigType, 0, &count, nullptr));
         CHECK(count > 0);
@@ -552,13 +555,15 @@ struct OpenXrProgram : IOpenXrProgram
         std::vector<XrEnvironmentBlendMode> blendModes(count);
         CHECK_XRCMD(xrEnumerateEnvironmentBlendModes(m_instance, m_systemId, m_options->Parsed.ViewConfigType, count, &count,
                                                      blendModes.data()));
-        for (const auto& blendMode : blendModes) {
+        for (const auto& blendMode : blendModes) 
+        {
             if (m_acceptableBlendModes.count(blendMode)) return blendMode;
         }
         THROW("No acceptable blend mode returned from the xrEnumerateEnvironmentBlendModes");
     }
 
-    void InitializeSystem() override {
+    void InitializeSystem() override 
+    {
         CHECK(m_instance != XR_NULL_HANDLE);
         CHECK(m_systemId == XR_NULL_SYSTEM_ID);
 
@@ -572,7 +577,8 @@ struct OpenXrProgram : IOpenXrProgram
         CHECK(m_systemId != XR_NULL_SYSTEM_ID);
     }
 
-    void InitializeDevice() override {
+    void InitializeDevice() override 
+    {
         LogViewConfigurations();
 
         // The graphics API can initialize the graphics device now that the systemId and instance
@@ -580,7 +586,8 @@ struct OpenXrProgram : IOpenXrProgram
         m_graphicsPlugin->InitializeDevice(m_instance, m_systemId);
     }
 
-    void LogReferenceSpaces() {
+    void LogReferenceSpaces() 
+    {
         CHECK(m_session != XR_NULL_HANDLE);
 
         uint32_t spaceCount;
@@ -589,12 +596,14 @@ struct OpenXrProgram : IOpenXrProgram
         CHECK_XRCMD(xrEnumerateReferenceSpaces(m_session, spaceCount, &spaceCount, spaces.data()));
 
         Log::Write(Log::Level::Info, Fmt("Available reference spaces: %d", spaceCount));
-        for (XrReferenceSpaceType space : spaces) {
+        for (XrReferenceSpaceType space : spaces) 
+        {
             Log::Write(Log::Level::Verbose, Fmt("  Name: %s", to_string(space)));
         }
     }
 
-    struct InputState {
+    struct InputState 
+    {
         XrActionSet actionSet{XR_NULL_HANDLE};
         XrAction grabAction{XR_NULL_HANDLE};
         XrAction poseAction{XR_NULL_HANDLE};
@@ -617,7 +626,8 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
     };
 
-    void InitializeActions() {
+    void InitializeActions() 
+    {
         // Create an action set.
         {
             XrActionSetCreateInfo actionSetInfo{XR_TYPE_ACTION_SET_CREATE_INFO};
