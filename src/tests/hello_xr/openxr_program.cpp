@@ -72,8 +72,8 @@ bool supports_body_tracking_ = false;
 #if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
 BVR::GLMPose player_pose;
 const float movement_speed = 0.02f;
-const float rotation_speed = 0.01f;
-const float deadzone = 0.1f;
+const float rotation_speed = 1.0f;
+const float deadzone = 0.2f;
 
 void move_player(const glm::vec2& left_thumbstick_values)
 {
@@ -98,8 +98,19 @@ void rotate_player(const float right_thumbstick_x_value)
 
     // Rotate player about +Y (UP) axis
     const float rotation_degrees = right_thumbstick_x_value * rotation_speed;
-    //player_pose.euler_angles_degrees_.y = fmodf(player_pose.euler_angles_degrees_.y + rotation_degrees, TWO_PI);
-    player_pose.euler_angles_degrees_.y += rotation_degrees;
+    player_pose.euler_angles_degrees_.y = fmodf(player_pose.euler_angles_degrees_.y + rotation_degrees, TWO_PI);
+    //player_pose.euler_angles_degrees_.y += rotation_degrees;
+
+    //while (player_pose.euler_angles_degrees_.y > TWO_PI)
+    {
+        //player_pose.euler_angles_degrees_.y -= TWO_PI;
+    }
+
+	//while (player_pose.euler_angles_degrees_.y < -TWO_PI)
+	{
+		//player_pose.euler_angles_degrees_.y += TWO_PI;
+	}
+
     player_pose.update_rotation_from_euler();
 }
 #endif
@@ -1786,7 +1797,7 @@ struct OpenXrProgram : IOpenXrProgram
 
                     if (has_moved)
                     {
-                        move_player(left_thumbstick_values);
+                        //move_player(left_thumbstick_values);
                     }
                 }
                 else
@@ -1794,8 +1805,8 @@ struct OpenXrProgram : IOpenXrProgram
                     // Right thumbstick X value = Rotation
 					if (axis_state_x.isActive)
 					{
-						//const float right_thumbstick_x_value = axis_state_x.currentState;
-						//rotate_player(right_thumbstick_x_value);
+						const float right_thumbstick_x_value = axis_state_x.currentState;
+						rotate_player(right_thumbstick_x_value);
 					}
                 }
 #endif
@@ -2106,9 +2117,10 @@ struct OpenXrProgram : IOpenXrProgram
             projectionLayerViews[i].subImage.imageRect.extent = {viewSwapchain.width, viewSwapchain.height};
 
 #if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
-            BVR::GLMPose eye_pose = BVR::create_from_xr(m_views[i].pose);
-            eye_pose.transform(player_pose);
-            m_views[i].pose = BVR::create_from_glm(eye_pose);
+            const BVR::GLMPose eye_pose = BVR::create_from_xr(m_views[i].pose);
+            BVR::GLMPose final_pose = player_pose;
+            final_pose.transform(eye_pose);
+            m_views[i].pose = BVR::create_from_glm(final_pose);
             projectionLayerViews[i].pose = m_views[i].pose;
 #endif
 
