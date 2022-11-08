@@ -1810,11 +1810,14 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if 0
-        for (XrSpace visualizedSpace : m_visualizedSpaces) {
+        for (XrSpace visualizedSpace : m_visualizedSpaces) 
+        {
             XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
             res = xrLocateSpace(visualizedSpace, m_appSpace, predictedDisplayTime, &spaceLocation);
+            
             CHECK_XRRESULT(res, "xrLocateSpace");
-            if (XR_UNQUALIFIED_SUCCESS(res)) {
+            if (XR_UNQUALIFIED_SUCCESS(res)) 
+            {
                 if ((spaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
                     (spaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0) {
                     cubes.push_back(Cube{spaceLocation.pose, {0.25f, 0.25f, 0.25f}});
@@ -1825,9 +1828,10 @@ struct OpenXrProgram : IOpenXrProgram
         }
 #endif
 
+#if (DRAW_GRIP_POSE || DRAW_AIM_POSE)
         // Render a 10cm cube scaled by grabAction for each hand. Note renderHand will only be
         // true when the application has focus.
-        for (auto hand : {Side::LEFT, Side::RIGHT}) 
+        for (int hand : {Side::LEFT, Side::RIGHT}) 
         {
 #if DRAW_GRIP_POSE
             XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
@@ -1872,6 +1876,7 @@ struct OpenXrProgram : IOpenXrProgram
             }
 #endif
         }
+#endif
 
 #if LOG_MATRICES
         static bool log_IPD = true;

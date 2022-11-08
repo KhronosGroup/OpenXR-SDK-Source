@@ -96,6 +96,8 @@ if(Vulkan_LIBRARY)
 endif()
 
 target_include_directories(hello_xr PUBLIC $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Include)
+target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/glm)
+
 
 if(NOT ANDROID)
     install(TARGETS hello_xr
