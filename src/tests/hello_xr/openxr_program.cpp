@@ -69,6 +69,28 @@ bool supports_face_tracking_ = false;
 bool supports_body_tracking_ = false;
 #endif
 
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+GLMPose player_pose;
+const float movement_speed = 1.0f;
+const float rotation_speed = 1.0f;
+
+void move_player(const glm::vec2& left_thumbstick_values)
+{
+    // Move player in the direction they are facing currently
+    glm::vec3 position_increment_local{ left_thumbstick_values.x, 0.0f, left_thumbstick_values.y };
+    glm::vec3 position_increment_world = player_pose.rotation_ * position_increment_local;
+
+    player_pose.translation_ += position_increment_world * movement_speed;
+}
+
+void rotate_player(const float right_thumbstick_x_value)
+{
+    // Rotate player about +Y (UP) axis
+    const float rotation_degrees = right_thumbstick_x_value * rotation_speed;
+    player_pose.euler_angles_degrees_.y = fmodf(player_pose.euler_angles_degrees_.y + rotation_degrees, TWO_PI);
+}
+#endif
+
 
 namespace {
 
