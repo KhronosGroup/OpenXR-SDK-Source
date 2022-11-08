@@ -441,9 +441,7 @@ struct OpenXrProgram : IOpenXrProgram
     void CreateInstance() override 
     {
         LogLayersAndExtensions();
-
         CreateInstanceInternal();
-
         LogInstanceInfo();
     }
 
@@ -1372,10 +1370,10 @@ struct OpenXrProgram : IOpenXrProgram
 
 	void DestroyBodyTracker()
 	{
-        if (!supports_body_tracking_ || !body_tracker_)
-        {
-            return;
-        }
+		if (!supports_body_tracking_ || !body_tracker_)
+		{
+			return;
+		}
 
 		if (xrDestroyBodyTrackerFB == nullptr)
 		{
@@ -1387,8 +1385,8 @@ struct OpenXrProgram : IOpenXrProgram
 			return;
 		}
 
-        xrDestroyBodyTrackerFB(body_tracker_);
-        body_tracker_ = nullptr;
+		xrDestroyBodyTrackerFB(body_tracker_);
+		body_tracker_ = nullptr;
 		body_tracking_enabled_ = false;
 
 		Log::Write(Log::Level::Info, "OPENXR - Body tracker destroyed...");
