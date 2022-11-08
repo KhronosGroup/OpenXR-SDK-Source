@@ -106,9 +106,12 @@ struct GLMPose
     glm::mat4 to_matrix() const;
 
     void update_rotation_from_euler();
+    void transform(const GLMPose& glm_pose);
 };
 
 GLMPose create_from_xr(const XrVector3f& position, const XrQuaternionf& rotation, const XrVector3f& scale);
+GLMPose create_from_xr(const XrPosef& xr_pose);
+XrPosef create_from_glm(const GLMPose& glm_pose);
 
 }
 

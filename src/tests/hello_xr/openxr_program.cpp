@@ -71,13 +71,19 @@ bool supports_body_tracking_ = false;
 
 #if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
 BVR::GLMPose player_pose;
-const float movement_speed = 1.0f;
-const float rotation_speed = 1.0f;
+const float movement_speed = 0.02f;
+const float rotation_speed = 0.01f;
+const float deadzone = 0.1f;
 
 void move_player(const glm::vec2& left_thumbstick_values)
 {
+	if ((fabs(left_thumbstick_values.x) < deadzone) && (fabs(left_thumbstick_values.y) < deadzone))
+	{
+		return;
+	}
+
     // Move player in the direction they are facing currently
-    glm::vec3 position_increment_local{ left_thumbstick_values.x, 0.0f, left_thumbstick_values.y };
+    glm::vec3 position_increment_local{ left_thumbstick_values.x, 0.0f, -left_thumbstick_values.y };
     glm::vec3 position_increment_world = player_pose.rotation_ * position_increment_local;
 
     player_pose.translation_ += position_increment_world * movement_speed;
@@ -85,9 +91,15 @@ void move_player(const glm::vec2& left_thumbstick_values)
 
 void rotate_player(const float right_thumbstick_x_value)
 {
+    if (fabs(right_thumbstick_x_value) < deadzone)
+    {
+        return;
+    }
+
     // Rotate player about +Y (UP) axis
     const float rotation_degrees = right_thumbstick_x_value * rotation_speed;
-    player_pose.euler_angles_degrees_.y = fmodf(player_pose.euler_angles_degrees_.y + rotation_degrees, TWO_PI);
+    //player_pose.euler_angles_degrees_.y = fmodf(player_pose.euler_angles_degrees_.y + rotation_degrees, TWO_PI);
+    player_pose.euler_angles_degrees_.y += rotation_degrees;
     player_pose.update_rotation_from_euler();
 }
 #endif
@@ -1782,8 +1794,8 @@ struct OpenXrProgram : IOpenXrProgram
                     // Right thumbstick X value = Rotation
 					if (axis_state_x.isActive)
 					{
-						const float right_thumbstick_x_value = axis_state_x.currentState;
-						rotate_player(right_thumbstick_x_value);
+						//const float right_thumbstick_x_value = axis_state_x.currentState;
+						//rotate_player(right_thumbstick_x_value);
 					}
                 }
 #endif
@@ -2092,6 +2104,13 @@ struct OpenXrProgram : IOpenXrProgram
             projectionLayerViews[i].subImage.swapchain = viewSwapchain.handle;
             projectionLayerViews[i].subImage.imageRect.offset = {0, 0};
             projectionLayerViews[i].subImage.imageRect.extent = {viewSwapchain.width, viewSwapchain.height};
+
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+            BVR::GLMPose eye_pose = BVR::create_from_xr(m_views[i].pose);
+            eye_pose.transform(player_pose);
+            m_views[i].pose = BVR::create_from_glm(eye_pose);
+            projectionLayerViews[i].pose = m_views[i].pose;
+#endif
 
 #if LOG_MATRICES
             static bool log_projection_matrices = true;

@@ -86,13 +86,60 @@ void GLMPose::update_rotation_from_euler()
 	rotation_ = glm::fquat(euler_angles_radians);
 }
 
+BVR::GLMPose player_pose;
+const float movement_speed = 1.0f;
+const float rotation_speed = 1.0f;
+
+void move_player(const glm::vec2& left_thumbstick_values)
+{
+	// Move player in the direction they are facing currently
+	glm::vec3 position_increment_local{ left_thumbstick_values.x, 0.0f, left_thumbstick_values.y };
+	glm::vec3 position_increment_world = player_pose.rotation_ * position_increment_local;
+
+	player_pose.translation_ += position_increment_world * movement_speed;
+}
+
+void rotate_player(const float right_thumbstick_x_value)
+{
+	// Rotate player about +Y (UP) axis
+	const float rotation_degrees = right_thumbstick_x_value * rotation_speed;
+	player_pose.euler_angles_degrees_.y = fmodf(player_pose.euler_angles_degrees_.y + rotation_degrees, TWO_PI);
+	player_pose.update_rotation_from_euler();
+}
+
+void GLMPose::transform(const GLMPose& glm_pose)
+{
+	//translation_ += rotation_ * glm_pose.translation_;
+	translation_ += glm_pose.translation_;
+	//rotation_ = rotation_ * glm_pose.rotation_;
+	//scale_ = scale_ * glm_pose.scale_;
+	//euler_angles_degrees_ = glm_pose.euler_angles_degrees_;
+}
+
 GLMPose create_from_xr(const XrVector3f& position, const XrQuaternionf& rotation, const XrVector3f& scale)
 {
-	GLMPose pose;
-	pose.translation_ = convert_to_glm(position);
-	pose.rotation_ = convert_to_glm(rotation);
-	pose.scale_ = convert_to_glm(scale);
-	return pose;
+	GLMPose glm_pose;
+	glm_pose.translation_ = convert_to_glm(position);
+	glm_pose.rotation_ = convert_to_glm(rotation);
+	glm_pose.scale_ = convert_to_glm(scale);
+	return glm_pose;
+}
+
+GLMPose create_from_xr(const XrPosef& xr_pose)
+{
+	GLMPose glm_pose;
+	glm_pose.translation_ = convert_to_glm(xr_pose.position);
+	glm_pose.rotation_ = convert_to_glm(xr_pose.orientation);
+	return glm_pose;
+}
+
+XrPosef create_from_glm(const GLMPose& glm_pose)
+{
+	// No scale
+	XrPosef xr_pose;
+	xr_pose.position = convert_to_xr(glm_pose.translation_);
+	xr_pose.orientation = convert_to_xr(glm_pose.rotation_);
+	return xr_pose;
 }
 
 }
