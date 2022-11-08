@@ -227,6 +227,13 @@ struct OpenXrProgram : IOpenXrProgram
             xrDestroySwapchain(swapchain.handle);
         }
 
+#if USE_DUAL_LAYERS
+		for (Swapchain swapchain : m_second_swapchains)
+		{
+			xrDestroySwapchain(swapchain.handle);
+		}
+#endif
+
         for (XrSpace visualizedSpace : m_visualizedSpaces) 
         {
             xrDestroySpace(visualizedSpace);
@@ -350,23 +357,30 @@ struct OpenXrProgram : IOpenXrProgram
             CHECK_XRCMD(xrEnumerateApiLayerProperties(0, &layerCount, nullptr));
 
             std::vector<XrApiLayerProperties> layers(layerCount);
-            for (XrApiLayerProperties& layer : layers) {
+
+            for (XrApiLayerProperties& layer : layers) 
+            {
                 layer.type = XR_TYPE_API_LAYER_PROPERTIES;
             }
 
             CHECK_XRCMD(xrEnumerateApiLayerProperties((uint32_t)layers.size(), &layerCount, layers.data()));
 
             Log::Write(Log::Level::Info, Fmt("Available Layers: (%d)", layerCount));
-            for (const XrApiLayerProperties& layer : layers) {
+
+            for (const XrApiLayerProperties& layer : layers) 
+            {
                 Log::Write(Log::Level::Verbose,
                            Fmt("  Name=%s SpecVersion=%s LayerVersion=%d Description=%s", layer.layerName,
                                GetXrVersionString(layer.specVersion).c_str(), layer.layerVersion, layer.description));
+
                 logExtensions(layer.layerName, 4);
             }
         }
     }
 
-    void LogInstanceInfo() {
+    void LogInstanceInfo() 
+    {
+
         CHECK(m_instance != XR_NULL_HANDLE);
 
         XrInstanceProperties instanceProperties{XR_TYPE_INSTANCE_PROPERTIES};
@@ -996,9 +1010,9 @@ struct OpenXrProgram : IOpenXrProgram
 
         // Query and cache view configuration views.
         uint32_t viewCount = 0;
-        CHECK_XRCMD(
-            xrEnumerateViewConfigurationViews(m_instance, m_systemId, m_options->Parsed.ViewConfigType, 0, &viewCount, nullptr));
+        CHECK_XRCMD(xrEnumerateViewConfigurationViews(m_instance, m_systemId, m_options->Parsed.ViewConfigType, 0, &viewCount, nullptr));
         m_configViews.resize(viewCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
+
         CHECK_XRCMD(xrEnumerateViewConfigurationViews(m_instance, m_systemId, m_options->Parsed.ViewConfigType, viewCount,
                                                       &viewCount, m_configViews.data()));
 
@@ -1012,22 +1026,31 @@ struct OpenXrProgram : IOpenXrProgram
             uint32_t swapchainFormatCount;
             CHECK_XRCMD(xrEnumerateSwapchainFormats(m_session, 0, &swapchainFormatCount, nullptr));
             std::vector<int64_t> swapchainFormats(swapchainFormatCount);
+
             CHECK_XRCMD(xrEnumerateSwapchainFormats(m_session, (uint32_t)swapchainFormats.size(), &swapchainFormatCount,
                                                     swapchainFormats.data()));
+
             CHECK(swapchainFormatCount == swapchainFormats.size());
             m_colorSwapchainFormat = m_graphicsPlugin->SelectColorSwapchainFormat(swapchainFormats);
 
             // Print swapchain formats and the selected one.
             {
                 std::string swapchainFormatsString;
-                for (int64_t format : swapchainFormats) {
+
+                for (int64_t format : swapchainFormats) 
+                {
                     const bool selected = format == m_colorSwapchainFormat;
                     swapchainFormatsString += " ";
-                    if (selected) {
+                    
+                    if (selected) 
+                    {
                         swapchainFormatsString += "[";
                     }
+                    
                     swapchainFormatsString += std::to_string(format);
-                    if (selected) {
+                    
+                    if (selected) 
+                    {
                         swapchainFormatsString += "]";
                     }
                 }
@@ -1038,6 +1061,7 @@ struct OpenXrProgram : IOpenXrProgram
             for (uint32_t i = 0; i < viewCount; i++) 
             {
                 const XrViewConfigurationView& vp = m_configViews[i];
+
                 Log::Write(Log::Level::Info,
                            Fmt("Creating swapchain for view %d with dimensions Width=%d Height=%d SampleCount=%d", i,
                                vp.recommendedImageRectWidth, vp.recommendedImageRectHeight, vp.recommendedSwapchainSampleCount));
@@ -1052,6 +1076,7 @@ struct OpenXrProgram : IOpenXrProgram
                 swapchainCreateInfo.faceCount = 1;
                 swapchainCreateInfo.sampleCount = m_graphicsPlugin->GetSupportedSwapchainSampleCount(vp);
                 swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_SAMPLED_BIT | XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
+
                 Swapchain swapchain;
                 swapchain.width = swapchainCreateInfo.width;
                 swapchain.height = swapchainCreateInfo.height;
@@ -1059,17 +1084,71 @@ struct OpenXrProgram : IOpenXrProgram
 
                 m_swapchains.push_back(swapchain);
 
-                uint32_t imageCount;
+                uint32_t imageCount = 0;
                 CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, 0, &imageCount, nullptr));
                 // XXX This should really just return XrSwapchainImageBaseHeader*
                 std::vector<XrSwapchainImageBaseHeader*> swapchainImages =
                     m_graphicsPlugin->AllocateSwapchainImageStructs(imageCount, swapchainCreateInfo);
+
                 CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, imageCount, &imageCount, swapchainImages[0]));
 
                 m_swapchainImages.insert(std::make_pair(swapchain.handle, std::move(swapchainImages)));
             }
         }
+
+#if USE_DUAL_LAYERS
+        CreateSecondSwapchains();
+#endif
     }
+
+#if USE_DUAL_LAYERS
+	void CreateSecondSwapchains()
+	{
+		CHECK(m_session != XR_NULL_HANDLE);
+		CHECK(m_second_swapchains.empty());
+
+        uint32_t viewCount = (uint32_t)m_views.size();
+	
+		// Create a swapchain for each view.
+		for (uint32_t i = 0; i < viewCount; i++)
+		{
+			const XrViewConfigurationView& vp = m_configViews[i];
+
+			Log::Write(Log::Level::Info,
+				Fmt("Creating swapchain for view %d with dimensions Width=%d Height=%d SampleCount=%d", i,
+					vp.recommendedImageRectWidth, vp.recommendedImageRectHeight, vp.recommendedSwapchainSampleCount));
+
+			// Create the swapchain.
+			XrSwapchainCreateInfo swapchainCreateInfo{ XR_TYPE_SWAPCHAIN_CREATE_INFO };
+			swapchainCreateInfo.arraySize = 1;
+			swapchainCreateInfo.format = m_colorSwapchainFormat;
+			swapchainCreateInfo.width = vp.recommendedImageRectWidth;
+			swapchainCreateInfo.height = vp.recommendedImageRectHeight;
+			swapchainCreateInfo.mipCount = 1;
+			swapchainCreateInfo.faceCount = 1;
+			swapchainCreateInfo.sampleCount = m_graphicsPlugin->GetSupportedSwapchainSampleCount(vp);
+			swapchainCreateInfo.usageFlags = XR_SWAPCHAIN_USAGE_SAMPLED_BIT | XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
+
+			Swapchain swapchain;
+			swapchain.width = swapchainCreateInfo.width;
+			swapchain.height = swapchainCreateInfo.height;
+			CHECK_XRCMD(xrCreateSwapchain(m_session, &swapchainCreateInfo, &swapchain.handle));
+
+			m_second_swapchains.push_back(swapchain);
+
+			uint32_t imageCount = 0;
+			CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, 0, &imageCount, nullptr));
+
+			// XXX This should really just return XrSwapchainImageBaseHeader*
+			std::vector<XrSwapchainImageBaseHeader*> swapchainImages =
+				m_graphicsPlugin->AllocateSwapchainImageStructs(imageCount, swapchainCreateInfo);
+
+			CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, imageCount, &imageCount, swapchainImages[0]));
+
+			m_second_swapchainImages.insert(std::make_pair(swapchain.handle, std::move(swapchainImages)));
+		}
+	}
+#endif
 
 #if SUPPORT_SCREENSHOTS
     bool take_screenshot_ = false;
@@ -1841,15 +1920,19 @@ struct OpenXrProgram : IOpenXrProgram
         CHECK_XRCMD(xrBeginFrame(m_session, &frameBeginInfo));
 
         std::vector<XrCompositionLayerBaseHeader*> layers;
-        XrCompositionLayerProjection layer{XR_TYPE_COMPOSITION_LAYER_PROJECTION};
+        XrCompositionLayerProjection first_layer{XR_TYPE_COMPOSITION_LAYER_PROJECTION};
+
+#if USE_DUAL_LAYERS
+        XrCompositionLayerProjection second_layer{ XR_TYPE_COMPOSITION_LAYER_PROJECTION };
+#endif
 
         std::vector<XrCompositionLayerProjectionView> projectionLayerViews;
 
         if (frameState.shouldRender == XR_TRUE) 
         {
-            if (RenderLayer(frameState.predictedDisplayTime, projectionLayerViews, layer)) 
+            if (RenderLayer(frameState.predictedDisplayTime, projectionLayerViews, first_layer))
             {
-                XrCompositionLayerBaseHeader* header = reinterpret_cast<XrCompositionLayerBaseHeader*>(&layer);
+                XrCompositionLayerBaseHeader* header = reinterpret_cast<XrCompositionLayerBaseHeader*>(&first_layer);
 
 #if ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS
 				if (supports_composition_layer_)
@@ -1860,6 +1943,14 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
                 layers.push_back(header);
             }
+
+#if USE_DUAL_LAYERS
+			if (RenderExtraLayer(frameState.predictedDisplayTime, projectionLayerViews, second_layer))
+			{
+				XrCompositionLayerBaseHeader* header = reinterpret_cast<XrCompositionLayerBaseHeader*>(&second_layer);
+				layers.push_back(header);
+			}
+#endif
         }
 
         XrFrameEndInfo frameEndInfo{XR_TYPE_FRAME_END_INFO};
@@ -2213,6 +2304,118 @@ struct OpenXrProgram : IOpenXrProgram
         return true;
     }
 
+#if USE_DUAL_LAYERS
+	bool RenderExtraLayer(XrTime predictedDisplayTime, std::vector<XrCompositionLayerProjectionView>& projectionLayerViews, XrCompositionLayerProjection& layer)
+	{
+		XrResult res;
+
+		XrViewState viewState{ XR_TYPE_VIEW_STATE };
+		uint32_t viewCapacityInput = (uint32_t)m_views.size();
+		uint32_t viewCountOutput;
+
+		XrViewLocateInfo viewLocateInfo{ XR_TYPE_VIEW_LOCATE_INFO };
+		viewLocateInfo.viewConfigurationType = m_options->Parsed.ViewConfigType;
+		viewLocateInfo.displayTime = predictedDisplayTime;
+		viewLocateInfo.space = m_appSpace;
+
+		res = xrLocateViews(m_session, &viewLocateInfo, &viewState, viewCapacityInput, &viewCountOutput, m_views.data());
+
+		CHECK_XRRESULT(res, "xrLocateViews");
+
+		if ((viewState.viewStateFlags & XR_VIEW_STATE_POSITION_VALID_BIT) == 0 ||
+			(viewState.viewStateFlags & XR_VIEW_STATE_ORIENTATION_VALID_BIT) == 0) {
+			return false;  // There is no valid tracking poses for the views.
+		}
+
+		CHECK(viewCountOutput == viewCapacityInput);
+		CHECK(viewCountOutput == m_configViews.size());
+		CHECK(viewCountOutput == m_swapchains.size());
+
+		projectionLayerViews.resize(viewCountOutput);
+
+		// For each locatable space that we want to visualize, render a 25cm cube.
+		std::vector<Cube> cubes;
+
+#if ADD_EXTRA_CUBES
+		const int num_cubes_x = 1;
+		const int num_cubes_y = 200;
+		const int num_cubes_z = 1;
+
+		const float offset_x = (float)(num_cubes_x - 1) * 0.5f;
+		const float offset_y = (float)(num_cubes_y - 1) * 0.5f;
+		const float offset_z = 1.0f;
+
+#if defined(WIN32)
+		const int hand_for_cube_scale = Side::LEFT;
+#else
+		const int hand_for_cube_scale = Side::RIGHT;
+#endif
+
+		XrPosef cube_pose;
+		cube_pose.orientation = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+		float hand_scale = 0.1f * m_input.handScale[hand_for_cube_scale];
+		XrVector3f scale_vec{ hand_scale, hand_scale, hand_scale };
+
+		for (int cube_z_index = 0; cube_z_index < num_cubes_z; cube_z_index++)
+		{
+			for (int cube_y_index = 0; cube_y_index < num_cubes_y; cube_y_index++)
+			{
+				for (int cube_x_index = 0; cube_x_index < num_cubes_x; cube_x_index++)
+				{
+					cube_pose.position =
+					{
+						(float)cube_x_index - offset_x,
+						(float)cube_y_index - offset_y,
+						-(float)cube_z_index - offset_z
+					};
+
+					Cube cube{ cube_pose, scale_vec };
+					cubes.push_back(cube);
+				}
+			}
+		}
+#endif
+
+		// Render view to the appropriate part of the swapchain image.
+		for (uint32_t i = 0; i < viewCountOutput; i++)
+		{
+			// Each view has a separate swapchain which is acquired, rendered to, and released.
+			const Swapchain viewSwapchain = m_second_swapchains[i];
+
+			XrSwapchainImageAcquireInfo acquireInfo{ XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO };
+
+			uint32_t swapchainImageIndex = 0;
+			CHECK_XRCMD(xrAcquireSwapchainImage(viewSwapchain.handle, &acquireInfo, &swapchainImageIndex));
+
+			XrSwapchainImageWaitInfo waitInfo{ XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO };
+			waitInfo.timeout = XR_INFINITE_DURATION;
+			CHECK_XRCMD(xrWaitSwapchainImage(viewSwapchain.handle, &waitInfo));
+
+			projectionLayerViews[i] = { XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW };
+			projectionLayerViews[i].pose = m_views[i].pose;
+			projectionLayerViews[i].fov = m_views[i].fov;
+			projectionLayerViews[i].subImage.swapchain = viewSwapchain.handle;
+			projectionLayerViews[i].subImage.imageRect.offset = { 0, 0 };
+			projectionLayerViews[i].subImage.imageRect.extent = { viewSwapchain.width, viewSwapchain.height };
+
+			const XrSwapchainImageBaseHeader* const swapchainImage = m_second_swapchainImages[viewSwapchain.handle][swapchainImageIndex];
+			m_graphicsPlugin->RenderView(projectionLayerViews[i], swapchainImage, m_colorSwapchainFormat, cubes);
+
+			XrSwapchainImageReleaseInfo releaseInfo{ XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
+			CHECK_XRCMD(xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo));
+		}
+
+		layer.space = m_appSpace;
+
+		layer.layerFlags = (m_options->Parsed.EnvironmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND) ? XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT | XR_COMPOSITION_LAYER_UNPREMULTIPLIED_ALPHA_BIT : 0;
+		layer.viewCount = (uint32_t)projectionLayerViews.size();
+		layer.views = projectionLayerViews.data();
+		return true;
+	}
+#endif
+
+
    private:
     const std::shared_ptr<const Options> m_options;
     std::shared_ptr<IPlatformPlugin> m_platformPlugin;
@@ -2228,6 +2431,11 @@ struct OpenXrProgram : IOpenXrProgram
     std::map<XrSwapchain, std::vector<XrSwapchainImageBaseHeader*>> m_swapchainImages;
     std::vector<XrView> m_views;
     int64_t m_colorSwapchainFormat{-1};
+
+#if USE_DUAL_LAYERS
+	std::vector<Swapchain> m_second_swapchains;
+	std::map<XrSwapchain, std::vector<XrSwapchainImageBaseHeader*>> m_second_swapchainImages;
+#endif
 
     std::vector<XrSpace> m_visualizedSpaces;
 
