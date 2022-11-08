@@ -2095,17 +2095,48 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
-        //const glm::vec3 nose_position_app_space = (BVR::convert_to_glm(m_views[Side::LEFT].pose.position) + BVR::convert_to_glm(m_views[Side::RIGHT].pose.position)) * 0.5f;
+        const glm::vec3 nose_position_app_space = (BVR::convert_to_glm(m_views[Side::LEFT].pose.position) + BVR::convert_to_glm(m_views[Side::RIGHT].pose.position)) * 0.5f;
+        
+        const glm::vec3 left_eye_offset_app_space = BVR::convert_to_glm(m_views[Side::LEFT].pose.position) - nose_position_app_space;
+        const glm::vec3 left_eye_offset_player_space = player_pose.rotation_ * left_eye_offset_app_space;
+
+        const glm::vec3 right_eye_offset_app_space = BVR::convert_to_glm(m_views[Side::RIGHT].pose.position) - nose_position_app_space;
+        const glm::vec3 right_eye_offset_player_space = player_pose.rotation_ * right_eye_offset_app_space;
 
         XrPosef player_cube_xr_pose = BVR::create_from_glm(player_pose);
 
-#if 1
         const glm::fquat left_eye_rotation = BVR::convert_to_glm(m_views[Side::LEFT].pose.orientation);
-        const glm::fquat final_rotation = glm::normalize(player_pose.rotation_ * left_eye_rotation);
-        player_cube_xr_pose.orientation = BVR::convert_to_xr(final_rotation);
+        const glm::fquat right_eye_rotation = BVR::convert_to_glm(m_views[Side::RIGHT].pose.orientation);
+
+        const glm::fquat final_left_rotation = glm::normalize(player_pose.rotation_ * left_eye_rotation);
+        const glm::fquat final_right_rotation = glm::normalize(player_pose.rotation_ * right_eye_rotation);
+
+        player_cube_xr_pose.orientation = BVR::convert_to_xr(final_left_rotation);
+
+		//cubes.push_back(Cube{ player_cube_xr_pose, {0.02f, 0.02f, 0.05f} });
+
+        const glm::vec3 final_left_cube_position = player_pose.translation_ + left_eye_offset_player_space;
+        const glm::vec3 final_right_cube_position = player_pose.translation_ + right_eye_offset_player_space;
+
+        BVR::GLMPose left_pose;
+        left_pose.translation_ = final_left_cube_position;
+        left_pose.rotation_ = final_left_rotation;
+
+        BVR::GLMPose right_pose;
+        right_pose.translation_ = final_right_cube_position;
+        right_pose.rotation_ = final_right_rotation;
+
+        XrPosef left_cube_xr_pose = BVR::create_from_glm(left_pose);
+        XrPosef right_cube_xr_pose = BVR::create_from_glm(right_pose);
+
+#if 0
+        m_views[Side::LEFT].pose = left_cube_xr_pose;
+        m_views[Side::RIGHT].pose = right_cube_xr_pose;
+#else
+        cubes.push_back(Cube{ left_cube_xr_pose, {0.01f, 0.01f, 0.02f} });
+        cubes.push_back(Cube{ right_cube_xr_pose, {0.01f, 0.01f, 0.05f} });
 #endif
 
-		cubes.push_back(Cube{ player_cube_xr_pose, {0.02f, 0.02f, 0.05f} });
 #endif
 
         // Render view to the appropriate part of the swapchain image.
@@ -2116,7 +2147,7 @@ struct OpenXrProgram : IOpenXrProgram
 
             XrSwapchainImageAcquireInfo acquireInfo{XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO};
 
-            uint32_t swapchainImageIndex;
+            uint32_t swapchainImageIndex = 0;
             CHECK_XRCMD(xrAcquireSwapchainImage(viewSwapchain.handle, &acquireInfo, &swapchainImageIndex));
 
             XrSwapchainImageWaitInfo waitInfo{XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO};
@@ -2129,19 +2160,6 @@ struct OpenXrProgram : IOpenXrProgram
             projectionLayerViews[i].subImage.swapchain = viewSwapchain.handle;
             projectionLayerViews[i].subImage.imageRect.offset = {0, 0};
             projectionLayerViews[i].subImage.imageRect.extent = {viewSwapchain.width, viewSwapchain.height};
-
-#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION && 0
-            const glm::fquat eye_rotation = BVR::convert_to_glm(m_views[i].pose.orientation);
-            const glm::vec3 eye_offset_from_nose_app_space = BVR::convert_to_glm(m_views[i].pose.position) - nose_position_app_space;
-            const glm::vec3 eye_offset_from_nose_player_space = glm::normalize(player_pose.rotation_) * eye_offset_from_nose_app_space;
-            
-            BVR::GLMPose final_pose;
-            final_pose.translation_ = player_pose.translation_ + eye_offset_from_nose_app_space;// eye_offset_from_nose_player_space;
-            final_pose.rotation_ = eye_rotation;// player_pose.rotation_;// glm::normalize(eye_rotation* player_pose.rotation_);
-
-            m_views[i].pose = BVR::create_from_glm(final_pose);
-            projectionLayerViews[i].pose = m_views[i].pose;
-#endif
 
 #if LOG_MATRICES
             static bool log_projection_matrices = true;
