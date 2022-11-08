@@ -1785,7 +1785,7 @@ struct OpenXrProgram : IOpenXrProgram
 
 					if (axis_state_x.isActive)
 					{
-                        left_thumbstick_values.x = axis_state_x.currentState;
+                        //left_thumbstick_values.x = axis_state_x.currentState;
 					}
 
 					if (axis_state_y.isActive)
@@ -2097,9 +2097,15 @@ struct OpenXrProgram : IOpenXrProgram
 #if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
         //const glm::vec3 nose_position_app_space = (BVR::convert_to_glm(m_views[Side::LEFT].pose.position) + BVR::convert_to_glm(m_views[Side::RIGHT].pose.position)) * 0.5f;
 
-		float scale = 0.1f;
         XrPosef player_cube_xr_pose = BVR::create_from_glm(player_pose);
-		cubes.push_back(Cube{ player_cube_xr_pose, {scale, scale, scale} });
+
+#if 1
+        const glm::fquat left_eye_rotation = BVR::convert_to_glm(m_views[Side::LEFT].pose.orientation);
+        const glm::fquat final_rotation = glm::normalize(player_pose.rotation_ * left_eye_rotation);
+        player_cube_xr_pose.orientation = BVR::convert_to_xr(final_rotation);
+#endif
+
+		cubes.push_back(Cube{ player_cube_xr_pose, {0.02f, 0.02f, 0.05f} });
 #endif
 
         // Render view to the appropriate part of the swapchain image.
