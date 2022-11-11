@@ -2145,24 +2145,40 @@ struct OpenXrProgram : IOpenXrProgram
 
                 if (GetGazePose(eye, gaze_pose))
                 {
-                    const float laser_length = 10.1f;
+					const XrPosef& eye_pose = m_views[eye].pose;
+
+                    const float laser_length = 10.0f;
                     const float half_laser_length = laser_length * 0.5f;
-                    const float distance_to_eye = 0.0f;
+                    const float distance_to_eye = 0.1f;
 
                     // Apply an offset so the lasers aren't overlapping the eye directly
                     XrVector3f local_laser_offset = { 0.0f, 0.0f, (-half_laser_length - distance_to_eye)};
 
-					XrMatrix4x4f rotation_matrix;
-					XrMatrix4x4f_CreateFromQuaternion(&rotation_matrix, &gaze_pose.orientation);
+					XrMatrix4x4f gaze_rotation_matrix;
+					XrMatrix4x4f_CreateFromQuaternion(&gaze_rotation_matrix, &gaze_pose.orientation);
+
+					XrMatrix4x4f eye_rotation_matrix;
+					XrMatrix4x4f_CreateFromQuaternion(&eye_rotation_matrix, &eye_pose.orientation);
+
+					XrMatrix4x4f world_eye_gaze_matrix;
+					XrMatrix4x4f_Multiply(&world_eye_gaze_matrix, &gaze_rotation_matrix, &eye_rotation_matrix);
+
+                    XrQuaternionf world_orientation;
+                    XrMatrix4x4f_GetRotation(&world_orientation, &world_eye_gaze_matrix);
+
+					XrPosef final_pose;
+                    final_pose.position = eye_pose.position;
+					//XrVector3f_Add(&final_pose.position, &gaze_pose.position, &eye_pose.position);
+					final_pose.orientation = world_orientation;
 
                     XrVector3f world_laser_offset;
-                    XrMatrix4x4f_TransformVector3f(&world_laser_offset, &rotation_matrix, &local_laser_offset);
+                    XrMatrix4x4f_TransformVector3f(&world_laser_offset, &world_eye_gaze_matrix, &local_laser_offset);
 
-                    XrVector3f_Add(&gaze_pose.position, &gaze_pose.position, &world_laser_offset);
+                    XrVector3f_Add(&final_pose.position, &final_pose.position, &world_laser_offset);
 
                     // Make a slender laser pointer-like box for gazes
-                    XrVector3f gaze_cube_scale{ 0.01f, 0.01f, laser_length };
-                    cubes.push_back(Cube{ gaze_pose, gaze_cube_scale });
+                    XrVector3f gaze_cube_scale{ 0.001f, 0.001f, laser_length };
+                    cubes.push_back(Cube{ final_pose, gaze_cube_scale });
                 }
             }
         }
