@@ -53,7 +53,7 @@ XrLocalDimmingFrameEndInfoMETA local_dimming_settings_ = { (XrStructureType)1000
 bool supports_hand_tracking_ = false;
 #endif
 
-#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
+#if ENABLE_OPENXR_FB_EYE_TRACKING
 #include <openxr/fb_eye_tracking_social.h>
 bool supports_eye_tracking_social_ = false;
 #endif
@@ -205,7 +205,7 @@ struct OpenXrProgram : IOpenXrProgram
 		DestroyBodyTracker();
 #endif
 
-#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
+#if ENABLE_OPENXR_FB_EYE_TRACKING
 		DestroyEyeTracker();
 #endif
 
@@ -320,7 +320,7 @@ struct OpenXrProgram : IOpenXrProgram
 				}
 #endif
 
-#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
+#if ENABLE_OPENXR_FB_EYE_TRACKING
 				if (!strcmp(extension.extensionName, XR_FB_EYE_TRACKING_SOCIAL_EXTENSION_NAME))
 				{
 					Log::Write(Log::Level::Info, "FB OPENXR XR_FB_EYE_TRACKING_SOCIAL_EXTENSION_NAME - DETECTED");
@@ -451,7 +451,7 @@ struct OpenXrProgram : IOpenXrProgram
 		}
 #endif
 
-#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
+#if ENABLE_OPENXR_FB_EYE_TRACKING
 		if (supports_eye_tracking_social_)
 		{
 			Log::Write(Log::Level::Info, "Eye Tracking is supported (Quest Pro)");
@@ -516,6 +516,7 @@ struct OpenXrProgram : IOpenXrProgram
         std::vector<XrViewConfigurationType> viewConfigTypes(viewConfigTypeCount);
         CHECK_XRCMD(xrEnumerateViewConfigurations(m_instance, m_systemId, viewConfigTypeCount, &viewConfigTypeCount,
                                                   viewConfigTypes.data()));
+
         CHECK((uint32_t)viewConfigTypes.size() == viewConfigTypeCount);
 
         Log::Write(Log::Level::Info, Fmt("Available View Configuration Types: (%d)", viewConfigTypeCount));
@@ -528,8 +529,7 @@ struct OpenXrProgram : IOpenXrProgram
             XrViewConfigurationProperties viewConfigProperties{XR_TYPE_VIEW_CONFIGURATION_PROPERTIES};
             CHECK_XRCMD(xrGetViewConfigurationProperties(m_instance, m_systemId, viewConfigType, &viewConfigProperties));
 
-            Log::Write(Log::Level::Verbose,
-                       Fmt("  View configuration FovMutable=%s", viewConfigProperties.fovMutable == XR_TRUE ? "True" : "False"));
+            Log::Write(Log::Level::Verbose, Fmt("  View configuration FovMutable=%s", viewConfigProperties.fovMutable == XR_TRUE ? "True" : "False"));
 
             uint32_t viewCount;
             CHECK_XRCMD(xrEnumerateViewConfigurationViews(m_instance, m_systemId, viewConfigType, 0, &viewCount, nullptr));
@@ -547,11 +547,13 @@ struct OpenXrProgram : IOpenXrProgram
                     Log::Write(Log::Level::Verbose, Fmt("    View [%d]: Recommended Width=%d Height=%d SampleCount=%d", i,
                                                         view.recommendedImageRectWidth, view.recommendedImageRectHeight,
                                                         view.recommendedSwapchainSampleCount));
-                    Log::Write(Log::Level::Verbose,
-                               Fmt("    View [%d]:     Maximum Width=%d Height=%d SampleCount=%d", i, view.maxImageRectWidth,
+
+                    Log::Write(Log::Level::Verbose, Fmt("    View [%d]:     Maximum Width=%d Height=%d SampleCount=%d", i, view.maxImageRectWidth,
                                    view.maxImageRectHeight, view.maxSwapchainSampleCount));
                 }
-            } else {
+            } 
+            else 
+            {
                 Log::Write(Log::Level::Error, Fmt("Empty view configuration type"));
             }
 
@@ -577,8 +579,7 @@ struct OpenXrProgram : IOpenXrProgram
         for (XrEnvironmentBlendMode mode : blendModes) 
         {
             const bool blendModeMatch = (mode == m_options->Parsed.EnvironmentBlendMode);
-            Log::Write(Log::Level::Info,
-                       Fmt("Environment Blend Mode (%s) : %s", to_string(mode), blendModeMatch ? "(Selected)" : ""));
+            Log::Write(Log::Level::Info, Fmt("Environment Blend Mode (%s) : %s", to_string(mode), blendModeMatch ? "(Selected)" : ""));
             blendModeFound |= blendModeMatch;
         }
         CHECK(blendModeFound);
@@ -595,7 +596,10 @@ struct OpenXrProgram : IOpenXrProgram
                                                      blendModes.data()));
         for (const auto& blendMode : blendModes) 
         {
-            if (m_acceptableBlendModes.count(blendMode)) return blendMode;
+            if (m_acceptableBlendModes.count(blendMode))
+            {
+                return blendMode;
+            }
         }
         THROW("No acceptable blend mode returned from the xrEnumerateEnvironmentBlendModes");
     }
@@ -970,7 +974,7 @@ struct OpenXrProgram : IOpenXrProgram
 		SetRefreshRate(DESIRED_REFRESH_RATE);
 #endif
 
-#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
+#if ENABLE_OPENXR_FB_EYE_TRACKING
 		CreateEyeTracker();
 #endif
 
@@ -1392,7 +1396,7 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_HAND_TRACKING
 #endif
 
-#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
+#if ENABLE_OPENXR_FB_EYE_TRACKING
 	PFN_xrCreateEyeTrackerFB xrCreateEyeTrackerFB = nullptr;
 	PFN_xrDestroyEyeTrackerFB xrDestroyEyeTrackerFB = nullptr;
 	PFN_xrGetEyeGazesFB xrGetEyeGazesFB = nullptr;
@@ -2130,7 +2134,7 @@ struct OpenXrProgram : IOpenXrProgram
         }
 #endif
 
-#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
+#if ENABLE_OPENXR_FB_EYE_TRACKING
         if (eye_tracking_enabled_)
         {
             UpdateEyeTrackerGazes();
@@ -2299,7 +2303,7 @@ struct OpenXrProgram : IOpenXrProgram
         layer.space = m_appSpace;
 
 #if USE_DUAL_LAYERS
-        layer.layerFlags = 0;// XR_COMPOSITION_LAYER_UNPREMULTIPLIED_ALPHA_BIT;
+        layer.layerFlags = 0;// XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;// XR_COMPOSITION_LAYER_UNPREMULTIPLIED_ALPHA_BIT;
 #else
         layer.layerFlags = (m_options->Parsed.EnvironmentBlendMode == XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND) ? XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT | XR_COMPOSITION_LAYER_UNPREMULTIPLIED_ALPHA_BIT : 0;
 #endif
@@ -2412,7 +2416,7 @@ struct OpenXrProgram : IOpenXrProgram
 
 		layer.space = m_appSpace;
 
-        layer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+        layer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;// XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
 		layer.viewCount = (uint32_t)projectionLayerViews.size();
 		layer.views = projectionLayerViews.data();
 		return true;
