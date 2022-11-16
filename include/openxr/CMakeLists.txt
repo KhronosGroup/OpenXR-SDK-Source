@@ -91,11 +91,11 @@ else()
     )
 endif()
 set_target_properties(generate_openxr_header PROPERTIES FOLDER ${CODEGEN_FOLDER})
-if(NOT CMAKE_INSTALL_INCDIR)
-    set(CMAKE_INSTALL_INCDIR include)
-endif()
+
+# make cache variables for install destinations
+include(GNUInstallDirs)
 
 INSTALL(FILES ${INSTALL_HEADERS}
-    DESTINATION ${CMAKE_INSTALL_INCDIR}/openxr
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/openxr
     COMPONENT Headers
 )
