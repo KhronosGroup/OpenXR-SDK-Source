@@ -83,7 +83,7 @@ static inline std::string PlatformUtilsGetSecureEnv(const char* name) {
     auto str = detail::ImplGetSecureEnv(name);
     if (str == nullptr) {
         str = detail::ImplGetEnv(name);
-        if (!str.empty()) {
+        if (str != nullptr && !std::string(str).empty()) {
             LogPlatformUtilsError(std::string("!!! WARNING !!! Environment variable ") + name +
                                   " is being ignored due to running with secure execution. The value '" + str +
                                   "' will NOT be used.");
