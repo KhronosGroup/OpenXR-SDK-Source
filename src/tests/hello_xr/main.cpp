@@ -78,6 +78,7 @@ void ShowHelp() {
 
 #if (defined(WIN32) && !defined(DEFAULT_GRAPHICS_PLUGIN_VULKAN))
 #define DEFAULT_GRAPHICS_PLUGIN_OPENGL 1
+//#define DEFAULT_GRAPHICS_PLUGIN_VULKAN 1
 #endif
 
 bool UpdateOptionsFromCommandLine(Options& options, int argc, char* argv[]) {
