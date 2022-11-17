@@ -1353,6 +1353,12 @@ struct OpenXrProgram : IOpenXrProgram
 			is_sharpening_enabled_ = false;
 			return;
 		}
+        
+        if (is_sharpening_enabled_ == enabled)
+        {
+            // Just to avoid spamming the logs below
+            return;
+        }
 
         // Only support one flag, sharpening, for now
         composition_layer_settings_.layerFlags = enabled ? XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SHARPENING_BIT_FB : 0;
@@ -1362,7 +1368,7 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS
-	XrCompositionLayerSettingsFB composition_layer_settings_ = { XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB, nullptr, XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SHARPENING_BIT_FB };
+	XrCompositionLayerSettingsFB composition_layer_settings_ = { XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB, nullptr, 0 };
 #endif
 
 
@@ -2131,6 +2137,14 @@ struct OpenXrProgram : IOpenXrProgram
             const float IPD = sqrtf((left_to_right.x * left_to_right.x) + (left_to_right.y * left_to_right.y) + (left_to_right.z * left_to_right.z));
             Log::Write(Log::Level::Info, Fmt("Computed IPD (mm) = %.7f", IPD * 1000.0f));
         }
+#endif
+
+#if TOGGLE_SHARPENING_AT_RUNTIME_USING_RIGHT_GRIP
+    if (supports_composition_layer_)
+    {
+        const bool sharpening_enabled = (m_input.handScale[Side::RIGHT] < 0.5f);
+        SetSharpeningEnabled(sharpening_enabled);
+    }
 #endif
 
 #if ENABLE_OPENXR_FB_EYE_TRACKING
