@@ -76,6 +76,9 @@ void LogPlatformUtilsError(const std::string &message) {
 #if defined(XR_OS_WINDOWS)
     OutputDebugStringA((message + "\n").c_str());
 #endif
+#else
+    // Unused
+    (void)message;
 #endif
 }
 
