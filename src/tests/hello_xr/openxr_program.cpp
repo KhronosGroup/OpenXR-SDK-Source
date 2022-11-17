@@ -1339,17 +1339,16 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if ENABLE_OPENXR_FB_SHARPENING
-	bool is_sharpening_supported_ = false;
 	bool is_sharpening_enabled_ = false;
 
 	bool IsSharpeningEnabled() const override
 	{
-		return (is_sharpening_supported_ && is_sharpening_enabled_);
+		return (supports_composition_layer_ && is_sharpening_enabled_);
 	}
 
 	void SetSharpeningEnabled(const bool enabled) override
 	{
-		if (!is_sharpening_supported_)
+		if (!supports_composition_layer_)
 		{
 			is_sharpening_enabled_ = false;
 			return;
@@ -1357,12 +1356,12 @@ struct OpenXrProgram : IOpenXrProgram
 
         // Only support one flag, sharpening, for now
         composition_layer_settings_.layerFlags = enabled ? XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SHARPENING_BIT_FB : 0;
-		is_sharpening_enabled_ = enabled;
+        Log::Write(Log::Level::Info, Fmt("FB OPENXR : LINK SHARPENING %s\n", enabled ? "ON" : "OFF"));
+        is_sharpening_enabled_ = enabled;
 	}
 #endif
 
 #if ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS
-	//bool supports_composition_layer_ = false;
 	XrCompositionLayerSettingsFB composition_layer_settings_ = { XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB, nullptr, XR_COMPOSITION_LAYER_SETTINGS_QUALITY_SHARPENING_BIT_FB };
 #endif
 
