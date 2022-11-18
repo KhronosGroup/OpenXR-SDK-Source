@@ -17,7 +17,7 @@ jobs:
         uses: seanmiddleditch/gha-setup-ninja@v3
 
       - name: set up JDK 11
-        uses: actions/setup-java@v3.6.0
+        uses: actions/setup-java@v3
         with:
           java-version: "11"
           distribution: "temurin"
@@ -55,7 +55,7 @@ jobs:
       - name: Install ninja-build tool
         uses: seanmiddleditch/gha-setup-ninja@v3
       - name: set up JDK 11
-        uses: actions/setup-java@v3.6.0
+        uses: actions/setup-java@v3
         with:
           java-version: "11"
           distribution: "temurin"
