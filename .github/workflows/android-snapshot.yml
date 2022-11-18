@@ -9,7 +9,7 @@ jobs:
   build-snapshot:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install ninja-build tool
         uses: seanmiddleditch/gha-setup-ninja@v3
 
