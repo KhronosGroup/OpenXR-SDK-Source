@@ -1,0 +1,16 @@
+# Copyright 2021-2022, Collabora, Ltd.
+# SPDX-License-Identifier: CC0-1.0
+
+name: Pull request checks
+on:
+  pull_request:
+
+jobs:
+  msvc-build:
+    uses: ./.github/workflows/windows-matrix.yml
+
+  android:
+    uses: ./.github/workflows/android.yml
+
+  # format_and_spell:
+  #   uses: ./.github/workflows/check_clang_format_and_codespell.yml
