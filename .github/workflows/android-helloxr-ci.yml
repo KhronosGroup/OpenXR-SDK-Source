@@ -26,7 +26,7 @@ jobs:
           arguments: assembleOpenGLESDebug
           build-root-directory: src/tests/hello_xr
       - name: Upload HelloXR OpenGLES Android
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: HelloXR OpenGLES Android
           path: src/tests/hello_xr/build/outputs/apk/OpenGLES/debug/

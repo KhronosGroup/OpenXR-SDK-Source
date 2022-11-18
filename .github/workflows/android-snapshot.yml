@@ -29,12 +29,12 @@ jobs:
           OSSRH_USER: ${{secrets.OSSRH_USER}}
           OSSRH_PASSWORD: ${{secrets.OSSRH_PASSWORD}}
       - name: Upload bare AAR
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: AAR and POM
           path: openxr_loader_for_android*
       - name: Upload Maven repo
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: repo
             maintainer-scripts/publish-aar/build/repo/
