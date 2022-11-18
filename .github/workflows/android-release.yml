@@ -12,7 +12,7 @@ jobs:
   build-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install ninja-build tool
         uses: seanmiddleditch/gha-setup-ninja@v3
 
@@ -51,7 +51,7 @@ jobs:
   build-helloxr-release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install ninja-build tool
         uses: seanmiddleditch/gha-setup-ninja@v3
       - name: set up JDK 11
