@@ -1,5 +1,6 @@
 ---
 - pr.352.gh.OpenXR-SDK-Source
+- pr.256.gh.OpenXR-SDK-Source
 ---
 - Improve GitHub CI for OpenXR-SDK-Source.
 - Enable dependabot for GitHub Actions.

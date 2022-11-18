@@ -1,0 +1,20 @@
+# Copyright 2021-2022, Collabora, Ltd.
+# SPDX-License-Identifier: CC0-1.0
+
+name: Build release artifacts
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+jobs:
+  android:
+    uses: ./.github/workflows/android.yml
+    with:
+      release: true
+
+  msvc-build:
+    uses: ./.github/workflows/windows-matrix.yml
+    with:
+      organizeAndRelease: true # TODO
+
