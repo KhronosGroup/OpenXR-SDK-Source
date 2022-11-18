@@ -32,12 +32,12 @@ jobs:
           OSSRH_USER: ${{secrets.OSSRH_USER}}
           OSSRH_PASSWORD: ${{secrets.OSSRH_PASSWORD}}
       - name: Upload bare AAR
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: AAR and POM
           path: openxr_loader_for_android*
       - name: Upload Maven repo
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: repo
           path: maintainer-scripts/publish-aar/build/repo/
@@ -84,7 +84,7 @@ jobs:
           SIGNED_FILE: ${{ steps.sign_gles.outputs.signedReleaseFile }}
         run: mv $SIGNED_FILE HelloXR_OpenGLES.apk
       - name: Upload HelloXR OpenGLES Android
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: HelloXR OpenGLES Android
           path: HelloXR_OpenGLES.apk
@@ -114,7 +114,7 @@ jobs:
         run: mv $SIGNED_FILE HelloXR_Vulkan.apk
 
       - name: Upload HelloXR Vulkan Android
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: HelloXR Vulkan Android
           path: HelloXR_Vulkan.apk

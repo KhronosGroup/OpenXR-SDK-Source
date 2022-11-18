@@ -24,7 +24,7 @@ jobs:
           cd src/loader
           ./gradlew build
       - name: Upload OpenXR Loader for Android
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: OpenXR Loader for Android
           path: src/loader/build/outputs/aar/
