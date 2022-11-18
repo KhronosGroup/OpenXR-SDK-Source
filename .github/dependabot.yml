@@ -1,0 +1,11 @@
+# Copyright 2022, Collabora, Ltd.
+# SPDX-License-Identifier: CC0-1.0
+
+version: 2
+
+updates:
+  # for actions, define the paths relative to .github/workflows
+  - directory: /
+    package-ecosystem: github-actions
+    schedule:
+      interval: weekly
