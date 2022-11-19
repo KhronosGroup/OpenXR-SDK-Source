@@ -26,9 +26,9 @@
 #include "xr_dependencies.h"
 #include <openxr/openxr.h>
 
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <string.h>
-#include <stdlib.h>
 #include <inttypes.h>
 #include <vector>
 

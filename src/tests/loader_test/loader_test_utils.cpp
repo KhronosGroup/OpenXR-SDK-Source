@@ -28,8 +28,8 @@
 #include "xr_dependencies.h"
 #include <openxr/openxr.h>
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 
 #if defined(XR_OS_WINDOWS)
 
