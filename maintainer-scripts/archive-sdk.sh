@@ -55,9 +55,10 @@ makeSubset "$TARNAME" $(getSDKFilenames)
     add_to_tar "$TARNAME" README.md
 )
 
-for header in openxr.h openxr_platform.h openxr_reflection.h; do
-    generate_spec include/openxr $header "$TARNAME"
-done
+# Read the list of headers we should generate, and generate them.
+while read -r header; do
+    generate_spec include/openxr "$header" "$TARNAME"
+done < include/generated_header_list.txt
 
 # These go just in SDK
 generate_src src xr_generated_dispatch_table.c  "$TARNAME"
@@ -66,9 +67,9 @@ generate_src src/loader xr_generated_loader.cpp  "$TARNAME"
 generate_src src/loader xr_generated_loader.hpp  "$TARNAME"
 
 # If the loader doc has been generated, include it too.
-if [ -f specification/out/1.0/loader.html ]; then
+if [ -f specification/generated/out/1.0/loader.html ]; then
     mkdir -p doc/loader
-    cp specification/out/1.0/loader.html doc/loader/OpenXR_loader_design.html
+    cp specification/generated/out/1.0/loader.html doc/loader/OpenXR_loader_design.html
     add_to_tar "$TARNAME" doc/loader/OpenXR_loader_design.html
 fi
 

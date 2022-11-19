@@ -123,7 +123,6 @@ RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderRuntimeInterface(
         runtimeRequest->structSize != sizeof(XrNegotiateRuntimeRequest) ||
         loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_RUNTIME_VERSION ||
         loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_RUNTIME_VERSION ||
-        loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_RUNTIME_VERSION ||
         loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }

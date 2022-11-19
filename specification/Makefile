@@ -32,7 +32,7 @@ ifneq (,$(strip $(VERY_STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level WARN
 endif
 
-SPECREVISION = 1.0.25
+SPECREVISION = 1.0.26
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -130,8 +130,10 @@ config_stamp:
 HEADER_DIR    := $(OUTDIR)/openxr
 HEADER	      := $(HEADER_DIR)/openxr.h
 PLATHEAD      := $(HEADER_DIR)/openxr_platform.h
-REFLECTHEAD   := $(HEADER_DIR)/openxr_reflection.h
-GENHEADERS    := $(HEADER) $(PLATHEAD) $(REFLECTHEAD)
+REFLECTHEADERS:= $(HEADER_DIR)/openxr_reflection.h \
+                 $(HEADER_DIR)/openxr_reflection_structs.h \
+                 $(HEADER_DIR)/openxr_reflection_parent_structs.h
+GENHEADERS    := $(HEADER) $(PLATHEAD) $(REFLECTHEADERS)
 DEFINESHEAD   := $(HEADER_DIR)/openxr_platform_defines.h
 
 # Platform header (just copy)
@@ -194,7 +196,7 @@ $(GENDIR)/api/apiinc: $(XRAPI) $(SCRIPTS)/docgenerator.py
 $(GENDIR)/validity/validinc: $(SCRIPTS)/validitygenerator.py $(SPECTOOLS)/validity.py $(SPECTOOLS)/attributes.py $(SPECTOOLS)/data_structures.py
 $(XRAPI): $(SCRIPTS)/pygenerator.py $(SCRIPTS)/docgenerator.py
 $(GENHEADERS): $(SCRIPTS)/cgenerator.py
-$(REFLECTHEAD): $(SCRIPTS)/creflectiongenerator.py $(SCRIPTS)/jinja_helpers.py
+$(REFLECTHEADERS): $(SCRIPTS)/creflectiongenerator.py $(SCRIPTS)/jinja_helpers.py $(wildcard $(SCRIPTS)/template_*)
 
 # The actual generated files depend on their stamp file.
 GENAPI = $(wildcard $(GENDIR)/api/*/[A-Za-z]*.txt)
@@ -626,7 +628,7 @@ clean_generated:
 
 # Clean generated targets as well as intermediates.
 clean clobber: clean_dirt clean_generated
-	$(RM) $(HEADER) $(PLATHEAD) $(REFLECTHEAD) $(DEFINESHEAD) $(HTMLSPEC) $(PDFSPEC) $(PDFA4SPEC) $(STYLEGUIDE) $(LOADERGUIDE) $(CONFIG_STAMP_FN)
+	$(RM) $(HEADER) $(PLATHEAD) $(REFLECTHEADERS) $(DEFINESHEAD) $(HTMLSPEC) $(PDFSPEC) $(PDFA4SPEC) $(STYLEGUIDE) $(LOADERGUIDE) $(CONFIG_STAMP_FN)
 	# Clean up extracted code
 	if [ -f $(EXAMPLES_MAKEFILE) ]; then $(MAKE) -f $(EXAMPLES_MAKEFILE) clean-examples; fi
 	$(RM) $(EXAMPLES_MAKEFILE)

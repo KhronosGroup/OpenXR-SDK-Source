@@ -177,12 +177,20 @@ need the following in their manifest.
 
 [source,xml]
 ```
-<uses-permission android:name="org.khronos.openxr.permission.OPENXR" />
 <uses-permission android:name="org.khronos.openxr.permission.OPENXR_SYSTEM" />
 
 <queries>
   <provider android:authorities="org.khronos.openxr.runtime_broker;org.khronos.openxr.system_runtime_broker" />
 </queries>
+```
+
+Earlier versions of the installable broker also wanted the following permission,
+but this is no longer required. It is harmless to leave it in place, but the broker
+no longer requires it.
+
+[source,xml]
+```
+<uses-permission android:name="org.khronos.openxr.permission.OPENXR" />
 ```
 
 Additionally, applications should **not target API levels higher than 29**

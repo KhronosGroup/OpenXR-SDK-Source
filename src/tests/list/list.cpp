@@ -68,9 +68,7 @@ int main() {
     Program program = {};
 
     // Start with creating a instance.
-    XrInstanceCreateInfo instanceCreateInfo = {};
-    instanceCreateInfo.type = XR_TYPE_INSTANCE_CREATE_INFO;
-    instanceCreateInfo.applicationInfo = {};
+    XrInstanceCreateInfo instanceCreateInfo = {XR_TYPE_INSTANCE_CREATE_INFO};
     strncpy(instanceCreateInfo.applicationInfo.applicationName, "List", XR_MAX_APPLICATION_NAME_SIZE);
     instanceCreateInfo.applicationInfo.applicationVersion = 1;
     strncpy(instanceCreateInfo.applicationInfo.engineName, "List Engine", XR_MAX_ENGINE_NAME_SIZE);
@@ -94,9 +92,7 @@ int main() {
     }
 
     // Print information about the system.
-    XrSystemProperties systemProperties = {};
-    systemProperties.type = XR_TYPE_SYSTEM_PROPERTIES;
-
+    XrSystemProperties systemProperties = {XR_TYPE_SYSTEM_PROPERTIES};
     xrGetSystemProperties(program.instance, systemId, &systemProperties);
 
     printf("Evaluating system\n");
@@ -107,10 +103,7 @@ int main() {
 
     uint32_t size;
     xrEnumerateInstanceExtensionProperties(nullptr, 0, &size, nullptr);
-    std::vector<XrExtensionProperties> extensions;
-    for (uint32_t i = 0; i < size; i++) {
-        extensions.push_back(XrExtensionProperties{XR_TYPE_EXTENSION_PROPERTIES, nullptr});
-    }
+    std::vector<XrExtensionProperties> extensions(size, {XR_TYPE_EXTENSION_PROPERTIES});
     xrEnumerateInstanceExtensionProperties(nullptr, size, &size, extensions.data());
 
     printf("List instance extensions\n");
@@ -119,10 +112,7 @@ int main() {
     }
 
     xrEnumerateApiLayerProperties(0, &size, nullptr);
-    std::vector<XrApiLayerProperties> apiLayerProperties;
-    for (uint32_t i = 0; i < size; i++) {
-        apiLayerProperties.push_back(XrApiLayerProperties{XR_TYPE_API_LAYER_PROPERTIES, nullptr});
-    }
+    std::vector<XrApiLayerProperties> apiLayerProperties(size, {XR_TYPE_API_LAYER_PROPERTIES});
     xrEnumerateApiLayerProperties(size, &size, apiLayerProperties.data());
 
     printf("List API layer properties\n");

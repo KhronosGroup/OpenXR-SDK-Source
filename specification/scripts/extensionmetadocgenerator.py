@@ -252,9 +252,7 @@ class Extension:
         # Only API extension dependencies are coded in XML, others are explicit
         self.writeTag('Extension and Version Dependencies', None, isRefpage, fp)
 
-        # TODO switch wording here
-        # write('  * Requires support for {} {}'.format(
-        write('  * Requires {} {}'.format(
+        write('  * Requires support for {} {}'.format(
               self.conventions.api_name(), self.requiresCore), file=fp)
 
         if self.requires:
@@ -266,13 +264,9 @@ class Extension:
                 enableQualifier = ' for any device-level functionality'
 
             for dep in self.requires.split(','):
-                # TODO switch wording here
-                write('  * Requires {}'.format(
-                      self.conventions.formatExtension(dep)),
+                write('  * Requires {} to be enabled{}'.format(
+                      self.conventions.formatExtension(dep), enableQualifier),
                       file=fp)
-                # write('  * Requires {} to be enabled{}'.format(
-                #       self.conventions.formatExtension(dep), enableQualifier),
-                #       file=fp)
         if self.provisional == 'true' and self.conventions.provisional_extension_warning:
             write('  * *This is a _provisional_ extension and must: be used with caution.', file=fp)
             write('    See the ' +

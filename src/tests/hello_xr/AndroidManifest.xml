@@ -21,6 +21,7 @@
     android:version="1" />
 
   <!-- If building externally with the OpenXR AAR, this would be merged in automatically. -->
+  <uses-permission android:name="android.permission.VIBRATE" />
   <uses-permission android:name="org.khronos.openxr.permission.OPENXR" />
   <uses-permission android:name="org.khronos.openxr.permission.OPENXR_SYSTEM" />
   <queries>

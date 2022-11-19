@@ -163,9 +163,11 @@ class GeneratorOptions:
                  emitExtensions=None,
                  emitSpirv=None,
                  emitFormats=None,
+                 emitRecursiveRequirements=True,
                  reparentEnums=True,
                  sortProcedure=regSortFeatures,
                  requireCommandAliases=False,
+                 redefineEnumExtends=False,
                 ):
         """Constructor.
 
@@ -213,7 +215,13 @@ class GeneratorOptions:
           - Alphabetically within each group.
 
         The regex patterns can be None or empty, in which case they match
-        nothing."""
+        nothing.
+
+        - redefineEnumExtends - Force enum values added in a <require> block
+        with <extends="EnumType" offset="0"> to be redefined in the current header
+        as a constant cast to the right type. This only makes sense if you're
+        generating a standalone header which won't include the actual enum type
+        """
         self.conventions = conventions
         """may be mandatory for some generators:
         an object that implements ConventionsBase"""
@@ -270,6 +278,10 @@ class GeneratorOptions:
         """regex matching names of formats
         to actually emit interfaces for."""
 
+        self.emitRecursiveRequirements = emitRecursiveRequirements
+        """boolean specifying whether to emit types that are referenced
+        by required types or commands (recursively)"""
+
         self.reparentEnums = reparentEnums
         """boolean specifying whether to remove <enum> elements from
         <feature> or <extension> when extending an <enums> type."""
@@ -289,6 +301,14 @@ class GeneratorOptions:
         self.requireCommandAliases = requireCommandAliases
         """True if alias= attributes of <command> tags are transitively
         required."""
+
+        self.redefineEnumExtends = redefineEnumExtends
+        """
+        Force enum values added in a <require> block
+        with <extends="EnumType" offset="0"> to be redefined in the current header
+        as a constant cast to the right type. This only makes sense if you're
+        generating a standalone header which won't include the actual enum type
+        """
 
     def emptyRegex(self, pat):
         """Substitute a regular expression which matches no version
@@ -742,6 +762,23 @@ class OutputGenerator:
             if paren:
                 strVal = "(" + strVal + ")";
             body = '#define ' + name.ljust(33) + ' ' + strVal;
+        elif self.genOpts.redefineEnumExtends and enuminfo.elem.get('extends'):
+            # <enum> tags with an extends field is usually
+            # absorbed into the actual enum definition
+            # if it reached this point it means that we're defining
+            # a separate extension to the already declared enum,
+            # so we make sure to typecast it to the enum type
+            typeStr = enuminfo.elem.get('extends')
+            invert = '~' in strVal
+            paren = '(' in strVal
+            number = strVal.strip("()~UL")
+            number += 'U'
+            strVal = "~" if invert else ""
+            strVal += number
+            if paren:
+                strVal = "(" + strVal + ")"
+            strVal = "((" + typeStr + ") "+ strVal + ")"
+            body = '#define ' + name.ljust(33) + ' ' + strVal
         else:
             body = '#define ' + name.ljust(33) + ' ' + strVal
 

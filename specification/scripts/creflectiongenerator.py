@@ -9,13 +9,23 @@
 # avoiding license incompatibility
 
 import re
+from typing import Optional
 
 from generator import OutputGenerator, write
 from jinja_helpers import JinjaTemplate, make_jinja_environment
 from spec_tools.util import getElemName, getElemType
 
 
-class CStruct:
+class PolymorphicStructCollection:
+    """Holds struct types that share a parentstruct"""
+
+    def __init__(self, parent_type_name, unprotected_structs, protect_sets_and_protected_structs):
+        self.parent_type_name = parent_type_name
+        self.unprotected_structs = unprotected_structs
+        self.protect_sets_and_protected_structs = protect_sets_and_protected_structs
+
+
+class StructData:
     """Represents a OpenXR struct type"""
 
     def __init__(self, typeName, structTypeName, members, protect):
@@ -25,16 +35,18 @@ class CStruct:
         self.protect = protect
 
     @property
-    def protect_value(self):
+    def protect_value(self) -> bool:
+        """Whether the struct has preprocessor macro protection"""
         return self.protect is not None
 
     @property
-    def protect_string(self):
+    def protect_string(self) -> Optional[str]:
+        """The preprocessor expression to test for protection, or None"""
         if self.protect:
             return " && ".join("defined({})".format(x) for x in self.protect)
 
 
-class CBitmask:
+class BitmaskData:
     """Represents a OpenXR mask type"""
 
     def __init__(self, typeName, maskTuples):
@@ -42,7 +54,7 @@ class CBitmask:
         self.maskTuples = maskTuples
 
 
-class CEnum:
+class EnumData:
     """Represents a OpenXR group enum type"""
 
     def __init__(self, typeName, typeNamePrefix, typeNameSuffix, enumTuples):
@@ -62,35 +74,59 @@ class CReflectionOutputGenerator(OutputGenerator):
         self.enums = []
         self.bitmasks = []
         self.protects = set()
+        self.template: Optional[JinjaTemplate] = None
+        self.parents = {}
 
     def beginFile(self, genOpts):
         OutputGenerator.beginFile(self, genOpts)
         self.template = JinjaTemplate(self.env, "template_{}".format(genOpts.filename))
 
-    def getStructsForProtect(self, protect=None):
-        return [x for x in self.structs
-                if x.protect == protect and x.structTypeName is not None]
+    def _get_structs_for_protect(self, protect=None):
+        """
+        Get an array of structure objects available only with the given protects defined.
+        """
+        ret = [x for x in self.structs
+               if x.protect == protect and x.structTypeName is not None]
+        return ret
 
     def endFile(self):
+        assert(self.template)
         file_data = ''
 
-        unprotected_structs = self.getStructsForProtect()
-        protected_structs = [(x, self.getStructsForProtect(x))
+        unprotected_structs = self._get_structs_for_protect()
+        protected_structs = [(x, self._get_structs_for_protect(protect=x))
                              for x in sorted(self.protects)]
+        # drop empty collections
+        protected_structs = [(x, y) for x, y in protected_structs if y]
+
+        polymorphic_struct_families = []
+        for parent_name, child_names in self.parents.items():
+            # filter by name
+            prot = [
+                (protect, [s for s in structs if s.typeName in child_names])
+                for protect, structs in protected_structs
+            ]
+            # filter out empty protection groups
+            prot = [(protect, structs) for protect, structs in prot if structs]
+
+            polymorphic_struct_families.append(PolymorphicStructCollection(
+                parent_name,
+                unprotected_structs=[s for s in unprotected_structs if s.typeName in child_names],
+                protect_sets_and_protected_structs=prot))
 
         extensions = list(
             ((name, data) for name, data in self.registry.extdict.items()
              if data.supported != 'disabled'))
-        def getNumber(x):
-            return int(x[1].number)
-        extensions.sort(key=getNumber)
+
+        extensions.sort(key=lambda x: int(x[1].number))
         file_data += self.template.render(
             unprotectedStructs=unprotected_structs,
             protectedStructs=protected_structs,
             structs=self.structs,
             enums=self.enums,
             bitmasks=self.bitmasks,
-            extensions=extensions)
+            extensions=extensions,
+            polymorphic_struct_families=polymorphic_struct_families)
         write(file_data, file=self.outFile)
 
         # Finish processing in superclass
@@ -108,19 +144,25 @@ class CReflectionOutputGenerator(OutputGenerator):
             # special-purpose generator.
             self.genStruct(typeinfo, name, alias)
 
+        parent_struct = typeElem.get('parentstruct')
+        if parent_struct is not None:
+            if parent_struct not in self.parents:
+                self.parents[parent_struct] = set()
+            self.parents[parent_struct].add(name)
+
     def genStruct(self, typeinfo, typeName, alias):
         OutputGenerator.genStruct(self, typeinfo, typeName, alias)
 
         if alias:
             return
 
-        structTypeName = None
+        structTypeEnum = None
         members = []
         for member in typeinfo.getMembers():
             memberName = getElemName(member)
             memberType = getElemType(member)
             if self.conventions.is_structure_type_member(memberType, memberName):
-                structTypeName = member.get("values")
+                structTypeEnum = member.get("values")
 
             members.append(memberName)
 
@@ -136,7 +178,7 @@ class CReflectionOutputGenerator(OutputGenerator):
         else:
             protect = None
 
-        self.structs.append(CStruct(typeName, structTypeName, members, protect))
+        self.structs.append(StructData(typeName, structTypeEnum, members, protect))
         if protect:
             self.protects.add(protect)
 
@@ -154,7 +196,7 @@ class CReflectionOutputGenerator(OutputGenerator):
                 (numVal, strVal) = self.enumToValue(elem, True)
                 bitmaskTuples.append((getElemName(elem), strVal))
 
-            self.bitmasks.append(CBitmask(bitmaskTypeName, bitmaskTuples))
+            self.bitmasks.append(BitmaskData(bitmaskTypeName, bitmaskTuples))
         else:
             groupElem = groupinfo.elem
 
@@ -176,4 +218,4 @@ class CReflectionOutputGenerator(OutputGenerator):
                     continue
                 enumTuples.append((getElemName(elem), strVal))
 
-            self.enums.append(CEnum(groupName, expandPrefix, expandSuffix, enumTuples))
+            self.enums.append(EnumData(groupName, expandPrefix, expandSuffix, enumTuples))

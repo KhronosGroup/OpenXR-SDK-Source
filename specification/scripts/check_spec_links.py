@@ -58,10 +58,8 @@ class XREntityDatabase(EntityDatabase):
         return SYSTEM_TYPES
 
     def populateMacros(self):
-        # TODO: Where should flags actually go?
-        # #Not mentioned in the style guide.
         # TODO: What about flag wildcards? There are a few such uses...
-
+        self.addMacro('elink', ('enums', 'flags',), link=True)
         self.addMacro('basetype', ('basetypes',), link=True)
 
     def populateEntities(self):
@@ -120,22 +118,8 @@ class XRMacroCheckerFile(MacroCheckerFile):
         super().processBlockOpen(block_type, context=context,
                                  delimiter=delimiter)
 
-    def handleIncludeMissingRefPage(self, entity, generated_type):
-        """Report a message about an include outside of a ref-page block."""
-        # TODO is it reasonable that we just stuck all the Flags includes in
-        # the appendix?
-        if entity.endswith('Flags'):
-            # OK, it's a flag, no worries.
-            return
-
-        super().handleIncludeMissingRefPage(entity, generated_type)
-
     def computeExpectedRefPageFromInclude(self, entity):
         """Compute the expected ref page entity based on an include entity name."""
-        # TODO use registry associations between FlagBits and Flags to do this
-        # better?
-        if entity.endswith('FlagBits'):
-            return entity.replace('FlagBits', 'Flags')
         return entity
 
 

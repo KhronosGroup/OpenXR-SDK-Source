@@ -1155,10 +1155,11 @@ class Registry:
             # <type> tags)
             # Look for <type> in entire <command> tree,
             # not just immediate children
-            for subtype in f.elem.findall('.//type'):
-                self.gen.logMsg('diag', 'Generating required dependent <type>',
-                                subtype.text)
-                self.generateFeature(subtype.text, 'type', self.typedict)
+            if self.genOpts.emitRecursiveRequirements:
+                for subtype in f.elem.findall('.//type'):
+                    self.gen.logMsg('diag', 'Generating required dependent <type>',
+                                    subtype.text)
+                    self.generateFeature(subtype.text, 'type', self.typedict)
 
             # Generate enums used in defining this type, for example in
             #   <member><name>member</name>[<enum>MEMBER_SIZE</enum>]</member>
@@ -1250,11 +1251,12 @@ class Registry:
                 self.generateFeature(alias, 'command', self.cmddict)
 
             genProc = self.gen.genCmd
-            for type_elem in f.elem.findall('.//type'):
-                depname = type_elem.text
-                self.gen.logMsg('diag', 'Generating required parameter type',
-                                depname)
-                self.generateFeature(depname, 'type', self.typedict)
+            if self.genOpts.emitRecursiveRequirements:
+                for type_elem in f.elem.findall('.//type'):
+                    depname = type_elem.text
+                    self.gen.logMsg('diag', 'Generating required parameter type',
+                                    depname)
+                    self.generateFeature(depname, 'type', self.typedict)
         elif ftype == 'enum':
             # Generate enum dependencies in 'alias' attribute
             if alias:
@@ -1290,7 +1292,13 @@ class Registry:
                 # generate it - this has already been done in reg.parseTree,
                 # by copying this element into the enumerated type.
                 enumextends = e.get('extends')
-                if not enumextends:
+                forceEmit = self.genOpts.redefineEnumExtends
+                if enumextends:
+                    group = self.groupdict[enumextends]
+                    if group.required: # TODO: This doesn't seem to work
+                        forceEmit = False
+
+                if not enumextends or forceEmit:
                     self.generateFeature(e.get('name'), 'enum', self.enumdict)
             for c in features.findall('command'):
                 self.generateFeature(c.get('name'), 'command', self.cmddict)

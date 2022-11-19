@@ -42,7 +42,7 @@ XR_ENUM_STR(XrResult);
 
 //# for bitmask in bitmasks
 
-#define XR_LIST_BITS_/*{bitmask.typeName}*/(_)/*{" \\" if bitmask.maskTuples else ""}*/
+#define XR_LIST_BITS_/*{bitmask.typeName}*/(_)/*{" \\" if bitmask.maskTuples}*/
 //# for member in bitmask.maskTuples
     _(/*{", ".join(member)}*/) \
 //# endfor
@@ -52,6 +52,7 @@ XR_ENUM_STR(XrResult);
 
 //# for struct in structs
 
+/// Calls your macro with the name of each member of /*{struct.typeName}*/, in order.
 #define XR_LIST_STRUCT_/*{struct.typeName}*/(_) \
 //# for member in struct.members
     _(/*{member}*/) \
@@ -61,21 +62,33 @@ XR_ENUM_STR(XrResult);
 //# endfor
 
 //## Used when making structure type macros
-/*% macro makeStructTypes(typedStructs) -%*/
+/*% macro makeStructTypes(typedStructs, funcName="_") -%*/
 //# for struct in typedStructs
-    _(/*{struct.typeName}*/, /*{struct.structTypeName}*/) \
+    /*{funcName}*/(/*{struct.typeName}*/, /*{struct.structTypeName}*/) \
 //# endfor
 
 //## Preceding line intentionally left blank to absorb the trailing backslash
-/*% endmacro %*/
+/*%- endmacro %*/
 
+/// Calls your macro with the structure type name and the XrStructureType constant for
+/// each known/available structure type, excluding those unavailable due to preprocessor definitions.
+#define XR_LIST_STRUCTURE_TYPES(_) \
+    XR_LIST_STRUCTURE_TYPES_CORE(_) \
+//# for protect, structTypes in protectedStructs
+    XR_LIST_STRUCTURE_TYPES_/*{protect | join("_")}*/(_) \
+//# endfor
+
+
+//## Preceding line intentionally left blank to absorb the trailing backslash
+
+/// Implementation detail of XR_LIST_STRUCTURE_TYPES() - structure types available without any preprocessor definitions
 #define XR_LIST_STRUCTURE_TYPES_CORE(_) \
 /*{ makeStructTypes(unprotectedStructs) }*/
 
-
 //# for protect, structTypes in protectedStructs
-
 /*{ protect_begin(structTypes[0]) }*/
+/// Implementation detail of XR_LIST_STRUCTURE_TYPES()
+/// Structure types available only when /*{ protect | join(" and ") }*/ /*{ "is" if protect | length == 1 else "are" }*/ defined
 #define XR_LIST_STRUCTURE_TYPES_/*{protect | join("_")}*/(_) \
 /*{ makeStructTypes(structTypes) }*/
 #else
@@ -85,14 +98,10 @@ XR_ENUM_STR(XrResult);
 //# endfor
 
 
-#define XR_LIST_STRUCTURE_TYPES(_) \
-    XR_LIST_STRUCTURE_TYPES_CORE(_) \
-//# for protect, structTypes in protectedStructs
-    XR_LIST_STRUCTURE_TYPES_/*{protect | join("_")}*/(_) \
-//# endfor
-
 //## Preceding line intentionally left blank to absorb the trailing backslash
 
+/// Calls your macro with the name and extension number of all known
+/// extensions in this version of the spec.
 #define XR_LIST_EXTENSIONS(_) \
 //# for extname, extdata in extensions
     _(/*{extname}*/, /*{extdata.number}*/) \

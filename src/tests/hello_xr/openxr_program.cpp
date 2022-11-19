@@ -130,12 +130,7 @@ struct OpenXrProgram : IOpenXrProgram {
         const auto logExtensions = [](const char* layerName, int indent = 0) {
             uint32_t instanceExtensionCount;
             CHECK_XRCMD(xrEnumerateInstanceExtensionProperties(layerName, 0, &instanceExtensionCount, nullptr));
-
-            std::vector<XrExtensionProperties> extensions(instanceExtensionCount);
-            for (XrExtensionProperties& extension : extensions) {
-                extension.type = XR_TYPE_EXTENSION_PROPERTIES;
-            }
-
+            std::vector<XrExtensionProperties> extensions(instanceExtensionCount, {XR_TYPE_EXTENSION_PROPERTIES});
             CHECK_XRCMD(xrEnumerateInstanceExtensionProperties(layerName, (uint32_t)extensions.size(), &instanceExtensionCount,
                                                                extensions.data()));
 
@@ -154,12 +149,7 @@ struct OpenXrProgram : IOpenXrProgram {
         {
             uint32_t layerCount;
             CHECK_XRCMD(xrEnumerateApiLayerProperties(0, &layerCount, nullptr));
-
-            std::vector<XrApiLayerProperties> layers(layerCount);
-            for (XrApiLayerProperties& layer : layers) {
-                layer.type = XR_TYPE_API_LAYER_PROPERTIES;
-            }
-
+            std::vector<XrApiLayerProperties> layers(layerCount, {XR_TYPE_API_LAYER_PROPERTIES});
             CHECK_XRCMD(xrEnumerateApiLayerProperties((uint32_t)layers.size(), &layerCount, layers.data()));
 
             Log::Write(Log::Level::Info, Fmt("Available Layers: (%d)", layerCount));

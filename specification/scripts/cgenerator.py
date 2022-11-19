@@ -88,7 +88,12 @@ class CGeneratorOptions(GeneratorOptions):
         definition
         - aliasMacro - alias macro to inject when genAliasMacro is True
         - misracstyle - generate MISRA C-friendly headers
-        - misracppstyle - generate MISRA C++-friendly headers"""
+        - misracppstyle - generate MISRA C++-friendly headers
+        - redefineEnumExtends - Force enum values added in a <require> block
+        with <extends="EnumType" offset="0"> to be redefined in the current header
+        as a constant cast to the right type. This only makes sense if you're
+        generating a standalone header which won't include the actual enum type
+        """
 
         GeneratorOptions.__init__(self, **kwargs)
 
