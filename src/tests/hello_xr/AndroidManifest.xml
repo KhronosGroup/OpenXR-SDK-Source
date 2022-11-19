@@ -46,6 +46,7 @@
       android:resizeableActivity="false"
       android:screenOrientation="landscape"
       android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+      android:exported="true"
       tools:ignore="NonResizeableActivity">
       <!-- Tell NativeActivity the name of the .so -->
       <meta-data
