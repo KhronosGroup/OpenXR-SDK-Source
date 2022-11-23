@@ -237,7 +237,7 @@ class OpenXRConventions(ConventionsBase):
         """Return True if Flags/FlagBits refpages are unified, False if
            they're separate.
         """
-        return True
+        return False
 
     @property
     def spec_reflow_path(self):

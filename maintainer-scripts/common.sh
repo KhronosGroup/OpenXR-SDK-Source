@@ -156,11 +156,21 @@ getSDKSourceFilenames() {
         openxr-codespell.exclude \
         runClangFormat.sh \
         tox.ini \
-        .github/workflows/OpenXR-SDK-Source \
+        .appveyor.yml \
         .azure-pipelines/shared \
         .azure-pipelines/nuget \
         .azure-pipelines/openxr-sdk.yml \
         .azure-pipelines/openxr-sdk-source.yml \
+        .github/dependabot.yml \
+        .github/scripts \
+        .github/workflows/android.yml \
+        .github/workflows/check_clang_format_and_codespell.yml \
+        .github/workflows/gradle-wrapper-validation.yml \
+        .github/workflows/msvc-build-preset.yml \
+        .github/workflows/pr.yml \
+        .github/workflows/release.yml \
+        .github/workflows/snapshot.yml \
+        .github/workflows/windows-matrix.yml \
         changes/README.md \
         changes/template.md \
         changes/.markdownlint.yaml \
@@ -203,9 +213,16 @@ getSDKFilenames() {
         CHANGELOG.SDK.md \
         CMakeLists.txt \
         LICENSE \
+        .appveyor.yml \
         .azure-pipelines/shared \
         .azure-pipelines/nuget \
         .azure-pipelines/openxr-sdk.yml \
+        .github/scripts \
+        .github/workflows/android.yml \
+        .github/workflows/check_clang_format_and_codespell.yml \
+        .github/workflows/gradle-wrapper-validation.yml \
+        .github/workflows/msvc-build-preset.yml \
+        .github/workflows/windows-matrix.yml \
         specification/registry/*.xml \
         include/ \
         src/CMakeLists.txt \
@@ -244,6 +261,14 @@ getConformanceFilenames() {
         tox.ini \
         .azure-pipelines/shared \
         .azure-pipelines/openxr-cts.yml \
+        .github/dependabot.yml \
+        .github/scripts \
+        .github/workflows/android-cts-pr.yml \
+        .github/workflows/android-cts-release.yml \
+        .github/workflows/check_clang_format_and_codespell.yml \
+        .github/workflows/gradle-wrapper-validation.yml \
+        .github/workflows/msvc-build-preset.yml \
+        .github/workflows/windows-matrix.yml \
         changes/README.md \
         changes/template.md \
         changes/.markdownlint.yaml \

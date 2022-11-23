@@ -77,6 +77,12 @@ def makeGenOpts(args):
     # Extensions to emit (list of extensions)
     emitExtensions = args.emitExtensions
 
+    # Extension to emit for standalone_header (single extension)
+    standaloneExtension = args.standaloneExtension
+
+    # Header prefix override for standalone headers (list of strings)
+    standalonePrefixOverride = args.standalonePrefixOverride
+
     # Features to include (list of features)
     features = args.feature
 
@@ -164,6 +170,57 @@ def makeGenOpts(args):
             aliasMacro        = 'XR_MAY_ALIAS')
         ]
 
+    standalonePrefixString = prefixStrings + xrPrefixStrings
+    if len(standalonePrefixOverride) > 0:
+        standalonePrefixString = standalonePrefixOverride
+
+    # "XR_EXT_some_extension" becomes "ext_some_extension.h"
+    standaloneExtensionFileName = standaloneExtension[len('XR_'):].lower() + '.h'
+
+    genOpts['standalone_header'] = [
+          COutputGenerator,
+          CGeneratorOptions(
+            conventions       = conventions,
+            filename          = standaloneExtensionFileName,
+            directory         = directory,
+            apiname           = 'openxr',
+            profile           = None,
+            versions          = None,
+            emitversions      = None,
+            defaultExtensions = 'openxr',
+            addExtensions     = None,
+            removeExtensions  = None,
+            emitExtensions    = standaloneExtension,
+            prefixText        = standalonePrefixString,
+            genFuncPointers   = True,
+            protectFile       = protectFile,
+            protectFeature    = True,
+            protectProto      = '#ifndef',
+            protectProtoStr   = 'XR_NO_PROTOTYPES',
+            protectExtensionProto      = '#ifdef',
+            protectExtensionProtoStr   = 'XR_EXTENSION_PROTOTYPES',
+            apicall           = 'XRAPI_ATTR ',
+            apientry          = 'XRAPI_CALL ',
+            apientryp         = 'XRAPI_PTR *',
+            alignFuncParam    = 48,
+            genAliasMacro     = True,
+            genStructExtendsComment = True,
+            aliasMacro        = 'XR_MAY_ALIAS',
+            misracppstyle     = False,
+            reparentEnums     = False,
+            # Crucial part of making standalone headers is adding struct types
+            # that would otherwise be added to openxr.h
+            redefineEnumExtends = True,
+            # Ensure we only include the directly
+            # required types, and not recursively
+            # required ones. Otherwise it would
+            # create collisions with types defined
+            # in main openxr.h
+            emitRecursiveRequirements = False,
+            )
+        ]
+
+
     # OpenXR platform header for Graphics API and Platform extensions.
     genOpts['openxr_platform.h'] = [
           COutputGenerator,
@@ -194,37 +251,50 @@ def makeGenOpts(args):
             genAliasMacro     = True,
             genStructExtendsComment = True,
             aliasMacro        = 'XR_MAY_ALIAS')
-        ]
+    ]
 
-    # OpenXR platform header for Graphics API and Platform extensions.
+    def make_reflection_options(fn):
+        return CGeneratorOptions(
+            conventions=conventions,
+            filename=fn,
+            directory=directory,
+            apiname='openxr',
+            profile=None,
+            versions=featuresPat,
+            emitversions=featuresPat,
+            defaultExtensions='openxr',
+            addExtensions=None,
+            removeExtensions=None,
+            emitExtensions=emitExtensionsPat,
+            prefixText=prefixStrings + xrPrefixStrings + platformPrefixStrings,
+            genFuncPointers=True,
+            protectFile=protectFile,
+            protectFeature=False,
+            protectProto='#ifndef',
+            protectProtoStr='XR_NO_PROTOTYPES',
+            apicall='XRAPI_ATTR ',
+            apientry='XRAPI_CALL ',
+            apientryp='XRAPI_PTR *',
+            alignFuncParam=48,
+            genAliasMacro=True,
+            genStructExtendsComment=True,
+            aliasMacro='XR_MAY_ALIAS')
+
+    # OpenXR generic reflection header
     genOpts['openxr_reflection.h'] = [
-          CReflectionOutputGenerator,
-          CGeneratorOptions(
-            conventions       = conventions,
-            filename          = 'openxr_reflection.h',
-            directory         = directory,
-            apiname           = 'openxr',
-            profile           = None,
-            versions          = featuresPat,
-            emitversions      = featuresPat,
-            defaultExtensions = 'openxr',
-            addExtensions     = None,
-            removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat,
-            prefixText        = prefixStrings + xrPrefixStrings + platformPrefixStrings,
-            genFuncPointers   = True,
-            protectFile       = protectFile,
-            protectFeature    = False,
-            protectProto      = '#ifndef',
-            protectProtoStr   = 'XR_NO_PROTOTYPES',
-            apicall           = 'XRAPI_ATTR ',
-            apientry          = 'XRAPI_CALL ',
-            apientryp         = 'XRAPI_PTR *',
-            alignFuncParam    = 48,
-            genAliasMacro     = True,
-            genStructExtendsComment = True,
-            aliasMacro        = 'XR_MAY_ALIAS')
-        ]
+        CReflectionOutputGenerator,
+        make_reflection_options('openxr_reflection.h'),
+    ]
+
+    genOpts['openxr_reflection_structs.h'] = [
+        CReflectionOutputGenerator,
+        make_reflection_options('openxr_reflection_structs.h'),
+    ]
+
+    genOpts['openxr_reflection_parent_structs.h'] = [
+        CReflectionOutputGenerator,
+        make_reflection_options('openxr_reflection_parent_structs.h'),
+    ]
 
     # OpenXR 1.0 - API include files for spec and ref pages
     # Overwrites include subdirectories in spec source tree
@@ -424,6 +494,13 @@ if __name__ == '__main__':
     parser.add_argument('-emitExtensions', action='append',
                         default=[],
                         help='Specify an extension or extensions to emit in targets')
+    parser.add_argument('-standaloneExtension', action='store',
+                        default='',
+                        help='Specify an extension to emit during standalone_header generation')
+    parser.add_argument('-standalonePrefixOverride', action='append',
+                        default=[],
+                        help='Override the header prefix of headers generated with "standalone_header"')
+
     parser.add_argument('-feature', action='append',
                         default=[],
                         help='Specify a core API feature name or names to add to targets')

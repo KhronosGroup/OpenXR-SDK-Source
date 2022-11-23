@@ -841,7 +841,6 @@ LAYER_EXPORT XrResult xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoader
         apiLayerRequest->structSize != sizeof(XrNegotiateApiLayerRequest) ||
         loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_API_LAYER_VERSION ||
-        loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->maxApiVersion < XR_CORE_VALIDATION_API_VERSION || loaderInfo->minApiVersion > XR_CORE_VALIDATION_API_VERSION) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }

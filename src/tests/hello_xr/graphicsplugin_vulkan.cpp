@@ -1839,11 +1839,17 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
         uint32_t deviceExtensionNamesSize = 0;
         CHECK_XRCMD(pfnGetVulkanDeviceExtensionsKHR(instance, createInfo->systemId, 0, &deviceExtensionNamesSize, nullptr));
         std::vector<char> deviceExtensionNames(deviceExtensionNamesSize);
-        CHECK_XRCMD(pfnGetVulkanDeviceExtensionsKHR(instance, createInfo->systemId, deviceExtensionNamesSize,
-                                                    &deviceExtensionNamesSize, &deviceExtensionNames[0]));
+        if (deviceExtensionNamesSize > 0) {
+            CHECK_XRCMD(pfnGetVulkanDeviceExtensionsKHR(instance, createInfo->systemId, deviceExtensionNamesSize,
+                                                        &deviceExtensionNamesSize, &deviceExtensionNames[0]));
+        }
         {
             // Note: This cannot outlive the extensionNames above, since it's just a collection of views into that string!
-            std::vector<const char*> extensions = ParseExtensionString(&deviceExtensionNames[0]);
+            std::vector<const char*> extensions;
+
+            if (deviceExtensionNamesSize > 0) {
+                extensions = ParseExtensionString(&deviceExtensionNames[0]);
+            }
 
             // Merge the runtime's request with the applications requests
             for (uint32_t i = 0; i < createInfo->vulkanCreateInfo->enabledExtensionCount; ++i) {

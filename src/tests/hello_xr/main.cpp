@@ -280,7 +280,8 @@ void android_main(struct android_app* app) {
 
             program->PollEvents(&exitRenderLoop, &requestRestart);
             if (exitRenderLoop) {
-                break;
+                ANativeActivity_finish(app->activity);
+                continue;
             }
 
             if (!program->IsSessionRunning()) {

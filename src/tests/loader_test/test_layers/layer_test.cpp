@@ -113,7 +113,6 @@ LAYER_EXPORT XrResult xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoader
         layerRequest->structSize != sizeof(XrNegotiateApiLayerRequest) ||
         loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_API_LAYER_VERSION ||
-        loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
@@ -145,7 +144,6 @@ LAYER_EXPORT XrResult TestLayerNullGipaNegotiateLoaderApiLayerInterface(const Xr
         layerRequest->structSize != sizeof(XrNegotiateApiLayerRequest) ||
         loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_API_LAYER_VERSION ||
-        loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
@@ -168,7 +166,6 @@ LAYER_EXPORT XrResult TestLayerInvalidInterfaceNegotiateLoaderApiLayerInterface(
         layerRequest->structSize != sizeof(XrNegotiateApiLayerRequest) ||
         loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_API_LAYER_VERSION ||
-        loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
@@ -191,7 +188,6 @@ LAYER_EXPORT XrResult TestLayerInvalidApiNegotiateLoaderApiLayerInterface(const 
         layerRequest->structSize != sizeof(XrNegotiateApiLayerRequest) ||
         loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_API_LAYER_VERSION ||
-        loaderInfo->maxInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
         loaderInfo->minApiVersion < XR_MAKE_VERSION(0, 1, 0) || loaderInfo->minApiVersion >= XR_MAKE_VERSION(1, 1, 0)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }

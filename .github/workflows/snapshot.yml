@@ -1,0 +1,12 @@
+# Copyright 2021, Collabora, Ltd.
+# SPDX-License-Identifier: CC0-1.0
+
+name: Android Builds - Publish Snapshot
+on:
+  workflow_dispatch:
+
+jobs:
+  android:
+    uses: ./.github/workflows/android.yml
+    with:
+      snapshot: true

@@ -6,10 +6,11 @@
 #include "common.h"
 #include "platformplugin.h"
 
-#ifdef XR_USE_PLATFORM_XLIB
+#if defined(XR_OS_APPLE) || defined(XR_OS_LINUX)
+
 namespace {
-struct XlibPlatformPlugin : public IPlatformPlugin {
-    XlibPlatformPlugin(const std::shared_ptr<Options>& /*unused*/) {}
+struct PosixPlatformPlugin : public IPlatformPlugin {
+    PosixPlatformPlugin(const std::shared_ptr<Options>& /*unused*/) {}
 
     std::vector<std::string> GetInstanceExtensions() const override { return {}; }
 
@@ -19,7 +20,8 @@ struct XlibPlatformPlugin : public IPlatformPlugin {
 };
 }  // namespace
 
-std::shared_ptr<IPlatformPlugin> CreatePlatformPlugin_Xlib(const std::shared_ptr<Options>& options) {
-    return std::make_shared<XlibPlatformPlugin>(options);
+std::shared_ptr<IPlatformPlugin> CreatePlatformPlugin_Posix(const std::shared_ptr<Options>& options) {
+    return std::make_shared<PosixPlatformPlugin>(options);
 }
-#endif
+
+#endif  // defined(XR_OS_APPLE) || defined(XR_OS_LINUX)

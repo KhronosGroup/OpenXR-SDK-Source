@@ -96,7 +96,7 @@ class DocIndexOutputGenerator(OutputGenerator):
         elif category == 'bitmask':
             requiredEnum = typeElem.get('bitvalues')
             if requiredEnum is not None:
-                self.record_name(self.flags, name, "See elink:{}".format(requiredEnum))
+                self.record_name(self.flags, name, "See also elink:{}".format(requiredEnum))
         elif category == 'enum':
             self.record_name(self.enums, name)
         elif category == 'funcpointer':
