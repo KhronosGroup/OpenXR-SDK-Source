@@ -27,6 +27,8 @@
 
 #define BODY_CUBE_SIZE 0.02f
 
+#define ADD_GROUND 1
+
 #ifndef XR_LOAD
 #define XR_LOAD(instance, fn) CHECK_XRCMD(xrGetInstanceProcAddr(instance, #fn, reinterpret_cast<PFN_xrVoidFunction*>(&fn)))
 #endif
@@ -2105,6 +2107,13 @@ struct OpenXrProgram : IOpenXrProgram
             }
 #endif
         }
+#endif
+
+#if ADD_GROUND
+        // Long, flat cube = ground
+        XrPosef xr_ground_pose;
+        xr_ground_pose.position.y = -1.0f; // relative to head, todo : make it y = 0.0 and HMD pose is relative to ground instead, requires different tracking space
+        cubes.push_back(Cube{ xr_ground_pose, {100.0f, 0.0001f, 100.0f} });
 #endif
 
 #if LOG_MATRICES
