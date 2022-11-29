@@ -111,4 +111,5 @@
 #include <openxr/openxr_platform.h>
 #include <openxr/openxr_reflection.h>
 
+#define USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION 1
 #include "utils.h"

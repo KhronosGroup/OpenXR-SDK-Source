@@ -109,9 +109,9 @@ struct GLMPose
     void transform(const GLMPose& glm_pose);
 };
 
-GLMPose create_from_xr(const XrVector3f& position, const XrQuaternionf& rotation, const XrVector3f& scale);
-GLMPose create_from_xr(const XrPosef& xr_pose);
-XrPosef create_from_glm(const GLMPose& glm_pose);
+GLMPose convert_to_glm(const XrVector3f& position, const XrQuaternionf& rotation, const XrVector3f& scale);
+GLMPose convert_to_glm(const XrPosef& xr_pose);
+XrPosef convert_to_xr(const GLMPose& glm_pose);
 
 }
 

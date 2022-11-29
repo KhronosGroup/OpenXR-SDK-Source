@@ -22,6 +22,14 @@
 #include "stb_image_write.h"
 #include "stb_image_write.c"
 
+extern int current_eye;
+extern float IPD;
+
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+extern BVR::GLMPose player_pose;
+extern BVR::GLMPose local_hmd_pose;
+#endif
+
 namespace {
 
 static const char* VertexShaderGlsl = R"_(
@@ -337,20 +345,20 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
         const auto& pose = layerView.pose;
         XrMatrix4x4f proj;
         XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_OPENGL, layerView.fov, 0.05f, 100.0f);
+
         XrMatrix4x4f toView;
         XrVector3f scale{1.f, 1.f, 1.f};
         XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose.position, &pose.orientation, &scale);
+
         XrMatrix4x4f view;
         XrMatrix4x4f_InvertRigidBody(&view, &toView);
 
 #if HARDCODE_VIEW_FOR_CUBES
         {
-            static int eye = 1;
-            const float ipd = 0.0680999979f;
-            const float half_ipd = ipd / 2.0f;
+            const float half_ipd = IPD / 2.0f;
 
             XrPosef hardcoded_pose;
-            hardcoded_pose.position.x = half_ipd * ((eye == 0) ? -1.0f : 1.0f);
+            hardcoded_pose.position.x = half_ipd * ((current_eye == 0) ? -1.0f : 1.0f);
             hardcoded_pose.position.y = 1.0f;
             hardcoded_pose.position.z = 0.0f;
 
@@ -360,8 +368,30 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
             hardcoded_pose.orientation.w = 1.0f;
 
             XrMatrix4x4f_CreateTranslationRotationScale(&view, &hardcoded_pose.position, &hardcoded_pose.orientation, &scale);
-            eye = 1 - eye;
         }
+#endif
+
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+        const XrPosef xr_local_eye_pose = layerView.pose;
+		const BVR::GLMPose local_eye_pose = BVR::convert_to_glm(xr_local_eye_pose);
+
+		const glm::vec3 local_hmd_to_eye = local_eye_pose.translation_ - local_hmd_pose.translation_;
+		const glm::vec3 world_hmd_to_eye = player_pose.rotation_ * local_hmd_to_eye;
+
+		const glm::vec3 world_hmd_offset = player_pose.rotation_ * local_hmd_pose.translation_;
+		const glm::vec3 world_hmd_position = player_pose.translation_ + world_hmd_offset;
+
+		const glm::vec3 world_eye_position = world_hmd_position + world_hmd_to_eye;
+		const glm::fquat world_orientation = glm::normalize(player_pose.rotation_ * local_hmd_pose.rotation_);
+
+        BVR::GLMPose world_eye_pose;
+		world_eye_pose.translation_ = world_eye_position;
+		world_eye_pose.rotation_ = world_orientation;
+
+		const glm::mat4 inverse_view_glm = world_eye_pose.to_matrix();
+		const glm::mat4 view_glm = glm::inverse(inverse_view_glm);
+
+        view = BVR::convert_to_xr(view_glm);
 #endif
 
         XrMatrix4x4f vp;
@@ -371,10 +401,12 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
         glBindVertexArray(m_vao);
 
         // Render each cube
-        for (const Cube& cube : cubes) {
+        for (const Cube& cube : cubes) 
+        {
             // Compute the model-view-projection transform and set it..
             XrMatrix4x4f model;
             XrMatrix4x4f_CreateTranslationRotationScale(&model, &cube.Pose.position, &cube.Pose.orientation, &cube.Scale);
+
             XrMatrix4x4f mvp;
             XrMatrix4x4f_Multiply(&mvp, &vp, &model);
             glUniformMatrix4fv(m_modelViewProjectionUniformLocation, 1, GL_FALSE, reinterpret_cast<const GLfloat*>(&mvp));

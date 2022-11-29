@@ -29,6 +29,13 @@
 
 #define ADD_GROUND 1
 
+const glm::vec3 left_direction(-1.0f, 0.0f, 0.0f);
+const glm::vec3 right_direction(1.0f, 1.0f, 0.0f);
+const glm::vec3 up_direction(0.0f, 1.0f, 0.0f);
+const glm::vec3 down_direction(0.0f, -1.0f, 0.0f);
+const glm::vec3 forward_direction(0.0f, 0.0f, -1.0f);
+const glm::vec3 back_direction(0.0f, 0.0f, 1.0f);
+
 #ifndef XR_LOAD
 #define XR_LOAD(instance, fn) CHECK_XRCMD(xrGetInstanceProcAddr(instance, #fn, reinterpret_cast<PFN_xrVoidFunction*>(&fn)))
 #endif
@@ -71,11 +78,50 @@ bool supports_face_tracking_ = false;
 bool supports_body_tracking_ = false;
 #endif
 
+int current_eye = 0;
+float IPD = 0.0063f;
+
 #if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
 BVR::GLMPose player_pose;
+BVR::GLMPose local_hmd_pose;
 const float movement_speed = 0.02f;
 const float rotation_speed = 1.0f;
 const float deadzone = 0.2f;
+
+#if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
+BVR::GLMPose local_waist_pose;
+
+BVR::GLMPose get_waist_pose_2D(const bool world_space)
+{
+	glm::fquat waist_orientation = local_waist_pose.rotation_;
+
+	if (world_space)
+	{
+		waist_orientation = glm::normalize(player_pose.rotation_ * waist_orientation);
+	}
+
+	glm::vec3 waist_direction = glm::rotate(waist_orientation, forward_direction);
+	waist_direction.y = 0.0f;
+	waist_direction = glm::normalize(waist_direction);
+
+	// Waist pose as returned from Meta can point upward sometimes, but smooth locomotion should only ever be in 2D, X-Z plane
+	const glm::fquat waist_rotation_world_2D = glm::rotation(forward_direction, waist_direction);
+
+	BVR::GLMPose waist_pose_2D;
+	waist_pose_2D.rotation_ = waist_rotation_world_2D;
+
+	if (world_space)
+	{
+		waist_pose_2D.translation_ = player_pose.translation_ + glm::rotate(player_pose.rotation_, local_waist_pose.translation_);
+	}
+	else
+	{
+		waist_pose_2D.translation_ = local_waist_pose.translation_;
+	}
+
+	return waist_pose_2D;
+}
+#endif
 
 void move_player(const glm::vec2& left_thumbstick_values)
 {
@@ -85,10 +131,21 @@ void move_player(const glm::vec2& left_thumbstick_values)
 	}
 
     // Move player in the direction they are facing currently
-    glm::vec3 position_increment_local{ left_thumbstick_values.x, 0.0f, -left_thumbstick_values.y };
-    glm::vec3 position_increment_world = player_pose.rotation_ * position_increment_local;
+    const glm::vec3 position_increment_local{ left_thumbstick_values.x, 0.0f, -left_thumbstick_values.y };
 
-    player_pose.translation_ += position_increment_world * movement_speed;
+#if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
+	if (local_waist_pose.is_valid_)
+	{
+        const BVR::GLMPose world_waist_pose_2D = get_waist_pose_2D(true);
+        const glm::vec3 position_increment_world = world_waist_pose_2D.rotation_ * position_increment_local;
+        player_pose.translation_ += position_increment_world * movement_speed;
+	}
+    else
+#endif
+    {
+        const glm::vec3 position_increment_world = player_pose.rotation_ * position_increment_local;
+        player_pose.translation_ += position_increment_world * movement_speed;
+    }
 }
 
 void rotate_player(const float right_thumbstick_x_value)
@@ -110,7 +167,7 @@ void rotate_player(const float right_thumbstick_x_value)
 
 	if (player_pose.euler_angles_degrees_.y <= -360.0f)
 	{
-		player_pose.euler_angles_degrees_.y +=360.0f;
+		player_pose.euler_angles_degrees_.y += 360.0f;
 	}
 
     player_pose.update_rotation_from_euler();
@@ -130,7 +187,8 @@ const int RIGHT = 1;
 const int COUNT = 2;
 }  // namespace Side
 
-inline std::string GetXrVersionString(XrVersion ver) {
+inline std::string GetXrVersionString(XrVersion ver) 
+{
     return Fmt("%d.%d.%d", XR_VERSION_MAJOR(ver), XR_VERSION_MINOR(ver), XR_VERSION_PATCH(ver));
 }
 
@@ -2116,10 +2174,6 @@ struct OpenXrProgram : IOpenXrProgram
         cubes.push_back(Cube{ xr_ground_pose, {100.0f, 0.0001f, 100.0f} });
 #endif
 
-#if LOG_MATRICES
-        static bool log_IPD = true;
-
-        if(log_IPD)
         {
             const XrPosef& left_eye = m_views[Side::LEFT].pose;
             const XrPosef& right_eye = m_views[Side::RIGHT].pose;
@@ -2131,10 +2185,12 @@ struct OpenXrProgram : IOpenXrProgram
                 (right_eye.position.z - left_eye.position.z)
             };
 
-            const float IPD = sqrtf((left_to_right.x * left_to_right.x) + (left_to_right.y * left_to_right.y) + (left_to_right.z * left_to_right.z));
+            IPD = sqrtf((left_to_right.x * left_to_right.x) + (left_to_right.y * left_to_right.y) + (left_to_right.z * left_to_right.z));
+
+#if LOG_MATRICES
             Log::Write(Log::Level::Info, Fmt("Computed IPD (mm) = %.7f", IPD * 1000.0f));
-        }
 #endif
+        }
 
 #if TOGGLE_SHARPENING_AT_RUNTIME_USING_RIGHT_GRIP
     if (supports_composition_layer_)
@@ -2201,6 +2257,8 @@ struct OpenXrProgram : IOpenXrProgram
 
 			if (body_joint_locations_.isActive) 
             {
+                bool found_waist = false;
+
 				for (int i = 0; i < XR_BODY_JOINT_COUNT_FB; ++i) 
                 {
 					if ((body_joints_[i].locationFlags & (XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT))) 
@@ -2209,53 +2267,45 @@ struct OpenXrProgram : IOpenXrProgram
                         const XrPosef& body_joint_pose = body_joints_[i].pose;
 
 						cubes.push_back(Cube{ body_joint_pose, body_joint_scale });
+
+#if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
+                        if (i == XR_BODY_JOINT_HIPS_FB)
+                        {
+                            local_waist_pose = BVR::convert_to_glm(body_joint_pose);
+
+                            // Change coordinate system to GLM
+							const glm::vec3 euler_angles_radians(deg2rad(90.0f), deg2rad(-90.0f), deg2rad(0.0f));
+							const glm::fquat rotation = glm::fquat(euler_angles_radians);
+                            local_waist_pose.rotation_ = glm::normalize(local_waist_pose.rotation_ * rotation);
+
+                            found_waist = true;
+                        }
+#endif
 					}
 				}
+
+#if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
+                local_waist_pose.is_valid_ = found_waist;
+#endif
 			}
         }
 #endif
 
 #if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
-        const glm::vec3 nose_position_app_space = (BVR::convert_to_glm(m_views[Side::LEFT].pose.position) + BVR::convert_to_glm(m_views[Side::RIGHT].pose.position)) * 0.5f;
-        
-        const glm::vec3 left_eye_offset_app_space = BVR::convert_to_glm(m_views[Side::LEFT].pose.position) - nose_position_app_space;
-        const glm::vec3 left_eye_offset_player_space = player_pose.rotation_ * left_eye_offset_app_space;
+		const BVR::GLMPose local_left_eye_pose = BVR::convert_to_glm(m_views[Side::LEFT].pose);
+		const BVR::GLMPose local_right_eye_pose = BVR::convert_to_glm(m_views[Side::RIGHT].pose);
 
-        const glm::vec3 right_eye_offset_app_space = BVR::convert_to_glm(m_views[Side::RIGHT].pose.position) - nose_position_app_space;
-        const glm::vec3 right_eye_offset_player_space = player_pose.rotation_ * right_eye_offset_app_space;
+		local_hmd_pose.rotation_ = local_left_eye_pose.rotation_;
+		local_hmd_pose.translation_ = (local_left_eye_pose.translation_ + local_right_eye_pose.translation_) * 0.5f; // Average
 
-        XrPosef player_cube_xr_pose = BVR::create_from_glm(player_pose);
+#if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
+        if (local_waist_pose.is_valid_)
+        {
+            BVR::GLMPose local_waist_pose_2D = get_waist_pose_2D(false);
 
-        const glm::fquat left_eye_rotation = BVR::convert_to_glm(m_views[Side::LEFT].pose.orientation);
-        const glm::fquat right_eye_rotation = BVR::convert_to_glm(m_views[Side::RIGHT].pose.orientation);
-
-        const glm::fquat final_left_rotation = glm::normalize(player_pose.rotation_ * left_eye_rotation);
-        const glm::fquat final_right_rotation = glm::normalize(player_pose.rotation_ * right_eye_rotation);
-
-        player_cube_xr_pose.orientation = BVR::convert_to_xr(final_left_rotation);
-
-		//cubes.push_back(Cube{ player_cube_xr_pose, {0.02f, 0.02f, 0.05f} });
-
-        const glm::vec3 final_left_cube_position = player_pose.translation_ + left_eye_offset_player_space;
-        const glm::vec3 final_right_cube_position = player_pose.translation_ + right_eye_offset_player_space;
-
-        BVR::GLMPose left_pose;
-        left_pose.translation_ = final_left_cube_position;
-        left_pose.rotation_ = final_left_rotation;
-
-        BVR::GLMPose right_pose;
-        right_pose.translation_ = final_right_cube_position;
-        right_pose.rotation_ = final_right_rotation;
-
-        XrPosef left_cube_xr_pose = BVR::create_from_glm(left_pose);
-        XrPosef right_cube_xr_pose = BVR::create_from_glm(right_pose);
-
-#if 0
-        m_views[Side::LEFT].pose = left_cube_xr_pose;
-        m_views[Side::RIGHT].pose = right_cube_xr_pose;
-#else
-        cubes.push_back(Cube{ left_cube_xr_pose, {0.01f, 0.01f, 0.02f} });
-        cubes.push_back(Cube{ right_cube_xr_pose, {0.01f, 0.01f, 0.05f} });
+            local_hmd_pose.rotation_ = local_waist_pose_2D.rotation_;
+            //local_hmd_pose.translation_ = local_waist_pose_2D.translation_; // this will result in the rotation pivot being a bit different than the HMD, i.e. right between the eyes. 
+        }
 #endif
 
 #endif
@@ -2263,6 +2313,8 @@ struct OpenXrProgram : IOpenXrProgram
         // Render view to the appropriate part of the swapchain image.
         for (uint32_t i = 0; i < viewCountOutput; i++) 
         {
+            current_eye = i;
+
             // Each view has a separate swapchain which is acquired, rendered to, and released.
             const Swapchain viewSwapchain = m_swapchains[i];
 
