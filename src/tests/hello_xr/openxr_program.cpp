@@ -2339,26 +2339,6 @@ struct OpenXrProgram : IOpenXrProgram
             projectionLayerViews[i].subImage.imageRect.offset = {0, 0};
             projectionLayerViews[i].subImage.imageRect.extent = {viewSwapchain.width, viewSwapchain.height};
 
-#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION  && 0
-			const XrPosef xr_local_eye_pose = m_views[i].pose;
-			const BVR::GLMPose local_eye_pose = BVR::convert_to_glm(xr_local_eye_pose);
-
-			const glm::vec3 local_hmd_to_eye = local_eye_pose.translation_ - local_hmd_pose.translation_;
-			const glm::vec3 world_hmd_to_eye = player_pose.rotation_ * local_hmd_to_eye;
-
-			const glm::vec3 world_hmd_offset = player_pose.rotation_ * local_hmd_pose.translation_;
-			const glm::vec3 world_hmd_position = player_pose.translation_ + world_hmd_offset;
-
-			const glm::vec3 world_eye_position = world_hmd_position + world_hmd_to_eye;
-			const glm::fquat world_orientation = glm::inverse(glm::normalize(player_pose.rotation_ * local_eye_pose.rotation_));
-
-			BVR::GLMPose world_eye_pose;
-			world_eye_pose.translation_ = world_eye_position;
-			world_eye_pose.rotation_ = world_orientation;
-
-            projectionLayerViews[i].pose = BVR::convert_to_xr(world_eye_pose);
-#endif
-
 #if LOG_MATRICES
             static bool log_projection_matrices = true;
 
