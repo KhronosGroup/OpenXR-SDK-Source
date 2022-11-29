@@ -2264,14 +2264,28 @@ struct OpenXrProgram : IOpenXrProgram
 					if ((body_joints_[i].locationFlags & (XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT))) 
                     {
 						XrVector3f body_joint_scale{ BODY_CUBE_SIZE, BODY_CUBE_SIZE, BODY_CUBE_SIZE };
-                        const XrPosef& body_joint_pose = body_joints_[i].pose;
+                        const XrPosef& local_body_joint_pose = body_joints_[i].pose;
 
-						cubes.push_back(Cube{ body_joint_pose, body_joint_scale });
+#if DRAW_LOCAL_BODY_JOINTS
+						cubes.push_back(Cube{ local_body_joint_pose, body_joint_scale });
+#endif
+
+#if DRAW_WORLD_BODY_JOINTS
+                        const BVR::GLMPose glm_local_joint_pose = BVR::convert_to_glm(local_body_joint_pose);
+                        const glm::vec3 world_joint_position = player_pose.translation_ + (player_pose.rotation_ * glm_local_joint_pose.translation_);
+                        const glm::fquat world_joint_rotation = glm::normalize(player_pose.rotation_ * glm_local_joint_pose.rotation_);
+
+                        XrPosef world_body_joint_pose;
+                        world_body_joint_pose.position = BVR::convert_to_xr(world_joint_position);
+                        world_body_joint_pose.orientation = BVR::convert_to_xr(world_joint_rotation);
+
+                        cubes.push_back(Cube{ world_body_joint_pose, body_joint_scale });
+#endif
 
 #if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
                         if (i == XR_BODY_JOINT_HIPS_FB)
                         {
-                            local_waist_pose = BVR::convert_to_glm(body_joint_pose);
+                            local_waist_pose = BVR::convert_to_glm(local_body_joint_pose);
 
                             // Change coordinate system to GLM
 							const glm::vec3 euler_angles_radians(deg2rad(90.0f), deg2rad(-90.0f), deg2rad(0.0f));
