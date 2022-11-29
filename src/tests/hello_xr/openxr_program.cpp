@@ -1921,7 +1921,7 @@ struct OpenXrProgram : IOpenXrProgram
 
 					if (axis_state_x.isActive)
 					{
-                        //left_thumbstick_values.x = axis_state_x.currentState;
+                        left_thumbstick_values.x = axis_state_x.currentState;
 					}
 
 					if (axis_state_y.isActive)
