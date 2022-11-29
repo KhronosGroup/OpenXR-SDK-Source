@@ -342,7 +342,7 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
         // Set shaders and uniform variables.
         glUseProgram(m_program);
 
-        const auto& pose = layerView.pose;
+        const XrPosef& pose = layerView.pose;
         XrMatrix4x4f proj;
         XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_OPENGL, layerView.fov, 0.05f, 100.0f);
 

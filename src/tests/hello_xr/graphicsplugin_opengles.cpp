@@ -42,6 +42,14 @@
 #define HARDCODE_PROJECTION_MATRIX 0
 #define HARDCODE_FOV 0
 
+extern int current_eye;
+extern float IPD;
+
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+extern BVR::GLMPose player_pose;
+extern BVR::GLMPose local_hmd_pose;
+#endif
+
 namespace {
 
 
@@ -386,6 +394,29 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
             XrMatrix4x4f_CreateTranslationRotationScale(&view, &hardcoded_pose.position, &hardcoded_pose.orientation, &scale);
             eye = 1 - eye;
         }
+#endif
+
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+		const XrPosef xr_local_eye_pose = layerView.pose;
+		const BVR::GLMPose local_eye_pose = BVR::convert_to_glm(xr_local_eye_pose);
+
+		const glm::vec3 local_hmd_to_eye = local_eye_pose.translation_ - local_hmd_pose.translation_;
+		const glm::vec3 world_hmd_to_eye = player_pose.rotation_ * local_hmd_to_eye;
+
+		const glm::vec3 world_hmd_offset = player_pose.rotation_ * local_hmd_pose.translation_;
+		const glm::vec3 world_hmd_position = player_pose.translation_ + world_hmd_offset;
+
+		const glm::vec3 world_eye_position = world_hmd_position + world_hmd_to_eye;
+		const glm::fquat world_orientation = glm::normalize(player_pose.rotation_ * local_hmd_pose.rotation_);
+
+		BVR::GLMPose world_eye_pose;
+		world_eye_pose.translation_ = world_eye_position;
+		world_eye_pose.rotation_ = world_orientation;
+
+		const glm::mat4 inverse_view_glm = world_eye_pose.to_matrix();
+		const glm::mat4 view_glm = glm::inverse(inverse_view_glm);
+
+		view = BVR::convert_to_xr(view_glm);
 #endif
 
         XrMatrix4x4f vp;
