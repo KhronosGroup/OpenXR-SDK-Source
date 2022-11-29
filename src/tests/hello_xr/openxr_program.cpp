@@ -97,7 +97,7 @@ BVR::GLMPose get_waist_pose_2D(const bool world_space)
 
 	if (world_space)
 	{
-		waist_orientation = glm::normalize(player_pose.rotation_ * waist_orientation);
+		waist_orientation = glm::normalize(waist_orientation * player_pose.rotation_);
 	}
 
 	glm::vec3 waist_direction = glm::rotate(waist_orientation, forward_direction);
@@ -2297,17 +2297,6 @@ struct OpenXrProgram : IOpenXrProgram
 
 		local_hmd_pose.rotation_ = local_left_eye_pose.rotation_;
 		local_hmd_pose.translation_ = (local_left_eye_pose.translation_ + local_right_eye_pose.translation_) * 0.5f; // Average
-
-#if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
-        if (local_waist_pose.is_valid_)
-        {
-            BVR::GLMPose local_waist_pose_2D = get_waist_pose_2D(false);
-
-            local_hmd_pose.rotation_ = local_waist_pose_2D.rotation_;
-            //local_hmd_pose.translation_ = local_waist_pose_2D.translation_; // this will result in the rotation pivot being a bit different than the HMD, i.e. right between the eyes. 
-        }
-#endif
-
 #endif
 
         // Render view to the appropriate part of the swapchain image.

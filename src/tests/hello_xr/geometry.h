@@ -17,6 +17,7 @@ constexpr XrVector3f Green{0, 1, 0};
 constexpr XrVector3f DarkGreen{0, 0.25f, 0};
 constexpr XrVector3f Blue{0, 0, 1};
 constexpr XrVector3f DarkBlue{0, 0, 0.25f};
+constexpr XrVector3f Grey{ 0.25f, 0.25f, 0.25f };
 
 // Vertices for a 1x1x1 meter cube. (Left/Right, Top/Bottom, Front/Back)
 constexpr XrVector3f LBB{-0.5f, -0.5f, -0.5f};
@@ -34,7 +35,7 @@ constexpr Vertex c_cubeVertices[] = {
     CUBE_SIDE(LTB, LBF, LBB, LTB, LTF, LBF, DarkRed)    // -X
     CUBE_SIDE(RTB, RBB, RBF, RTB, RBF, RTF, Red)        // +X
     CUBE_SIDE(LBB, LBF, RBF, LBB, RBF, RBB, DarkGreen)  // -Y
-    CUBE_SIDE(LTB, RTB, RTF, LTB, RTF, LTF, Green)      // +Y
+    CUBE_SIDE(LTB, RTB, RTF, LTB, RTF, LTF, Grey)      // +Y
     CUBE_SIDE(LBB, RBB, RTB, LBB, RTB, LTB, DarkBlue)   // -Z
     CUBE_SIDE(LBF, LTF, RTF, LBF, RTF, RBF, Blue)       // +Z
 };
