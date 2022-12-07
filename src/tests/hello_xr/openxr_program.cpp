@@ -680,7 +680,7 @@ struct OpenXrProgram : IOpenXrProgram {
         if (xr == XR_SUCCESS) {
             if (baseHeader->type == XR_TYPE_EVENT_DATA_EVENTS_LOST) {
                 const XrEventDataEventsLost* const eventsLost = reinterpret_cast<const XrEventDataEventsLost*>(baseHeader);
-                Log::Write(Log::Level::Warning, Fmt("%d events lost", eventsLost));
+                Log::Write(Log::Level::Warning, Fmt("%d events lost", eventsLost->lostEventCount));
             }
 
             return baseHeader;
