@@ -19,9 +19,14 @@ val gitUrl = "scm:git:https://github.com/KhronosGroup/OpenXR-SDK-Source.git"
 signing {
     val signingKeyId: String? by project
     val signingKey: String? by project
+    // val signingKeyB64: String? by project
     val signingPassword: String? by project
-    if (signingKeyId != null) {
-        useInMemoryPgpKeys(signingKeyId, signingKey, signingPassword)
+    // if (signingKeyB64 != null) {
+    if (signingKey != null) {
+        // useInMemoryPgpKeys(String(signingKeyB64.decodeBase64()), signingPassword)
+        // useInMemoryPgpKeys(signingKeyId, base64Decode(signingKey), signingPassword)
+        // useGpgCmd()
+        useInMemoryPgpKeys(signingKey, signingPassword)
         sign(publishing.publications)
     }
 }
