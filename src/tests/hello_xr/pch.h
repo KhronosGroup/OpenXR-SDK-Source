@@ -51,6 +51,9 @@
 #include <android/native_window.h>
 #include <jni.h>
 #include <sys/system_properties.h>
+#include <android/asset_manager.h>
+#include <android/asset_manager_jni.h>
+#include <android/permission_manager.h>
 #endif
 
 #ifdef XR_USE_PLATFORM_WAYLAND
