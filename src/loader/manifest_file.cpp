@@ -27,13 +27,13 @@
 #include <openxr/openxr.h>
 
 #include <algorithm>
+#include <cstdlib>
+#include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
-#include <stdio.h>
-#include <stdlib.h>
 #include <string>
 #include <unordered_map>
 #include <utility>
