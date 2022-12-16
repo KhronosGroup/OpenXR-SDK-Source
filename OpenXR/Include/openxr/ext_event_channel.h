@@ -29,15 +29,17 @@ extern "C" {
 
 // Extension 113
 #ifndef XR_EXT_event_channel
-
-#if defined(XR_EXT_event_channel_EXPERIMENTAL_VERSION)
-#if XR_EXT_event_channel_EXPERIMENTAL_VERSION != 1
-#error "unknown experimental version number for XR_EXT_event_channel_EXPERIMENTAL_VERSION"
-#endif
-
 #define XR_EXT_event_channel 1
+
+#ifndef XR_EXT_event_channel_EXPERIMENTAL_VERSION
 #define XR_EXT_event_channel_SPEC_VERSION 1
-#define XR_EXT_event_channel_EXTENSION_NAME "XR_EXT_event_channel_EXPERIMENTAL_1"
+#define XR_EXT_event_channel_EXTENSION_NAME "XR_EXT_event_channel"
+#elif XR_EXT_event_channel_EXPERIMENTAL_VERSION == 1
+#define XR_EXT_event_channel_SPEC_VERSION 1
+#define XR_EXT_event_channel_EXTENSION_NAME "XR_EXTX1_event_channel"
+#else
+#error "unknown experimental version number for XR_EXT_event_channel_EXPERIMENTAL_VERSION"
+#endif // XR_EXT_event_channel_EXPERIMENTAL_VERSION
 
 /*
 Overview
@@ -151,11 +153,10 @@ XRAPI_ATTR XrResult XRAPI_CALL xrSelectEventChannelEXT(
     uint32_t* channelWithEvent);
 
 /*
-get default eventchannel handle that is created duing xrCreateInstance to be accessed and used by
-application
+set default eventchannel handle and used by application
 */
 XRAPI_ATTR XrResult XRAPI_CALL
-xrGetDefaultEventChannelEXT(XrInstance instance, XrEventChannelEXT* channel);
+xrSetDefaultEventChannelEXT(XrInstance instance, XrEventChannelEXT channel);
 
 #endif /* XR_EXTENSION_PROTOTYPES */
 #endif /* !XR_NO_PROTOTYPES */
@@ -176,11 +177,9 @@ typedef XrResult(XRAPI_PTR* PFN_xrSelectEventChannelEXT)(
     uint32_t* channelWithEvent);
 
 typedef XrResult(
-    XRAPI_PTR* PFN_xrGetDefaultEventChannelEXT)(XrInstance instance, XrEventChannelEXT* channel);
-
-#endif // defined(XR_EXT_event_channel_EXPERIMENTAL_VERSION)
-
+    XRAPI_PTR* PFN_xrSetDefaultEventChannelEXT)(XrInstance instance, XrEventChannelEXT channel);
 #endif // XR_EXT_event_channel
+
 
 #ifdef __cplusplus
 }

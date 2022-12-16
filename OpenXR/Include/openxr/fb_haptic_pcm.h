@@ -39,15 +39,19 @@ extern "C" {
 /// the XrHapticPcmVibrationFB struct to know how many samples were processed.
 #define XR_MAX_HAPTIC_PCM_BUFFER_SIZE_FB 4000
 
-XR_STRUCT_ENUM(XR_TYPE_DEVICE_PCM_SAMPLE_RATE_GET_INFO_FB, 1000209002);
+XR_STRUCT_ENUM(XR_TYPE_DEVICE_PCM_SAMPLE_RATE_STATE_FB, 1000209002);
+static const XrStructureType XR_TYPE_DEVICE_PCM_SAMPLE_RATE_GET_INFO_FB =
+    (XrStructureType)XR_TYPE_DEVICE_PCM_SAMPLE_RATE_STATE_FB;
 /// Provided to xrGetDevicePCMSampleRateFB to retrieve the PCM sample rate
 /// of the last connected controller
-typedef struct XrDevicePcmSampleRateGetInfoFB {
+typedef struct XrDevicePcmSampleRateStateFB {
     XrStructureType type;
-    const void* XR_MAY_ALIAS next;
+    void* XR_MAY_ALIAS next;
     /// value will be populated with a PCM haptic sample rate in Hz
     float sampleRate;
-} XrDevicePcmSampleRateGetInfoFB;
+} XrDevicePcmSampleRateStateFB;
+
+typedef XrDevicePcmSampleRateStateFB XrDevicePcmSampleRateGetInfoFB;
 
 XR_STRUCT_ENUM(XR_TYPE_HAPTIC_PCM_VIBRATION_FB, 1000209001);
 /// This struct provides a high fidelity control over the haptics effect
