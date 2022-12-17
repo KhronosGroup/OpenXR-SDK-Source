@@ -62,7 +62,7 @@ XrLocalDimmingFrameEndInfoMETA local_dimming_settings_ = { (XrStructureType)1000
 bool supports_hand_tracking_ = false;
 #endif
 
-#if ENABLE_OPENXR_FB_EYE_TRACKING
+#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 #include <openxr/fb_eye_tracking_social.h>
 bool supports_eye_tracking_social_ = false;
 #endif
@@ -265,7 +265,7 @@ struct OpenXrProgram : IOpenXrProgram
 		DestroyBodyTracker();
 #endif
 
-#if ENABLE_OPENXR_FB_EYE_TRACKING
+#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 		DestroyEyeTracker();
 #endif
 
@@ -374,7 +374,7 @@ struct OpenXrProgram : IOpenXrProgram
 				}
 #endif
 
-#if ENABLE_OPENXR_FB_EYE_TRACKING
+#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 				if (!strcmp(extension.extensionName, XR_FB_EYE_TRACKING_SOCIAL_EXTENSION_NAME))
 				{
 					Log::Write(Log::Level::Info, "FB OPENXR XR_FB_EYE_TRACKING_SOCIAL_EXTENSION_NAME - DETECTED");
@@ -499,7 +499,7 @@ struct OpenXrProgram : IOpenXrProgram
 		}
 #endif
 
-#if ENABLE_OPENXR_FB_EYE_TRACKING
+#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 		if (supports_eye_tracking_social_)
 		{
 			Log::Write(Log::Level::Info, "Eye Tracking is supported (Quest Pro)");
@@ -1022,7 +1022,7 @@ struct OpenXrProgram : IOpenXrProgram
 		SetRefreshRate(DESIRED_REFRESH_RATE);
 #endif
 
-#if ENABLE_OPENXR_FB_EYE_TRACKING
+#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 		CreateEyeTracker();
 #endif
 
@@ -1449,7 +1449,7 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_HAND_TRACKING
 #endif
 
-#if ENABLE_OPENXR_FB_EYE_TRACKING
+#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 	PFN_xrCreateEyeTrackerFB xrCreateEyeTrackerFB = nullptr;
 	PFN_xrDestroyEyeTrackerFB xrDestroyEyeTrackerFB = nullptr;
 	PFN_xrGetEyeGazesFB xrGetEyeGazesFB = nullptr;
@@ -2200,7 +2200,7 @@ struct OpenXrProgram : IOpenXrProgram
     }
 #endif
 
-#if ENABLE_OPENXR_FB_EYE_TRACKING
+#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
         if (eye_tracking_enabled_)
         {
             UpdateEyeTrackerGazes();

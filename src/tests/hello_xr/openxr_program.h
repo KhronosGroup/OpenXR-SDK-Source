@@ -27,7 +27,7 @@
 #define ENABLE_OPENXR_FB_LOCAL_DIMMING (PLATFORM_ANDROID && 1)
 
 #define ENABLE_OPENXR_HAND_TRACKING 0
-#define ENABLE_OPENXR_FB_EYE_TRACKING (PLATFORM_PC && 1) // eye-tracking only enabled on PC for now (needs permissions on Android, requires java calls. TODO)
+#define ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL (PLATFORM_PC && 1) // eye-tracking only enabled on PC for now (needs permissions on Android, requires java calls. TODO)
 #define ENABLE_OPENXR_FB_FACE_TRACKING 0
 #define ENABLE_OPENXR_FB_BODY_TRACKING 1
 
@@ -37,7 +37,7 @@
 
 #define USE_DUAL_LAYERS 0
 
-#define LOG_EYE_TRACKING_DATA (ENABLE_OPENXR_FB_EYE_TRACKING && 0)
+#define LOG_EYE_TRACKING_DATA (ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL && 0)
 #define LOG_BODY_TRACKING_DATA (ENABLE_OPENXR_FB_BODY_TRACKING && 0)
 
 struct IOpenXrProgram 
@@ -101,7 +101,7 @@ struct IOpenXrProgram
 	virtual void SetLocalDimmingEnabled(const bool enabled) = 0;
 #endif
 
-#if ENABLE_OPENXR_FB_EYE_TRACKING
+#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 	virtual bool GetGazePose(const int eye, XrPosef& gaze_pose) = 0;
 #endif
 };
