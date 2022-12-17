@@ -28,6 +28,7 @@
 
 #define ENABLE_OPENXR_HAND_TRACKING 0
 #define ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL (PLATFORM_PC && 1) // eye-tracking only enabled on PC for now (needs permissions on Android, requires java calls. TODO)
+#define ENABLE_OPENXR_META_FOVEATION_EYE_TRACKED (PLATFORM_PC && 1)
 #define ENABLE_OPENXR_FB_FACE_TRACKING 0
 #define ENABLE_OPENXR_FB_BODY_TRACKING 1
 

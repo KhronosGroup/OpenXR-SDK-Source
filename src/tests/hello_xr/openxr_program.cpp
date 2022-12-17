@@ -67,6 +67,11 @@ bool supports_hand_tracking_ = false;
 bool supports_eye_tracking_social_ = false;
 #endif
 
+#if ENABLE_OPENXR_META_FOVEATION_EYE_TRACKED
+#include <openxr/meta_foveation_eye_tracked.h>
+bool supports_meta_foveation_eye_tracked_ = false;
+#endif
+
 #if ENABLE_OPENXR_FB_FACE_TRACKING
 #include <openxr/fb_face_tracking.h>
 bool supports_face_tracking_ = false;
@@ -269,6 +274,10 @@ struct OpenXrProgram : IOpenXrProgram
 		DestroyEyeTracker();
 #endif
 
+#if ENABLE_OPENXR_META_FOVEATION_EYE_TRACKED
+		DestroyFoveationEyeTracked();
+#endif
+
         if (m_input.actionSet != XR_NULL_HANDLE) 
         {
             for (auto hand : {Side::LEFT, Side::RIGHT}) 
@@ -379,6 +388,14 @@ struct OpenXrProgram : IOpenXrProgram
 				{
 					Log::Write(Log::Level::Info, "FB OPENXR XR_FB_EYE_TRACKING_SOCIAL_EXTENSION_NAME - DETECTED");
 					supports_eye_tracking_social_ = true;
+				}
+#endif
+
+#if ENABLE_OPENXR_META_FOVEATION_EYE_TRACKED
+				if (!strcmp(extension.extensionName, XR_META_FOVEATION_EYE_TRACKED_EXTENSION_NAME))
+				{
+					Log::Write(Log::Level::Info, "FB OPENXR XR_META_FOVEATION_EYE_TRACKED_EXTENSION_NAME - DETECTED");
+					supports_meta_foveation_eye_tracked_ = true;
 				}
 #endif
 
@@ -508,6 +525,18 @@ struct OpenXrProgram : IOpenXrProgram
 		else
 		{
 			Log::Write(Log::Level::Info, "Eye Tracking is NOT supported");
+		}
+#endif
+
+#if ENABLE_OPENXR_META_FOVEATION_EYE_TRACKED
+		if (supports_meta_foveation_eye_tracked_)
+		{
+			Log::Write(Log::Level::Info, "Foveation Eye Tracking is supported (Quest Pro)");
+			extensions.push_back(XR_META_FOVEATION_EYE_TRACKED_EXTENSION_NAME);
+		}
+		else
+		{
+			Log::Write(Log::Level::Info, "Foveation Eye Tracking is NOT supported");
 		}
 #endif
 
@@ -1024,6 +1053,10 @@ struct OpenXrProgram : IOpenXrProgram
 
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 		CreateEyeTracker();
+#endif
+
+#if ENABLE_OPENXR_META_FOVEATION_EYE_TRACKED
+		CreateFoveationEyeTracked();
 #endif
 
 #if ENABLE_OPENXR_FB_BODY_TRACKING
@@ -1547,6 +1580,18 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 		}
 	}
+#endif
+
+#if ENABLE_OPENXR_META_FOVEATION_EYE_TRACKED
+	void CreateFoveationEyeTracked()
+	{
+
+	}
+
+    void DestroyFoveationEyeTracked()
+    {
+
+    }
 #endif
 
 #if ENABLE_OPENXR_FB_FACE_TRACKING
