@@ -53,7 +53,6 @@ bool supports_composition_layer_ = false;
 #endif
 
 #if ENABLE_OPENXR_FB_LOCAL_DIMMING
-#include <openxr/meta_local_dimming.h>
 bool supports_local_dimming_ = false;
 XrLocalDimmingFrameEndInfoMETA local_dimming_settings_ = { (XrStructureType)1000216000, nullptr, XR_LOCAL_DIMMING_MODE_ON_META };
 #endif
@@ -63,12 +62,10 @@ bool supports_hand_tracking_ = false;
 #endif
 
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
-#include <openxr/fb_eye_tracking_social.h>
 bool supports_eye_tracking_social_ = false;
 #endif
 
 #if ENABLE_OPENXR_META_FOVEATION_EYE_TRACKED
-#include <openxr/meta_foveation_eye_tracked.h>
 bool supports_meta_foveation_eye_tracked_ = false;
 #endif
 
@@ -79,7 +76,6 @@ bool supports_face_tracking_ = false;
 
 #if ENABLE_OPENXR_FB_BODY_TRACKING
 //#define XR_FB_body_tracking_EXPERIMENTAL_VERSION 2
-#include <openxr/fb_body_tracking.h>
 bool supports_body_tracking_ = false;
 #endif
 
@@ -336,11 +332,11 @@ struct OpenXrProgram : IOpenXrProgram
             CHECK_XRCMD(xrEnumerateInstanceExtensionProperties(layerName, (uint32_t)extensions.size(), &instanceExtensionCount, extensions.data()));
 
             const std::string indentStr(indent, ' ');
-            Log::Write(Log::Level::Verbose, Fmt("%sAvailable Extensions: (%d)", indentStr.c_str(), instanceExtensionCount));
+            Log::Write(Log::Level::Info, Fmt("%s Available Extensions: (%d)", indentStr.c_str(), instanceExtensionCount));
 
             for (const XrExtensionProperties& extension : extensions) 
             {
-                Log::Write(Log::Level::Verbose, Fmt("%s  Name=%s SpecVersion=%d", indentStr.c_str(), extension.extensionName,
+                Log::Write(Log::Level::Info, Fmt("%s  Name=%s SpecVersion=%d", indentStr.c_str(), extension.extensionName,
                                                     extension.extensionVersion));
 
 #if ENABLE_OPENXR_FB_REFRESH_RATE
@@ -434,7 +430,7 @@ struct OpenXrProgram : IOpenXrProgram
 
             for (const XrApiLayerProperties& layer : layers) 
             {
-                Log::Write(Log::Level::Verbose,
+                Log::Write(Log::Level::Info,
                            Fmt("  Name=%s SpecVersion=%s LayerVersion=%d Description=%s", layer.layerName,
                                GetXrVersionString(layer.specVersion).c_str(), layer.layerVersion, layer.description));
 

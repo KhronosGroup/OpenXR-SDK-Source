@@ -114,5 +114,30 @@
 #include <openxr/openxr_platform.h>
 #include <openxr/openxr_reflection.h>
 
+// OVR v47 SDK headers (found in $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Include)
+#include <openxr/ext_event_channel.h>
+#include <openxr/fb_body_tracking.h>
+#include <openxr/fb_composition_layer_depth_test.h>
+#include <openxr/fb_eye_tracking_social.h>
+#include <openxr/fb_face_tracking.h>
+#include <openxr/fb_haptic_amplitude_envelope.h>
+#include <openxr/fb_haptic_pcm.h>
+#include <openxr/fb_scene.h>
+#include <openxr/fb_scene_capture.h>
+#include <openxr/fb_spatial_entity.h>
+#include <openxr/fb_spatial_entity_container.h>
+#include <openxr/fb_spatial_entity_query.h>
+#include <openxr/fb_spatial_entity_sharing.h>
+#include <openxr/fb_spatial_entity_storage.h>
+#include <openxr/fb_spatial_entity_storage_batch.h>
+#include <openxr/fb_spatial_entity_user.h>
+#include <openxr/fb_touch_controller_pro.h>
+#include <openxr/fb_touch_controller_proximity.h>
+#include <openxr/meta_foveation_eye_tracked.h>
+#include <openxr/meta_local_dimming.h>
+#include <openxr/openxr_extension_helpers.h>
+#include <openxr/openxr_oculus.h>
+#include <openxr/openxr_oculus_helpers.h>
+
 #define USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION 1
 #include "utils.h"
