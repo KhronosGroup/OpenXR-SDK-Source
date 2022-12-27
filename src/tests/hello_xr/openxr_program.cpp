@@ -415,6 +415,8 @@ struct OpenXrProgram : IOpenXrProgram
             return;
         };
 
+        //Test 
+
         // Log non-layer extensions (layerName==nullptr).
         logExtensions(nullptr);
 
