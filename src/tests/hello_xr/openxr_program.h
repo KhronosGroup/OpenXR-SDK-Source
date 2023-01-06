@@ -27,7 +27,7 @@
 #define ENABLE_OPENXR_FB_LOCAL_DIMMING (PLATFORM_ANDROID && 1)
 
 #define ENABLE_OPENXR_HAND_TRACKING 0
-#define ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL (PLATFORM_PC && 1) // eye-tracking only enabled on PC for now (needs permissions on Android, requires java calls. TODO)
+#define ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL (PLATFORM_PC && 0) // eye-tracking only enabled on PC for now (needs permissions on Android, requires java calls. TODO)
 #define DRAW_LOCAL_EYE_LASERS (ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL && 1)
 #define DRAW_WORLD_EYE_LASERS (ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL && USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION && 1)
 
