@@ -33,6 +33,8 @@
 #include "SDL3/SDL.h"
 #include "SDL3/SDL_joystick.h"
 
+bool sdl_initialized_ = false;
+
 SDL_JoystickID active_joystickID_ = 0; // 0 is invalid
 SDL_JoystickType active_joystick_type_ = SDL_JOYSTICK_TYPE_UNKNOWN;
 
@@ -42,14 +44,40 @@ void clear_active_joysticks()
 	active_joystick_type_ = SDL_JOYSTICK_TYPE_UNKNOWN;
 }
 
+void init_sdl()
+{
+    if (sdl_initialized_)
+    {
+        return;
+    }
+
+    //sdl_initialized_ = true;
+}
+
+void close_sdl()
+{
+    if (!sdl_initialized_)
+    {
+        return;
+    }
+
+    clear_active_joysticks();
+    sdl_initialized_ = false;
+}
+
 void update_sdl_joysticks()
 {
+    if (!sdl_initialized_)
+    {
+        return;
+    }
+
     int count = 0;
     SDL_JoystickID* joysticks = SDL_GetJoysticks(&count);
 
     if (joysticks && (count > 0))
     {
-        active_joystickID_ = count;
+        active_joystickID_ = 1;
         const char* joystick_name = SDL_GetJoystickInstanceName(active_joystickID_);
 		Log::Write(Log::Level::Info, Fmt("joystick_name = %s (%u)", joystick_name, active_joystickID_));
 
@@ -719,10 +747,13 @@ struct OpenXrProgram : IOpenXrProgram
         systemInfo.formFactor = m_options->Parsed.FormFactor;
         CHECK_XRCMD(xrGetSystem(m_instance, &systemInfo, &m_systemId));
 
-        Log::Write(Log::Level::Verbose,
-                   Fmt("Using system %d for form factor %s", m_systemId, to_string(m_options->Parsed.FormFactor)));
+        Log::Write(Log::Level::Verbose, Fmt("Using system %d for form factor %s", m_systemId, to_string(m_options->Parsed.FormFactor)));
         CHECK(m_instance != XR_NULL_HANDLE);
         CHECK(m_systemId != XR_NULL_SYSTEM_ID);
+
+#if USE_SDL_JOYSTICKS
+        init_sdl();
+#endif
     }
 
     void InitializeDevice() override 
