@@ -2310,19 +2310,34 @@ struct OpenXrProgram : IOpenXrProgram
                     XrQuaternionf world_orientation;
                     XrMatrix4x4f_GetRotation(&world_orientation, &world_eye_gaze_matrix);
 
-					XrPosef final_pose;
-                    final_pose.position = eye_pose.position;
+					XrPosef local_eye_laser_pose;
+                    local_eye_laser_pose.position = eye_pose.position;
 					//XrVector3f_Add(&final_pose.position, &gaze_pose.position, &eye_pose.position);
-					final_pose.orientation = world_orientation;
+                    local_eye_laser_pose.orientation = world_orientation;
 
                     XrVector3f world_laser_offset;
                     XrMatrix4x4f_TransformVector3f(&world_laser_offset, &world_eye_gaze_matrix, &local_laser_offset);
 
-                    XrVector3f_Add(&final_pose.position, &final_pose.position, &world_laser_offset);
+                    XrVector3f_Add(&local_eye_laser_pose.position, &local_eye_laser_pose.position, &world_laser_offset);
 
                     // Make a slender laser pointer-like box for gazes
                     XrVector3f gaze_cube_scale{ 0.001f, 0.001f, laser_length };
-                    cubes.push_back(Cube{ final_pose, gaze_cube_scale });
+
+#if DRAW_LOCAL_EYE_LASERS
+                    cubes.push_back(Cube{ local_eye_laser_pose, gaze_cube_scale });
+#endif
+
+#if DRAW_WORLD_EYE_LASERS
+					const BVR::GLMPose glm_local_eye_laser_pose = BVR::convert_to_glm(local_eye_laser_pose);
+					const glm::vec3 world_eye_laser_position = player_pose.translation_ + (player_pose.rotation_ * glm_local_eye_laser_pose.translation_);
+					const glm::fquat world_eye_laser_rotation = glm::normalize(player_pose.rotation_ * glm_local_eye_laser_pose.rotation_);
+
+					XrPosef world_eye_laser_pose;
+                    world_eye_laser_pose.position = BVR::convert_to_xr(world_eye_laser_position);
+                    world_eye_laser_pose.orientation = BVR::convert_to_xr(world_eye_laser_rotation);
+
+					cubes.push_back(Cube{ world_eye_laser_pose, gaze_cube_scale });
+#endif
                 }
             }
         }
