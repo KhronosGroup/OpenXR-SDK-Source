@@ -137,7 +137,6 @@
 #include <openxr/meta_local_dimming.h>
 #include <openxr/openxr_extension_helpers.h>
 #include <openxr/openxr_oculus.h>
-#include <openxr/openxr_oculus_helpers.h>
 
 #define USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION 1
 #include "utils.h"
