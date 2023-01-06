@@ -29,6 +29,39 @@
 
 #define ADD_GROUND 1
 
+#if USE_SDL_JOYSTICKS
+#include "SDL3/SDL.h"
+#include "SDL3/SDL_joystick.h"
+
+SDL_JoystickID active_joystickID_ = 0; // 0 is invalid
+SDL_JoystickType active_joystick_type_ = SDL_JOYSTICK_TYPE_UNKNOWN;
+
+void clear_active_joysticks()
+{
+	active_joystickID_ = 0;
+	active_joystick_type_ = SDL_JOYSTICK_TYPE_UNKNOWN;
+}
+
+void update_sdl_joysticks()
+{
+    int count = 0;
+    SDL_JoystickID* joysticks = SDL_GetJoysticks(&count);
+
+    if (joysticks && (count > 0))
+    {
+        active_joystickID_ = count;
+        const char* joystick_name = SDL_GetJoystickInstanceName(active_joystickID_);
+		Log::Write(Log::Level::Info, Fmt("joystick_name = %s (%u)", joystick_name, active_joystickID_));
+
+        SDL_free(joysticks);
+    }
+    else
+    {
+        clear_active_joysticks();
+    }
+}
+#endif
+
 const glm::vec3 left_direction(-1.0f, 0.0f, 0.0f);
 const glm::vec3 right_direction(1.0f, 1.0f, 0.0f);
 const glm::vec3 up_direction(0.0f, 1.0f, 0.0f);
@@ -1876,6 +1909,10 @@ struct OpenXrProgram : IOpenXrProgram
 
     void PollActions() override 
     {
+#if USE_SDL_JOYSTICKS
+        update_sdl_joysticks();
+#endif
+
         m_input.handActive = {XR_FALSE, XR_FALSE};
 
         // Sync actions

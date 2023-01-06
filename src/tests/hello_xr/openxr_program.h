@@ -41,6 +41,8 @@
 #define LOG_EYE_TRACKING_DATA (ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL && 0)
 #define LOG_BODY_TRACKING_DATA (ENABLE_OPENXR_FB_BODY_TRACKING && 0)
 
+#define USE_SDL_JOYSTICKS 0
+
 struct IOpenXrProgram 
 {
     virtual ~IOpenXrProgram() = default;
