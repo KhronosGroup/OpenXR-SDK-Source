@@ -51,7 +51,10 @@ void init_sdl()
         return;
     }
 
-    //sdl_initialized_ = true;
+    SDL_Init(SDL_INIT_GAMEPAD);
+    //SDL_Init(SDL_INIT_JOYSTICK);
+    
+    sdl_initialized_ = true;
 }
 
 void close_sdl()
@@ -62,6 +65,8 @@ void close_sdl()
     }
 
     clear_active_joysticks();
+    SDL_Quit();
+    
     sdl_initialized_ = false;
 }
 
@@ -72,20 +77,31 @@ void update_sdl_joysticks()
         return;
     }
 
+    SDL_UpdateGamepads();
+    //SDL_UpdateJoysticks();
+
     int count = 0;
     SDL_JoystickID* joysticks = SDL_GetJoysticks(&count);
 
+    static bool shown_already = false;
+
     if (joysticks && (count > 0))
     {
-        active_joystickID_ = 1;
-        const char* joystick_name = SDL_GetJoystickInstanceName(active_joystickID_);
-		Log::Write(Log::Level::Info, Fmt("joystick_name = %s (%u)", joystick_name, active_joystickID_));
+        if (!shown_already)
+        {
+			active_joystickID_ = 1;
+			const char* joystick_name = SDL_GetJoystickInstanceName(active_joystickID_);
+			Log::Write(Log::Level::Info, Fmt("joystick_name = %s (%u)", joystick_name, active_joystickID_));
 
-        SDL_free(joysticks);
+			SDL_free(joysticks);
+
+            shown_already = true;
+        }
     }
     else
     {
         clear_active_joysticks();
+        shown_already = false;
     }
 }
 #endif
