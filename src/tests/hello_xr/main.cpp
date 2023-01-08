@@ -234,6 +234,11 @@ void android_main(struct android_app* app) {
         // Initialize the OpenXR program.
         std::shared_ptr<IOpenXrProgram> program = CreateOpenXrProgram(options, platformPlugin, graphicsPlugin);
 
+#if USE_SDL_JOYSTICKS
+		program->InitSDLJoysticks();
+		program->UpdateSDLJoysticks();
+#endif
+
         // Initialize the loader for this platform
         PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
         if (XR_SUCCEEDED(
@@ -290,6 +295,10 @@ void android_main(struct android_app* app) {
                 continue;
             }
 
+#if USE_SDL_JOYSTICKS
+			program->UpdateSDLJoysticks();
+#endif
+
             program->PollActions();
             program->RenderFrame();
         }
@@ -338,6 +347,11 @@ int main(int argc, char* argv[]) {
             // Initialize the OpenXR program.
             std::shared_ptr<IOpenXrProgram> program = CreateOpenXrProgram(options, platformPlugin, graphicsPlugin);
 
+#if USE_SDL_JOYSTICKS
+			program->InitSDLJoysticks();
+			program->UpdateSDLJoysticks();
+#endif
+
             program->CreateInstance();
             program->InitializeSystem();
 
@@ -358,6 +372,10 @@ int main(int argc, char* argv[]) {
                 }
 
                 if (program->IsSessionRunning()) {
+
+#if USE_SDL_JOYSTICKS
+					program->UpdateSDLJoysticks();
+#endif
                     program->PollActions();
                     program->RenderFrame();
 

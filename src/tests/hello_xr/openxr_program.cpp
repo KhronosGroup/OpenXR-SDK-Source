@@ -1143,11 +1143,6 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_FB_BODY_TRACKING
 		CreateBodyTracker();
 #endif
-
-#if USE_SDL_JOYSTICKS
-        InitSDLJoysticks();
-        UpdateSDLJoysticks();
-#endif
     }
 
     void CreateSwapchains() override 
@@ -1983,10 +1978,6 @@ struct OpenXrProgram : IOpenXrProgram
 
     void PollActions() override 
     {
-#if USE_SDL_JOYSTICKS
-        update_sdl_joysticks();
-#endif
-
         m_input.handActive = {XR_FALSE, XR_FALSE};
 
         // Sync actions
