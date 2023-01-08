@@ -37,11 +37,17 @@ bool sdl_initialized_ = false;
 
 SDL_JoystickID active_joystickID_ = 0; // 0 is invalid
 SDL_JoystickType active_joystick_type_ = SDL_JOYSTICK_TYPE_UNKNOWN;
+SDL_Joystick* active_joystick_ = nullptr;
+int active_joystick_num_axes_ = 0;
+int active_joystick_num_buttons_ = 0;
 
 void clear_active_joysticks()
 {
 	active_joystickID_ = 0;
 	active_joystick_type_ = SDL_JOYSTICK_TYPE_UNKNOWN;
+    active_joystick_ = nullptr;
+	active_joystick_num_axes_ = 0;
+	active_joystick_num_buttons_ = 0;
 }
 
 void init_sdl()
@@ -51,8 +57,8 @@ void init_sdl()
         return;
     }
 
-    SDL_Init(SDL_INIT_GAMEPAD);
-    //SDL_Init(SDL_INIT_JOYSTICK);
+    //SDL_Init(SDL_INIT_GAMEPAD);
+    SDL_Init(SDL_INIT_JOYSTICK);
     
     sdl_initialized_ = true;
 }
@@ -77,31 +83,30 @@ void update_sdl_joysticks()
         return;
     }
 
-    SDL_UpdateGamepads();
-    //SDL_UpdateJoysticks();
+    //SDL_UpdateGamepads();
+    SDL_UpdateJoysticks();
 
     int count = 0;
     SDL_JoystickID* joysticks = SDL_GetJoysticks(&count);
 
-    static bool shown_already = false;
-
     if (joysticks && (count > 0))
     {
-        if (!shown_already)
+        if (active_joystick_ == nullptr)
         {
 			active_joystickID_ = 1;
 			const char* joystick_name = SDL_GetJoystickInstanceName(active_joystickID_);
-			Log::Write(Log::Level::Info, Fmt("joystick_name = %s (%u)", joystick_name, active_joystickID_));
+			active_joystick_ = SDL_OpenJoystick(active_joystickID_);
+			active_joystick_num_axes_ = SDL_GetNumJoystickAxes(active_joystick_);
+            active_joystick_num_buttons_ = SDL_GetNumJoystickButtons(active_joystick_);
+
+			Log::Write(Log::Level::Info, Fmt("joystick_name = %s (index = %u, axes = %d, buttons = %d)", joystick_name, active_joystickID_, active_joystick_num_axes_, active_joystick_num_buttons_));
 
 			SDL_free(joysticks);
-
-            shown_already = true;
         }
     }
     else
     {
         clear_active_joysticks();
-        shown_already = false;
     }
 }
 #endif
@@ -339,6 +344,10 @@ struct OpenXrProgram : IOpenXrProgram
 
     ~OpenXrProgram() override 
     {
+#if USE_SDL_JOYSTICKS
+        ShutdownSDLJoySticks();
+#endif
+
 #if ENABLE_OPENXR_FB_BODY_TRACKING
 		DestroyBodyTracker();
 #endif
@@ -766,10 +775,6 @@ struct OpenXrProgram : IOpenXrProgram
         Log::Write(Log::Level::Verbose, Fmt("Using system %d for form factor %s", m_systemId, to_string(m_options->Parsed.FormFactor)));
         CHECK(m_instance != XR_NULL_HANDLE);
         CHECK(m_systemId != XR_NULL_SYSTEM_ID);
-
-#if USE_SDL_JOYSTICKS
-        init_sdl();
-#endif
     }
 
     void InitializeDevice() override 
@@ -1137,6 +1142,11 @@ struct OpenXrProgram : IOpenXrProgram
 
 #if ENABLE_OPENXR_FB_BODY_TRACKING
 		CreateBodyTracker();
+#endif
+
+#if USE_SDL_JOYSTICKS
+        InitSDLJoysticks();
+        UpdateSDLJoysticks();
 #endif
     }
 
@@ -1794,6 +1804,23 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 		}
 	}
+#endif
+
+#if USE_SDL_JOYSTICKS
+    void InitSDLJoysticks() override
+    {
+        init_sdl();
+    }
+
+    void ShutdownSDLJoySticks() override
+    {
+        close_sdl();
+    }
+
+    void UpdateSDLJoysticks() override
+    {
+        update_sdl_joysticks();
+    }
 #endif
 
 

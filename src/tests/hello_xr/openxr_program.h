@@ -110,6 +110,12 @@ struct IOpenXrProgram
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 	virtual bool GetGazePose(const int eye, XrPosef& gaze_pose) = 0;
 #endif
+
+#if USE_SDL_JOYSTICKS
+    virtual void InitSDLJoysticks() = 0;
+    virtual void ShutdownSDLJoySticks() = 0;
+    virtual void UpdateSDLJoysticks() = 0;
+#endif
 };
 
 struct Swapchain {
