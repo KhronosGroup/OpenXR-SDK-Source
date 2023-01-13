@@ -1,0 +1,34 @@
+# Copyright 2021-2023, Collabora, Ltd.
+# SPDX-License-Identifier: CC0-1.0
+
+name: "CodeQL Scan"
+
+on:
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "33 4 * * 3"
+  workflow_dispatch:
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: lukka/get-cmake@v3.25.1
+      - uses: actions/checkout@v3
+      - name: Generate build system
+        run: cmake --fresh -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: cpp
+          queries: +security-and-quality
+
+      - name: Build
+        run: cmake --build build --parallel --clean-first
+
+      - name: Analyze with CodeQL
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:cpp"
