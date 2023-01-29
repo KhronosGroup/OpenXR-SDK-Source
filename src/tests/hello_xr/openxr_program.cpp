@@ -23,6 +23,7 @@
 #define ADD_EXTRA_CUBES 1
 #define TAKE_SCREENSHOT_WITH_LEFT_GRAB (SUPPORT_SCREENSHOTS && 0)
 #define ENABLE_LOCAL_DIMMING_WITH_RIGHT_GRAB (ENABLE_OPENXR_FB_LOCAL_DIMMING && 0)
+#define LOG_IPD 0
 #define LOG_MATRICES 0
 
 #define BODY_CUBE_SIZE 0.02f
@@ -2330,7 +2331,7 @@ struct OpenXrProgram : IOpenXrProgram
 
             IPD = sqrtf((left_to_right.x * left_to_right.x) + (left_to_right.y * left_to_right.y) + (left_to_right.z * left_to_right.z));
 
-#if LOG_MATRICES
+#if LOG_IPD
             Log::Write(Log::Level::Info, Fmt("Computed IPD (mm) = %.7f", IPD * 1000.0f));
 #endif
         }
