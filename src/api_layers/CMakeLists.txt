@@ -104,6 +104,10 @@ if(Vulkan_FOUND)
         PRIVATE ${Vulkan_INCLUDE_DIRS}
     )
 endif()
+if(BUILD_WITH_WAYLAND_HEADERS)
+    target_include_directories(XrApiLayer_api_dump
+        PRIVATE ${WAYLAND_CLIENT_INCLUDE_DIRS})
+endif()
 
 # Basics for core_validation API Layer
 
@@ -167,6 +171,10 @@ if(Vulkan_FOUND)
     target_include_directories(XrApiLayer_core_validation
         PRIVATE ${Vulkan_INCLUDE_DIRS}
     )
+endif()
+if(BUILD_WITH_WAYLAND_HEADERS)
+    target_include_directories(XrApiLayer_core_validation
+        PRIVATE ${WAYLAND_CLIENT_INCLUDE_DIRS})
 endif()
 
 if(WIN32)

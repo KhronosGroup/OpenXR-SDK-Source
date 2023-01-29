@@ -211,6 +211,16 @@ bool CoreValidationWriteHtmlFooter() {
     }
 }
 
+// For routing platform_utils.hpp messages.
+void LogPlatformUtilsError(const std::string &message) {
+#if !defined(NDEBUG)
+    std::cerr << message << std::endl;
+#if defined(XR_OS_WINDOWS)
+    OutputDebugStringA((message + "\n").c_str());
+#endif
+#endif
+}
+
 // Function to record all the core validation information
 void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::string &message_id,
                          GenValidUsageDebugSeverity message_severity, const std::string &command_name,
