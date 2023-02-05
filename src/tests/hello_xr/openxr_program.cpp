@@ -24,6 +24,7 @@
 #define TAKE_SCREENSHOT_WITH_LEFT_GRAB (SUPPORT_SCREENSHOTS && 0)
 #define ENABLE_LOCAL_DIMMING_WITH_RIGHT_GRAB (ENABLE_OPENXR_FB_LOCAL_DIMMING && 0)
 #define LOG_IPD 0
+#define LOG_FOV 0
 #define LOG_MATRICES 0
 
 #define BODY_CUBE_SIZE 0.02f
@@ -2331,9 +2332,27 @@ struct OpenXrProgram : IOpenXrProgram
 
             IPD = sqrtf((left_to_right.x * left_to_right.x) + (left_to_right.y * left_to_right.y) + (left_to_right.z * left_to_right.z));
 
+            const float IPD_mm = IPD * 1000.0f;
+            static float last_IPD_mm = 0.0f;
+
+            if ((int)last_IPD_mm != (int)IPD_mm)
+            {
 #if LOG_IPD
-            Log::Write(Log::Level::Info, Fmt("Computed IPD (mm) = %.7f", IPD * 1000.0f));
+				Log::Write(Log::Level::Info, Fmt("IMPORTANT - IPD changed from = %.3f mm to %.3f mm", last_IPD_mm, IPD_mm));
 #endif
+
+#if LOG_FOV
+				const XrFovf& left_fov = m_views[Side::LEFT].fov;
+				const XrFovf& right_fov = m_views[Side::RIGHT].fov;
+
+				Log::Write(Log::Level::Info, Fmt("IMPORTANT - FOV LEFT EYE : left = %.1f, right = %.1f, up = %.1f, down = %.1f",
+					rad2deg(left_fov.angleLeft), rad2deg(left_fov.angleRight), rad2deg(left_fov.angleUp), rad2deg(left_fov.angleDown)));
+
+				Log::Write(Log::Level::Info, Fmt("IMPORTANT - FOV RIGHT EYE : left = %.1f, right = %.1f, up = %.1f, down = %.1f",
+                    rad2deg(right_fov.angleLeft), rad2deg(right_fov.angleRight), rad2deg(right_fov.angleUp), rad2deg(right_fov.angleDown)));
+#endif
+                last_IPD_mm = IPD_mm;
+            }
         }
 
 #if TOGGLE_SHARPENING_AT_RUNTIME_USING_RIGHT_GRIP
