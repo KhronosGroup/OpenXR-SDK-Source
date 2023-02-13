@@ -46,6 +46,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <tag name="KHR"        author="Khronos"                     contact="Brent Insko @insko"/>
         <tag name="LUNARG"     author="LunarG"                      contact="Brad Grantham @bradgrantham-lunarg"/>
         <tag name="LIV"        author="LIV"                         contact="Arthur Brainville @Ybalrid, Steffan Donal @liv_ruu"/>
+        <tag name="MBUCCHIA"   author="Matthieu Bucchianeri"        contact="Matthieu Bucchianeri @mbucchia"/>
         <tag name="META"       author="Meta Platforms"              contact="Cass Everitt @casseveritt, Jonathan Wright @Nelno"/>
         <tag name="ML"         author="Magic Leap"                  contact="Jey Michaelraj @jeymichael"/>
         <tag name="MND"        author="Monado Project"              contact="Jakob Bornecrantz @wallbraker, Ryan Pavlik @rpavlik"/>
