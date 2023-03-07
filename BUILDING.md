@@ -51,6 +51,7 @@ number. The following table is provided to help you:
 | Visual Studio 2015   |       14       |
 | Visual Studio 2017   |       15       |
 | Visual Studio 2019   |       16       |
+| Visual Studio 2022   |       17       |
 
 #### Windows 64-bit
 
