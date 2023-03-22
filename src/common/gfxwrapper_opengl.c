@@ -15,26 +15,7 @@ System level functionality
 ================================================================================================================================
 */
 
-static void *AllocAlignedMemory(size_t size, size_t alignment) {
-    alignment = (alignment < sizeof(void *)) ? sizeof(void *) : alignment;
-#if defined(OS_WINDOWS)
-    return _aligned_malloc(size, alignment);
-#elif defined(OS_APPLE)
-    void *ptr = NULL;
-    return (posix_memalign(&ptr, alignment, size) == 0) ? ptr : NULL;
-#else
-    return memalign(alignment, size);
-#endif
-}
-
-static void FreeAlignedMemory(void *ptr) {
-#if defined(OS_WINDOWS)
-    _aligned_free(ptr);
-#else
-    free(ptr);
-#endif
-}
-
+#if defined(OS_ANDROID)
 static void Print(const char *format, ...) {
 #if defined(OS_WINDOWS)
     char buffer[4096];
@@ -68,6 +49,7 @@ static void Print(const char *format, ...) {
     __android_log_print(ANDROID_LOG_VERBOSE, "atw", "%s", buffer);
 #endif
 }
+#endif  // defined(OS_ANDROID)
 
 static void Error(const char *format, ...) {
 #if defined(OS_WINDOWS)
@@ -145,125 +127,14 @@ static void Error(const char *format, ...) {
 /*
 ================================================================================================================================
 
-Frame logging.
-
-Each thread that calls ksFrameLog_Open will open its own log.
-A frame log is always opened for a specified number of frames, and will
-automatically close after the specified number of frames have been recorded.
-The CPU and GPU times for the recorded frames will be listed at the end of the log.
-
-ksFrameLog
-
-static void ksFrameLog_Open( const char * fileName, const int frameCount );
-static void ksFrameLog_Write( const char * fileName, const int lineNumber, const char * function );
-static void ksFrameLog_BeginFrame();
-static void ksFrameLog_EndFrame( const ksNanoseconds cpuTimeNanoseconds, const ksNanoseconds gpuTimeNanoseconds, const int
-gpuTimeFramesDelayed );
-
-================================================================================================================================
-*/
-
-typedef struct {
-    FILE *fp;
-    ksNanoseconds *frameCpuTimes;
-    ksNanoseconds *frameGpuTimes;
-    int frameCount;
-    int frame;
-} ksFrameLog;
-
-__thread ksFrameLog *threadFrameLog;
-
-static ksFrameLog *ksFrameLog_Get() {
-    ksFrameLog *l = threadFrameLog;
-    if (l == NULL) {
-        l = (ksFrameLog *)malloc(sizeof(ksFrameLog));
-        memset(l, 0, sizeof(ksFrameLog));
-        threadFrameLog = l;
-    }
-    return l;
-}
-
-static void ksFrameLog_Open(const char *fileName, const int frameCount) {
-    ksFrameLog *l = ksFrameLog_Get();
-    if (l != NULL && l->fp == NULL) {
-        l->fp = fopen(fileName, "wb");
-        if (l->fp == NULL) {
-            Print("Failed to open %s\n", fileName);
-        } else {
-            Print("Opened frame log %s for %d frames.\n", fileName, frameCount);
-            l->frameCpuTimes = (ksNanoseconds *)malloc(frameCount * sizeof(l->frameCpuTimes[0]));
-            l->frameGpuTimes = (ksNanoseconds *)malloc(frameCount * sizeof(l->frameGpuTimes[0]));
-            memset(l->frameCpuTimes, 0, frameCount * sizeof(l->frameCpuTimes[0]));
-            memset(l->frameGpuTimes, 0, frameCount * sizeof(l->frameGpuTimes[0]));
-            l->frameCount = frameCount;
-            l->frame = 0;
-        }
-    }
-}
-
-static void ksFrameLog_Write(const char *fileName, const int lineNumber, const char *function) {
-    ksFrameLog *l = ksFrameLog_Get();
-    if (l != NULL && l->fp != NULL) {
-        if (l->frame < l->frameCount) {
-            fprintf(l->fp, "%s(%d): %s\r\n", fileName, lineNumber, function);
-        }
-    }
-}
-
-static void ksFrameLog_BeginFrame() {
-    ksFrameLog *l = ksFrameLog_Get();
-    if (l != NULL && l->fp != NULL) {
-        if (l->frame < l->frameCount) {
-#if !defined(NDEBUG)
-            fprintf(l->fp, "================ BEGIN FRAME %d ================\r\n", l->frame);
-#endif
-        }
-    }
-}
-
-static void ksFrameLog_EndFrame(const ksNanoseconds cpuTimeNanoseconds, const ksNanoseconds gpuTimeNanoseconds,
-                                const int gpuTimeFramesDelayed) {
-    ksFrameLog *l = ksFrameLog_Get();
-    if (l != NULL && l->fp != NULL) {
-        if (l->frame < l->frameCount) {
-            l->frameCpuTimes[l->frame] = cpuTimeNanoseconds;
-#if !defined(NDEBUG)
-            fprintf(l->fp, "================ END FRAME %d ================\r\n", l->frame);
-#endif
-        }
-        if (l->frame >= gpuTimeFramesDelayed && l->frame < l->frameCount + gpuTimeFramesDelayed) {
-            l->frameGpuTimes[l->frame - gpuTimeFramesDelayed] = gpuTimeNanoseconds;
-        }
-
-        l->frame++;
-
-        if (l->frame >= l->frameCount + gpuTimeFramesDelayed) {
-            for (int i = 0; i < l->frameCount; i++) {
-                fprintf(l->fp, "frame %d: CPU = %1.1f ms, GPU = %1.1f ms\r\n", i, l->frameCpuTimes[i] * 1e-6f,
-                        l->frameGpuTimes[i] * 1e-6f);
-            }
-
-            Print("Closing frame log file (%d frames).\n", l->frameCount);
-            fclose(l->fp);
-            free(l->frameCpuTimes);
-            free(l->frameGpuTimes);
-            memset(l, 0, sizeof(ksFrameLog));
-        }
-    }
-}
-
-/*
-================================================================================================================================
-
 OpenGL error checking.
 
 ================================================================================================================================
 */
 
 #if !defined(NDEBUG)
-#define GL(func)                                 \
-    func;                                        \
-    ksFrameLog_Write(__FILE__, __LINE__, #func); \
+#define GL(func) \
+    func;        \
     GlCheckErrors(#func);
 #else
 #define GL(func) func;
@@ -271,7 +142,6 @@ OpenGL error checking.
 
 #if !defined(NDEBUG)
 #define EGL(func)                                                  \
-    ksFrameLog_Write(__FILE__, __LINE__, #func);                   \
     if (func == EGL_FALSE) {                                       \
         Error(#func " failed: %s", EglErrorString(eglGetError())); \
     }
@@ -321,6 +191,7 @@ static const char *EglErrorString(const EGLint error) {
 }
 #endif
 
+#if !defined(NDEBUG)
 static const char *GlErrorString(GLenum error) {
     switch (error) {
         case GL_NO_ERROR:
@@ -346,31 +217,6 @@ static const char *GlErrorString(GLenum error) {
     }
 }
 
-static const char *GlFramebufferStatusString(GLenum status) {
-    switch (status) {
-        case GL_FRAMEBUFFER_UNDEFINED:
-            return "GL_FRAMEBUFFER_UNDEFINED";
-        case GL_FRAMEBUFFER_UNSUPPORTED:
-            return "GL_FRAMEBUFFER_UNSUPPORTED";
-        case GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT:
-            return "GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT";
-        case GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT:
-            return "GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT";
-        case GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE:
-            return "GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE";
-#if !defined(OS_ANDROID) && !defined(OS_APPLE_IOS)
-        case GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER:
-            return "GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER";
-        case GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER:
-            return "GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER";
-        case GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS:
-            return "GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS";
-#endif
-        default:
-            return "unknown";
-    }
-}
-
 static void GlCheckErrors(const char *function) {
     for (int i = 0; i < 10; i++) {
         const GLenum error = glGetError();
@@ -380,6 +226,7 @@ static void GlCheckErrors(const char *function) {
         Error("GL error: %s: %s", function, GlErrorString(error));
     }
 }
+#endif  // !defined(NDEBUG)
 
 /*
 ================================================================================================================================
@@ -1509,10 +1356,12 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
 
     NSOpenGLPixelFormat *pixelFormat = [[[NSOpenGLPixelFormat alloc] initWithAttributes:pixelFormatAttributes] autorelease];
     if (pixelFormat == nil) {
+        Error("Failed : NSOpenGLPixelFormat.");
         return false;
     }
     context->nsContext = [[NSOpenGLContext alloc] initWithFormat:pixelFormat shareContext:nil];
     if (context->nsContext == nil) {
+        Error("Failed : NSOpenGLContext.");
         return false;
     }
 
@@ -1643,15 +1492,18 @@ bool ksGpuContext_CreateShared(ksGpuContext *context, const ksGpuContext *other,
     context->nsContext = NULL;
     CGLPixelFormatObj pf = CGLGetPixelFormat(other->cglContext);
     if (CGLCreateContext(pf, other->cglContext, &context->cglContext) != kCGLNoError) {
+        Error("Failed : CGLCreateContext.");
         return false;
     }
     CGSConnectionID cid;
     CGSWindowID wid;
     CGSSurfaceID sid;
     if (CGLGetSurface(other->cglContext, &cid, &wid, &sid) != kCGLNoError) {
+        Error("Failed : CGLGetSurface.");
         return false;
     }
     if (CGLSetSurface(context->cglContext, cid, wid, sid) != kCGLNoError) {
+        Error("Failed : CGLSetSurface.");
         return false;
     }
 #elif defined(OS_ANDROID) || defined(OS_LINUX_WAYLAND)
@@ -1777,12 +1629,6 @@ void ksGpuContext_Destroy(ksGpuContext *context) {
 #endif
 }
 
-void ksGpuContext_WaitIdle(ksGpuContext *context) {
-    UNUSED_PARM(context);
-
-    GL(glFinish());
-}
-
 void ksGpuContext_SetCurrent(ksGpuContext *context) {
 #if defined(OS_WINDOWS)
     wglMakeCurrent(context->hDC, context->hGLRC);
@@ -1836,13 +1682,6 @@ bool ksGpuContext_CheckCurrent(ksGpuContext *context) {
 #elif defined(OS_ANDROID) || defined(OS_LINUX_WAYLAND)
     return (eglGetCurrentContext() == context->context);
 #endif
-}
-
-static void ksGpuContext_GetLimits(ksGpuContext *context, ksGpuLimits *limits) {
-    UNUSED_PARM(context);
-
-    limits->maxPushConstantsSize = 512;
-    limits->maxSamples = glGetInteger(GL_MAX_SAMPLES);
 }
 
 /*
@@ -1995,7 +1834,6 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     window->windowActive = false;
     window->windowExit = false;
     window->windowActiveState = false;
-    window->lastSwapTime = GetTimeNanoseconds();
 
     const LPCSTR displayDevice = NULL;
 
@@ -2116,48 +1954,6 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     return true;
 }
 
-static bool ksGpuWindow_SupportedResolution(const int width, const int height) {
-    DEVMODE dm = {0};
-    dm.dmSize = sizeof(dm);
-    for (int modeIndex = 0; EnumDisplaySettings(NULL, modeIndex, &dm) != 0; modeIndex++) {
-        if (dm.dmPelsWidth == (DWORD)width && dm.dmPelsHeight == (DWORD)height) {
-            return true;
-        }
-    }
-    return false;
-}
-
-void ksGpuWindow_Exit(ksGpuWindow *window) { window->windowExit = true; }
-
-ksGpuWindowEvent ksGpuWindow_ProcessEvents(ksGpuWindow *window) {
-    MSG msg;
-    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) > 0) {
-        if (msg.message == WM_QUIT) {
-            window->windowExit = true;
-        } else {
-            TranslateMessage(&msg);
-            DispatchMessage(&msg);
-        }
-    }
-
-    window->input.keyInput[KEY_SHIFT_LEFT] = GetAsyncKeyState(KEY_SHIFT_LEFT) != 0;
-    window->input.keyInput[KEY_CTRL_LEFT] = GetAsyncKeyState(KEY_CTRL_LEFT) != 0;
-    window->input.keyInput[KEY_ALT_LEFT] = GetAsyncKeyState(KEY_ALT_LEFT) != 0;
-    window->input.keyInput[KEY_CURSOR_UP] = GetAsyncKeyState(KEY_CURSOR_UP) != 0;
-    window->input.keyInput[KEY_CURSOR_DOWN] = GetAsyncKeyState(KEY_CURSOR_DOWN) != 0;
-    window->input.keyInput[KEY_CURSOR_LEFT] = GetAsyncKeyState(KEY_CURSOR_LEFT) != 0;
-    window->input.keyInput[KEY_CURSOR_RIGHT] = GetAsyncKeyState(KEY_CURSOR_RIGHT) != 0;
-
-    if (window->windowExit) {
-        return KS_GPU_WINDOW_EVENT_EXIT;
-    }
-    if (window->windowActiveState != window->windowActive) {
-        window->windowActive = window->windowActiveState;
-        return (window->windowActiveState) ? KS_GPU_WINDOW_EVENT_ACTIVATED : KS_GPU_WINDOW_EVENT_DEACTIVATED;
-    }
-    return KS_GPU_WINDOW_EVENT_NONE;
-}
-
 #elif defined(OS_LINUX_XLIB)
 
 typedef enum  // keysym.h
@@ -2267,242 +2063,6 @@ static bool ChangeVideoMode_XF86VidMode(Display *xDisplay, int xScreen, int *cur
     return true;
 }
 
-/*
-        Change video mode using the XRandR X extension version 1.1
-
-        This does not work using NVIDIA drivers because the NVIDIA drivers by default dynamically
-        configure TwinView, known as DynamicTwinView. When DynamicTwinView is enabled (the default),
-        the refresh rate of a mode reported through XRandR is not the actual refresh rate, but
-        instead is an unique number such that each MetaMode has a different value. This is to
-        guarantee that MetaModes can be uniquely identified by XRandR.
-
-        To get XRandR to report accurate refresh rates, DynamicTwinView needs to be disabled, but
-        then NV-CONTROL clients, such as nvidia-settings, will not be able to dynamically manipulate
-        the X screen's MetaModes.
-*/
-static bool ChangeVideoMode_XRandR_1_1(Display *xDisplay, Window xWindow, int *currentWidth, int *currentHeight,
-                                       float *currentRefreshRate, int *desiredWidth, int *desiredHeight,
-                                       float *desiredRefreshRate) {
-    int major_version;
-    int minor_version;
-    XRRQueryVersion(xDisplay, &major_version, &minor_version);
-
-    XRRScreenConfiguration *screenInfo = XRRGetScreenInfo(xDisplay, xWindow);
-    if (screenInfo == NULL) {
-        Error("Cannot get screen info.");
-        return false;
-    }
-
-    if (currentWidth != NULL && currentHeight != NULL && currentRefreshRate != NULL) {
-        XRRScreenConfiguration *screenInfo = XRRGetScreenInfo(xDisplay, xWindow);
-
-        Rotation rotation;
-        int size_index = XRRConfigCurrentConfiguration(screenInfo, &rotation);
-
-        int nsizes;
-        XRRScreenSize *sizes = XRRConfigSizes(screenInfo, &nsizes);
-
-        *currentWidth = sizes[size_index].width;
-        *currentHeight = sizes[size_index].height;
-        *currentRefreshRate = XRRConfigCurrentRate(screenInfo);
-    }
-
-    if (desiredWidth != NULL && desiredHeight != NULL && desiredRefreshRate != NULL) {
-        int nsizes = 0;
-        XRRScreenSize *sizes = XRRConfigSizes(screenInfo, &nsizes);
-
-        int size_index = -1;
-        int bestSizeError = 0x7FFFFFFF;
-        for (int i = 0; i < nsizes; i++) {
-            const int dw = sizes[i].width - *desiredWidth;
-            const int dh = sizes[i].height - *desiredHeight;
-            const int error = dw * dw + dh * dh;
-            if (error < bestSizeError) {
-                bestSizeError = error;
-                size_index = i;
-            }
-        }
-        if (size_index == -1) {
-            Error("%dx%d resolution not available.", *desiredWidth, *desiredHeight);
-            XRRFreeScreenConfigInfo(screenInfo);
-            return false;
-        }
-
-        int nrates = 0;
-        short *rates = XRRConfigRates(screenInfo, size_index, &nrates);
-
-        int rate_index = -1;
-        float bestRateError = 1e6f;
-        for (int i = 0; i < nrates; i++) {
-            const float error = fabsf(rates[i] - *desiredRefreshRate);
-            if (error < bestRateError) {
-                bestRateError = error;
-                rate_index = i;
-            }
-        }
-
-        *desiredWidth = sizes[size_index].width;
-        *desiredHeight = sizes[size_index].height;
-        *desiredRefreshRate = rates[rate_index];
-
-        XSelectInput(xDisplay, xWindow, StructureNotifyMask);
-        XRRSelectInput(xDisplay, xWindow, RRScreenChangeNotifyMask);
-
-        Rotation rotation = 1;
-        int reflection = 0;
-
-        Status status = XRRSetScreenConfigAndRate(xDisplay, screenInfo, xWindow, (SizeID)size_index,
-                                                  (Rotation)(rotation | reflection), rates[rate_index], CurrentTime);
-
-        if (status != RRSetConfigSuccess) {
-            Error("Failed to change resolution to %dx%d", *desiredWidth, *desiredHeight);
-            XRRFreeScreenConfigInfo(screenInfo);
-            return false;
-        }
-
-        int eventbase;
-        int errorbase;
-        XRRQueryExtension(xDisplay, &eventbase, &errorbase);
-
-        bool receivedScreenChangeNotify = false;
-        bool receivedConfigNotify = false;
-        while (1) {
-            XEvent event;
-            XNextEvent(xDisplay, (XEvent *)&event);
-            XRRUpdateConfiguration(&event);
-            if (event.type - eventbase == RRScreenChangeNotify) {
-                receivedScreenChangeNotify = true;
-            } else if (event.type == ConfigureNotify) {
-                receivedConfigNotify = true;
-            }
-            if (receivedScreenChangeNotify && receivedConfigNotify) {
-                break;
-            }
-        }
-    }
-
-    XRRFreeScreenConfigInfo(screenInfo);
-
-    return true;
-}
-
-/*
-        Change video mode using the XRandR X extension version 1.2
-
-        The following code does not necessarily work out of the box, because on
-        some configurations the modes list returned by XRRGetScreenResources()
-        is populated with nothing other than the maximum display resolution,
-        even though XF86VidModeGetAllModeLines() and XRRConfigSizes() *will*
-        list all resolutions for the same display.
-
-        The user can manually add new modes from the command-line using the
-        xrandr utility:
-
-        xrandr --newmode <modeline>
-
-        Where <modeline> is generated with a utility that implements either
-        the General Timing Formula (GTF) or the Coordinated Video Timing (CVT)
-        standard put forth by the Video Electronics Standards Association (VESA):
-
-        gft <width> <height> <Hz>	// http://gtf.sourceforge.net/
-        cvt <width> <height> <Hz>	// http://www.uruk.org/~erich/projects/cvt/
-
-        Alternatively, new modes can be added in code using XRRCreateMode().
-        However, this requires calculating all the timing information in code
-        because there is no standard library that implements the GTF or CVT.
-*/
-static bool ChangeVideoMode_XRandR_1_2(Display *xDisplay, Window xWindow, int *currentWidth, int *currentHeight,
-                                       float *currentRefreshRate, int *desiredWidth, int *desiredHeight,
-                                       float *desiredRefreshRate) {
-    int major_version;
-    int minor_version;
-    XRRQueryVersion(xDisplay, &major_version, &minor_version);
-
-    /*
-            Screen	- virtual screenspace which may be covered by multiple CRTCs
-            CRTC	- display controller
-            Output	- display/monitor connected to a CRTC
-            Clones	- outputs that are simultaneously connected to the same CRTC
-    */
-
-    const int PRIMARY_CRTC_INDEX = 0;
-    const int PRIMARY_OUTPUT_INDEX = 0;
-
-    XRRScreenResources *screenResources = XRRGetScreenResources(xDisplay, xWindow);
-    XRRCrtcInfo *primaryCrtcInfo = XRRGetCrtcInfo(xDisplay, screenResources, screenResources->crtcs[PRIMARY_CRTC_INDEX]);
-    XRROutputInfo *primaryOutputInfo = XRRGetOutputInfo(xDisplay, screenResources, primaryCrtcInfo->outputs[PRIMARY_OUTPUT_INDEX]);
-
-    if (currentWidth != NULL && currentHeight != NULL && currentRefreshRate != NULL) {
-        for (int i = 0; i < screenResources->nmode; i++) {
-            const XRRModeInfo *modeInfo = &screenResources->modes[i];
-            if (modeInfo->id == primaryCrtcInfo->mode) {
-                *currentWidth = modeInfo->width;
-                *currentHeight = modeInfo->height;
-                *currentRefreshRate = modeInfo->dotClock / ((float)modeInfo->hTotal * (float)modeInfo->vTotal);
-                break;
-            }
-        }
-    }
-
-    if (desiredWidth != NULL && desiredHeight != NULL && desiredRefreshRate != NULL) {
-        RRMode bestMode = 0;
-        int bestModeWidth = 0;
-        int bestModeHeight = 0;
-        float bestModeRefreshRate = 0.0f;
-        int bestSizeError = 0x7FFFFFFF;
-        float bestRefreshRateError = 1e6f;
-
-        for (int i = 0; i < screenResources->nmode; i++) {
-            const XRRModeInfo *modeInfo = &screenResources->modes[i];
-
-            if (modeInfo->modeFlags & RR_Interlace) {
-                continue;
-            }
-
-            bool validOutputMode = false;
-            for (int j = 0; j < primaryOutputInfo->nmode; j++) {
-                if (modeInfo->id == primaryOutputInfo->modes[j]) {
-                    validOutputMode = true;
-                    break;
-                }
-            }
-            if (!validOutputMode) {
-                continue;
-            }
-
-            const int modeWidth = modeInfo->width;
-            const int modeHeight = modeInfo->height;
-            const float modeRefreshRate = modeInfo->dotClock / ((float)modeInfo->hTotal * (float)modeInfo->vTotal);
-
-            const int dw = modeWidth - *desiredWidth;
-            const int dh = modeHeight - *desiredHeight;
-            const int sizeError = dw * dw + dh * dh;
-            const float refreshRateError = fabsf(modeRefreshRate - *desiredRefreshRate);
-            if (sizeError < bestSizeError || (sizeError == bestSizeError && refreshRateError < bestRefreshRateError)) {
-                bestSizeError = sizeError;
-                bestRefreshRateError = refreshRateError;
-                bestMode = modeInfo->id;
-                bestModeWidth = modeWidth;
-                bestModeHeight = modeHeight;
-                bestModeRefreshRate = modeRefreshRate;
-            }
-        }
-
-        XRRSetCrtcConfig(xDisplay, screenResources, primaryOutputInfo->crtc, CurrentTime, primaryCrtcInfo->x, primaryCrtcInfo->y,
-                         bestMode, primaryCrtcInfo->rotation, primaryCrtcInfo->outputs, primaryCrtcInfo->noutput);
-
-        *desiredWidth = bestModeWidth;
-        *desiredHeight = bestModeHeight;
-        *desiredRefreshRate = bestModeRefreshRate;
-    }
-
-    XRRFreeOutputInfo(primaryOutputInfo);
-    XRRFreeCrtcInfo(primaryCrtcInfo);
-    XRRFreeScreenResources(screenResources);
-
-    return true;
-}
-
 void ksGpuWindow_Destroy(ksGpuWindow *window) {
     ksGpuContext_Destroy(&window->context);
     ksGpuDevice_Destroy(&window->device);
@@ -2551,7 +2111,6 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     window->windowFullscreen = fullscreen;
     window->windowActive = false;
     window->windowExit = false;
-    window->lastSwapTime = GetTimeNanoseconds();
 
     const char *displayName = NULL;
     window->xDisplay = XOpenDisplay(displayName);
@@ -2664,82 +2223,6 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     ksGpuContext_SetCurrent(&window->context);
 
     return true;
-}
-
-static bool ksGpuWindow_SupportedResolution(const int width, const int height) {
-    UNUSED_PARM(width);
-    UNUSED_PARM(height);
-
-    return true;
-}
-
-void ksGpuWindow_Exit(ksGpuWindow *window) { window->windowExit = true; }
-
-ksGpuWindowEvent ksGpuWindow_ProcessEvents(ksGpuWindow *window) {
-    int count = XPending(window->xDisplay);
-    for (int i = 0; i < count; i++) {
-        XEvent event;
-        XNextEvent(window->xDisplay, &event);
-
-        switch (event.type) {
-            case KeyPress: {
-                KeySym key = XLookupKeysym(&event.xkey, 0);
-                if (key < 256 || key == XK_Escape) {
-                    window->input.keyInput[key & 255] = true;
-                }
-                break;
-            }
-            case KeyRelease: {
-                KeySym key = XLookupKeysym(&event.xkey, 0);
-                if (key == XK_Escape) {
-                    exit(0);
-                }
-                break;
-            }
-            case ButtonPress: {
-                window->input.mouseInput[event.xbutton.button] = true;
-                window->input.mouseInputX[event.xbutton.button] = event.xbutton.x;
-                window->input.mouseInputY[event.xbutton.button] = event.xbutton.y;
-            }
-            case ButtonRelease: {
-                break;
-            }
-            // StructureNotifyMask
-            case ConfigureNotify:
-            case MapNotify:
-            case UnmapNotify:
-            case DestroyNotify:
-            // PropertyChangeMask
-            case PropertyNotify:
-            // ResizeRedirectMask
-            case ResizeRequest:
-            // EnterWindowMask | LeaveWindowMask
-            case EnterNotify:
-            case LeaveNotify:
-            // FocusChangeMask
-            case FocusIn:
-            case FocusOut:
-            // ExposureMask
-            case Expose:
-            // VisibilityChangeMask
-            case VisibilityNotify:
-
-            case GenericEvent:
-            default:
-                break;
-        }
-    }
-
-    if (window->windowExit) {
-        return KS_GPU_WINDOW_EVENT_EXIT;
-    }
-
-    if (window->windowActive == false) {
-        window->windowActive = true;
-        return KS_GPU_WINDOW_EVENT_ACTIVATED;
-    }
-
-    return KS_GPU_WINDOW_EVENT_NONE;
 }
 
 #elif defined(OS_LINUX_XCB) || defined(OS_LINUX_XCB_GLX)
@@ -2978,7 +2461,6 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     window->windowFullscreen = fullscreen;
     window->windowActive = false;
     window->windowExit = false;
-    window->lastSwapTime = GetTimeNanoseconds();
 
     const char *displayName = NULL;
     int screen_number = 0;
@@ -3127,67 +2609,6 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     ksGpuContext_SetCurrent(&window->context);
 
     return true;
-}
-
-static bool ksGpuWindow_SupportedResolution(const int width, const int height) {
-    UNUSED_PARM(width);
-    UNUSED_PARM(height);
-
-    return true;
-}
-
-void ksGpuWindow_Exit(ksGpuWindow *window) { window->windowExit = true; }
-
-ksGpuWindowEvent ksGpuWindow_ProcessEvents(ksGpuWindow *window) {
-    xcb_generic_event_t *event = xcb_poll_for_event(window->connection);
-    if (event != NULL) {
-        const uint8_t event_code = (event->response_type & 0x7f);
-        switch (event_code) {
-            case XCB_CLIENT_MESSAGE: {
-                const xcb_client_message_event_t *client_message_event = (const xcb_client_message_event_t *)event;
-                if (client_message_event->data.data32[0] == window->wm_delete_window_atom) {
-                    free(event);
-                    return KS_GPU_WINDOW_EVENT_EXIT;
-                }
-                break;
-            }
-            case XCB_KEY_PRESS: {
-                xcb_key_press_event_t *key_press_event = (xcb_key_press_event_t *)event;
-                const xcb_keysym_t keysym = xcb_key_press_lookup_keysym(window->key_symbols, key_press_event, 0);
-                if (keysym < 256 || keysym == XK_Escape) {
-                    window->input.keyInput[keysym & 255] = true;
-                }
-                break;
-            }
-            case XCB_BUTTON_PRESS: {
-                const xcb_button_press_event_t *button_press_event = (const xcb_button_press_event_t *)event;
-                const int masks[5] = {XCB_BUTTON_MASK_1, XCB_BUTTON_MASK_2, XCB_BUTTON_MASK_3, XCB_BUTTON_MASK_4,
-                                      XCB_BUTTON_MASK_5};
-                for (int i = 0; i < 5; i++) {
-                    if ((button_press_event->state & masks[i]) != 0) {
-                        window->input.mouseInput[i] = true;
-                        window->input.mouseInputX[i] = button_press_event->event_x;
-                        window->input.mouseInputY[i] = button_press_event->event_y;
-                    }
-                }
-                break;
-            }
-            default:
-                break;
-        }
-        free(event);
-    }
-
-    if (window->windowExit) {
-        return KS_GPU_WINDOW_EVENT_EXIT;
-    }
-
-    if (window->windowActive == false) {
-        window->windowActive = true;
-        return KS_GPU_WINDOW_EVENT_ACTIVATED;
-    }
-
-    return KS_GPU_WINDOW_EVENT_NONE;
 }
 
 #elif defined(OS_LINUX_WAYLAND)
@@ -3376,7 +2797,6 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     window->windowFullscreen = fullscreen;
     window->windowActive = false;
     window->windowExit = false;
-    window->lastSwapTime = GetTimeNanoseconds();
 
     window->display = wl_display_connect(NULL);
     if (window->display == NULL) {
@@ -3461,31 +2881,6 @@ void ksGpuWindow_Destroy(ksGpuWindow *window) {
 
     ksGpuContext_Destroy(&window->context);
     ksGpuDevice_Destroy(&window->device);
-}
-
-ksGpuWindowEvent ksGpuWindow_ProcessEvents(ksGpuWindow *window) {
-    while (wl_display_prepare_read(window->display) != 0) wl_display_dispatch_pending(window->display);
-
-    if (wl_display_flush(window->display) < 0 && errno != EAGAIN) {
-        wl_display_cancel_read(window->display);
-        return KS_GPU_WINDOW_EVENT_NONE;
-    }
-
-    struct pollfd fds[] = {
-        {wl_display_get_fd(window->display), POLLIN},
-    };
-    if (poll(fds, 1, 0) > 0) {
-        wl_display_read_events(window->display);
-        wl_display_dispatch_pending(window->display);
-    } else {
-        wl_display_cancel_read(window->display);
-    }
-
-    if (window->windowExit) {
-        return KS_GPU_WINDOW_EVENT_EXIT;
-    }
-
-    return KS_GPU_WINDOW_EVENT_NONE;
 }
 
 /*
@@ -3676,7 +3071,6 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     window->windowFullscreen = fullscreen;
     window->windowActive = false;
     window->windowExit = false;
-    window->lastSwapTime = GetTimeNanoseconds();
 
     // Get a list of all available displays.
     CGDirectDisplayID displays[32];
@@ -3806,61 +3200,6 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     return true;
 }
 
-static bool ksGpuWindow_SupportedResolution(const int width, const int height) {
-    UNUSED_PARM(width);
-    UNUSED_PARM(height);
-
-    return true;
-}
-
-void ksGpuWindow_Exit(ksGpuWindow *window) { window->windowExit = true; }
-
-ksGpuWindowEvent ksGpuWindow_ProcessEvents(ksGpuWindow *window) {
-    [autoReleasePool release];
-    autoReleasePool = [[NSAutoreleasePool alloc] init];
-
-    for (;;) {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-        NSEvent *event =
-            [NSApp nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES];
-        if (event == nil) {
-            break;
-        }
-
-        if (event.type == NSKeyDown) {
-            unsigned short key = [event keyCode];
-            if (key >= 0 && key < 256) {
-                window->input.keyInput[key] = true;
-            }
-        } else if (event.type == NSLeftMouseDown) {
-            NSPoint point = [event locationInWindow];
-            window->input.mouseInput[MOUSE_LEFT] = true;
-            window->input.mouseInputX[MOUSE_LEFT] = point.x;
-            window->input.mouseInputY[MOUSE_LEFT] = point.y - 1;  // change to zero-based
-        } else if (event.type == NSRightMouseDown) {
-            NSPoint point = [event locationInWindow];
-            window->input.mouseInput[MOUSE_RIGHT] = true;
-            window->input.mouseInputX[MOUSE_RIGHT] = point.x;
-            window->input.mouseInputY[MOUSE_RIGHT] = point.y - 1;  // change to zero-based
-        }
-#pragma GCC diagnostic pop
-
-        [NSApp sendEvent:event];
-    }
-
-    if (window->windowExit) {
-        return KS_GPU_WINDOW_EVENT_EXIT;
-    }
-
-    if (window->windowActive == false) {
-        window->windowActive = true;
-        return KS_GPU_WINDOW_EVENT_ACTIVATED;
-    }
-
-    return KS_GPU_WINDOW_EVENT_NONE;
-}
-
 #elif defined(OS_APPLE_IOS)
 
 typedef enum {
@@ -3963,7 +3302,6 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     window->windowFullscreen = fullscreen;
     window->windowActive = false;
     window->windowExit = false;
-    window->lastSwapTime = GetTimeNanoseconds();
     window->uiView = myUIView;
     window->uiWindow = myUIWindow;
 
@@ -3972,28 +3310,6 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     //                              window->display);
 
     return true;
-}
-
-static bool ksGpuWindow_SupportedResolution(const int width, const int height) {
-    UNUSED_PARM(width);
-    UNUSED_PARM(height);
-
-    return true;
-}
-
-void ksGpuWindow_Exit(ksGpuWindow *window) { window->windowExit = true; }
-
-ksGpuWindowEvent ksGpuWindow_ProcessEvents(ksGpuWindow *window) {
-    if (window->windowExit) {
-        return KS_GPU_WINDOW_EVENT_EXIT;
-    }
-
-    if (window->windowActive == false) {
-        window->windowActive = true;
-        return KS_GPU_WINDOW_EVENT_ACTIVATED;
-    }
-
-    return KS_GPU_WINDOW_EVENT_NONE;
 }
 
 #elif defined(OS_ANDROID)
@@ -4213,7 +3529,6 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     window->windowFullscreen = true;
     window->windowActive = false;
     window->windowExit = false;
-    window->lastSwapTime = GetTimeNanoseconds();
 
     window->app = global_app;
     window->nativeWindow = NULL;
@@ -4247,215 +3562,4 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     return true;
 }
 
-static bool ksGpuWindow_SupportedResolution(const int width, const int height) {
-    UNUSED_PARM(width);
-    UNUSED_PARM(height);
-
-    // Assume the HWC can handle any window size.
-    return true;
-}
-
-void ksGpuWindow_Exit(ksGpuWindow *window) {
-    // Call finish() on the activity and ksGpuWindow_ProcessEvents will handle the rest.
-    ANativeActivity_finish(window->app->activity);
-}
-
-ksGpuWindowEvent ksGpuWindow_ProcessEvents(ksGpuWindow *window) {
-    if (window->app == NULL) {
-        return KS_GPU_WINDOW_EVENT_NONE;
-    }
-
-    const bool windowWasActive = window->windowActive;
-
-    for (;;) {
-        int events;
-        struct android_poll_source *source;
-        const int timeoutMilliseconds = (window->windowActive == false && window->app->destroyRequested == 0) ? -1 : 0;
-        if (ALooper_pollAll(timeoutMilliseconds, NULL, &events, (void **)&source) < 0) {
-            break;
-        }
-
-        if (source != NULL) {
-            source->process(window->app, source);
-        }
-
-        if (window->nativeWindow != NULL && window->context.mainSurface == window->context.tinySurface) {
-            Print("        ANativeWindow_setBuffersGeometry %d x %d", window->windowWidth, window->windowHeight);
-            ANativeWindow_setBuffersGeometry(window->nativeWindow, window->windowWidth, window->windowHeight, 0);
-
-            const EGLint surfaceAttribs[] = {EGL_NONE};
-            Print("        mainSurface = eglCreateWindowSurface( nativeWindow )");
-            window->context.mainSurface =
-                eglCreateWindowSurface(window->context.display, window->context.config, window->nativeWindow, surfaceAttribs);
-            if (window->context.mainSurface == EGL_NO_SURFACE) {
-                Error("        eglCreateWindowSurface() failed: %s", EglErrorString(eglGetError()));
-                return KS_GPU_WINDOW_EVENT_EXIT;
-            }
-            Print("        eglMakeCurrent( mainSurface )");
-            EGL(eglMakeCurrent(window->context.display, window->context.mainSurface, window->context.mainSurface,
-                               window->context.context));
-
-            eglQuerySurface(window->context.display, window->context.mainSurface, EGL_WIDTH, &window->windowWidth);
-            eglQuerySurface(window->context.display, window->context.mainSurface, EGL_HEIGHT, &window->windowHeight);
-        }
-
-        if (window->resumed != false && window->nativeWindow != NULL) {
-            window->windowActive = true;
-        } else {
-            window->windowActive = false;
-        }
-
-        if (window->nativeWindow == NULL && window->context.mainSurface != window->context.tinySurface) {
-            Print("        eglMakeCurrent( tinySurface )");
-            EGL(eglMakeCurrent(window->context.display, window->context.tinySurface, window->context.tinySurface,
-                               window->context.context));
-            Print("        eglDestroySurface( mainSurface )");
-            EGL(eglDestroySurface(window->context.display, window->context.mainSurface));
-            window->context.mainSurface = window->context.tinySurface;
-        }
-    }
-
-    if (window->app->destroyRequested != 0) {
-        return KS_GPU_WINDOW_EVENT_EXIT;
-    }
-    if (windowWasActive != window->windowActive) {
-        return (window->windowActive) ? KS_GPU_WINDOW_EVENT_ACTIVATED : KS_GPU_WINDOW_EVENT_DEACTIVATED;
-    }
-    return KS_GPU_WINDOW_EVENT_NONE;
-}
-
 #endif
-
-void ksGpuWindow_SwapInterval(ksGpuWindow *window, int swapInterval) {
-    if (swapInterval != window->windowSwapInterval) {
-#if defined(OS_WINDOWS)
-        wglSwapIntervalEXT(swapInterval);
-#elif defined(OS_LINUX_XLIB)
-        glXSwapIntervalEXT(window->context.xDisplay, window->xWindow, swapInterval);
-#elif defined(OS_LINUX_XCB)
-        xcb_dri2_swap_interval(window->context.connection, window->context.glxDrawable, swapInterval);
-#elif defined(OS_LINUX_XCB_GLX)
-        glXSwapIntervalEXT(window->context.xDisplay, window->glxWindow, swapInterval);
-#elif defined(OS_APPLE_MACOS)
-        CGLSetParameter(window->context.cglContext, kCGLCPSwapInterval, &swapInterval);
-#elif defined(OS_ANDROID) || defined(OS_LINUX_WAYLAND)
-        EGL(eglSwapInterval(window->context.display, swapInterval));
-#endif
-        window->windowSwapInterval = swapInterval;
-    }
-}
-
-void ksGpuWindow_SwapBuffers(ksGpuWindow *window) {
-#if defined(OS_WINDOWS)
-    SwapBuffers(window->context.hDC);
-#elif defined(OS_LINUX_XLIB)
-    glXSwapBuffers(window->context.xDisplay, window->xWindow);
-#elif defined(OS_LINUX_XCB)
-    xcb_glx_swap_buffers(window->context.connection, window->context.glxContextTag, window->glxWindow);
-#elif defined(OS_LINUX_XCB_GLX)
-    glXSwapBuffers(window->context.xDisplay, window->glxWindow);
-#elif defined(OS_APPLE_MACOS)
-    CGLFlushDrawable(window->context.cglContext);
-#elif defined(OS_ANDROID) || defined(OS_LINUX_WAYLAND)
-    EGL(eglSwapBuffers(window->context.display, window->context.mainSurface));
-#endif
-
-    ksNanoseconds newTimeNanoseconds = GetTimeNanoseconds();
-
-    // Even with smoothing, this is not particularly accurate.
-    const float frameTimeNanoseconds = 1000.0f * 1000.0f * 1000.0f / window->windowRefreshRate;
-    const float deltaTimeNanoseconds = (float)newTimeNanoseconds - window->lastSwapTime - frameTimeNanoseconds;
-    if (fabsf(deltaTimeNanoseconds) < frameTimeNanoseconds * 0.75f) {
-        newTimeNanoseconds = (ksNanoseconds)(window->lastSwapTime + frameTimeNanoseconds + 0.025f * deltaTimeNanoseconds);
-    }
-    // const float smoothDeltaNanoseconds = (float)( newTimeNanoseconds - window->lastSwapTime );
-    // Print( "frame delta = %1.3f (error = %1.3f)\n", smoothDeltaNanoseconds * 1e-6f,
-    //					( smoothDeltaNanoseconds - frameTimeNanoseconds ) * 1e-6f );
-    window->lastSwapTime = newTimeNanoseconds;
-}
-
-ksNanoseconds ksGpuWindow_GetNextSwapTimeNanoseconds(ksGpuWindow *window) {
-    const float frameTimeNanoseconds = 1000.0f * 1000.0f * 1000.0f / window->windowRefreshRate;
-    return window->lastSwapTime + (ksNanoseconds)(frameTimeNanoseconds);
-}
-
-ksNanoseconds ksGpuWindow_GetFrameTimeNanoseconds(ksGpuWindow *window) {
-    const float frameTimeNanoseconds = 1000.0f * 1000.0f * 1000.0f / window->windowRefreshRate;
-    return (ksNanoseconds)(frameTimeNanoseconds);
-}
-
-void ksGpuWindow_DelayBeforeSwap(ksGpuWindow *window, const ksNanoseconds delay) {
-    UNUSED_PARM(window);
-    UNUSED_PARM(delay);
-
-    // FIXME: this appears to not only stall the calling context but also other contexts.
-    /*
-    #if defined( OS_WINDOWS )
-            if ( wglDelayBeforeSwapNV != NULL )
-            {
-                    wglDelayBeforeSwapNV( window->hDC, delay * 1e-6f );
-            }
-    #elif defined( OS_LINUX_XLIB )
-            if ( glXDelayBeforeSwapNV != NULL )
-            {
-                    glXDelayBeforeSwapNV( window->hDC, delay * 1e-6f );
-            }
-    #endif
-    */
-}
-
-static bool ksGpuWindowInput_ConsumeKeyboardKey(ksGpuWindowInput *input, const ksKeyboardKey key) {
-    if (input->keyInput[key]) {
-        input->keyInput[key] = false;
-        return true;
-    }
-    return false;
-}
-
-static bool ksGpuWindowInput_ConsumeMouseButton(ksGpuWindowInput *input, const ksMouseButton button) {
-    if (input->mouseInput[button]) {
-        input->mouseInput[button] = false;
-        return true;
-    }
-    return false;
-}
-
-static bool ksGpuWindowInput_CheckKeyboardKey(ksGpuWindowInput *input, const ksKeyboardKey key) {
-    return (input->keyInput[key] != false);
-}
-
-/*
-================================================================================================================================
-
-GPU timer.
-
-================================================================================================================================
-*/
-
-void ksGpuTimer_Create(ksGpuContext *context, ksGpuTimer *timer) {
-    UNUSED_PARM(context);
-
-    if (glExtensions.timer_query) {
-        GL(glGenQueries(KS_GPU_TIMER_FRAMES_DELAYED, timer->beginQueries));
-        GL(glGenQueries(KS_GPU_TIMER_FRAMES_DELAYED, timer->endQueries));
-        timer->queryIndex = 0;
-        timer->gpuTime = 0;
-    }
-}
-
-void ksGpuTimer_Destroy(ksGpuContext *context, ksGpuTimer *timer) {
-    UNUSED_PARM(context);
-
-    if (glExtensions.timer_query) {
-        GL(glDeleteQueries(KS_GPU_TIMER_FRAMES_DELAYED, timer->beginQueries));
-        GL(glDeleteQueries(KS_GPU_TIMER_FRAMES_DELAYED, timer->endQueries));
-    }
-}
-
-ksNanoseconds ksGpuTimer_GetNanoseconds(ksGpuTimer *timer) {
-    if (glExtensions.timer_query) {
-        return timer->gpuTime;
-    } else {
-        return 0;
-    }
-}

@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2022, The Khronos Group Inc.
+// Copyright (c) 2017-2023, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
@@ -538,9 +538,9 @@ XrResult xrNegotiateLoaderRuntimeInterface(
             XrNegotiateRuntimeRequest *runtimeRequest);
 ----
   * pname:loaderInfo must: be a valid pointer to a constant
-    slink:XrNegotiateLoaderInfo structure.
+    sname:XrNegotiateLoaderInfo structure.
   * pname:runtimeRequest must be a valid pointer to a
-    slink:XrNegotiateRuntimeRequest structure.
+    sname:XrNegotiateRuntimeRequest structure.
 
 This function should be directly exported by a runtime so that using
 "GetProcAddress" on Windows or "dlsym" on Linux, should return a valid
@@ -557,7 +557,7 @@ The sname:XrNegotiateLoaderInfo struct is defined in the
 `src/common/loader_interfaces.h` header.
 It is used to pass information about the loader to a runtime during the
 negotiation process.
-See the definition of slink:XrNegotiateLoaderInfo under the
+See the definition of sname:XrNegotiateLoaderInfo under the
 <<loader-api-layer-interface-negotiation,layer negotiation>> section for
 more information.
 
@@ -592,7 +592,7 @@ struct XrNegotiateRuntimeRequest {
     <<runtime-interface-versions,loader/runtime interface version>> being
     requested by the runtime.
     Should not be outside of the bounds of the
-    slink:XrNegotiateLoaderInfo::`minInterfaceVersion` and
+    sname:XrNegotiateLoaderInfo::`minInterfaceVersion` and
     sname:XrNegotiateLoaderInfo::`maxInterfaceVersion` values (inclusive).
   * pname:runtimeApiVersion is the version of the OpenXR API supported by
     this runtime as formatted by `XR_MAKE_VERSION` defined in `openxr.h`.
@@ -620,8 +620,8 @@ the application is exiting, or some period of inactivity occurs.
 ==== Loader/Runtime Negotiation Process ====
 
 Once the loader has obtained a valid address to the runtime's
-flink:xrNegotiateLoaderRuntimeInterface function, the loader will create a
-variable of type slink:XrNegotiateLoaderInfo and initialize it in the
+fname:xrNegotiateLoaderRuntimeInterface function, the loader will create a
+variable of type sname:XrNegotiateLoaderInfo and initialize it in the
 following ways:
 
 1. Set the structure "structType" to
@@ -642,7 +642,7 @@ following ways:
    loader (the current version at the time of loader compilation).
 
 The loader will also create an initialize a variable of type
-slink:XrNegotiateRuntimeRequest to allow the runtime to properly respond to
+sname:XrNegotiateRuntimeRequest to allow the runtime to properly respond to
 the request.
 The structure will be initialized by the loader in the following way:
 
@@ -656,7 +656,7 @@ The structure will be initialized by the loader in the following way:
 The loader will leave the remaining fields uninitialized to allow each
 runtime to fill in the appropriate information for itself.
 The loader will then individually call each runtime's
-flink:xrNegotiateLoaderRuntimeInterface function and each runtime then must:
+fname:xrNegotiateLoaderRuntimeInterface function and each runtime then must:
 
 * Determine if it can support the loader's request:
 ** Does the runtime support any <<runtime-interface-versions, loader/runtime
@@ -679,7 +679,7 @@ flink:xrNegotiateLoaderRuntimeInterface function and each runtime then must:
 [[runtime-exporting-of-commands]]
 ==== Runtime Exporting of Commands ====
 
-The flink:xrNegotiateLoaderRuntimeInterface should be directly exported by a
+The fname:xrNegotiateLoaderRuntimeInterface should be directly exported by a
 runtime so that using "GetProcAddress" on Windows or "dlsym" on Linux,
 should return a valid function pointer to it.
 However, *all other OpenXR entry points* must: either:

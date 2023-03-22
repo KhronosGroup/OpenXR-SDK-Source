@@ -1,4 +1,4 @@
-// Copyright (c) 2020-2022, The Khronos Group Inc.
+// Copyright (c) 2020-2023, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -31,7 +31,7 @@ android {
     ndkVersion "21.4.7075529"
 
     defaultConfig {
-        applicationId "com.khronos.openxr.hello_xr"
+        applicationId "org.khronos.openxr.hello_xr"
         // for Vulkan, need at least 24
         minSdkVersion 24
         compileSdkVersion 26

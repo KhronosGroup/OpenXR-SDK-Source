@@ -81,8 +81,7 @@ int main() {
     }
 
     // Get the default system for the HMD form factor.
-    XrSystemGetInfo systemGetInfo = {};
-    systemGetInfo.type = XR_TYPE_SYSTEM_GET_INFO;
+    XrSystemGetInfo systemGetInfo = {XR_TYPE_SYSTEM_GET_INFO};
     systemGetInfo.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 
     XrSystemId systemId;

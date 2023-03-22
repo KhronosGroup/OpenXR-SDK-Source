@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2022, The Khronos Group Inc.
+// Copyright (c) 2017-2023, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
@@ -573,7 +573,7 @@ void GeneratedXrPopulateDispatchTable(
         XrInstance instance,
         PFN_xrGetInstanceProcAddr get_inst_proc_addr);
 ----
-  * pname:table is a pointer to the slink:XrGeneratedDispatchTable to
+  * pname:table is a pointer to the sname:XrGeneratedDispatchTable to
     populate.
   * pname:instance is the instance required by pname:get_inst_proc_addr.
     *NOTE*: This may have a value of `XR_NULL_HANDLE`, but many of the
@@ -590,7 +590,7 @@ void GeneratedXrPopulateDispatchTable(
 ==== xr_generated_dispatch_table.c ====
 
 This file is paired with the above `xr_generated_dispatch_table.h` header
-and only implements the flink:GeneratedXrPopulateDispatchTable function used
+and only implements the fname:GeneratedXrPopulateDispatchTable function used
 to populate the elements of a dispatch table.
 
 
@@ -712,7 +712,7 @@ const char *LoaderPlatformLibraryOpenError(
 ----
   * pname:path must: be a constant string containing the absolute path to
     the library file that the loader previously attempted to load using
-    flink:LoaderPlatformLibraryOpen.
+    fname:LoaderPlatformLibraryOpen.
 
 The returned C-style character string contains any available
 platform-specific error code that may have occurred.
@@ -730,7 +730,7 @@ void LoaderPlatformLibraryClose(
     LoaderPlatformLibraryHandle library)
 ----
   * pname:library must: be valid `LoaderPlatformLibraryHandle` opened using
-    flink:LoaderPlatformLibraryOpen
+    fname:LoaderPlatformLibraryOpen
 
 
 .Querying Content In a Platform-Specific Library File
@@ -747,8 +747,8 @@ void *LoaderPlatformLibraryGetProcAddr
     const std::string &name)
 ----
   * pname:library must: be valid `LoaderPlatformLibraryHandle` opened using
-    flink:LoaderPlatformLibraryOpen, but not yet closed using
-    flink:LoaderPlatformLibraryClose.
+    fname:LoaderPlatformLibraryOpen, but not yet closed using
+    fname:LoaderPlatformLibraryClose.
   * pname:name must: contain the name of the library supplied function who's
     function pointer is desired.
 
@@ -769,7 +769,7 @@ const char *LoaderPlatformLibraryGetProcAddrError(
 ----
   * pname:path must: be a constant string containing the name of the
     entry point that was attempted to be queried during the previous
-    flink:LoaderPlatformLibraryGetProcAddr call.
+    fname:LoaderPlatformLibraryGetProcAddr call.
 
 The returned C-style character string contains any available
 platform-specific error code that may have occurred.
@@ -837,7 +837,7 @@ char *PlatformUtilsGetSecureEnv(
 
 If the platform supports secure environment variable reading, the
 appropriate method will be used.
-Otherwise, it will fall back to the standard flink:PlatformUtilsGetEnv call.
+Otherwise, it will fall back to the standard fname:PlatformUtilsGetEnv call.
 
 [[active-runtime-file-management]]
 ==== Active Runtime File Management ====

@@ -1,7 +1,7 @@
 # How to Build and Run
 
 <!--
-Copyright (c) 2014-2022, The Khronos Group Inc.
+Copyright (c) 2014-2023, The Khronos Group Inc.
 
 SPDX-License-Identifier: CC-BY-4.0
 -->
@@ -10,7 +10,7 @@ SPDX-License-Identifier: CC-BY-4.0
 
 ### Python v3.6+ may be required
 
-**If you are building from most repostories:** (specifically, the
+**If you are building from most repositories:** (specifically, the
 OpenXR-SDK-Source repository, the OpenXR-CTS repository, or the internal Khronos
 GitLab OpenXR repository) Certain source files are generated at build time from
 the `xr.xml` file, utilizing Python scripts. The scripts make use of the Python

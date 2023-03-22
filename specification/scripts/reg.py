@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright 2013-2022 The Khronos Group Inc.
+# Copyright 2013-2023 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -932,6 +932,10 @@ class Registry:
                         self.commandextensionerrors.append(self.commandextensiontuple(command=commandName,
                                                                                       value=error,
                                                                                       extension=featurename))
+            elif extendElem.get('interaction_profile_path'):
+                # We will eventually use these `interaction_profile_path`s but for the
+                # moment we just need them to exist so we can run schema validation.
+                pass
             else:
                 self.gen.logMsg('warn', 'extend type:', extendType, 'IS NOT SUPPORTED')
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2017-2022, The Khronos Group Inc.
+# Copyright (c) 2017-2023, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -15,12 +15,5 @@ foreach(FN ${INCLUDE_DIR}/GL/glext.h ${INCLUDE_DIR}/GL/wglext.h)
     endif()
 endforeach()
 
-set( UTILS_HEADERS
-    ${INCLUDE_DIR}/utils/algebra.h
-    ${INCLUDE_DIR}/utils/sysinfo.h
-    ${INCLUDE_DIR}/utils/nanoseconds.h
-    ${INCLUDE_DIR}/utils/threading.h )
-source_group( utils FILES ${UTILS_HEADERS} )
 source_group( GL FILES ${GL_HEADERS} )
-add_library( include INTERFACE ${UTILS_HEADERS} ${GL_HEADERS})
 set_property( TARGET include PROPERTY FOLDER external/include )

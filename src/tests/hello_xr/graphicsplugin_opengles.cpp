@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2022, The Khronos Group Inc.
+// Copyright (c) 2017-2023, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -232,10 +232,9 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         uint32_t capacity, const XrSwapchainCreateInfo& /*swapchainCreateInfo*/) override {
         // Allocate and initialize the buffer of image structs (must be sequential in memory for xrEnumerateSwapchainImages).
         // Return back an array of pointers to each swapchain image struct so the consumer doesn't need to know the type/size.
-        std::vector<XrSwapchainImageOpenGLESKHR> swapchainImageBuffer(capacity);
+        std::vector<XrSwapchainImageOpenGLESKHR> swapchainImageBuffer(capacity, {XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR});
         std::vector<XrSwapchainImageBaseHeader*> swapchainImageBase;
         for (XrSwapchainImageOpenGLESKHR& image : swapchainImageBuffer) {
-            image.type = XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR;
             swapchainImageBase.push_back(reinterpret_cast<XrSwapchainImageBaseHeader*>(&image));
         }
 

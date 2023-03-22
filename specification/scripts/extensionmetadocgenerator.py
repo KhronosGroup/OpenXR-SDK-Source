@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright 2013-2022 The Khronos Group Inc.
+# Copyright 2013-2023 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -550,7 +550,9 @@ class ExtensionMetaDocOutputGenerator(OutputGenerator):
             for ext in self.extensions:
                 include = self.makeExtensionInclude(ext.name)
                 link = '  * ' + self.conventions.formatExtension(ext.name)
-                if ext.provisional == 'true':
+
+                # If something is provisional and deprecated, it's deprecated.
+                if ext.provisional == 'true' and ext.deprecationType is None:
                     write(self.conditionalExt(ext.name, include), file=provisional_extension_appendices_fp)
                     write(self.conditionalExt(ext.name, link), file=provisional_extension_appendices_toc_fp)
                     write(self.conditionalExt(ext.name, ':HAS_PROVISIONAL_EXTENSIONS:'), file=provisional_extensions_guard_macro_fp)

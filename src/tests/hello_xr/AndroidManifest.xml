@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools"
-  package="com.khronos.hello_xr"
+  package="org.khronos.openxr.hello_xr"
   android:installLocation="auto"
   android:versionCode="1"
   android:versionName="1.0">
   <!--
-  Copyright (c) 2017-2022, The Khronos Group Inc.
+  Copyright (c) 2017-2023, The Khronos Group Inc.
 
   SPDX-License-Identifier: Apache-2.0
   -->

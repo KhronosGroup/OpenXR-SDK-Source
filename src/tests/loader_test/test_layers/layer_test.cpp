@@ -104,8 +104,8 @@ XRAPI_ATTR XrResult XRAPI_CALL LayerTestXrCreateApiLayerInstance(const XrInstanc
 
 // Function used to negotiate an interface betewen the loader and a layer.  Each library exposing one or
 // more layers needs to expose at least this function.
-LAYER_EXPORT XrResult xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoaderInfo *loaderInfo, const char *layerName,
-                                                         XrNegotiateApiLayerRequest *layerRequest) {
+LAYER_EXPORT XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoaderInfo *loaderInfo, const char *layerName,
+                                                                    XrNegotiateApiLayerRequest *layerRequest) {
     if (nullptr == loaderInfo || nullptr == layerRequest || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
         loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo) ||
         layerRequest->structType != XR_LOADER_INTERFACE_STRUCT_API_LAYER_REQUEST ||
