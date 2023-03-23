@@ -1,7 +1,7 @@
 # Building the OpenXR Specification
 
 <!--
-Copyright 2014-2022 The Khronos Group Inc.
+Copyright 2014-2023 The Khronos Group Inc.
 
 SPDX-License-Identifier: CC-BY-4.0
 -->
@@ -133,6 +133,17 @@ make styleguide
   * `clean`
 * Remove intermediate files only
   * `clean_dirt`
+
+## Generate standalone headers
+
+When an extension is in progress it is often useful to have
+a standalone header that can be used in combination with the
+official OpenXR header files. The following command can be
+used to generate these.
+
+```bash
+python3 scripts/genxr.py -registry registry/xr.xml -standaloneExtension XR_KHR_sample_extension standalone_header
+```
 
 ## Installing the Prerequisite Tools
 

@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2017-2022, The Khronos Group Inc.
+# Copyright (c) 2017-2023, The Khronos Group Inc.
 # Copyright (c) 2017-2019 Valve Corporation
 # Copyright (c) 2017-2019 LunarG, Inc.
 #
@@ -33,6 +33,9 @@ from generator import (GeneratorOptions, MissingRegistryError, OutputGenerator,
                        noneStr, regSortFeatures, write)
 from spec_tools.attributes import LengthEntry, parse_optional_from_param
 from spec_tools.util import getElemName
+
+
+EXTNAME_RE = re.compile("^(?P<api>XR|VK)_(?P<tag>(?P<base_tag>[A-Z]+?)(?P<experimental_suffix>X*[0-9]*))_(?P<ext_name>.*)$")
 
 
 def undecorate(name):
@@ -448,7 +451,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     # overridden by a derived class.
     #   self            the AutomaticSourceOutputGenerator object
     def outputCopywriteHeader(self):
-        notice = '// Copyright (c) 2017-2022, The Khronos Group Inc.\n'
+        notice = '// Copyright (c) 2017-2023, The Khronos Group Inc.\n'
         notice += '// Copyright (c) 2017-2019 Valve Corporation\n'
         notice += '// Copyright (c) 2017-2019 LunarG, Inc.\n'
         notice += '//\n'
@@ -540,14 +543,12 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             self.required_exts.append(self.currentExtension)
             # Make sure the extension has the proper vendor tags
             valid_extension_vendor = False
-            for cur_vendor_tag in self.vendor_tags:
-                extension_prefix_with_tag = "XR_"
-                extension_prefix_with_tag += cur_vendor_tag
-                extension_prefix_with_tag += "_"
-                if self.currentExtension.startswith(extension_prefix_with_tag):
-                    valid_extension_vendor = True
-                    # Save the extension tag to check every type, etc with
-                    self.current_vendor_tag = cur_vendor_tag
+            extension_tag = EXTNAME_RE.sub("\\g<tag>", self.currentExtension)
+            extension_base_tag = EXTNAME_RE.sub("\\g<base_tag>", self.currentExtension)
+            if extension_base_tag in self.vendor_tags or extension_tag in self.vendor_tags:
+                valid_extension_vendor = True
+                self.current_vendor_tag = extension_tag
+
             if not valid_extension_vendor:
                 self.printCodeGenErrorMessage('Extension %s does not appear to begin with a'
                                               ' valid vendor tag! (for example XR_KHR_)' % self.currentExtension)
@@ -627,7 +628,8 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                         self.featureExtraProtect, elem.get('protect'))
                     elem_name = elem.get('name')
                     # TODO this variable is never read
-                    if is_extension and not elem_name.endswith(tuple(self.vendor_tags)):
+                    elem_name_base = re.sub("X[0-9]*$", "", elem_name)
+                    if is_extension and not (elem_name_base.endswith(tuple(self.vendor_tags)) or elem_name.endswith(tuple(self.vendor_tags))):
                         self.printCodeGenErrorMessage('Enum value %s in XML (for extension %s) does'
                                                       ' not end with a suitable vendor tag (such as\"%s\")' % (
                                                           elem_name, self.currentExtension, self.current_vendor_tag))

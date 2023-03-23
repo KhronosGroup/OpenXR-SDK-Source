@@ -167,10 +167,6 @@ Platform headers / declarations
 #pragma warning(disable : 4774)  // 'printf' : format string expected in argument 1 is not a string literal
 #endif
 
-#if defined(__clang__)
-#pragma clang diagnostic ignored "-Wunused-function"
-#endif  // defined(__clang__)
-
 #define OPENGL_VERSION_MAJOR 4
 #define OPENGL_VERSION_MINOR 3
 #define GLSL_VERSION "430"
@@ -186,8 +182,6 @@ Platform headers / declarations
 
 #define GRAPHICS_API_OPENGL 1
 #define OUTPUT_PATH ""
-
-#define __thread __declspec(thread)
 
 #elif defined(OS_LINUX)
 
@@ -260,8 +254,6 @@ extern int pthread_setname_np(pthread_t __target_thread, __const char *__name);
 extern int pthread_setaffinity_np(pthread_t thread, size_t cpusetsize, const cpu_set_t *cpuset);
 #endif  // !__USE_GNU
 
-#pragma GCC diagnostic ignored "-Wunused-function"
-
 #elif defined(OS_APPLE_MACOS)
 
 // Apple is still at OpenGL 4.1
@@ -276,7 +268,11 @@ extern int pthread_setaffinity_np(pthread_t thread, size_t cpusetsize, const cpu
 #include <sys/sysctl.h>
 #include <sys/time.h>
 #include <pthread.h>
-#include <Cocoa/Cocoa.h>
+#include <ApplicationServices/ApplicationServices.h>
+#if defined(__OBJC__)
+#import <Cocoa/Cocoa.h>
+#endif
+
 #define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/gl3.h>
@@ -297,9 +293,6 @@ typedef int CGSSurfaceID;
 CGLError CGLSetSurface(CGLContextObj ctx, CGSConnectionID cid, CGSWindowID wid, CGSSurfaceID sid);
 CGLError CGLGetSurface(CGLContextObj ctx, CGSConnectionID *cid, CGSWindowID *wid, CGSSurfaceID *sid);
 CGLError CGLUpdateContext(CGLContextObj ctx);
-
-#pragma clang diagnostic ignored "-Wunused-function"
-#pragma clang diagnostic ignored "-Wunused-const-variable"
 
 #elif defined(OS_APPLE_IOS)
 
@@ -360,8 +353,6 @@ CGLError CGLUpdateContext(CGLContextObj ctx);
 #define GRAPHICS_API_OPENGL_ES 1
 #define OUTPUT_PATH "/sdcard/"
 
-#pragma GCC diagnostic ignored "-Wunused-function"
-
 typedef struct {
     JavaVM *vm;        // Java Virtual Machine
     JNIEnv *env;       // Thread specific environment
@@ -386,20 +377,6 @@ Common headers
 #include <string.h>  // for memset
 #include <errno.h>   // for EBUSY, ETIMEDOUT etc.
 #include <ctype.h>   // for isspace, isdigit
-
-#if defined(__clang__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-function"
-#endif  // defined(__clang__)
-
-#include <utils/sysinfo.h>
-#include <utils/nanoseconds.h>
-#include <utils/threading.h>
-#include <utils/algebra.h>
-
-#if defined(__clang__)
-#pragma clang diagnostic pop
-#endif  // defined(__clang__)
 
 /*
 ================================
@@ -625,10 +602,12 @@ extern PFNGLXDELAYBEFORESWAPNVPROC glXDelayBeforeSwapNV;
 
 #elif defined(OS_APPLE_MACOS)
 
+#ifdef GL_GLEXT_FUNCTION_POINTERS
 extern PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC glFramebufferTextureMultiviewOVR;
 extern PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC glFramebufferTextureMultisampleMultiviewOVR;
 extern PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC glFramebufferTexture2DMultisampleEXT;
 extern PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC glRenderbufferStorageMultisampleEXT;
+#endif  // def GL_GLEXT_FUNCTION_POINTERS
 
 #elif defined(OS_ANDROID)
 
@@ -798,7 +777,6 @@ ksGpuSampleCount
 
 bool ksGpuContext_CreateShared( ksGpuContext * context, const ksGpuContext * other, const int queueIndex );
 void ksGpuContext_Destroy( ksGpuContext * context );
-void ksGpuContext_WaitIdle( ksGpuContext * context );
 void ksGpuContext_SetCurrent( ksGpuContext * context );
 void ksGpuContext_UnsetCurrent( ksGpuContext * context );
 bool ksGpuContext_CheckCurrent( ksGpuContext * context );
@@ -868,7 +846,11 @@ typedef struct {
     EGLConfig config;
     EGLSurface mainSurface;
 #elif defined(OS_APPLE_MACOS)
+#if defined(__OBJC__)
     NSOpenGLContext *nsContext;
+#else
+    void *nsContext;
+#endif  // defined(__OBJC__)
     CGLContextObj cglContext;
 #elif defined(OS_ANDROID)
     EGLDisplay display;
@@ -890,7 +872,6 @@ typedef struct {
 
 bool ksGpuContext_CreateShared(ksGpuContext *context, const ksGpuContext *other, int queueIndex);
 void ksGpuContext_Destroy(ksGpuContext *context);
-void ksGpuContext_WaitIdle(ksGpuContext *context);
 void ksGpuContext_SetCurrent(ksGpuContext *context);
 void ksGpuContext_UnsetCurrent(ksGpuContext *context);
 bool ksGpuContext_CheckCurrent(ksGpuContext *context);
@@ -918,12 +899,6 @@ depthFormat,
                                                 const ksGpuSampleCount sampleCount, const int width, const int height, const bool
 fullscreen );
 void ksGpuWindow_Destroy( ksGpuWindow * window );
-void ksGpuWindow_Exit( ksGpuWindow * window );
-ksGpuWindowEvent ksGpuWindow_ProcessEvents( ksGpuWindow * window );
-void ksGpuWindow_SwapInterval( ksGpuWindow * window, const int swapInterval );
-void ksGpuWindow_SwapBuffers( ksGpuWindow * window );
-ksNanoseconds ksGpuWindow_GetNextSwapTimeNanoseconds( ksGpuWindow * window );
-ksNanoseconds ksGpuWindow_GetFrameTimeNanoseconds( ksGpuWindow * window );
 
 ================================================================================================================================
 */
@@ -956,7 +931,6 @@ typedef struct {
     bool windowActive;
     bool windowExit;
     ksGpuWindowInput input;
-    ksNanoseconds lastSwapTime;
 
 #if defined(OS_WINDOWS)
     HINSTANCE hInstance;
@@ -1001,8 +975,13 @@ typedef struct {
 #elif defined(OS_APPLE_MACOS)
     CGDirectDisplayID display;
     CGDisplayModeRef desktopDisplayMode;
+#if defined(__OBJC__)
     NSWindow *nsWindow;
     NSView *nsView;
+#else
+    void *nsWindow;
+    void *nsView;
+#endif  // defined(__OBJC__)
 #elif defined(OS_APPLE_IOS)
     UIWindow *uiWindow;
     UIView *uiView;
@@ -1021,45 +1000,6 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
                         ksGpuSurfaceColorFormat colorFormat, ksGpuSurfaceDepthFormat depthFormat, ksGpuSampleCount sampleCount,
                         int width, int height, bool fullscreen);
 void ksGpuWindow_Destroy(ksGpuWindow *window);
-void ksGpuWindow_Exit(ksGpuWindow *window);
-ksGpuWindowEvent ksGpuWindow_ProcessEvents(ksGpuWindow *window);
-void ksGpuWindow_SwapInterval(ksGpuWindow *window, int swapInterval);
-void ksGpuWindow_SwapBuffers(ksGpuWindow *window);
-ksNanoseconds ksGpuWindow_GetNextSwapTimeNanoseconds(ksGpuWindow *window);
-ksNanoseconds ksGpuWindow_GetFrameTimeNanoseconds(ksGpuWindow *window);
-
-/*
-================================================================================================================================
-
-GPU timer.
-
-A timer is used to measure the amount of time it takes to complete GPU commands.
-For optimal performance a timer should only be created at load time, not at runtime.
-To avoid synchronization, ksGpuTimer_GetNanoseconds() reports the time from KS_GPU_TIMER_FRAMES_DELAYED frames ago.
-Timer queries are allowed to overlap and can be nested.
-Timer queries that are issued inside a render pass may not produce accurate times on tiling GPUs.
-
-ksGpuTimer
-
-static void ksGpuTimer_Create( ksGpuContext * context, ksGpuTimer * timer );
-static void ksGpuTimer_Destroy( ksGpuContext * context, ksGpuTimer * timer );
-static ksNanoseconds ksGpuTimer_GetNanoseconds( ksGpuTimer * timer );
-
-================================================================================================================================
-*/
-
-#define KS_GPU_TIMER_FRAMES_DELAYED 2
-
-typedef struct {
-    GLuint beginQueries[KS_GPU_TIMER_FRAMES_DELAYED];
-    GLuint endQueries[KS_GPU_TIMER_FRAMES_DELAYED];
-    int queryIndex;
-    ksNanoseconds gpuTime;
-} ksGpuTimer;
-
-void ksGpuTimer_Create(ksGpuContext *context, ksGpuTimer *timer);
-void ksGpuTimer_Destroy(ksGpuContext *context, ksGpuTimer *timer);
-ksNanoseconds ksGpuTimer_GetNanoseconds(ksGpuTimer *timer);
 
 #ifdef __cplusplus
 }

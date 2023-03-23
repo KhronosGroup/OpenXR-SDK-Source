@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2022, The Khronos Group Inc.
+// Copyright (c) 2017-2023, The Khronos Group Inc.
 // Copyright (c) 2017-2019 Valve Corporation
 // Copyright (c) 2017-2019 LunarG, Inc.
 //
@@ -266,8 +266,7 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
                                });
 
                 // Setup our callback data once
-                XrDebugUtilsMessengerCallbackDataEXT callback_data = {};
-                callback_data.type = XR_TYPE_DEBUG_UTILS_MESSENGER_CALLBACK_DATA_EXT;
+                XrDebugUtilsMessengerCallbackDataEXT callback_data = {XR_TYPE_DEBUG_UTILS_MESSENGER_CALLBACK_DATA_EXT};
                 callback_data.messageId = message_id.c_str();
                 callback_data.functionName = command_name.c_str();
                 callback_data.message = message.c_str();
@@ -842,8 +841,9 @@ extern "C" {
 
 // Function used to negotiate an interface betewen the loader and an API layer.  Each library exposing one or
 // more API layers needs to expose at least this function.
-LAYER_EXPORT XrResult xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoaderInfo *loaderInfo, const char * /*apiLayerName*/,
-                                                         XrNegotiateApiLayerRequest *apiLayerRequest) {
+LAYER_EXPORT XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoaderInfo *loaderInfo,
+                                                                    const char * /*apiLayerName*/,
+                                                                    XrNegotiateApiLayerRequest *apiLayerRequest) {
     if (nullptr == loaderInfo || nullptr == apiLayerRequest || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
         loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo) ||
         apiLayerRequest->structType != XR_LOADER_INTERFACE_STRUCT_API_LAYER_REQUEST ||

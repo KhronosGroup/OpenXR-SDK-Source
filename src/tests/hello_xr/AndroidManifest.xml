@@ -1,48 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools"
-  package="com.khronos.hello_xr"
+  package="org.khronos.openxr.hello_xr"
   android:installLocation="auto"
   android:versionCode="1"
   android:versionName="1.0">
 
-    <uses-feature android:name="android.hardware.vr.headtracking" android:required="true" android:version="1" />
+	<uses-feature android:name="android.hardware.vr.headtracking" android:required="true" android:version="1" />
 
-    <uses-feature android:glEsVersion="0x00030002" android:required="true" />
+	<uses-feature android:glEsVersion="0x00030002" android:required="true" />
 
-    <!-- Tell the system this app requires 6dof mode -->
-    <uses-feature android:name="android.hardware.vr.headtracking" android:required="true" android:version="1" />
+	<!-- Tell the system this app requires 6dof mode -->
+	<uses-feature android:name="android.hardware.vr.headtracking" android:required="true" android:version="1" />
 
-    <!-- Enable overlay keyboard. -->
-    <uses-feature android:name="oculus.software.overlay_keyboard" android:required="false" />
+	<!-- Enable overlay keyboard. -->
+	<uses-feature android:name="oculus.software.overlay_keyboard" android:required="false" />
 
-    <!-- Enable Render Model OpenXR extension -->
-    <uses-feature android:name="com.oculus.feature.RENDER_MODEL" android:required="false" />
-    <uses-permission android:name="com.oculus.permission.RENDER_MODEL" />
+	<!-- Enable Render Model OpenXR extension -->
+	<uses-feature android:name="com.oculus.feature.RENDER_MODEL" android:required="false" />
+	<uses-permission android:name="com.oculus.permission.RENDER_MODEL" />
 
-    <!-- Tracked keyboard -->
-    <uses-feature android:name="oculus.software.trackedkeyboard" android:required="false" />
-    <uses-permission android:name="com.oculus.permission.TRACKED_KEYBOARD" />
+	<!-- Tracked keyboard -->
+	<uses-feature android:name="oculus.software.trackedkeyboard" android:required="false" />
+	<uses-permission android:name="com.oculus.permission.TRACKED_KEYBOARD" />
 
-    <!-- Passthrough -->
-    <uses-feature android:name="com.oculus.feature.PASSTHROUGH" android:required="false" />
+	<!-- Passthrough -->
+	<uses-feature android:name="com.oculus.feature.PASSTHROUGH" android:required="false" />
 
-    <!-- Hand tracking -->
-    <uses-feature android:name="oculus.software.handtracking" android:required="false" />
-    <uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
+	<!-- Hand tracking -->
+	<uses-feature android:name="oculus.software.handtracking" android:required="false" />
+	<uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
 
-    <!-- Eye Tracking -->
-    <uses-feature android:name="oculus.software.eye_tracking" android:required="false" />
-    <uses-permission android:name="com.oculus.permission.EYE_TRACKING" />
+	<!-- Eye Tracking -->
+	<uses-feature android:name="oculus.software.eye_tracking" android:required="false" />
+	<uses-permission android:name="com.oculus.permission.EYE_TRACKING" />
 
-    <!-- Face Tracking -->
-    <uses-feature android:name="oculus.software.face_tracking" android:required="false" />
-    <uses-permission android:name="com.oculus.permission.FACE_TRACKING" />
+	<!-- Face Tracking -->
+	<uses-feature android:name="oculus.software.face_tracking" android:required="false" />
+	<uses-permission android:name="com.oculus.permission.FACE_TRACKING" />
 
-    <!-- Body Tracking -->
-    <uses-feature android:name="com.oculus.software.body_tracking" />
-    <uses-permission android:name="com.oculus.permission.BODY_TRACKING" />
-    <uses-feature android:name="com.oculus.experimental.enabled" android:required="false" />
+	<!-- Body Tracking -->
+	<uses-feature android:name="com.oculus.software.body_tracking" />
+	<uses-permission android:name="com.oculus.permission.BODY_TRACKING" />
+	<uses-feature android:name="com.oculus.experimental.enabled" android:required="false" />
 
   <!-- If building externally with the OpenXR AAR, this would be merged in automatically. -->
   <uses-permission android:name="android.permission.VIBRATE" />

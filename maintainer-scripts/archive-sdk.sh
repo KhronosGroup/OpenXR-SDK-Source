@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2019-2022, The Khronos Group Inc.
+# Copyright (c) 2019-2023, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -53,6 +53,8 @@ makeSubset "$TARNAME" $(getSDKFilenames)
     cd sdk
     # Add the SDK-specific README
     add_to_tar "$TARNAME" README.md
+    # Add the pull request template
+    add_to_tar "$TARNAME" .github/pull_request_template.md
 )
 
 # Read the list of headers we should generate, and generate them.

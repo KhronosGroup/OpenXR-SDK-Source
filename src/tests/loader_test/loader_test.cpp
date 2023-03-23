@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2022, The Khronos Group Inc.
+// Copyright (c) 2017-2023, The Khronos Group Inc.
 // Copyright (c) 2017-2019 Valve Corporation
 // Copyright (c) 2017-2019 LunarG, Inc.
 //
@@ -608,8 +608,7 @@ DEFINE_TEST(TestCreateDestroyInstance) {
             XrInstance instance = XR_NULL_HANDLE;
             XrResult create_result = XR_ERROR_VALIDATION_FAILURE;
             std::string current_test_string;
-            XrInstanceCreateInfo instance_create_info = {};
-            instance_create_info.type = XR_TYPE_INSTANCE_CREATE_INFO;
+            XrInstanceCreateInfo instance_create_info = {XR_TYPE_INSTANCE_CREATE_INFO};
             instance_create_info.applicationInfo = application_info;
 
             switch (test_num) {
@@ -713,14 +712,12 @@ DEFINE_TEST(TestGetSystem) {
         strcpy(application_info.engineName, "Infinite Improbability Drive");
         application_info.engineVersion = 42;
         application_info.apiVersion = XR_CURRENT_API_VERSION;
-        XrInstanceCreateInfo instance_create_info = {};
-        instance_create_info.type = XR_TYPE_INSTANCE_CREATE_INFO;
+        XrInstanceCreateInfo instance_create_info = {XR_TYPE_INSTANCE_CREATE_INFO};
         instance_create_info.applicationInfo = application_info;
 
         TEST_EQUAL(xrCreateInstance(&instance_create_info, &instance), XR_SUCCESS, "Creating instance")
 
-        XrSystemGetInfo system_get_info = {};
-        system_get_info.type = XR_TYPE_SYSTEM_GET_INFO;
+        XrSystemGetInfo system_get_info = {XR_TYPE_SYSTEM_GET_INFO};
         system_get_info.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 
         XrSystemId systemId;
@@ -762,8 +759,7 @@ DEFINE_TEST(TestCreateDestroySession) {
         app_info.engineVersion = 42;
         app_info.apiVersion = XR_CURRENT_API_VERSION;
 
-        XrInstanceCreateInfo instance_ci = {};
-        instance_ci.type = XR_TYPE_INSTANCE_CREATE_INFO;
+        XrInstanceCreateInfo instance_ci = {XR_TYPE_INSTANCE_CREATE_INFO};
         instance_ci.applicationInfo = app_info;
 
         std::string ext_name;
@@ -790,9 +786,7 @@ DEFINE_TEST(TestCreateDestroySession) {
 
         TEST_EQUAL(xrCreateInstance(&instance_ci, &instance), XR_SUCCESS, "Creating instance")
 
-        XrSystemGetInfo system_get_info;
-        memset(&system_get_info, 0, sizeof(system_get_info));
-        system_get_info.type = XR_TYPE_SYSTEM_GET_INFO;
+        XrSystemGetInfo system_get_info = {XR_TYPE_SYSTEM_GET_INFO};
         system_get_info.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
 
         XrSystemId systemId;
@@ -829,15 +823,13 @@ DEFINE_TEST(TestCreateDestroySession) {
                 TEST_NOT_EQUAL(pfn_get_vulkan_graphics_requirements_khr, nullptr,
                                "TestCreateDestroySession invalid xrGetVulkanGraphicsRequirementsKHR function pointer");
 
-                XrGraphicsRequirementsVulkanKHR vulkan_graphics_requirements = {};
-                vulkan_graphics_requirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR;
-                vulkan_graphics_requirements.next = nullptr;
+                XrGraphicsRequirementsVulkanKHR vulkan_graphics_requirements = {XR_TYPE_GRAPHICS_REQUIREMENTS_VULKAN_KHR};
                 TEST_EQUAL(pfn_get_vulkan_graphics_requirements_khr(instance, systemId, &vulkan_graphics_requirements), XR_SUCCESS,
                            "TestCreateDestroySession calling xrGetVulkanGraphicsRequirementsKHR");
 
                 // TODO: Just need something other than NULL here for now (for validation).  Eventually need
                 //       to correctly put in a valid pointer to an Display
-                vulkan_graphics_binding.type = XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR;
+                vulkan_graphics_binding = {XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR};
                 vulkan_graphics_binding.instance = VK_NULL_HANDLE;
                 vulkan_graphics_binding.physicalDevice = VK_NULL_HANDLE;
                 vulkan_graphics_binding.device = VK_NULL_HANDLE;
@@ -849,13 +841,13 @@ DEFINE_TEST(TestCreateDestroySession) {
 
 #ifdef XR_USE_GRAPHICS_API_OPENGL
 #ifdef _WIN32
-            XrGraphicsBindingOpenGLWin32KHR win32_gl_graphics_binding = {};
+            XrGraphicsBindingOpenGLWin32KHR win32_gl_graphics_binding = {XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR};
 #elif defined(OS_LINUX_XLIB)
-            XrGraphicsBindingOpenGLXlibKHR glx_gl_graphics_binding = {};
+            XrGraphicsBindingOpenGLXlibKHR glx_gl_graphics_binding = {XR_TYPE_GRAPHICS_BINDING_OPENGL_XLIB_KHR};
 #elif defined(OS_LINUX_XCB) || defined(OS_LINUX_XCB_GLX)
-            XrGraphicsBindingOpenGLXcbKHR xcb_gl_graphics_binding = {};
+            XrGraphicsBindingOpenGLXcbKHR xcb_gl_graphics_binding = {XR_TYPE_GRAPHICS_BINDING_OPENGL_XCB_KHR};
 #elif defined(OS_LINUX_WAYLAND)
-            XrGraphicsBindingOpenGLWaylandKHR wayland_gl_graphics_binding = {};
+            XrGraphicsBindingOpenGLWaylandKHR wayland_gl_graphics_binding = {XR_TYPE_GRAPHICS_BINDING_OPENGL_WAYLAND_KHR};
 #endif
             if (g_graphics_api_to_use == GRAPHICS_API_OPENGL) {
                 PFN_xrGetOpenGLGraphicsRequirementsKHR pfn_get_opengl_graphics_requirements_khr;
@@ -864,28 +856,22 @@ DEFINE_TEST(TestCreateDestroySession) {
                            XR_SUCCESS, "TestCreateDestroySession get xrGetOpenGLGraphicsRequirementsKHR function pointer");
                 TEST_NOT_EQUAL(pfn_get_opengl_graphics_requirements_khr, nullptr,
                                "TestCreateDestroySession invalid xrGetOpenGLGraphicsRequirementsKHR function pointer");
-                XrGraphicsRequirementsOpenGLKHR opengl_graphics_requirements = {};
-                opengl_graphics_requirements.type = XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_KHR;
-                opengl_graphics_requirements.next = nullptr;
+                XrGraphicsRequirementsOpenGLKHR opengl_graphics_requirements = {XR_TYPE_GRAPHICS_REQUIREMENTS_OPENGL_KHR};
                 TEST_EQUAL(pfn_get_opengl_graphics_requirements_khr(instance, systemId, &opengl_graphics_requirements), XR_SUCCESS,
                            "TestCreateDestroySession calling xrGetOpenGLGraphicsRequirementsKHR");
 #ifdef _WIN32
-                win32_gl_graphics_binding.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR;
                 graphics_binding = reinterpret_cast<void*>(&win32_gl_graphics_binding);
 #elif defined(OS_LINUX_XLIB)
-                glx_gl_graphics_binding.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_XLIB_KHR;
                 // TODO: Just need something other than NULL here for now (for validation).  Eventually need
                 //       to correctly put in a valid pointer to an Display
                 glx_gl_graphics_binding.xDisplay = reinterpret_cast<Display*>(0xFFFFFFFF);
                 graphics_binding = reinterpret_cast<void*>(&glx_gl_graphics_binding);
 #elif defined(OS_LINUX_XCB) || defined(OS_LINUX_XCB_GLX)
-                xcb_gl_graphics_binding.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_XCB_KHR;
                 // TODO: Just need something other than NULL here for now (for validation).  Eventually need
                 //       to correctly put in a valid pointer to an xcb_connection_t
                 xcb_gl_graphics_binding.connection = reinterpret_cast<xcb_connection_t*>(0xFFFFFFFF);
                 graphics_binding = reinterpret_cast<void*>(&xcb_gl_graphics_binding);
 #elif defined(OS_LINUX_WAYLAND)
-                wayland_gl_graphics_binding.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_WAYLAND_KHR;
                 // TODO: Just need something other than NULL here for now (for validation).  Eventually need
                 //       to correctly put in a valid pointer to an wl_display
                 wayland_gl_graphics_binding.display = reinterpret_cast<wl_display*>(0xFFFFFFFF);
@@ -895,7 +881,7 @@ DEFINE_TEST(TestCreateDestroySession) {
 #endif  // XR_USE_GRAPHICS_API_OPENGL
 
 #ifdef XR_USE_GRAPHICS_API_D3D11
-            XrGraphicsBindingD3D11KHR d3d11_graphics_binding = {};
+            XrGraphicsBindingD3D11KHR d3d11_graphics_binding = {XR_TYPE_GRAPHICS_BINDING_D3D11_KHR};
             ID3D11Device* d3d_device = NULL;
             if (g_graphics_api_to_use == GRAPHICS_API_D3D) {
                 PFN_xrGetD3D11GraphicsRequirementsKHR pfn_get_d3d11_reqs;
@@ -904,16 +890,13 @@ DEFINE_TEST(TestCreateDestroySession) {
                            XR_SUCCESS, "TestCreateDestroySession get xrGetD3D11GraphicsRequirementsKHR function pointer");
                 TEST_NOT_EQUAL(pfn_get_d3d11_reqs, nullptr,
                                "TestCreateDestroySession invalid xrGetD3D11GraphicsRequirementsKHR function pointer");
-                XrGraphicsRequirementsD3D11KHR d3d_reqs = {};
-                d3d_reqs.type = XR_TYPE_GRAPHICS_REQUIREMENTS_D3D11_KHR;
-                d3d_reqs.next = nullptr;
+                XrGraphicsRequirementsD3D11KHR d3d_reqs = {XR_TYPE_GRAPHICS_REQUIREMENTS_D3D11_KHR};
                 TEST_EQUAL(pfn_get_d3d11_reqs(instance, systemId, &d3d_reqs), XR_SUCCESS,
                            "TestCreateDestroySession calling xrGetD3D11GraphicsRequirementsKHR");
                 HRESULT res =
                     D3D11CreateDevice(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, NULL, 0, D3D11_SDK_VERSION, &d3d_device, NULL, NULL);
                 TEST_EQUAL(res, S_OK, "TestCreateDestroySession creating D3D11 reference device")
 
-                d3d11_graphics_binding.type = XR_TYPE_GRAPHICS_BINDING_D3D11_KHR;
                 d3d11_graphics_binding.device = d3d_device;
                 graphics_binding = reinterpret_cast<void*>(&d3d11_graphics_binding);
             }
@@ -922,8 +905,7 @@ DEFINE_TEST(TestCreateDestroySession) {
             if (graphics_binding != nullptr) {
                 // Create a session for us to begin
                 XrSession session;
-                XrSessionCreateInfo session_create_info = {};
-                session_create_info.type = XR_TYPE_SESSION_CREATE_INFO;
+                XrSessionCreateInfo session_create_info = {XR_TYPE_SESSION_CREATE_INFO};
                 session_create_info.systemId = systemId;
                 session_create_info.next = graphics_binding;
                 TEST_EQUAL(xrCreateSession(instance, &session_create_info, &session), XR_SUCCESS, "xrCreateSession")
@@ -1197,14 +1179,12 @@ DEFINE_TEST(TestDebugUtils) {
         app_info.engineVersion = 42;
         app_info.apiVersion = XR_CURRENT_API_VERSION;
 
-        XrInstanceCreateInfo instance_ci = {};
-        instance_ci.type = XR_TYPE_INSTANCE_CREATE_INFO;
+        XrInstanceCreateInfo instance_ci = {XR_TYPE_INSTANCE_CREATE_INFO};
         instance_ci.applicationInfo = app_info;
 
         char dbg_ext_name[] = XR_EXT_DEBUG_UTILS_EXTENSION_NAME;
         std::string gfx_name("None");
         const char* ext_array[2];
-        instance_ci.type = XR_TYPE_INSTANCE_CREATE_INFO;
         instance_ci.enabledExtensionCount = 2;
         instance_ci.enabledExtensionNames = ext_array;
 
@@ -1229,8 +1209,7 @@ DEFINE_TEST(TestDebugUtils) {
         instance_ci.enabledExtensionNames = ext_array;
 
         // Create an instance with the appropriate data for the debug utils messenger
-        XrDebugUtilsMessengerCreateInfoEXT dbg_msg_ci = {};
-        dbg_msg_ci.type = XR_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        XrDebugUtilsMessengerCreateInfoEXT dbg_msg_ci = {XR_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT};
         dbg_msg_ci.messageSeverities =
             XR_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
             XR_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | XR_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
@@ -1239,8 +1218,7 @@ DEFINE_TEST(TestDebugUtils) {
         dbg_msg_ci.userCallback = TestDebugUtilsCallback;
 
         // Create an instacne with the general information setup for a message
-        XrDebugUtilsMessengerCallbackDataEXT callback_data = {};
-        callback_data.type = XR_TYPE_DEBUG_UTILS_MESSENGER_CALLBACK_DATA_EXT;
+        XrDebugUtilsMessengerCallbackDataEXT callback_data = {XR_TYPE_DEBUG_UTILS_MESSENGER_CALLBACK_DATA_EXT};
         callback_data.messageId = &message_id[0];
         callback_data.functionName = &test_function_name[0];
         callback_data.message = &test_message[0];
@@ -1748,9 +1726,7 @@ DEFINE_TEST(TestDebugUtils) {
         num_objects_matches = false;
         object_contents_match = false;
 
-        XrSystemGetInfo system_get_info;
-        memset(&system_get_info, 0, sizeof(system_get_info));
-        system_get_info.type = XR_TYPE_SYSTEM_GET_INFO;
+        XrSystemGetInfo system_get_info = {XR_TYPE_SYSTEM_GET_INFO};
         system_get_info.formFactor = XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY;
         XrSystemId systemId;
         TEST_EQUAL(xrGetSystem(instance, &system_get_info, &systemId), XR_SUCCESS, "xrGetSystem");
@@ -1786,11 +1762,10 @@ DEFINE_TEST(TestDebugUtils) {
                 TEST_NOT_EQUAL(pfn_get_vulkan_graphics_requirements_khr, nullptr,
                                "TestDebugUtils invalid xrGetVulkanGraphicsRequirementsKHR function pointer");
 
-                XrGraphicsRequirementsVulkanKHR vulkan_graphics_requirements = {};
+                XrGraphicsRequirementsVulkanKHR vulkan_graphics_requirements = {XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR};
                 TEST_EQUAL(pfn_get_vulkan_graphics_requirements_khr(instance, systemId, &vulkan_graphics_requirements), XR_SUCCESS,
                            "TestDebugUtils calling xrGetVulkanGraphicsRequirementsKHR");
 
-                vulkan_graphics_binding.type = XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR;
                 // TODO: Just need something other than NULL here for now (for validation).  Eventually need
                 //       to correctly put in a valid pointer to an Display
                 vulkan_graphics_binding.instance = VK_NULL_HANDLE;
@@ -1803,13 +1778,13 @@ DEFINE_TEST(TestDebugUtils) {
 #endif  // XR_USE_GRAPHICS_API_VULKAN
 #ifdef XR_USE_GRAPHICS_API_OPENGL
 #ifdef _WIN32
-            XrGraphicsBindingOpenGLWin32KHR win32_gl_graphics_binding = {};
+            XrGraphicsBindingOpenGLWin32KHR win32_gl_graphics_binding = {XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR};
 #elif defined(OS_LINUX_XLIB)
-            XrGraphicsBindingOpenGLXlibKHR glx_gl_graphics_binding = {};
+            XrGraphicsBindingOpenGLXlibKHR glx_gl_graphics_binding = {XR_TYPE_GRAPHICS_BINDING_OPENGL_XLIB_KHR};
 #elif defined(OS_LINUX_XCB) || defined(OS_LINUX_XCB_GLX)
-            XrGraphicsBindingOpenGLXcbKHR xcb_gl_graphics_binding = {};
+            XrGraphicsBindingOpenGLXcbKHR xcb_gl_graphics_binding = {XR_TYPE_GRAPHICS_BINDING_OPENGL_XCB_KHR};
 #elif defined(OS_LINUX_WAYLAND)
-            XrGraphicsBindingOpenGLWaylandKHR wayland_gl_graphics_binding = {};
+            XrGraphicsBindingOpenGLWaylandKHR wayland_gl_graphics_binding = {XR_TYPE_GRAPHICS_BINDING_OPENGL_WAYLAND_KHR};
 #endif
             if (g_graphics_api_to_use == GRAPHICS_API_OPENGL) {
                 PFN_xrGetOpenGLGraphicsRequirementsKHR pfn_get_opengl_graphics_requirements_khr;
@@ -1822,22 +1797,18 @@ DEFINE_TEST(TestDebugUtils) {
                 TEST_EQUAL(pfn_get_opengl_graphics_requirements_khr(instance, systemId, &opengl_graphics_requirements), XR_SUCCESS,
                            "TestDebugUtils calling xrGetOpenGLGraphicsRequirementsKHR");
 #ifdef _WIN32
-                win32_gl_graphics_binding.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR;
                 graphics_binding = reinterpret_cast<void*>(&win32_gl_graphics_binding);
 #elif defined(OS_LINUX_XLIB)
-                glx_gl_graphics_binding.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_XLIB_KHR;
                 // TODO: Just need something other than NULL here for now (for validation).  Eventually need
                 //       to correctly put in a valid pointer to an Display
                 glx_gl_graphics_binding.xDisplay = reinterpret_cast<Display*>(0xFFFFFFFF);
                 graphics_binding = reinterpret_cast<void*>(&glx_gl_graphics_binding);
 #elif defined(OS_LINUX_XCB) || defined(OS_LINUX_XCB_GLX)
-                xcb_gl_graphics_binding.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_XCB_KHR;
                 // TODO: Just need something other than NULL here for now (for validation).  Eventually need
                 //       to correctly put in a valid pointer to an xcb_connection_t
                 xcb_gl_graphics_binding.connection = reinterpret_cast<xcb_connection_t*>(0xFFFFFFFF);
                 graphics_binding = reinterpret_cast<void*>(&xcb_gl_graphics_binding);
 #elif defined(OS_LINUX_WAYLAND)
-                wayland_gl_graphics_binding.type = XR_TYPE_GRAPHICS_BINDING_OPENGL_WAYLAND_KHR;
                 // TODO: Just need something other than NULL here for now (for validation).  Eventually need
                 //       to correctly put in a valid pointer to an wl_display
                 wayland_gl_graphics_binding.display = reinterpret_cast<wl_display*>(0xFFFFFFFF);
@@ -1846,7 +1817,7 @@ DEFINE_TEST(TestDebugUtils) {
             }
 #endif  // XR_USE_GRAPHICS_API_OPENGL
 #ifdef XR_USE_GRAPHICS_API_D3D11
-            XrGraphicsBindingD3D11KHR d3d11_graphics_binding = {};
+            XrGraphicsBindingD3D11KHR d3d11_graphics_binding = {XR_TYPE_GRAPHICS_BINDING_D3D11_KHR};
             if (g_graphics_api_to_use == GRAPHICS_API_D3D) {
                 PFN_xrGetD3D11GraphicsRequirementsKHR pfn_get_d3d11_graphics_requirements_khr;
                 TEST_EQUAL(xrGetInstanceProcAddr(instance, "xrGetD3D11GraphicsRequirementsKHR",
@@ -1863,13 +1834,6 @@ DEFINE_TEST(TestDebugUtils) {
                     D3D11CreateDevice(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, 0, NULL, 0, D3D11_SDK_VERSION, &d3d_device, NULL, NULL);
                 TEST_EQUAL(res, S_OK, "TestDebugUtils creating D3D11 reference device")
 
-                d3d11_graphics_binding.type = XR_TYPE_GRAPHICS_BINDING_D3D11_KHR;
-                d3d11_graphics_binding.device = d3d_device;
-                graphics_binding = reinterpret_cast<void*>(&d3d11_graphics_binding);
-
-                d3d11_graphics_binding.type = XR_TYPE_GRAPHICS_BINDING_D3D11_KHR;
-                // TODO: Just need something other than NULL here for now (for validation).  Eventually need
-                //       to correctly put in a valid pointer to an Display
                 d3d11_graphics_binding.device = d3d_device;
                 graphics_binding = reinterpret_cast<void*>(&d3d11_graphics_binding);
             }
@@ -1898,14 +1862,12 @@ DEFINE_TEST(TestDebugUtils) {
             g_expecting_labels = true;
 
             // Create a label struct for initial testing
-            XrDebugUtilsLabelEXT first_label = {};
-            first_label.type = XR_TYPE_DEBUG_UTILS_LABEL_EXT;
+            XrDebugUtilsLabelEXT first_label = {XR_TYPE_DEBUG_UTILS_LABEL_EXT};
             first_label.labelName = g_first_individual_label_name;
 
             // Create a session for us to begin
             XrSession session;
-            XrSessionCreateInfo session_create_info = {};
-            session_create_info.type = XR_TYPE_SESSION_CREATE_INFO;
+            XrSessionCreateInfo session_create_info = {XR_TYPE_SESSION_CREATE_INFO};
             session_create_info.systemId = systemId;
             session_create_info.next = graphics_binding;
 
@@ -1972,14 +1934,12 @@ DEFINE_TEST(TestDebugUtils) {
             TEST_EQUAL(g_captured_only_expected_labels, true, "TestDebugUtils - First Label Region : Captured Correct Labels")
 
             // Begin the session now.
-            XrSessionBeginInfo session_begin_info = {};
-            session_begin_info.type = XR_TYPE_SESSION_BEGIN_INFO;
+            XrSessionBeginInfo session_begin_info = {XR_TYPE_SESSION_BEGIN_INFO};
             session_begin_info.primaryViewConfigurationType = XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO;
 
             TEST_EQUAL(xrBeginSession(session, &session_begin_info), XR_SUCCESS, "xrBeginSession")
 
-            XrDebugUtilsLabelEXT individual_label = {};
-            individual_label.type = XR_TYPE_DEBUG_UTILS_LABEL_EXT;
+            XrDebugUtilsLabelEXT individual_label = {XR_TYPE_DEBUG_UTILS_LABEL_EXT};
             individual_label.labelName = g_second_individual_label_name;
             TEST_EQUAL(pfn_insert_debug_utils_label_ext(session, &individual_label), XR_SUCCESS,
                        "TestDebugUtils calling xrSessionInsertDebugUtilsLabelEXT");
@@ -2015,8 +1975,7 @@ DEFINE_TEST(TestDebugUtils) {
                        "TestDebugUtils - Third Individual and First Region : Captured Correct Labels")
 
             // Begin a label region
-            XrDebugUtilsLabelEXT second_label_region = {};
-            second_label_region.type = XR_TYPE_DEBUG_UTILS_LABEL_EXT;
+            XrDebugUtilsLabelEXT second_label_region = {XR_TYPE_DEBUG_UTILS_LABEL_EXT};
             second_label_region.labelName = g_second_label_region_name;
             TEST_EQUAL(pfn_begin_debug_utils_label_region_ext(session, &second_label_region), XR_SUCCESS,
                        "TestDebugUtils calling xrSessionBeginDebugUtilsLabelRegionEXT");

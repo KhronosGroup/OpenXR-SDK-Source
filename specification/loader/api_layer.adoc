@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2022, The Khronos Group Inc.
+// Copyright (c) 2017-2023, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
@@ -396,9 +396,9 @@ The loader accesses these using the Android AssetManager classes.
 
 On Windows, Linux and Android, the loader uses manifest files to discover
 API layers.
-The loader doesn't load the API layer libraries (e.g. DLL or .so
-files) for each of the enabled API layers except during `xrCreateInstance`
-when it sets up the call chain.
+The loader doesn't load the API layer libraries (e.g. DLL or .so files) for
+each of the enabled API layers except during `xrCreateInstance` when it sets
+up the call chain.
 This is to reduce the likelihood of loading a malicious API layer into
 memory.
 Instead, details are read from the manifest file, which are then provided
@@ -470,11 +470,11 @@ The only requirement is that the filename extension is ".json".
 | "api_layer"
     | *Required* for Implicit / Explicit
         | The identifier used to group a single API layer's information together.
-            | xrEnumerateApiLayerProperties
+            | `xrEnumerateApiLayerProperties`
 | "name"
     | *Required* for Implicit / Explicit
         | The string used to uniquely identify this API layer to applications.
-            | xrEnumerateApiLayerProperties
+            | `xrEnumerateApiLayerProperties`
 | "library_path"
     | *Required* for Implicit / Explicit
         | The "library_path" specifies either a filename, a relative pathname,
@@ -487,32 +487,32 @@ The only requirement is that the filename extension is ".json".
         are no rules about the name of the API layer shared library files other
         than it should end with the appropriate suffix (".DLL" on Windows,
         and ".so" on Linux).
-        | N/A
+            | N/A
 | "api_version"
     | *Required* for Implicit / Explicit
         | The major.minor (but not patch) version number of the OpenXR API that the
         shared library file for the library was built against. For example:
         1.0.
-            | xrEnumerateApiLayerProperties
+            | `xrEnumerateApiLayerProperties`
 | "implementation_version"
     | *Required* for Implicit / Explicit
         | The version of the API layer implemented.  If the API layer itself has any
         major changes, this number should change so the loader and/or
         application can identify it properly.
-            | xrEnumerateApiLayerProperties
+            | `xrEnumerateApiLayerProperties`
 | "description"
     | *Required* for Implicit / Explicit
-        | A high-level description of the API layer and it's intended use.
-            | xrEnumerateApiLayerProperties
+        | A high-level description of the API layer and its intended use.
+            | `xrEnumerateApiLayerProperties`
 | "functions"
     | Optional for Implicit / Explicit
         | This section can be used to identify a different function name for
         the loader to use in place of standard API layer interface functions. The
         "functions" node is required if the API layer is using an alternative name
         for `xrNegotiateLoaderApiLayerInterface`.
-            | xrGet*ProcAddr (except for `xrNegotiateLoaderApiLayerInterface`
+            | `xrGetInstanceProcAddr` (except for `xrNegotiateLoaderApiLayerInterface`
             which must be queried using the OS/platform-specific
-            GetProcAddress)s.
+            `GetProcAddress`).
 | "instance_extensions"
     | Optional for Implicit / Explicit
         | Contains the list of instance extension names supported by this
@@ -521,12 +521,12 @@ The only requirement is that the filename extension is ".json".
         API layer, otherwise the node is optional. Each element of the array
         must have the nodes "name" and "extension_version" which correspond to
         `XrExtensionProperties` "extensionName" and "extensionVersion" respectively.
-            | xrEnumerateInstanceExtensionProperties
+            | `xrEnumerateInstanceExtensionProperties`
 | "enable_environment"
     | Optional for Implicit
         | Indicates an environment variable used to enable the implicit API layer.
         If provided in the JSON file, this environment variable (which should vary
-		with each "version" of the API layer) must be set in the environment or else
+        with each "version" of the API layer) must be set in the environment or else
         the implicit API layer is not loaded. This is for application environments
         (e.g. Steam) which want to enable an API layer(s) only for applications that
         they launch, and allows for applications run outside of that
@@ -536,9 +536,9 @@ The only requirement is that the filename extension is ".json".
     | *Required* for Implicit
         | Indicates an environment variable used to disable the implicit API layer.
         Required to allow users or applications to disable implicit layers that are
-		not desired or that cause problems for the application. The user/application
-		can set this environment variable (before calling OpenXR functions) to
-		"blacklist" the API layer.
+        not desired or that cause problems for the application. The user/application
+        can set this environment variable (before calling OpenXR functions) to skip
+        loading this API layer.
         This environment variable should vary with each "version" of the
         API layer.  If both the
         "enable_environment" and "disable_environment" variables are set, the
@@ -601,12 +601,12 @@ XrResult xrNegotiateLoaderApiLayerInterface(
             XrNegotiateApiLayerRequest *apiLayerRequest);
 ----
   * pname:loaderInfo must: be a valid pointer to a constant
-    slink:XrNegotiateLoaderInfo structure.
+    sname:XrNegotiateLoaderInfo structure.
   * pname:layerName must: be NULL or a valid C-style NULL-terminated string
     listing the name of an API layer which the loader is attempting to
     negotiate with.
   * pname:layerRequest must be a valid pointer to a
-    slink:XrNegotiateApiLayerRequest structure.
+    sname:XrNegotiateApiLayerRequest structure.
 
 This function should be directly exported by an API layer so that using
 "GetProcAddress" on Windows or "dlsym" on Linux, should return a valid
@@ -733,8 +733,8 @@ struct XrNegotiateApiLayerRequest {
 ==== Loader/API Layer Negotiation Process ====
 
 Once the loader has obtained a valid address to the API layer's
-flink:xrNegotiateLoaderApiLayerInterface function, the loader will create a
-variable of type slink:XrNegotiateLoaderInfo and initialize it in the
+fname:xrNegotiateLoaderApiLayerInterface function, the loader will create a
+variable of type sname:XrNegotiateLoaderInfo and initialize it in the
 following ways:
 
 1. Set the structure "structType" to
@@ -755,7 +755,7 @@ following ways:
    loader (the current version at the time of loader compilation).
 
 The loader also creates and initializes a variable of type
-slink:XrNegotiateApiLayerRequest to allow the API layer to properly respond
+sname:XrNegotiateApiLayerRequest to allow the API layer to properly respond
 to the request.
 The structure will be initialized by the loader in the following way:
 
@@ -769,7 +769,7 @@ The structure will be initialized by the loader in the following way:
 The loader will leave the remaining fields uninitialized to allow each API
 layer to fill in the appropriate information for itself.
 The loader will then individually call each API layer's
-flink:xrNegotiateLoaderApiLayerInterface function and each API layer then
+fname:xrNegotiateLoaderApiLayerInterface function and each API layer then
 must: :
 
 * Determine if it can support the loader's request:
@@ -907,9 +907,9 @@ XrResult xrCreateApiLayerInstance(
     const struct XrApiLayerCreateInfo *layerInfo,
     XrInstance *instance);
 ----
-  * pname:info is a pointer to the slink:XrInstanceCreateInfo information
-    passed into the standard flink:xrCreateInstance command.
-  * pname:layerInfo is a pointer to an slink:XrApiLayerCreateInfo structure
+  * pname:info is a pointer to the sname:XrInstanceCreateInfo information
+    passed into the standard fname:xrCreateInstance command.
+  * pname:layerInfo is a pointer to an sname:XrApiLayerCreateInfo structure
     that contains special information required by a API layer during its
     create instance process.
     This is generated by the loader.
@@ -940,7 +940,7 @@ struct XrApiLayerCreateInfo {
   * pname:settings_file_location is the location of any API layer settings
     file that can be used.
     This is currently unused.
-  * pname:nextInfo is a pointer to the slink:XrApiLayerNextInfo structure
+  * pname:nextInfo is a pointer to the sname:XrApiLayerNextInfo structure
     which contains information to work with the next API layer in the chain.
 
 The sname:XrApiLayerNextInfo structure is also defined in
@@ -988,7 +988,7 @@ struct XrApiLayerNextInfo {
 During the `xrCreateInstance` call, the following happens:
 
 . The call enters the loader's trampoline function `xrCreateInstance`
-. The loader will generate an instance of the slink:XrApiLayerCreateInfo
+. The loader will generate an instance of the sname:XrApiLayerCreateInfo
   structure
 . The loader will go through each API layer in reverse order (i.e. starting with
   the layer closest to the runtime and ending with the API layer closest to
@@ -1015,19 +1015,19 @@ During the `xrCreateInstance` call, the following happens:
 . The loader will then update the `XrApiLayerCreateInfo.nextInfo` to point to the
   last created `XrApiLayerNextInfo` since this is the first API layer in the
   call-chain.
-. The loader calls the first API layer's flink:xrCreateApiLayerInstance command
-  passing in the pointer to the created slink:XrApiLayerCreateInfo
-. The API layer receives the information in its flink:xrCreateApiLayerInstance command.
-. The API layer copies the slink:XrApiLayerCreateInfo structure into it's own structure.
-. The API layer then updates it's version of the slink:XrApiLayerCreateInfo structure
-  setting pname:nextInfo to point to the slink:XrApiLayerNextInfo for the
+. The loader calls the first API layer's fname:xrCreateApiLayerInstance command
+  passing in the pointer to the created sname:XrApiLayerCreateInfo
+. The API layer receives the information in its fname:xrCreateApiLayerInstance command.
+. The API layer copies the sname:XrApiLayerCreateInfo structure into it's own structure.
+. The API layer then updates it's version of the sname:XrApiLayerCreateInfo structure
+  setting pname:nextInfo to point to the sname:XrApiLayerNextInfo for the
   next API layer (i.e. `XrApiLayerCreateInfo->nextInfo =
   XrApiLayerCreateInfo->nextInfo->next;`).
 . The API layer may validate that it is getting the correct next information by
   checking that the pname:layerName matches.
 . The API layer then uses the information out of its sname:XrApiLayerNextInfo to call
   down the call-chain to the next fname:xrCreateApiLayerInstance, using a
-  pointer to its slink:XrApiLayerCreateInfo structure instead of the one
+  pointer to its sname:XrApiLayerCreateInfo structure instead of the one
   that was passed in during its fname:xrCreateApiLayerInstance command.
 .. If the call passes, this API layer may choose to setup its own dispatch table to
    the next API layer's commands using the returned `XrInstance`, the next

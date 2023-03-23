@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Copyright 2013-2022 The Khronos Group Inc.
+# Copyright 2013-2023 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -108,7 +108,7 @@ def makeGenOpts(args):
     # Copyright text prefixing all headers (list of strings).
     prefixStrings = [
         '/*',
-        '** Copyright 2017-2022 The Khronos Group Inc.',
+        '** Copyright 2017-2023 The Khronos Group Inc.',
         '**',
         # The following split string is to avoid confusing the "REUSE" tool
         '** SPDX-License-Identifier' + ': Apache-2.0 OR MIT',

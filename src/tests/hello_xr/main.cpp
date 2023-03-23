@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2022, The Khronos Group Inc.
+// Copyright (c) 2017-2023, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -243,10 +243,7 @@ void android_main(struct android_app* app) {
         PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
         if (XR_SUCCEEDED(
                 xrGetInstanceProcAddr(XR_NULL_HANDLE, "xrInitializeLoaderKHR", (PFN_xrVoidFunction*)(&initializeLoader)))) {
-            XrLoaderInitInfoAndroidKHR loaderInitInfoAndroid;
-            memset(&loaderInitInfoAndroid, 0, sizeof(loaderInitInfoAndroid));
-            loaderInitInfoAndroid.type = XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR;
-            loaderInitInfoAndroid.next = NULL;
+            XrLoaderInitInfoAndroidKHR loaderInitInfoAndroid = {XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR};
             loaderInitInfoAndroid.applicationVM = app->activity->vm;
             loaderInitInfoAndroid.applicationContext = app->activity->clazz;
             initializeLoader((const XrLoaderInitInfoBaseHeaderKHR*)&loaderInitInfoAndroid);
