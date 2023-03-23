@@ -21,7 +21,8 @@ stages:
       - job: loader_docs
         pool:
           vmImage: "ubuntu-latest"
-        container: khronosgroup/docker-images:openxr.20230209.1
+        container: khronosgroup/docker-images:openxr.20230323
+        # container: khronosgroup/docker-images@sha256:091f1d988744f0b5149126d1f4bdba342b72c01dc90c2d06d4a61738bec5521c
         steps:
           - script: make loader
             workingDirectory: specification
@@ -34,7 +35,8 @@ stages:
       - job: archive
         pool:
           vmImage: "ubuntu-latest"
-        container: khronosgroup/docker-images:openxr.20230209.1
+        container: khronosgroup/docker-images:openxr.20230323
+        # container: khronosgroup/docker-images@sha256:091f1d988744f0b5149126d1f4bdba342b72c01dc90c2d06d4a61738bec5521c
         steps:
           - script: make loader
             workingDirectory: specification
@@ -62,7 +64,8 @@ stages:
               presentationBackend: wayland
         pool:
           vmImage: "ubuntu-latest"
-        container: khronosgroup/docker-images:openxr-sdk.20230209
+        container: khronosgroup/docker-images:openxr-pregenerated-sdk.20230323
+        # container: sha256:845e19e59f22c29fedc33dcaa4f3c5f8aa44e367283ef955c7549239cf9a46d2
         steps:
           - task: DownloadPipelineArtifact@2
             displayName: Download archived OpenXR-SDK
