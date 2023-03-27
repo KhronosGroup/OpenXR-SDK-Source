@@ -25,7 +25,7 @@ jobs:
       INSTALL_DIR: "${{ github.workspace }}/install"
     steps:
       - uses: actions/checkout@v3
-      - uses: lukka/get-cmake@v3.25.2
+      - uses: lukka/get-cmake@v3.26.0
       - name: Add msbuild to PATH
         uses: microsoft/setup-msbuild@v1.3
 
