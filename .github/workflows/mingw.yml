@@ -1,0 +1,32 @@
+name: mingw-build
+on: [push, pull_request]
+
+jobs:
+  mingw-build:
+    strategy:
+      fail-fast: false
+      matrix:
+        # See https://www.msys2.org/docs/environments/
+        msystem: [UCRT64, CLANG64]
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    name: mingw-build-${{ matrix.msystem }}
+    env:
+      # For SetThreadDpiAwarenessContext
+      CFLAGS: "-DWINVER=0x0A00"
+      CXXFLAGS: "-DWINVER=0x0A00"
+    steps:
+      - uses: actions/checkout@v3
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ matrix.msystem }}
+          update: true
+          pacboy: jsoncpp:p vulkan-loader:p cc:p cmake:p ninja:p python:p shaderc:p
+      - name: Generate
+        run: cmake -S . -DDYNAMIC_LOADER=ON -DBUILD_WITH_SYSTEM_JSONCPP=ON -B build-${{ matrix.msystem }}
+      - name: Build
+        run: cmake --build build-${{ matrix.msystem }}
+      - name: Install
+        run: cmake --build build-${{ matrix.msystem }} --target install
