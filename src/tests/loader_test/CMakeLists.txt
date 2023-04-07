@@ -23,7 +23,7 @@ add_executable(loader_test
 )
 openxr_add_filesystem_utils(loader_test)
 set_target_properties(loader_test PROPERTIES FOLDER ${TESTS_FOLDER})
-target_link_libraries(loader_test PRIVATE openxr_loader)
+target_link_libraries(loader_test PRIVATE openxr_loader XrApiLayer_core_validation)
 
 add_dependencies(loader_test
     generate_openxr_header
