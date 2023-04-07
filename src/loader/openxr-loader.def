@@ -7,7 +7,6 @@
 ;
 ;;;;  End Copyright Notice ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-LIBRARY
 EXPORTS
     xrCreateInstance
     xrDestroyInstance
