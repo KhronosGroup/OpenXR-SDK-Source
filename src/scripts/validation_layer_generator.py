@@ -1437,9 +1437,10 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                                                                                indent)
             if (param_member.is_handle or self.isEnumType(param_member.type) or
                     (self.isStruct(param_member.type) and not self.isStructAlwaysValid(param_member.type))):
-                loop_string += self.writeIndent(indent)
-                loop_string += 'if (%s) {\n' % (prefixed_param_member_name)
-                indent = indent + 1
+                if not param_member.is_static_array:
+                    loop_string += self.writeIndent(indent)
+                    loop_string += 'if (%s) {\n' % (prefixed_param_member_name)
+                    indent = indent + 1
                 loop_string += self.writeIndent(indent)
                 loop_string += 'for (uint32_t %s = 0; %s < %s; ++%s) {\n' % (loop_param_name,
                                                                              loop_param_name,
@@ -1841,12 +1842,14 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 param_member_contents += self.writeIndent(indent)
                 param_member_contents += '}\n'
         if is_loop:
-            indent = indent - 2
             if wrote_loop:
-                param_member_contents += self.writeIndent(indent + 1)
-                param_member_contents += '}\n'
+                indent = indent - 1
                 param_member_contents += self.writeIndent(indent)
                 param_member_contents += '}\n'
+                if not param_member.is_static_array:
+                    indent = indent - 1
+                    param_member_contents += self.writeIndent(indent)
+                    param_member_contents += '}\n'
 
         return param_member_contents
 
