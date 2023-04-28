@@ -4343,23 +4343,23 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <!-- commands for XR_KHR_vulkan_enable2 -->
         <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrCreateVulkanInstanceKHR</name></proto>
-            <param><type>XrInstance</type>                           <name>instance</name></param>
+            <param><type>XrInstance</type> <name>instance</name></param>
             <param>const <type>XrVulkanInstanceCreateInfoKHR</type>* <name>createInfo</name></param>
-            <param><type>VkInstance</type>*                          <name>vulkanInstance</name></param>
-            <param><type>VkResult</type>*                            <name>vulkanResult</name></param>
+            <param><type>VkInstance</type>* <name>vulkanInstance</name></param>
+            <param><type>VkResult</type>* <name>vulkanResult</name></param>
         </command>
         <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrCreateVulkanDeviceKHR</name></proto>
-            <param><type>XrInstance</type>                          <name>instance</name></param>
-            <param>const <type>XrVulkanDeviceCreateInfoKHR</type>*  <name>createInfo</name></param>
-            <param><type>VkDevice</type>*                           <name>vulkanDevice</name></param>
-            <param><type>VkResult</type>*                           <name>vulkanResult</name></param>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param>const <type>XrVulkanDeviceCreateInfoKHR</type>* <name>createInfo</name></param>
+            <param><type>VkDevice</type>* <name>vulkanDevice</name></param>
+            <param><type>VkResult</type>* <name>vulkanResult</name></param>
         </command>
         <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SYSTEM_INVALID">
             <proto><type>XrResult</type> <name>xrGetVulkanGraphicsDevice2KHR</name></proto>
-            <param><type>XrInstance</type>                              <name>instance</name></param>
+            <param><type>XrInstance</type> <name>instance</name></param>
             <param>const <type>XrVulkanGraphicsDeviceGetInfoKHR</type>* <name>getInfo</name></param>
-            <param><type>VkPhysicalDevice</type>*                       <name>vulkanPhysicalDevice</name></param>
+            <param><type>VkPhysicalDevice</type>* <name>vulkanPhysicalDevice</name></param>
         </command>
         <command name="xrGetVulkanGraphicsRequirements2KHR" alias="xrGetVulkanGraphicsRequirementsKHR"/>
 
