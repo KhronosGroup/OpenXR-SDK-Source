@@ -29,7 +29,7 @@
 
 #define BODY_CUBE_SIZE 0.02f
 
-#define ADD_GROUND 1
+#define ADD_GROUND 0
 
 #if USE_SDL_JOYSTICKS
 #include "SDL3/SDL.h"
