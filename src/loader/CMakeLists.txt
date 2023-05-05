@@ -75,6 +75,10 @@ add_library(openxr_loader ${LIBRARY_TYPE}
 if(BUILD_WITH_SYSTEM_JSONCPP)
     target_link_libraries(openxr_loader PRIVATE JsonCpp::JsonCpp)
 else()
+    if(NOT BUILD_LOADER_WITH_EXCEPTION_HANDLING)
+        target_compile_definitions(openxr_loader PRIVATE JSON_USE_EXCEPTION=0)
+    endif()
+
     target_sources(openxr_loader
         PRIVATE
         ${PROJECT_SOURCE_DIR}/src/external/jsoncpp/src/lib_json/json_reader.cpp
@@ -123,6 +127,16 @@ if(Vulkan_FOUND)
 endif()
 if(NOT BUILD_LOADER_WITH_EXCEPTION_HANDLING)
     target_compile_definitions(openxr_loader PRIVATE XRLOADER_DISABLE_EXCEPTION_HANDLING)
+
+# TODO: uncomment this once jnipp starts supporting -fno-exceptions
+#
+#    if(ANDROID AND (CMAKE_COMPILER_IS_GNUCC OR CMAKE_C_COMPILER_ID MATCHES "Clang"))
+#        target_compile_options(openxr_loader
+#            PRIVATE
+#                -fno-exceptions
+#        )
+#    endif()
+
 endif()
 
 target_link_libraries(
