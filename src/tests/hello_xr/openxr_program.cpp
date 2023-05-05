@@ -29,7 +29,7 @@
 
 #define BODY_CUBE_SIZE 0.02f
 
-#define ADD_GROUND 0
+#define ADD_GROUND 1
 
 #if USE_SDL_JOYSTICKS
 #include "SDL3/SDL.h"
@@ -2311,10 +2311,11 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
         }
 #endif
-
+        
 #if ADD_GROUND
         // Long, flat cube = ground
-        XrPosef xr_ground_pose;
+        XrPosef xr_ground_pose = {};
+        xr_ground_pose.orientation = { 0.0f, 0.0f, 0.0f, 1.0f };
         xr_ground_pose.position.y = -1.0f; // relative to head, todo : make it y = 0.0 and HMD pose is relative to ground instead, requires different tracking space
         cubes.push_back(Cube{ xr_ground_pose, {100.0f, 0.0001f, 100.0f} });
 #endif
