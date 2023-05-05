@@ -56,8 +56,10 @@ jobs:
 
       - name: Publish release to mavencentral
         if: inputs.release
-        run: |
-          cd ./maintainer-scripts/publish-aar && ./gradlew publishMavenPublicationToBuildDirRepository publishMavenPublicationToOSSRHRepository
+        uses: gradle/gradle-build-action@v2
+        with:
+          arguments: publishMavenPublicationToBuildDirRepository publishMavenPublicationToOSSRHRepository
+          build-root-directory: ./maintainer-scripts/publish-aar
         env:
           ORG_GRADLE_PROJECT_signingKey: ${{secrets.ORG_GRADLE_PROJECT_signingKey}}
           ORG_GRADLE_PROJECT_signingKeyId: ${{secrets.ORG_GRADLE_PROJECT_signingKeyId}}
