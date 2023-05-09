@@ -48,6 +48,14 @@
       android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
       android:exported="true"
       tools:ignore="NonResizeableActivity">
+      <!-- Required meta-data and inent category for Meta devices -->
+      <meta-data
+        android:name="com.oculus.supportedDevices"
+        android:value="quest|quest2|questpro" />
+      <category android:name="com.oculus.intent.category.VR" />
+      <!-- Required meta-data for Pico devices -->
+      <meta-data android:name="pvr.app.type"
+        android:value="vr" /> 
       <!-- Tell NativeActivity the name of the .so -->
       <meta-data
         android:name="android.app.lib_name"
