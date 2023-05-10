@@ -252,12 +252,12 @@ static int populateFunctions(wrap::android::content::Context const &context, boo
 // so we define helper macros here. This is fine for now since the only ocurrence of exception-handling code is in this file.
 #ifdef XRLOADER_DISABLE_EXCEPTION_HANDLING
 
-#define ANDROID_UTILITIESS_TRY
+#define ANDROID_UTILITIES_TRY
 #define ANDROID_UTILITIES_CATCH_FALLBACK(...)
 
 #else
 
-#define ANDROID_UTILITIESS_TRY try
+#define ANDROID_UTILITIES_TRY try
 #define ANDROID_UTILITIES_CATCH_FALLBACK(...) \
     catch(const std::exception& e) {          \
         __VA_ARGS__                           \
@@ -271,7 +271,7 @@ static bool getActiveRuntimeCursor(wrap::android::content::Context const &contex
     auto uri = active_runtime::makeContentUri(systemBroker, XR_VERSION_MAJOR(XR_CURRENT_API_VERSION), ABI);
     ALOGI("getActiveRuntimeCursor: Querying URI: %s", uri.toString().c_str());
 
-    ANDROID_UTILITIESS_TRY {
+    ANDROID_UTILITIES_TRY {
         cursor = context.getContentResolver().query(uri, projection);
     } ANDROID_UTILITIES_CATCH_FALLBACK(
         ALOGW("Exception when querying %s content resolver: %s", getBrokerTypeName(systemBroker), e.what());
