@@ -114,8 +114,7 @@
 #include <openxr/openxr_platform.h>
 #include <openxr/openxr_reflection.h>
 
-// OVR v47 SDK headers (found in $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Include)
-#include <openxr/ext_event_channel.h>
+// OVR SDK headers (found in $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Include)
 #include <openxr/fb_body_tracking.h>
 #include <openxr/fb_composition_layer_depth_test.h>
 #include <openxr/fb_eye_tracking_social.h>
