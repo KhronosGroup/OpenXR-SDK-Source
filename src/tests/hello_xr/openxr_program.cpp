@@ -2157,17 +2157,65 @@ struct OpenXrProgram : IOpenXrProgram
         }
 
 #if ADD_QUAD_LAYER
+
+        static int64_t quad_swapchain_format = 0;// GL_SRGB8_ALPHA8;// GL_RGBA8_EXT;
+		static uint32_t quad_pixel_width = 0;
+		static uint32_t quad_pixel_height = 0;
+		static uint32_t quad_swapchain_length = 0;
+		static std::vector<XrSwapchainImageOpenGLKHR> quad_images;
+		static XrSwapchain quad_swapchain{};
+
+        static bool initialized_swap = false;
+
+        if (!initialized_swap)
+		{
+			quad_pixel_width = 800;
+			quad_pixel_height = 600;
+
+			XrSwapchainCreateInfo swapchain_create_info;
+			swapchain_create_info.type = XR_TYPE_SWAPCHAIN_CREATE_INFO;
+			swapchain_create_info.usageFlags = XR_SWAPCHAIN_USAGE_SAMPLED_BIT | XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
+			swapchain_create_info.createFlags = 0;
+			swapchain_create_info.format = quad_swapchain_format;
+			swapchain_create_info.sampleCount = 1;
+			swapchain_create_info.width = quad_pixel_width;
+			swapchain_create_info.height = quad_pixel_height;
+			swapchain_create_info.faceCount = 1;
+			swapchain_create_info.arraySize = 1;
+			swapchain_create_info.mipCount = 1;
+			swapchain_create_info.next = NULL;
+
+			XrResult create_result = xrCreateSwapchain(m_session, &swapchain_create_info, &quad_swapchain);
+
+            if(create_result == XR_SUCCESS)
+            {
+				XrResult enumerate_result = xrEnumerateSwapchainImages(quad_swapchain, 0, &quad_swapchain_length, NULL);
+
+				quad_images.resize(quad_swapchain_length, { XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR , nullptr });
+
+				enumerate_result = xrEnumerateSwapchainImages(quad_swapchain, quad_swapchain_length,
+					&quad_swapchain_length, (XrSwapchainImageBaseHeader*)quad_images.data());
+            }
+
+            initialized_swap = true;
+		}
+
+
         {
+            
+			float aspect = (float)quad_pixel_width / (float)quad_pixel_height;
+			float quad_width = 1.0f;
+
             XrCompositionLayerQuad quad_layer{ XR_TYPE_COMPOSITION_LAYER_QUAD };
             quad_layer.next = nullptr;
-            quad_layer.layerFlags = 0;
-            quad_layer.space = nullptr;
+            quad_layer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+            quad_layer.space = m_appSpace;
             quad_layer.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
 
-            const Swapchain viewSwapchain = m_swapchains[0];
-            quad_layer.subImage.swapchain = viewSwapchain.handle;
+            quad_layer.subImage.swapchain = quad_swapchain;
             quad_layer.subImage.imageRect.offset = { 0, 0 };
-            quad_layer.subImage.imageRect.extent = { viewSwapchain.width, viewSwapchain.height };
+            quad_layer.subImage.imageRect.extent.width = quad_pixel_width;
+            quad_layer.subImage.imageRect.extent.height = quad_pixel_height;
 
             BVR::GLMPose glm_quad_pose{};
             glm_quad_pose.translation_.z = -1.0f;
@@ -2175,8 +2223,8 @@ struct OpenXrProgram : IOpenXrProgram
             const XrPosef quad_pose = BVR::convert_to_xr(glm_quad_pose);
 
             quad_layer.pose = quad_pose;
-            quad_layer.size.width = 100;
-            quad_layer.size.height = 100;
+            quad_layer.size.width = quad_width;
+            quad_layer.size.height = aspect;
 
 			XrCompositionLayerBaseHeader* quad_layer_header = reinterpret_cast<XrCompositionLayerBaseHeader*>(&quad_layer);
 			layers.push_back(quad_layer_header);
