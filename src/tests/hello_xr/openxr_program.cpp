@@ -30,6 +30,7 @@
 #define BODY_CUBE_SIZE 0.02f
 
 #define ADD_GROUND 1
+#define ADD_QUAD_LAYER 1
 
 #if USE_SDL_JOYSTICKS
 #include "SDL3/SDL.h"
@@ -2154,6 +2155,33 @@ struct OpenXrProgram : IOpenXrProgram
 			}
 #endif
         }
+
+#if ADD_QUAD_LAYER
+        {
+            XrCompositionLayerQuad quad_layer{ XR_TYPE_COMPOSITION_LAYER_QUAD };
+            quad_layer.next = nullptr;
+            quad_layer.layerFlags = 0;
+            quad_layer.space = nullptr;
+            quad_layer.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
+
+            const Swapchain viewSwapchain = m_swapchains[0];
+            quad_layer.subImage.swapchain = viewSwapchain.handle;
+            quad_layer.subImage.imageRect.offset = { 0, 0 };
+            quad_layer.subImage.imageRect.extent = { viewSwapchain.width, viewSwapchain.height };
+
+            BVR::GLMPose glm_quad_pose{};
+            glm_quad_pose.translation_.z = -1.0f;
+
+            const XrPosef quad_pose = BVR::convert_to_xr(glm_quad_pose);
+
+            quad_layer.pose = quad_pose;
+            quad_layer.size.width = 100;
+            quad_layer.size.height = 100;
+
+			XrCompositionLayerBaseHeader* quad_layer_header = reinterpret_cast<XrCompositionLayerBaseHeader*>(&quad_layer);
+			layers.push_back(quad_layer_header);
+        }
+#endif
 
         XrFrameEndInfo frameEndInfo{XR_TYPE_FRAME_END_INFO};
         frameEndInfo.displayTime = frameState.predictedDisplayTime;
