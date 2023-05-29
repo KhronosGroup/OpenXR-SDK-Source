@@ -2698,7 +2698,6 @@ struct OpenXrProgram : IOpenXrProgram
 		// For each locatable space that we want to visualize, render a 25cm cube.
 		std::vector<Cube> cubes;
 
-#if ADD_EXTRA_CUBES
 		const int num_cubes_x = 1;
 		const int num_cubes_y = 200;
 		const int num_cubes_z = 1;
@@ -2707,17 +2706,10 @@ struct OpenXrProgram : IOpenXrProgram
 		const float offset_y = (float)(num_cubes_y - 1) * 0.5f;
 		const float offset_z = 1.0f;
 
-#if defined(WIN32)
-		const int hand_for_cube_scale = Side::LEFT;
-#else
-		const int hand_for_cube_scale = Side::RIGHT;
-#endif
-
 		XrPosef cube_pose;
 		cube_pose.orientation = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-		float hand_scale = 0.1f * m_input.handScale[hand_for_cube_scale];
-		XrVector3f scale_vec{ hand_scale, hand_scale, hand_scale };
+		XrVector3f scale_vec{ 0.1f, 0.1f, 0.1f };
 
 		for(int cube_z_index = 0; cube_z_index < num_cubes_z; cube_z_index++)
 		{
@@ -2737,7 +2729,6 @@ struct OpenXrProgram : IOpenXrProgram
 				}
 			}
 		}
-#endif
 
 		XrSwapchainImageAcquireInfo acquireInfo{ XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO };
 
