@@ -33,6 +33,8 @@ void ShowHelp() {
 bool UpdateOptionsFromSystemProperties(Options& options) {
 #if defined(DEFAULT_GRAPHICS_PLUGIN_OPENGLES)
     options.GraphicsPlugin = "OpenGLES";
+#elif defined(DEFAULT_GRAPHICS_PLUGIN_OPENGL)
+	options.GraphicsPlugin = "OpenGL";
 #elif defined(DEFAULT_GRAPHICS_PLUGIN_VULKAN)
     options.GraphicsPlugin = "Vulkan";
 #endif
