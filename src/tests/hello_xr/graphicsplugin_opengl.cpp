@@ -342,7 +342,6 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
 		XrMatrix4x4f_InvertRigidBody(&view, &toView);
 
 		XrMatrix4x4f vp = view;
-		//XrMatrix4x4f_Multiply(&vp, &proj, &view);
 
 		// Set cube primitive data.
 		glBindVertexArray(m_vao);

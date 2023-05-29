@@ -1611,14 +1611,75 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 	}
 
     void RenderQuadLayer(const XrCompositionLayerQuad& layer, const XrSwapchainImageBaseHeader* swapchainImage,
-        int64_t swapchainFormat, const std::vector<Cube>& cubes) override
+        int64_t /*swapchainFormat*/, const std::vector<Cube>& cubes) override
     {
-		(void)layer;
-		(void)swapchainImage;
-		(void)swapchainFormat;
-		(void)cubes;
-    }
+		CHECK(layer.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
 
+		auto swapchainContext = m_swapchainQuadLayerImageContextMap[swapchainImage];
+		uint32_t imageIndex = swapchainContext->ImageIndex(swapchainImage);
+
+		// XXX Should double-buffer the command buffers, for now just flush
+		m_cmdBuffer.Wait();
+		m_cmdBuffer.Reset();
+		m_cmdBuffer.Begin();
+
+		// Ensure depth is in the right layout
+		swapchainContext->depthBuffer.TransitionLayout(&m_cmdBuffer, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+		// Bind and clear eye render target
+		static std::array<VkClearValue, 2> clearValues;
+		clearValues[0].color.float32[0] = m_clearColor[0];
+		clearValues[0].color.float32[1] = m_clearColor[1];
+		clearValues[0].color.float32[2] = m_clearColor[2];
+		clearValues[0].color.float32[3] = m_clearColor[3];
+		clearValues[1].depthStencil.depth = 1.0f;
+		clearValues[1].depthStencil.stencil = 0;
+
+		VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+		renderPassBeginInfo.clearValueCount = (uint32_t)clearValues.size();
+		renderPassBeginInfo.pClearValues = clearValues.data();
+
+		swapchainContext->BindRenderTarget(imageIndex, &renderPassBeginInfo);
+
+		vkCmdBeginRenderPass(m_cmdBuffer.buf, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		vkCmdBindPipeline(m_cmdBuffer.buf, VK_PIPELINE_BIND_POINT_GRAPHICS, swapchainContext->pipe.pipe);
+
+		// Bind index and vertex buffers
+		vkCmdBindIndexBuffer(m_cmdBuffer.buf, m_drawBuffer.idxBuf, 0, VK_INDEX_TYPE_UINT16);
+		VkDeviceSize offset = 0;
+		vkCmdBindVertexBuffers(m_cmdBuffer.buf, 0, 1, &m_drawBuffer.vtxBuf, &offset);
+
+		const XrPosef& pose = layer.pose;
+
+		XrMatrix4x4f toView;
+		XrVector3f scale{ 1.f, 1.f, 1.f };
+		XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose.position, &pose.orientation, &scale);
+
+		XrMatrix4x4f view;
+		XrMatrix4x4f_InvertRigidBody(&view, &toView);
+
+		XrMatrix4x4f vp = view;
+
+		// Render each cube
+		for(const Cube& cube : cubes)
+		{
+			// Compute the model-view-projection transform and push it.
+			XrMatrix4x4f model;
+			XrMatrix4x4f_CreateTranslationRotationScale(&model, &cube.Pose.position, &cube.Pose.orientation, &cube.Scale);
+			XrMatrix4x4f mvp;
+			XrMatrix4x4f_Multiply(&mvp, &vp, &model);
+			vkCmdPushConstants(m_cmdBuffer.buf, m_pipelineLayout.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp.m), &mvp.m[0]);
+
+			// Draw the cube.
+			vkCmdDrawIndexed(m_cmdBuffer.buf, m_drawBuffer.count.idx, 1, 0, 0, 0);
+		}
+
+		vkCmdEndRenderPass(m_cmdBuffer.buf);
+
+		m_cmdBuffer.End();
+		m_cmdBuffer.Exec(m_vkQueue);
+    }
 #endif
 
 
@@ -1645,6 +1706,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         clearValues[0].color.float32[3] = m_clearColor[3];
         clearValues[1].depthStencil.depth = 1.0f;
         clearValues[1].depthStencil.stencil = 0;
+
         VkRenderPassBeginInfo renderPassBeginInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
         renderPassBeginInfo.clearValueCount = (uint32_t)clearValues.size();
         renderPassBeginInfo.pClearValues = clearValues.data();
