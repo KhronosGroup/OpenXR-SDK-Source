@@ -1590,6 +1590,28 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         return bases;
     }
 
+#if ENABLE_QUAD_LAYER
+	std::vector<XrSwapchainImageBaseHeader*> AllocateSwapchainQuadLayerImageStructs(
+		uint32_t capacity, const XrSwapchainCreateInfo& swapchainCreateInfo) override {
+		// Allocate and initialize the buffer of image structs (must be sequential in memory for xrEnumerateSwapchainImages).
+		// Return back an array of pointers to each swapchain image struct so the consumer doesn't need to know the type/size.
+		// Keep the buffer alive by adding it into the list of buffers.
+		m_swapchainQuadLayerImageContexts.emplace_back(GetSwapchainImageType());
+		SwapchainImageContext& swapchainImageContext = m_swapchainQuadLayerImageContexts.back();
+
+		std::vector<XrSwapchainImageBaseHeader*> bases = swapchainImageContext.Create(
+			m_namer, m_vkDevice, &m_memAllocator, capacity, swapchainCreateInfo, m_pipelineLayout, m_shaderProgram, m_drawBuffer);
+
+		// Map every swapchainImage base pointer to this context
+		for(auto& base : bases) {
+			m_swapchainQuadLayerImageContextMap[base] = &swapchainImageContext;
+		}
+
+		return bases;
+	}
+#endif
+
+
     void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
                     int64_t /*swapchainFormat*/, const std::vector<Cube>& cubes) override {
         CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
@@ -1706,6 +1728,11 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
     XrGraphicsBindingVulkan2KHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
     std::list<SwapchainImageContext> m_swapchainImageContexts;
     std::map<const XrSwapchainImageBaseHeader*, SwapchainImageContext*> m_swapchainImageContextMap;
+
+#if ENABLE_QUAD_LAYER
+	std::list<SwapchainImageContext> m_swapchainQuadLayerImageContexts;
+	std::map<const XrSwapchainImageBaseHeader*, SwapchainImageContext*> m_swapchainQuadLayerImageContextMap;
+#endif
 
     VkInstance m_vkInstance{VK_NULL_HANDLE};
     VkPhysicalDevice m_vkPhysicalDevice{VK_NULL_HANDLE};

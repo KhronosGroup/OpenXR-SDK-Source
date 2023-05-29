@@ -30,6 +30,11 @@ struct IGraphicsPlugin {
     virtual std::vector<XrSwapchainImageBaseHeader*> AllocateSwapchainImageStructs(
         uint32_t capacity, const XrSwapchainCreateInfo& swapchainCreateInfo) = 0;
 
+#if ENABLE_QUAD_LAYER
+    virtual std::vector<XrSwapchainImageBaseHeader*> AllocateSwapchainQuadLayerImageStructs(
+        uint32_t capacity, const XrSwapchainCreateInfo& /*swapchainCreateInfo*/) = 0;
+#endif
+
     // Render to a swapchain image for a projection view.
     virtual void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
                             int64_t swapchainFormat, const std::vector<Cube>& cubes) = 0;

@@ -4,48 +4,6 @@
 
 #pragma once
 
-#define SUPPORT_SCREENSHOTS 0
-
-#ifdef XR_USE_PLATFORM_ANDROID
-#define PLATFORM_ANDROID 1
-#define PLATFORM_PC 0
-#else
-#define PLATFORM_ANDROID 0
-#define PLATFORM_PC 1
-#endif
-
-#define ENABLE_OPENXR_FB_REFRESH_RATE 0
-#define DEFAULT_REFRESH_RATE 90.0f
-#define DESIRED_REFRESH_RATE 90.0f
-
-#define ENABLE_OPENXR_FB_RENDER_MODEL 0
-
-#define ENABLE_OPENXR_FB_SHARPENING (PLATFORM_ANDROID && 1) // Only works on standalone Android builds, not PC / Link
-#define TOGGLE_SHARPENING_AT_RUNTIME_USING_RIGHT_GRIP (ENABLE_OPENXR_FB_SHARPENING && 1) // for debugging / comparison
-#define ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS ENABLE_OPENXR_FB_SHARPENING
-
-#define ENABLE_OPENXR_FB_LOCAL_DIMMING (PLATFORM_ANDROID && 0)
-
-#define ENABLE_OPENXR_HAND_TRACKING 0
-#define ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL (PLATFORM_PC && 0) // eye-tracking only enabled on PC for now (needs permissions on Android, requires java calls. TODO)
-#define DRAW_LOCAL_EYE_LASERS (ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL && 1)
-#define DRAW_WORLD_EYE_LASERS (ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL && USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION && 1)
-
-#define ENABLE_OPENXR_META_FOVEATION_EYE_TRACKED (PLATFORM_PC && 0)
-#define ENABLE_OPENXR_FB_FACE_TRACKING 0
-#define ENABLE_OPENXR_FB_BODY_TRACKING 0
-
-#define USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION (ENABLE_OPENXR_FB_BODY_TRACKING && USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION && 1)
-#define DRAW_LOCAL_BODY_JOINTS (ENABLE_OPENXR_FB_BODY_TRACKING && 1)
-#define DRAW_WORLD_BODY_JOINTS (ENABLE_OPENXR_FB_BODY_TRACKING && USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION && 1)
-
-#define USE_DUAL_LAYERS 0
-
-#define LOG_EYE_TRACKING_DATA (ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL && 0)
-#define LOG_BODY_TRACKING_DATA (ENABLE_OPENXR_FB_BODY_TRACKING && 0)
-
-#define USE_SDL_JOYSTICKS 0
-
 struct IOpenXrProgram 
 {
     virtual ~IOpenXrProgram() = default;
@@ -123,6 +81,28 @@ struct Swapchain {
     int32_t width;
     int32_t height;
 };
+
+
+#if ENABLE_QUAD_LAYER
+struct QuadLayer {
+
+	XrCompositionLayerQuad xr_quad_layer_{ XR_TYPE_COMPOSITION_LAYER_QUAD };
+	XrCompositionLayerBaseHeader* header_ = {};
+
+	uint32_t width_ = 0;
+	uint32_t height_ = 0;
+	int64_t format_ = -1;
+
+	XrSwapchain quad_swapchain_{};
+	std::vector<XrSwapchainImageBaseHeader*> quad_images_;
+
+	bool initialized_ = false;
+
+    bool init(const uint32_t width, const uint32_t height, const int64_t format, std::shared_ptr<IGraphicsPlugin> plugin, XrSession session, XrSpace space);
+    void shutdown();
+};
+#endif
+
 
 std::shared_ptr<IOpenXrProgram> CreateOpenXrProgram(const std::shared_ptr<Options>& options,
                                                     const std::shared_ptr<IPlatformPlugin>& platformPlugin,

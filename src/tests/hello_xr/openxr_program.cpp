@@ -14,23 +14,6 @@
 #include <cmath>
 #include <set>
 
-#define ADD_GRIP_POSE 1
-#define DRAW_GRIP_POSE (ADD_GRIP_POSE && !ENABLE_OPENXR_FB_BODY_TRACKING && 1)
-
-#define ADD_AIM_POSE 1
-#define DRAW_AIM_POSE (ADD_AIM_POSE && !ENABLE_OPENXR_FB_BODY_TRACKING && 1)
-
-#define ADD_EXTRA_CUBES 1
-#define TAKE_SCREENSHOT_WITH_LEFT_GRAB (SUPPORT_SCREENSHOTS && 0)
-#define ENABLE_LOCAL_DIMMING_WITH_RIGHT_GRAB (ENABLE_OPENXR_FB_LOCAL_DIMMING && 0)
-#define LOG_IPD 0
-#define LOG_FOV 0
-#define LOG_MATRICES 0
-
-#define BODY_CUBE_SIZE 0.02f
-
-#define ADD_GROUND 1
-#define ADD_QUAD_LAYER 0
 
 #if USE_SDL_JOYSTICKS
 #include "SDL3/SDL.h"
@@ -387,6 +370,11 @@ struct OpenXrProgram : IOpenXrProgram
 			xrDestroySwapchain(swapchain.handle);
 		}
 #endif
+
+#if ENABLE_QUAD_LAYER
+        quad_layer_.shutdown();
+#endif
+
 
         for (XrSpace visualizedSpace : m_visualizedSpaces) 
         {
@@ -1267,6 +1255,14 @@ struct OpenXrProgram : IOpenXrProgram
 
 #if USE_DUAL_LAYERS
         CreateSecondSwapchains();
+#endif
+
+#if ENABLE_QUAD_LAYER
+		const uint32_t width = 1024;
+		const uint32_t height = 1024;
+		const int64_t format = m_colorSwapchainFormat;
+		const bool init_ok = quad_layer_.init(width, height, format, m_graphicsPlugin, m_session, m_appSpace);
+        assert(init_ok);
 #endif
     }
 
@@ -2156,79 +2152,11 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
         }
 
-#if ADD_QUAD_LAYER
-
-        static int64_t quad_swapchain_format = 0;// GL_SRGB8_ALPHA8;// GL_RGBA8_EXT;
-		static uint32_t quad_pixel_width = 0;
-		static uint32_t quad_pixel_height = 0;
-		static uint32_t quad_swapchain_length = 0;
-		static std::vector<XrSwapchainImageOpenGLKHR> quad_images;
-		static XrSwapchain quad_swapchain{};
-
-        static bool initialized_swap = false;
-
-        if (!initialized_swap)
-		{
-			quad_pixel_width = 800;
-			quad_pixel_height = 600;
-
-			XrSwapchainCreateInfo swapchain_create_info;
-			swapchain_create_info.type = XR_TYPE_SWAPCHAIN_CREATE_INFO;
-			swapchain_create_info.usageFlags = XR_SWAPCHAIN_USAGE_SAMPLED_BIT | XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
-			swapchain_create_info.createFlags = 0;
-			swapchain_create_info.format = quad_swapchain_format;
-			swapchain_create_info.sampleCount = 1;
-			swapchain_create_info.width = quad_pixel_width;
-			swapchain_create_info.height = quad_pixel_height;
-			swapchain_create_info.faceCount = 1;
-			swapchain_create_info.arraySize = 1;
-			swapchain_create_info.mipCount = 1;
-			swapchain_create_info.next = NULL;
-
-			XrResult create_result = xrCreateSwapchain(m_session, &swapchain_create_info, &quad_swapchain);
-
-            if(create_result == XR_SUCCESS)
-            {
-				XrResult enumerate_result = xrEnumerateSwapchainImages(quad_swapchain, 0, &quad_swapchain_length, NULL);
-
-				quad_images.resize(quad_swapchain_length, { XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR , nullptr });
-
-				enumerate_result = xrEnumerateSwapchainImages(quad_swapchain, quad_swapchain_length,
-					&quad_swapchain_length, (XrSwapchainImageBaseHeader*)quad_images.data());
-            }
-
-            initialized_swap = true;
-		}
-
-
+#if ENABLE_QUAD_LAYER
+		if(enable_quad_layer_ && quad_layer_.initialized_) 
         {
-            
-			float aspect = (float)quad_pixel_width / (float)quad_pixel_height;
-			float quad_width = 1.0f;
-
-            XrCompositionLayerQuad quad_layer{ XR_TYPE_COMPOSITION_LAYER_QUAD };
-            quad_layer.next = nullptr;
-            quad_layer.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
-            quad_layer.space = m_appSpace;
-            quad_layer.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
-
-            quad_layer.subImage.swapchain = quad_swapchain;
-            quad_layer.subImage.imageRect.offset = { 0, 0 };
-            quad_layer.subImage.imageRect.extent.width = quad_pixel_width;
-            quad_layer.subImage.imageRect.extent.height = quad_pixel_height;
-
-            BVR::GLMPose glm_quad_pose{};
-            glm_quad_pose.translation_.z = -1.0f;
-
-            const XrPosef quad_pose = BVR::convert_to_xr(glm_quad_pose);
-
-            quad_layer.pose = quad_pose;
-            quad_layer.size.width = quad_width;
-            quad_layer.size.height = aspect;
-
-			XrCompositionLayerBaseHeader* quad_layer_header = reinterpret_cast<XrCompositionLayerBaseHeader*>(&quad_layer);
-			layers.push_back(quad_layer_header);
-        }
+            layers.push_back(quad_layer_.header_);
+		}
 #endif
 
         XrFrameEndInfo frameEndInfo{XR_TYPE_FRAME_END_INFO};
@@ -2783,6 +2711,11 @@ struct OpenXrProgram : IOpenXrProgram
 	std::map<XrSwapchain, std::vector<XrSwapchainImageBaseHeader*>> m_second_swapchainImages;
 #endif
 
+#if ENABLE_QUAD_LAYER
+	bool enable_quad_layer_ = true;
+	QuadLayer quad_layer_;
+#endif
+
     std::vector<XrSpace> m_visualizedSpaces;
 
     // Application's current lifecycle state according to the runtime
@@ -2794,10 +2727,117 @@ struct OpenXrProgram : IOpenXrProgram
 
     const std::set<XrEnvironmentBlendMode> m_acceptableBlendModes;
 };
+
 }  // namespace
+
+
+#if ENABLE_QUAD_LAYER
+bool QuadLayer::init(const uint32_t width, const uint32_t height, const int64_t format, std::shared_ptr<IGraphicsPlugin> plugin, XrSession session, XrSpace space)
+{
+	if(initialized_)
+	{
+		return true;
+	}
+
+	if((width < 1) || (height < 1) || (format <= 0))
+	{
+		return false;
+	}
+
+	width_ = width;
+	height_ = height;
+	format_ = format;
+
+	XrSwapchainCreateInfo swapchain_create_info{};
+	swapchain_create_info.type = XR_TYPE_SWAPCHAIN_CREATE_INFO;
+	swapchain_create_info.usageFlags = XR_SWAPCHAIN_USAGE_SAMPLED_BIT | XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT;
+	swapchain_create_info.createFlags = 0;
+	swapchain_create_info.format = format_;
+	swapchain_create_info.sampleCount = 1;
+	swapchain_create_info.width = width_;
+	swapchain_create_info.height = height_;
+	swapchain_create_info.faceCount = 1;
+	swapchain_create_info.arraySize = 1;
+	swapchain_create_info.mipCount = 1;
+	swapchain_create_info.next = NULL;
+
+	XrResult create_result = xrCreateSwapchain(session, &swapchain_create_info, &quad_swapchain_);
+	assert(create_result == XR_SUCCESS);
+
+	if(create_result != XR_SUCCESS) 
+    {
+		return false;
+	}
+
+	uint32_t image_count = 0;
+	XrResult enumerate_result = xrEnumerateSwapchainImages(quad_swapchain_, 0, &image_count, nullptr);
+
+	assert(enumerate_result == XR_SUCCESS);
+
+	if(enumerate_result != XR_SUCCESS)
+	{
+		return false;
+	}
+
+	quad_images_ = plugin->AllocateSwapchainQuadLayerImageStructs(image_count, swapchain_create_info);
+
+	enumerate_result = xrEnumerateSwapchainImages(quad_swapchain_, image_count, &image_count, quad_images_[0]);
+
+	assert(enumerate_result == XR_SUCCESS);
+
+	if(enumerate_result != XR_SUCCESS)
+	{
+		return false;
+	}
+
+	xr_quad_layer_.next = nullptr;
+	xr_quad_layer_.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+	xr_quad_layer_.space = space;
+	xr_quad_layer_.eyeVisibility = XR_EYE_VISIBILITY_BOTH;
+	xr_quad_layer_.subImage.swapchain = quad_swapchain_;
+	xr_quad_layer_.subImage.imageRect.offset = { 0, 0 };
+	xr_quad_layer_.subImage.imageRect.extent = { (int)width_, (int)height_ };
+
+	XrPosef xr_quad_pose{};
+    xr_quad_pose.position = { 0.0f, 0.0f, -1.0f };
+    xr_quad_pose.orientation = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+	xr_quad_layer_.pose = xr_quad_pose;
+
+	float aspect_ratio = (float)width_ / (float)height_;
+
+	float worldspace_width = 1.0f;
+	float worldspace_height = aspect_ratio;
+
+	xr_quad_layer_.size.width = worldspace_width;
+	xr_quad_layer_.size.height = worldspace_height;
+
+	header_ = reinterpret_cast<XrCompositionLayerBaseHeader*>(&xr_quad_layer_);
+
+	initialized_ = (enumerate_result == XR_SUCCESS);
+
+	assert(initialized_);
+
+	return initialized_;
+}
+
+void QuadLayer::shutdown()
+{
+	if(!initialized_)
+	{
+		return;
+	}
+
+	xrDestroySwapchain(quad_swapchain_);
+	quad_swapchain_ = nullptr;
+	initialized_ = false;
+}
+
+#endif
 
 std::shared_ptr<IOpenXrProgram> CreateOpenXrProgram(const std::shared_ptr<Options>& options,
                                                     const std::shared_ptr<IPlatformPlugin>& platformPlugin,
-                                                    const std::shared_ptr<IGraphicsPlugin>& graphicsPlugin) {
+                                                    const std::shared_ptr<IGraphicsPlugin>& graphicsPlugin) 
+{
     return std::make_shared<OpenXrProgram>(options, platformPlugin, graphicsPlugin);
 }
