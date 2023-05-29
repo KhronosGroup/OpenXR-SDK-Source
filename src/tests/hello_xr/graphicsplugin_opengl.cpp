@@ -298,6 +298,75 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
 
 		return swapchainImageBase;
 	}
+
+	void RenderQuadLayer(const XrCompositionLayerQuad& layer, const XrSwapchainImageBaseHeader* swapchainImage,
+		int64_t swapchainFormat, const std::vector<Cube>& cubes) override
+	{
+		CHECK(layer.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
+		UNUSED_PARM(swapchainFormat);                    // Not used in this function for now.
+
+		glBindFramebuffer(GL_FRAMEBUFFER, m_swapchainFramebuffer);
+
+		const uint32_t colorTexture = reinterpret_cast<const XrSwapchainImageOpenGLKHR*>(swapchainImage)->image;
+
+		glViewport(static_cast<GLint>(layer.subImage.imageRect.offset.x),
+			static_cast<GLint>(layer.subImage.imageRect.offset.y),
+			static_cast<GLsizei>(layer.subImage.imageRect.extent.width),
+			static_cast<GLsizei>(layer.subImage.imageRect.extent.height));
+
+		glFrontFace(GL_CW);
+		glCullFace(GL_BACK);
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_DEPTH_TEST);
+
+		const uint32_t depthTexture = GetDepthTexture(colorTexture);
+
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
+
+		// Clear swapchain and depth buffer.
+		glClearColor(m_clearColor[0], m_clearColor[1], m_clearColor[2], m_clearColor[3]);
+		glClearDepth(1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+		// Set shaders and uniform variables.
+		glUseProgram(m_program);
+
+		const XrPosef& pose = layer.pose;
+
+		XrMatrix4x4f toView;
+		XrVector3f scale{ 1.f, 1.f, 1.f };
+		XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose.position, &pose.orientation, &scale);
+
+		XrMatrix4x4f view;
+		XrMatrix4x4f_InvertRigidBody(&view, &toView);
+
+		XrMatrix4x4f vp = view;
+		//XrMatrix4x4f_Multiply(&vp, &proj, &view);
+
+		// Set cube primitive data.
+		glBindVertexArray(m_vao);
+
+		// Render each cube
+		for(const Cube& cube : cubes)
+		{
+			// Compute the model-view-projection transform and set it..
+			XrMatrix4x4f model;
+			XrMatrix4x4f_CreateTranslationRotationScale(&model, &cube.Pose.position, &cube.Pose.orientation, &cube.Scale);
+
+			XrMatrix4x4f mvp;
+			XrMatrix4x4f_Multiply(&mvp, &vp, &model);
+			glUniformMatrix4fv(m_modelViewProjectionUniformLocation, 1, GL_FALSE, reinterpret_cast<const GLfloat*>(&mvp));
+
+			// Draw the cube.
+			glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(ArraySize(Geometry::c_cubeIndices)), GL_UNSIGNED_SHORT, nullptr);
+		}
+
+		glBindVertexArray(0);
+		glUseProgram(0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
+
 #endif
 
     uint32_t GetDepthTexture(uint32_t colorTexture) 

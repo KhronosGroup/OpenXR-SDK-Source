@@ -1258,8 +1258,8 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if ENABLE_QUAD_LAYER
-		const uint32_t width = 1024;
-		const uint32_t height = 1024;
+		const uint32_t width = 512;
+		const uint32_t height = 512;
 		const int64_t format = m_colorSwapchainFormat;
 		const bool init_ok = quad_layer_.init(width, height, format, m_graphicsPlugin, m_session, m_appSpace);
         assert(init_ok);
@@ -2153,9 +2153,12 @@ struct OpenXrProgram : IOpenXrProgram
         }
 
 #if ENABLE_QUAD_LAYER
-		if(enable_quad_layer_ && quad_layer_.initialized_) 
+		if(enable_quad_layer_ && quad_layer_.initialized_)
         {
-            layers.push_back(quad_layer_.header_);
+            if(RenderQuadLayer(quad_layer_))
+            {
+                layers.push_back(quad_layer_.header_);
+            }
 		}
 #endif
 
@@ -2689,6 +2692,72 @@ struct OpenXrProgram : IOpenXrProgram
 	}
 #endif
 
+#if ENABLE_QUAD_LAYER
+	bool RenderQuadLayer(QuadLayer& quad_layer)
+	{
+		// For each locatable space that we want to visualize, render a 25cm cube.
+		std::vector<Cube> cubes;
+
+#if ADD_EXTRA_CUBES
+		const int num_cubes_x = 1;
+		const int num_cubes_y = 200;
+		const int num_cubes_z = 1;
+
+		const float offset_x = (float)(num_cubes_x - 1) * 0.5f;
+		const float offset_y = (float)(num_cubes_y - 1) * 0.5f;
+		const float offset_z = 1.0f;
+
+#if defined(WIN32)
+		const int hand_for_cube_scale = Side::LEFT;
+#else
+		const int hand_for_cube_scale = Side::RIGHT;
+#endif
+
+		XrPosef cube_pose;
+		cube_pose.orientation = { 0.0f, 0.0f, 0.0f, 1.0f };
+
+		float hand_scale = 0.1f * m_input.handScale[hand_for_cube_scale];
+		XrVector3f scale_vec{ hand_scale, hand_scale, hand_scale };
+
+		for(int cube_z_index = 0; cube_z_index < num_cubes_z; cube_z_index++)
+		{
+			for(int cube_y_index = 0; cube_y_index < num_cubes_y; cube_y_index++)
+			{
+				for(int cube_x_index = 0; cube_x_index < num_cubes_x; cube_x_index++)
+				{
+					cube_pose.position =
+					{
+						(float)cube_x_index - offset_x,
+						(float)cube_y_index - offset_y,
+						-(float)cube_z_index - offset_z
+					};
+
+					Cube cube{ cube_pose, scale_vec };
+					cubes.push_back(cube);
+				}
+			}
+		}
+#endif
+
+		XrSwapchainImageAcquireInfo acquireInfo{ XR_TYPE_SWAPCHAIN_IMAGE_ACQUIRE_INFO };
+
+		uint32_t swapchainImageIndex = 0;
+		CHECK_XRCMD(xrAcquireSwapchainImage(quad_layer.quad_swapchain_, &acquireInfo, &swapchainImageIndex));
+
+		XrSwapchainImageWaitInfo waitInfo{ XR_TYPE_SWAPCHAIN_IMAGE_WAIT_INFO };
+		waitInfo.timeout = XR_INFINITE_DURATION;
+		CHECK_XRCMD(xrWaitSwapchainImage(quad_layer.quad_swapchain_, &waitInfo));
+
+		const XrSwapchainImageBaseHeader* const swapchainImage = quad_layer.quad_images_[swapchainImageIndex];
+
+		m_graphicsPlugin->RenderQuadLayer(quad_layer.xr_quad_layer_, swapchainImage, m_colorSwapchainFormat, cubes);
+
+		XrSwapchainImageReleaseInfo releaseInfo{ XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO };
+		CHECK_XRCMD(xrReleaseSwapchainImage(quad_layer.quad_swapchain_, &releaseInfo));
+
+		return true;
+	}
+#endif
 
    private:
     const std::shared_ptr<const Options> m_options;

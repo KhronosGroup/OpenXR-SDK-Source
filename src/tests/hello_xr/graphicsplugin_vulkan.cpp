@@ -1609,6 +1609,16 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 
 		return bases;
 	}
+
+    void RenderQuadLayer(const XrCompositionLayerQuad& layer, const XrSwapchainImageBaseHeader* swapchainImage,
+        int64_t swapchainFormat, const std::vector<Cube>& cubes) override
+    {
+		(void)layer;
+		(void)swapchainImage;
+		(void)swapchainFormat;
+		(void)cubes;
+    }
+
 #endif
 
 

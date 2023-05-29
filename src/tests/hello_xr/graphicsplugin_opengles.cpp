@@ -316,6 +316,11 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
 
 		return swapchainImageBase;
 	}
+
+	void RenderQuadLayer(const XrCompositionLayerQuad& layer, const XrSwapchainImageBaseHeader* swapchainImage,
+		int64_t swapchainFormat, const std::vector<Cube>& cubes) override
+	{
+	}
 #endif
 
     uint32_t GetDepthTexture(uint32_t colorTexture) {

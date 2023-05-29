@@ -170,6 +170,15 @@ struct D3D11GraphicsPlugin : public IGraphicsPlugin {
 
 		return swapchainImageBase;
 	}
+
+	void RenderQuadLayer(const XrCompositionLayerQuad& layer, const XrSwapchainImageBaseHeader* swapchainImage,
+		int64_t swapchainFormat, const std::vector<Cube>& cubes) override
+	{
+        (void)layer;
+        (void)swapchainImage;
+        (void)swapchainFormat;
+        (void)cubes;
+	}
 #endif
 
     ComPtr<ID3D11DepthStencilView> GetDepthStencilView(ID3D11Texture2D* colorTexture) {
