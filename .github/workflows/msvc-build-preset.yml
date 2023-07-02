@@ -38,7 +38,6 @@ jobs:
       - name: Generate build system
         shell: pwsh
         run: |
-          Copy-Item .github/scripts/CMakePresets.json .
           cmake --fresh --preset ${{ inputs.preset }} -S . -B $env:RUNNER_TEMP
       - name: Build
         run: cmake --build $env:RUNNER_TEMP --parallel --clean-first --config ${{ inputs.buildType }}
