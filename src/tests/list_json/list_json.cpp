@@ -38,8 +38,9 @@
 #endif  // defined(XR_USE_PLATFORM_ANDROID)
 
 // The equivalent of C++17 std::size. A helper to get the dimension for an array.
-template <typename T, size_t Size>
-constexpr size_t ArraySize(const T (&/*unused*/)[Size]) noexcept {
+template <typename T, std::size_t Size>
+constexpr std::size_t ArraySize(const T (&unused)[Size]) noexcept {
+    (void)unused;
     return Size;
 }
 

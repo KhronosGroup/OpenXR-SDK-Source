@@ -1,4 +1,4 @@
-# Copyright (c) 2017 The Khronos Group Inc.
+# Copyright (c) 2017-2023, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author:
-#
 
 # Force all compilers to output to binary folder without additional output (like Windows adds "Debug" and "Release" folders)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
@@ -30,13 +28,13 @@ endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
 
 add_library(XrApiLayer_test SHARED
     layer_test.cpp
+    XrApiLayer_test.def
 )
-set_target_properties(XrApiLayer_test PROPERTIES FOLDER ${TESTS_FOLDER})
+set_target_properties(XrApiLayer_test PROPERTIES FOLDER ${LOADER_TESTS_FOLDER})
 
 add_dependencies(XrApiLayer_test
     xr_global_generated_files
     generate_openxr_header
-    generated_layer_json_files
 )
 target_include_directories(XrApiLayer_test
     PRIVATE ${PROJECT_SOURCE_DIR}/src
@@ -54,34 +52,20 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     # Turn off transitional "changed behavior" warning message for Visual Studio versions prior to 2015.
     # The changed behavior is that constructor initializers are now fixed to clear the struct members.
     target_compile_options(XrApiLayer_test PRIVATE "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19>>:/wd4351>")
-    gen_xr_layer_json(
-        ${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/layers/XrApiLayer_test.json
-        test
-        ${CMAKE_CURRENT_BINARY_DIR}/XrApiLayer_test.dll
-        1
-        Test_description
-        -b
-    )
-    FILE(TO_NATIVE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_test.def DEF_FILE)
-    add_custom_target(copy-test-def-file ALL
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DEF_FILE} ${CMAKE_CURRENT_BINARY_DIR}/XrApiLayer_test.def
-        VERBATIM
-    )
-	set_target_properties(copy-test-def-file PROPERTIES FOLDER ${HELPER_FOLDER})
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set_target_properties(XrApiLayer_test PROPERTIES LINK_FLAGS "-Wl,-Bsymbolic,--exclude-libs,ALL")
-    gen_xr_layer_json(
-        ${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/layers/XrApiLayer_test.json
-        test
-        ${CMAKE_CURRENT_BINARY_DIR}/libXrApiLayer_test.so
-        1
-        Test_description
-        -b
-    )
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set_target_properties(XrApiLayer_test PROPERTIES LINK_FLAGS "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_test.expsym")
 endif()
 
-add_custom_target(generated_layer_json_files DEPENDS
+gen_xr_layer_json(
     ${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/layers/XrApiLayer_test.json
+    test
+    ${CMAKE_CURRENT_BINARY_DIR}/$<TARGET_FILE_NAME:XrApiLayer_test>
+    1
+    Test_description
+    -b
 )
-set_target_properties(generated_layer_json_files PROPERTIES FOLDER ${CODEGEN_FOLDER})
 
+# Add generated file to our sources so we depend on it, and thus trigger generation.
+target_sources(XrApiLayer_test PRIVATE ${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/layers/XrApiLayer_test.json)

@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 #require 'asciidoctor/extensions' unless RUBY_ENGINE == 'opal'
-RUBY_ENGINE == 'opal' ? (require 'openxr-macros/extension') : (require_relative 'openxr-macros/extension')
+RUBY_ENGINE == 'opal' ? (require 'spec-macros/extension') : (require_relative 'spec-macros/extension')
 
 # All the inline macros we need
 Asciidoctor::Extensions.register do
@@ -15,6 +15,7 @@ Asciidoctor::Extensions.register do
     inline_macro RequiredInlineMacro
     inline_macro ShouldInlineMacro
     inline_macro ReflinkInlineMacro
+    inline_macro ApiextInlineMacro
     inline_macro FlinkInlineMacro
     inline_macro FnameInlineMacro
     inline_macro FtextInlineMacro

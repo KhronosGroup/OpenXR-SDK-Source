@@ -835,6 +835,10 @@ def genExtension(baseDir, extpath, name, info):
             # Do not link to spec version or extension name - those ref pages are not created.
             continue
 
+        if req_name.startswith('/interaction_profiles'):
+            # We do not yet make ref pages for interaction profiles, though we may in the future
+            continue
+
         if required.get('extends'):
             # These are either extensions of enumerated types, or const enum
             # values: neither of which get a ref page - although we could

@@ -379,7 +379,7 @@ export XR_API_LAYER_PATH=<my_api_layer_path_1>:<my_api_layer_path_2>:<my_api_lay
 On Android the loader finds API layers by reading all
 <<api-layer-manifest-file-format, Manifest files>> with the extension
 .json. The following directories inside APK assets are used for explicit
-and implicit layers.
+and implicit layers:
 
 ----
 openxr/1/api_layers/implicit.d
@@ -390,6 +390,28 @@ openxr/1/api_layers/explicit.d
 ====
 The loader accesses these using the Android AssetManager classes.
 ====
+
+The loader also looks for system installed API layers in a similar process
+as is used for active runtime discovery.
+The following system directories are searched for
+<<api-layer-manifest-file-format, Manifest files>> in the following priority
+order for implicit and explicit API layers:
+
+===== Implicit API Layers
+
+. `/product/etc/openxr/1/api_layers/implicit.d`
+. `/odm/etc/openxr/1/api_layers/implicit.d`
+. `/oem/etc/openxr/1/api_layers/implicit.d`
+. `/system/etc/openxr/1/api_layers/implicit.d`
+. `/vendor/etc/openxr/1/api_layers/implicit.d`
+
+===== Explicit API Layers
+
+. `/product/etc/openxr/1/api_layers/explicit.d`
+. `/oem/etc/openxr/1/api_layers/explicit.d`
+. `/vendor/etc/openxr/1/api_layers/explicit.d`
+. `/system/etc/openxr/1/api_layers/explicit.d`
+. `/odm/etc/openxr/1/api_layers/explicit.d`
 
 [[api-layer-manifest-file-format]]
 ==== API Layer Manifest File Format ====
@@ -636,7 +658,7 @@ struct XrNegotiateLoaderInfo {
 };
 ----
   * pname:structType must: be a valid value of
-    elink:XrLoaderInterfaceStructs.
+    `<<XrLoaderInterfaceStructs>>`.
     In this case, it must: specifically be
     `XR_LOADER_INTERFACE_STRUCT_LOADER_INFO`.
   * pname:structVersion must: be a valid version of the structure.
@@ -701,7 +723,7 @@ struct XrNegotiateApiLayerRequest {
 };
 ----
   * pname:structType must: be a valid value of
-    elink:XrLoaderInterfaceStructs.
+    `<<XrLoaderInterfaceStructs>>`.
     In this case, it must: specifically be
     `XR_LOADER_INTERFACE_STRUCT_API_LAYER_REQUEST`.
   * pname:structVersion must: be a valid version of the structure.

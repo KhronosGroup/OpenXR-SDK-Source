@@ -354,6 +354,8 @@ class DocOutputGenerator(OutputGenerator):
                         name, category))
         else:
             body = self.genRequirements(name)
+            if category in ('define',):
+                body = body.strip()
             if alias:
                 # If the type is an alias, just emit a typedef declaration
                 body += 'typedef ' + alias + ' ' + name + ';\n'

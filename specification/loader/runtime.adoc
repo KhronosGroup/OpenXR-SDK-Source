@@ -154,50 +154,20 @@ The defined URIs for the ContentProvider authorities are as follows:
    the `functions/` URI to identify the names of entry points it should
    query.
 * `/openxr/__major_ver__/abi/__abi__/runtimes/__package__/functions` - This
- URI is for package-specific function name remapping.
- Since this is an optional field in the corresponding JSON manifests for
- OpenXR, it is optional here as well.
- If the active runtime contains "true" in its "has_functions" column, then
- this table must exist and be queryable.
- No sort order is required to be honored by the content provider.
- Available columns include:
+  URI is for package-specific function name remapping.
+  Since this is an optional field in the corresponding JSON manifests for
+  OpenXR, it is optional here as well.
+  If the active runtime contains "true" in its "has_functions" column, then
+  this table must exist and be queryable.
+  No sort order is required to be honored by the content provider.
+  __package__ is the package name containing the active runtime.
+  Available columns include:
 ** `function_name` - Corresponds to the "key" in the JSON manifest field.
 ** `symbol_name` - Corresponds to the "value" in the JSON manifest field.
 
 Within the loader, the results from either content provider are used to
 construct an object corresponding to an equivalent JSON runtime manifest
 file as used on other platforms.
-
-
-[NOTE]
-.Note
-====
-Use of a content provider does mean that OpenXR applications on Android will
-need the following in their manifest.
-
-[source,xml]
-```
-<uses-permission android:name="org.khronos.openxr.permission.OPENXR_SYSTEM" />
-
-<queries>
-  <provider android:authorities="org.khronos.openxr.runtime_broker;org.khronos.openxr.system_runtime_broker" />
-</queries>
-```
-
-Earlier versions of the installable broker also wanted the following permission,
-but this is no longer required. It is harmless to leave it in place, but the broker
-no longer requires it.
-
-[source,xml]
-```
-<uses-permission android:name="org.khronos.openxr.permission.OPENXR" />
-```
-
-Additionally, applications should **not target API levels higher than 29**
-for maximum compatibility, as runtimes may need to query and load classes
-from their own packages, which are necessarily not listed in the `<queries>`
-tag above.
-====
 
 If no runtime is found this way, as a fall-back, a similar process as on
 Linux takes place, searching for `active_runtime.json` files in:
@@ -207,6 +177,90 @@ Linux takes place, searching for `active_runtime.json` files in:
 * `/system/etc/openxr/1`
 
 
+[[android-ipc]]
+====== Android IPC and Runtime Access
+As Android is a permission-limited environment, additional constraints are
+placed on runtimes and applications.
+In modern versions of Android, applications cannot query arbitrary packages
+for arbitrary services that are not pre-declared in the manifest.
+To avoid needing to update application manifests for each OpenXR runtime's
+requirements, the intent service name
+`org.khronos.openxr.OpenXRRuntimeService` (same as used by installable
+runtime discovery) is reserved for use by OpenXR runtimes and their
+components.
+Similarly, the intent service name
+`org.khronos.openxr.OpenXRApiLayerService` is reserved for use by OpenXR API
+layers and their components.
+To target an API level higher than 29, applications must: include provisions
+in their manifest to allow them to query for services with these intent
+names.
+In turn, runtimes and their components that need to locate their originating
+package should: query first for packages providing a service for the
+relevant intent, then traverse the list of resolutions to find their own
+package.
+There is no set API provided by an intent service of this name: it exists
+solely as a marker of an OpenXR runtime and as a key for retrieving OpenXR
+runtime component packages without needing to perform arbitrary package
+queries.
+This does pose the risk that an application can view all OpenXR runtimes
+installed, rather than only the active one.
+However, the number of runtimes per device is likely to be very small, and
+this opens the smallest weakness possible to achieve the required
+functionality.
+
+[NOTE]
+.Note
+====
+Applications will require the following `<queries>` statements in their
+manifest for the loader to locate and load the runtime correctly.
+(If building an application using the loader AAR provided by the working
+group, beginning with version 1.0.28, these items are included in the AAR
+manifest and will be merged into your application manifest automatically.)
+
+[source,xml]
+```
+<uses-permission android:name="org.khronos.openxr.permission.OPENXR_SYSTEM" />
+
+<queries>
+  <provider android:authorities="org.khronos.openxr.runtime_broker;org.khronos.openxr.system_runtime_broker" />
+  <intent>
+    <action android:name="org.khronos.openxr.OpenXRRuntimeService" />
+    <action android:name="org.khronos.openxr.OpenXRApiLayerService" />
+  </intent>
+</queries>
+```
+
+The permission is needed to contact a system broker.
+The provider query is to be able to contact system and installable brokers.
+The intent query is for runtimes to look up their own package, which is
+required when targeting API levels higher than 29.
+It is also recommended to include the following, which could be needed for
+haptic feedback:
+
+[source,xml]
+```
+<uses-permission android:name="android.permission.VIBRATE" />
+```
+
+Earlier versions of the installable broker also wanted the following
+permission, but this is no longer required.
+It is harmless to leave it in place, but the broker no longer requires it.
+
+[source,xml]
+```
+<uses-permission android:name="org.khronos.openxr.permission.OPENXR" />
+```
+====
+
+If no runtime is found this way, as a fall-back, a similar process as on
+Linux takes place, searching for `active_runtime.json` files in the
+following priority order:
+
+. `/product/etc/openxr/1`
+. `/odm/etc/openxr/1`
+. `/oem/etc/openxr/1`
+. `/vendor/etc/openxr/1`
+. `/system/etc/openxr/1`
 
 [[runtime-enumeration]]
 ==== Runtime Enumeration
@@ -448,8 +502,8 @@ If more than one is found, user preferences are used to identify the
 "active" runtime.
 
 The path containing the dynamic library is computed from
-`ApplicationInfo.nativeLibraryDir` and the specified ABI, and the
-filename is returned using the filename found in the OpenXR metadata value.
+`ApplicationInfo.nativeLibraryDir` and the specified ABI, and the filename
+is returned using the filename found in the OpenXR metadata value.
 The "hasFunctions" column is dynamically generated based on the presence of
 any function metadata entries.
 
@@ -579,7 +633,7 @@ struct XrNegotiateRuntimeRequest {
 };
 ----
   * pname:structType must: be a valid value of
-    elink:XrLoaderInterfaceStructs.
+    `<<XrLoaderInterfaceStructs>>`.
     In this case, it must specifically be
     `XR_LOADER_INTERFACE_STRUCT_RUNTIME_REQUEST`.
   * pname:structVersion must: be a valid version of the structure.

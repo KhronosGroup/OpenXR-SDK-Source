@@ -513,7 +513,7 @@ class COutputGenerator(OutputGenerator):
             self.appendSection('commandPointer', decls[1])
 
     def misracstyle(self):
-        return self.genOpts.misracstyle;
+        return self.genOpts.misracstyle
 
     def misracppstyle(self):
-        return self.genOpts.misracppstyle;
+        return self.genOpts.misracppstyle

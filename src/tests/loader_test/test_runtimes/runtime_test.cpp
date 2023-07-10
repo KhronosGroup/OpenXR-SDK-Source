@@ -1,4 +1,4 @@
-// Copyright (c) 2017 The Khronos Group Inc.
+// Copyright (c) 2017-2023, The Khronos Group Inc.
 // Copyright (c) 2017 Valve Corporation
 // Copyright (c) 2017 LunarG, Inc.
 //
@@ -35,19 +35,17 @@
 #define RUNTIME_EXPORT
 #endif
 
-extern "C" {
-
-XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrCreateInstance(const XrInstanceCreateInfo * /* info */, XrInstance *instance) {
+static XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrCreateInstance(const XrInstanceCreateInfo * /* info */, XrInstance *instance) {
     *instance = (XrInstance)1;
     return XR_SUCCESS;
 }
 
-XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrDestroyInstance(XrInstance /* instance */) { return XR_SUCCESS; }
+static XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrDestroyInstance(XrInstance /* instance */) { return XR_SUCCESS; }
 
-XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrEnumerateInstanceExtensionProperties(const char *layerName,
-                                                                                 uint32_t propertyCapacityInput,
-                                                                                 uint32_t *propertyCountOutput,
-                                                                                 XrExtensionProperties *properties) {
+static XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrEnumerateInstanceExtensionProperties(const char *layerName,
+                                                                                        uint32_t propertyCapacityInput,
+                                                                                        uint32_t *propertyCountOutput,
+                                                                                        XrExtensionProperties *properties) {
     if (nullptr != layerName) {
         return XR_ERROR_API_LAYER_NOT_PRESENT;
     }
@@ -62,8 +60,8 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrEnumerateInstanceExtensionProperties
     return XR_SUCCESS;
 }
 
-XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetSystem(XrInstance instance, const XrSystemGetInfo * /* getInfo */,
-                                                      XrSystemId *systemId) {
+static XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetSystem(XrInstance instance, const XrSystemGetInfo * /* getInfo */,
+                                                             XrSystemId *systemId) {
     if (instance == XR_NULL_HANDLE) {
         return XR_ERROR_HANDLE_INVALID;
     }
@@ -71,8 +69,8 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetSystem(XrInstance instance, const
     return XR_SUCCESS;
 }
 
-XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetSystemProperties(XrInstance instance, XrSystemId systemId,
-                                                                XrSystemProperties *properties) {
+static XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetSystemProperties(XrInstance instance, XrSystemId systemId,
+                                                                       XrSystemProperties *properties) {
     if (instance == XR_NULL_HANDLE) {
         return XR_ERROR_HANDLE_INVALID;
     }
@@ -88,8 +86,8 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetSystemProperties(XrInstance insta
     return XR_SUCCESS;
 }
 
-XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetInstanceProcAddr(XrInstance instance, const char *name,
-                                                                PFN_xrVoidFunction *function) {
+static XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetInstanceProcAddr(XrInstance instance, const char *name,
+                                                                       PFN_xrVoidFunction *function) {
     if (0 == strcmp(name, "xrGetInstanceProcAddr")) {
         *function = reinterpret_cast<PFN_xrVoidFunction>(RuntimeTestXrGetInstanceProcAddr);
     } else if (0 == strcmp(name, "xrEnumerateInstanceExtensionProperties")) {
@@ -113,6 +111,8 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetInstanceProcAddr(XrInstance insta
     return *function ? XR_SUCCESS : XR_ERROR_FUNCTION_UNSUPPORTED;
 }
 
+extern "C" {
+
 // Function used to negotiate an interface betewen the loader and a runtime.
 RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderRuntimeInterface(const XrNegotiateLoaderInfo *loaderInfo,
                                                                                 XrNegotiateRuntimeRequest *runtimeRequest) {
@@ -129,7 +129,7 @@ RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderRuntimeInterface(
 
     runtimeRequest->runtimeInterfaceVersion = XR_CURRENT_LOADER_RUNTIME_VERSION;
     runtimeRequest->runtimeApiVersion = XR_CURRENT_API_VERSION;
-    runtimeRequest->getInstanceProcAddr = reinterpret_cast<PFN_xrGetInstanceProcAddr>(RuntimeTestXrGetInstanceProcAddr);
+    runtimeRequest->getInstanceProcAddr = RuntimeTestXrGetInstanceProcAddr;
 
     return XR_SUCCESS;
 }

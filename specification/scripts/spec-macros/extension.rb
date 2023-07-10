@@ -6,12 +6,16 @@ require 'asciidoctor/extensions' unless RUBY_ENGINE == 'opal'
 
 include ::Asciidoctor
 
-class OpenXRInlineMacroBase < Extensions::InlineMacroProcessor
+# This is the generated map of API interfaces in this spec build
+require 'apimap.rb'
+$apiNames = APInames.new
+
+class SpecInlineMacroBase < Extensions::InlineMacroProcessor
     use_dsl
     using_format :short
 end
 
-class NormativeInlineMacroBase < OpenXRInlineMacroBase
+class NormativeInlineMacroBase < SpecInlineMacroBase
     def text
         'normative'
     end
@@ -21,8 +25,34 @@ class NormativeInlineMacroBase < OpenXRInlineMacroBase
     end
 end
 
-class LinkInlineMacroBase < OpenXRInlineMacroBase
+class LinkInlineMacroBase < SpecInlineMacroBase
+    # Check if a link macro target exists - overridden by specific macros
+    # Default assumption is that it does exist
+    def exists? target
+      return true
+    end
+
     def process parent, target, attributes
+      if not exists? target
+        # If the macro target is not in this build, but has an alias,
+        # substitute that alias as the argument.
+        # Otherwise, turn the (attempted) link into text, and complain.
+        if $apiNames.nonexistent.has_key? target
+          oldtarget = target
+          target = $apiNames.nonexistent[oldtarget]
+          msg = 'Rewriting nonexistent link macro target: ' + @name.to_s + ':' + oldtarget + ' to ' + target
+          Asciidoctor::LoggerManager.logger.info msg
+          # Fall through
+        else
+          # Suppress warnings for apiext: macros as this is such a common case
+          if @name.to_s != 'apiext'
+            msg = 'Textifying unknown link macro target: ' + @name.to_s + ':' + target
+            Asciidoctor::LoggerManager.logger.warn msg
+          end
+          return create_inline parent, :quoted, '<code>' + target + '</code>'
+        end
+      end
+
       if parent.document.attributes['cross-file-links']
         return Inline.new(parent, :anchor, target, :type => :link, :target => (target + '.html'))
       else
@@ -31,24 +61,21 @@ class LinkInlineMacroBase < OpenXRInlineMacroBase
     end
 end
 
-class CodeInlineMacroBase < OpenXRInlineMacroBase
+class CodeInlineMacroBase < SpecInlineMacroBase
     def process parent, target, attributes
-
-        create_inline parent, :quoted, '<code>' + target + '</code>'
+        create_inline parent, :quoted, '<code>' + target.gsub('&#8594;', '-&gt;') + '</code>'
     end
 end
 
-class StrongInlineMacroBase < OpenXRInlineMacroBase
+class StrongInlineMacroBase < SpecInlineMacroBase
     def process parent, target, attributes
-
-        create_inline parent, :quoted, '<code>' + target + '</code>'
+        create_inline parent, :quoted, '<code>' + target.gsub('&#8594;', '-&gt;') + '</code>'
     end
 end
 
-class ParamInlineMacroBase < OpenXRInlineMacroBase
+class ParamInlineMacroBase < SpecInlineMacroBase
     def process parent, target, attributes
-
-        create_inline parent, :quoted, '<code>' + target + '</code>'
+         create_inline parent, :quoted, '<code>' + target.gsub('&#8594;', '-&gt;') + '</code>'
     end
 end
 
@@ -115,14 +142,34 @@ class ShouldInlineMacro < NormativeInlineMacroBase
     end
 end
 
+# Generic reference page link to any entity with an anchor/refpage
 class ReflinkInlineMacro < LinkInlineMacroBase
     named :reflink
-    match /reflink:(\w+)/
+    match /reflink:([-\w]+)/
+end
+
+# Link to an extension appendix/refpage
+class ApiextInlineMacro < LinkInlineMacroBase
+    named :apiext
+    match /apiext:(\w+)/
+
+    def exists? target
+        $apiNames.features.has_key? target
+    end
+
+    def process parent, target, attributes
+        node = super parent, target, attributes
+        create_inline parent, :quoted, %(<code>#{node.convert}</code>)
+    end
 end
 
 class FlinkInlineMacro < LinkInlineMacroBase
     named :flink
     match /flink:(\w+)/
+
+    def exists? target
+        $apiNames.protos.has_key? target
+    end
 end
 
 class FnameInlineMacro < StrongInlineMacroBase
@@ -143,6 +190,10 @@ end
 class SlinkInlineMacro < LinkInlineMacroBase
     named :slink
     match /slink:(\w+)/
+
+    def exists? target
+        $apiNames.structs.has_key? target or $apiNames.handles.has_key? target
+    end
 end
 
 class StextInlineMacro < CodeInlineMacroBase
@@ -153,11 +204,19 @@ end
 class EnameInlineMacro < CodeInlineMacroBase
     named :ename
     match /ename:(\w+)/
+
+    def exists? target
+        $apiNames.consts.has_key? target
+    end
 end
 
 class ElinkInlineMacro < LinkInlineMacroBase
     named :elink
     match /elink:(\w+)/
+
+    def exists? target
+        $apiNames.enums.has_key? target or $apiNames.flags.has_key? target
+    end
 end
 
 class EtextInlineMacro < CodeInlineMacroBase
@@ -165,14 +224,16 @@ class EtextInlineMacro < CodeInlineMacroBase
     match /etext:([\w\*]+)/
 end
 
+# this does not handle any [] at the moment
+
 class PnameInlineMacro < ParamInlineMacroBase
     named :pname
-    match /pname:((\w[\w.]*)*\w+)/
+    match /pname:(\w+((\.|&#8594;)\w+)*)/
 end
 
 class PtextInlineMacro < ParamInlineMacroBase
     named :ptext
-    match /ptext:((\w[\w.]*)*\w+)/
+    match /ptext:([\w\*]+((\.|&#8594;)[\w\*]+)*)/
 end
 
 class DnameInlineMacro < CodeInlineMacroBase
@@ -183,6 +244,10 @@ end
 class DlinkInlineMacro < LinkInlineMacroBase
     named :dlink
     match /dlink:(\w+)/
+
+    def exists? target
+        $apiNames.defines.has_key? target or target.start_with? 'XR_USE' or target.start_with? 'XRAPI' or target == 'XR_NO_STDINT_H'
+    end
 end
 
 class TnameInlineMacro < CodeInlineMacroBase
@@ -193,26 +258,41 @@ end
 class TlinkInlineMacro < LinkInlineMacroBase
     named :tlink
     match /tlink:(\w+)/
+
+    def exists? target
+        $apiNames.flags.has_key? target or
+            $apiNames.funcpointers.has_key? target or
+            $apiNames.defines.has_key? target
+    end
 end
 
 class BasetypeInlineMacro < LinkInlineMacroBase
     named :basetype
     match /basetype:(\w+)/
-    def process parent, target, attributes
-      if parent.document.attributes['cross-file-links']
-        return Inline.new(parent, :anchor, target, :type => :link, :target => (target + '.html'))
-      else
-        return Inline.new(parent, :anchor, '<code>' + target + '</code>', :type => :xref, :target => ('#' + target), :attributes => {'fragment' => target, 'refid' => target})
-      end
+
+    # def process parent, target, attributes
+    #   if parent.document.attributes['cross-file-links']
+    #     return Inline.new(parent, :anchor, target, :type => :link, :target => (target + '.html'))
+    #   else
+    #     return Inline.new(parent, :anchor, '<code>' + target + '</code>', :type => :xref, :target => ('#' + target), :attributes => {'fragment' => target, 'refid' => target})
+    #   end
+    # end
+
+    def exists? target
+        $apiNames.basetypes.has_key? target
     end
 end
 
-class CodeInlineMacro < StrongInlineMacroBase
+# This does not include the full range of code: use
+# It allows embedded periods (field separators) and wildcards if followed by
+# another word, and an ending wildcard.
+
+class CodeInlineMacro < CodeInlineMacroBase
     named :code
-    match /code:([*\w]+)/
+    match /code:(\w+([.*]\w+)*\**)/
 end
 
-class SemanticSubpathMacroBase < OpenXRInlineMacroBase
+class SemanticSubpathMacroBase < SpecInlineMacroBase
     def process parent, target, attributes
         create_inline parent, :quoted, '<em>&#8230;' + target + '</em>'
     end
@@ -223,7 +303,7 @@ class SemanticSubpathInlineMacro < SemanticSubpathMacroBase
     match /subpathname:([\w\/\-\.]+)/
 end
 
-class SemanticPathMacroBase < OpenXRInlineMacroBase
+class SemanticPathMacroBase < SpecInlineMacroBase
     def process parent, target, attributes
         create_inline parent, :quoted, '<em>' + target + '</em>'
     end
@@ -234,7 +314,7 @@ class SemanticPathInlineMacro < SemanticPathMacroBase
     match /pathname:([\w\/\-\.]+)/
 end
 
-class ActionRelatedNameMacroBase < OpenXRInlineMacroBase
+class ActionRelatedNameMacroBase < SpecInlineMacroBase
     def process parent, target, attributes
         create_inline parent, :quoted, '<code>' + target + '</code>'
     end

@@ -141,6 +141,10 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
         // TODO: Just need something other than NULL here for now (for validation).  Eventually need
         //       to correctly put in a valid pointer to an wl_display
         m_graphicsBinding.display = reinterpret_cast<wl_display*>(0xFFFFFFFF);
+#elif defined(XR_USE_PLATFORM_MACOS)
+#error OpenGL bindings for Mac have not been implemented
+#else
+#error Platform not supported
 #endif
 
 #if !defined(XR_USE_PLATFORM_MACOS)
@@ -371,6 +375,8 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
     XrGraphicsBindingOpenGLXcbKHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_OPENGL_XCB_KHR};
 #elif defined(XR_USE_PLATFORM_WAYLAND)
     XrGraphicsBindingOpenGLWaylandKHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_OPENGL_WAYLAND_KHR};
+#elif defined(XR_USE_PLATFORM_MACOS)
+#error OpenGL bindings for Mac have not been implemented
 #else
 #error Platform not supported
 #endif

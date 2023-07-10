@@ -124,9 +124,9 @@ extern "C" {
 #elif defined(__APPLE__)
 #define OS_APPLE
 #include <Availability.h>
-#if __IPHONE_OS_VERSION_MAX_ALLOWED
+#if defined(__IPHONE_OS_VERSION_MAX_ALLOWED) && __IPHONE_OS_VERSION_MAX_ALLOWED
 #define OS_APPLE_IOS
-#elif __MAC_OS_X_VERSION_MAX_ALLOWED
+#elif defined(__MAC_OS_X_VERSION_MAX_ALLOWED) && __MAC_OS_X_VERSION_MAX_ALLOWED
 #define OS_APPLE_MACOS
 #endif
 #elif defined(__linux__)
@@ -334,7 +334,6 @@ CGLError CGLUpdateContext(CGLContextObj ctx);
 #include <android/input.h>              // for AKEYCODE_ etc.
 #include <android/window.h>             // for AWINDOW_FLAG_KEEP_SCREEN_ON
 #include <android/native_window_jni.h>  // for native window JNI
-#include <android_native_app_glue.h>
 #include <EGL/egl.h>
 #include <EGL/eglext.h>
 #include <GLES2/gl2.h>
@@ -415,7 +414,7 @@ Common defines
 #define ES_HIGHP ""  // GLSL "430" disallows a precision qualifier on a image2D
 #endif
 
-void GlInitExtensions();
+void GlInitExtensions(void);
 
 /*
 ================================================================================================================================
@@ -989,10 +988,7 @@ typedef struct {
     EGLDisplay display;
     EGLint majorVersion;
     EGLint minorVersion;
-    struct android_app *app;
     Java_t java;
-    ANativeWindow *nativeWindow;
-    bool resumed;
 #endif
 } ksGpuWindow;
 

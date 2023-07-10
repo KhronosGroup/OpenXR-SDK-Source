@@ -63,6 +63,8 @@ run_xr_xml_generate(api_dump_generator.py xr_generated_api_dump.cpp
 
 add_library(XrApiLayer_api_dump SHARED
     api_dump.cpp
+    XrApiLayer_api_dump.def
+
     ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h
     # target-specific generated files
     ${GENERATED_OUTPUT}
@@ -75,7 +77,7 @@ add_library(XrApiLayer_api_dump SHARED
 )
 set_target_properties(XrApiLayer_api_dump PROPERTIES FOLDER ${API_LAYERS_FOLDER})
 
-target_link_libraries(XrApiLayer_api_dump PRIVATE Threads::Threads)
+target_link_libraries(XrApiLayer_api_dump PRIVATE Threads::Threads OpenXR::headers)
 target_compile_definitions(XrApiLayer_api_dump PRIVATE ${OPENXR_ALL_SUPPORTED_DEFINES})
 add_dependencies(XrApiLayer_api_dump
     generate_openxr_header
@@ -86,10 +88,6 @@ target_include_directories(XrApiLayer_api_dump
     PRIVATE
     ${PROJECT_SOURCE_DIR}/src/common
     ${CMAKE_CURRENT_SOURCE_DIR}
-
-    # for OpenXR headers
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_BINARY_DIR}/include
 
     # for generated dispatch table
     ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -129,6 +127,8 @@ run_xr_xml_generate(validation_layer_generator.py xr_generated_core_validation.c
 
 add_library(XrApiLayer_core_validation SHARED
     core_validation.cpp
+    XrApiLayer_core_validation.def
+
     ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h
     ${PROJECT_SOURCE_DIR}/src/common/object_info.cpp
     ${PROJECT_SOURCE_DIR}/src/common/object_info.h
@@ -144,7 +144,7 @@ add_library(XrApiLayer_core_validation SHARED
 )
 set_target_properties(XrApiLayer_core_validation PROPERTIES FOLDER ${API_LAYERS_FOLDER})
 
-target_link_libraries(XrApiLayer_core_validation PRIVATE Threads::Threads)
+target_link_libraries(XrApiLayer_core_validation PRIVATE Threads::Threads OpenXR::headers)
 target_compile_definitions(XrApiLayer_core_validation PRIVATE ${OPENXR_ALL_SUPPORTED_DEFINES})
 add_dependencies(XrApiLayer_core_validation
     generate_openxr_header
@@ -153,10 +153,6 @@ add_dependencies(XrApiLayer_core_validation
 target_include_directories(XrApiLayer_core_validation
     PRIVATE
     ${PROJECT_SOURCE_DIR}/src/common
-
-    # for OpenXR headers
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_BINARY_DIR}/include
 
     # for generated dispatch table
     ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -192,11 +188,10 @@ if(WIN32)
 
 elseif(APPLE)
     # Apple api_dump-specific information
-    set_target_properties(XrApiLayer_api_dump PROPERTIES LINK_FLAGS "-Wl")
+    set_target_properties(XrApiLayer_api_dump PROPERTIES LINK_FLAGS "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_api_dump.expsym")
 
     # Apple core_validation-specific information
-    set_target_properties(XrApiLayer_core_validation PROPERTIES LINK_FLAGS "-Wl")
-
+    set_target_properties(XrApiLayer_core_validation PROPERTIES LINK_FLAGS "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_core_validation.expsym")
 else()
     # Linux api_dump-specific information
     set_target_properties(XrApiLayer_api_dump PROPERTIES LINK_FLAGS "-Wl,-Bsymbolic,--exclude-libs,ALL")

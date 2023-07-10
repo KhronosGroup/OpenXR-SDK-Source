@@ -60,9 +60,11 @@ static inline char* ImplGetSecureEnv(const char* name) {
 #elif defined(HAVE___SECURE_GETENV)
     return __secure_getenv(name);
 #else
+// clang-format off
 #pragma message(                                                    \
     "Warning:  Falling back to non-secure getenv for environmental" \
     "lookups!  Consider updating to a different libc.")
+    // clang-format on
 
     return ImplGetEnv(name);
 #endif
@@ -314,7 +316,7 @@ static inline bool PlatformUtilsSetEnv(const char* /* name */, const char* /* va
 // Intended to be only used as a fallback on Android, with a more open, "native" technique used in most cases
 static inline bool PlatformGetGlobalRuntimeFileName(uint16_t major_version, std::string& file_name) {
     // Prefix for the runtime JSON file name
-    static const char* rt_dir_prefixes[] = {"/oem", "/vendor", "/system"};
+    static const char* rt_dir_prefixes[] = {"/product", "/odm", "/oem", "/vendor", "/system"};
     static const std::string rt_filename = "/active_runtime.json";
     static const std::string subdir = "/etc/openxr/";
     for (const auto prefix : rt_dir_prefixes) {

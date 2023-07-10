@@ -1,4 +1,4 @@
-# Copyright (c) 2017 The Khronos Group Inc.
+# Copyright (c) 2017-2023, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -13,8 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Author:
 #
 
 file(GLOB LOCAL_HEADERS "*.h")
@@ -54,10 +52,6 @@ target_include_directories(hello_xr
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/src/common
 
-    # for OpenXR headers
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_BINARY_DIR}/include
-
     # for helper headers
     ${PROJECT_SOURCE_DIR}/external/include
 )
@@ -73,7 +67,7 @@ if(Vulkan_FOUND)
     )
 endif()
 
-target_link_libraries(hello_xr openxr_loader)
+target_link_libraries(hello_xr OpenXR::openxr_loader)
 if(TARGET openxr-gfxwrapper)
     target_link_libraries(hello_xr openxr-gfxwrapper)
 endif()

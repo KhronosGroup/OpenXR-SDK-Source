@@ -20,13 +20,22 @@
     android:required="false"
     android:version="1" />
 
-  <!-- If building externally with the OpenXR AAR, this would be merged in automatically. -->
+  <!-- If building externally with the OpenXR loader AAR, this would be merged in automatically. -->
   <uses-permission android:name="android.permission.VIBRATE" />
   <uses-permission android:name="org.khronos.openxr.permission.OPENXR" />
   <uses-permission android:name="org.khronos.openxr.permission.OPENXR_SYSTEM" />
+
   <queries>
+    <!-- to talk to the broker -->
     <provider android:authorities="org.khronos.openxr.runtime_broker;org.khronos.openxr.system_runtime_broker" />
+
+    <!-- so client-side code of runtime/layers can talk to their service sides -->
+    <intent>
+      <action android:name="org.khronos.openxr.OpenXRRuntimeService" />
+      <action android:name="org.khronos.openxr.OpenXRApiLayerService" />
+    </intent>
   </queries>
+  <!-- end of elements normally merged from the OpenXR loader AAR -->
 
   <application
     android:allowBackup="true"

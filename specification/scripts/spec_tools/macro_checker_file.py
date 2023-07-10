@@ -1588,7 +1588,7 @@ class MacroCheckerFile(object):
     def makeMacroMarkup(self, newMacro=None, newEntity=None, data=None):
         """Construct appropriate markup for referring to an entity.
 
-        Typically constructs macro:entity, but can construct `<<EXTENSION_NAME>>` if the supplied
+        Typically constructs macro:entity, but can construct apiext:EXTENSION_NAME if the supplied
         entity is identified as an extension.
 
         Arguments:
@@ -1615,14 +1615,14 @@ class MacroCheckerFile(object):
     def makeExtensionLink(self, newEntity=None):
         """Create a correctly-formatted link to an extension.
 
-        Result takes the form `<<EXTENSION_NAME>>`.
+        Result takes the form apiext:EXTENSION_NAME.
 
         Argument:
         newEntity -- The extension name to link to. Defaults to self.entity.
         """
         if not newEntity:
             newEntity = self.entity
-        return '`<<{}>>`'.format(newEntity)
+        return 'apiext:{}'.format(newEntity)
 
     def computeExpectedRefPageFromInclude(self, entity):
         """Compute the expected ref page entity based on an include entity name."""

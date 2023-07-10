@@ -1,4 +1,4 @@
-# Copyright (c) 2017 The Khronos Group Inc.
+# Copyright (c) 2017-2023, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -13,8 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Author:
 #
 
 add_executable(openxr_runtime_list
@@ -35,7 +33,7 @@ if(Vulkan_FOUND)
     )
 endif()
 
-target_link_libraries(openxr_runtime_list openxr_loader)
+target_link_libraries(openxr_runtime_list OpenXR::openxr_loader)
 if(MSVC)
     target_compile_options(openxr_runtime_list PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
 endif()

@@ -209,7 +209,7 @@ void TestEnumLayers(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32
         uint32_t num_valid_jsons = 6;
 
         // Point to json directory, contains 6 valid json files
-        LoaderTestSetEnvironmentVariable("XR_API_LAYER_PATH", "resources/layers");
+        LoaderTestSetEnvironmentVariable("XR_API_LAYER_PATH", "./resources/layers");
         // LoaderTestSetEnvironmentVariable("XR_ENABLE_API_LAYERS", "XrApiLayer_test:XrApiLayer_test_good_relative_path");
 
         // Test number query
@@ -360,7 +360,7 @@ void TestEnumInstanceExtensions(uint32_t& total, uint32_t& passed, uint32_t& ski
                     break;
                 default:
                     subtest_name = "with explicit API layers";
-                    LoaderTestSetEnvironmentVariable("XR_API_LAYER_PATH", "resources/layers");
+                    LoaderTestSetEnvironmentVariable("XR_API_LAYER_PATH", "./resources/layers");
                     LoaderTestSetEnvironmentVariable("XR_ENABLE_API_LAYERS", "XrApiLayer_test");
                     break;
             }

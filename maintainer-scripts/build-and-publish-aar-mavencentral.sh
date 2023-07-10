@@ -3,8 +3,8 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 set -e
-MAINT_SCRIPTS=$(cd $(dirname $0) && pwd)
-ROOT=$(cd $(dirname $0) && cd .. && pwd)
+MAINT_SCRIPTS=$(cd "$(dirname "$0")" && pwd)
+ROOT=$(cd "$(dirname "$0")" && cd .. && pwd)
 
 # This file would tell the build scripts to append -SNAPSHOT to the version, make sure it's not there.
 rm -f "${ROOT}/SNAPSHOT"

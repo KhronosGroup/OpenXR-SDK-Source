@@ -1,4 +1,4 @@
-# Copyright (c) 2017 The Khronos Group Inc.
+# Copyright (c) 2017-2023, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -14,8 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author:
-#
 
 file(GLOB LOCAL_HEADERS "*.h")
 file(GLOB LOCAL_SOURCE "*.cpp")
@@ -24,61 +22,57 @@ file(GLOB LOCAL_SOURCE "*.cpp")
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 if(ANDROID)
-    add_library(list_json MODULE
+    add_library(openxr_runtime_list_json MODULE
         ${LOCAL_SOURCE}
         ${LOCAL_HEADERS}
         $<TARGET_OBJECTS:android_native_app_glue>)
-    target_link_libraries(list_json ${ANDROID_LIBRARY} ${ANDROID_LOG_LIBRARY})
-    target_include_directories(list_json PRIVATE ${ANDROID_NATIVE_APP_GLUE})
+    target_link_libraries(openxr_runtime_list_json ${ANDROID_LIBRARY} ${ANDROID_LOG_LIBRARY})
+    target_include_directories(openxr_runtime_list_json PRIVATE ${ANDROID_NATIVE_APP_GLUE})
 else()
-    add_executable(list_json
+    add_executable(openxr_runtime_list_json
         ${LOCAL_SOURCE}
         ${LOCAL_HEADERS})
 endif()
-set_target_properties(list_json PROPERTIES FOLDER ${SAMPLES_FOLDER})
+set_target_properties(openxr_runtime_list_json PROPERTIES FOLDER ${TESTS_FOLDER})
 
 source_group("Headers" FILES ${LOCAL_HEADERS})
 source_group("Shaders" FILES ${VULKAN_SHADERS})
 
-target_include_directories(list_json
+target_include_directories(openxr_runtime_list_json
     PRIVATE
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/src/common
-
-    # for OpenXR headers
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_BINARY_DIR}/include
 )
 
 if(Vulkan_FOUND)
-    target_include_directories(list_json
+    target_include_directories(openxr_runtime_list_json
         PRIVATE
         ${Vulkan_INCLUDE_DIRS}
     )
 endif()
 
-target_link_libraries(list_json openxr_loader)
+target_link_libraries(openxr_runtime_list_json OpenXR::openxr_loader)
 if(WIN32)
     if(MSVC)
-        target_compile_definitions(list_json PRIVATE _CRT_SECURE_NO_WARNINGS)
-        target_compile_options(list_json PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
+        target_compile_definitions(openxr_runtime_list_json PRIVATE _CRT_SECURE_NO_WARNINGS)
+        target_compile_options(openxr_runtime_list_json PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
     endif()
-    target_link_libraries(list_json ole32)
+    target_link_libraries(openxr_runtime_list_json ole32)
     if(MSVC)
         # Right now can't build this on MinGW because of directxcolors, etc.
-        target_link_libraries(list_json d3d11 d3d12 d3dcompiler dxgi)
+        target_link_libraries(openxr_runtime_list_json d3d11 d3d12 d3dcompiler dxgi)
     else()
-        target_compile_definitions(list_json PRIVATE MISSING_DIRECTX_COLORS)
+        target_compile_definitions(openxr_runtime_list_json PRIVATE MISSING_DIRECTX_COLORS)
     endif()
 endif()
 
 if(Vulkan_LIBRARY)
-    target_link_libraries(list_json ${Vulkan_LIBRARY})
+    target_link_libraries(openxr_runtime_list_json ${Vulkan_LIBRARY})
 endif()
 
 if(NOT ANDROID)
-    install(TARGETS list_json
+    install(TARGETS openxr_runtime_list_json
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        COMPONENT list_json)
+        COMPONENT openxr_runtime_list_json)
 endif()
 
