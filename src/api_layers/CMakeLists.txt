@@ -37,6 +37,13 @@ else()
     set(LAYER_MANIFEST_PREFIX)
 endif()
 
+# Windows needs bigobj support since we have generated code.
+if(MSVC)
+    add_compile_options("/bigobj")
+elseif(WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "^Clang|GNU$")
+    add_compile_options("-Wa,-mbig-obj")
+endif()
+
 # Basics for api_dump API Layer
 
 gen_xr_layer_json(
