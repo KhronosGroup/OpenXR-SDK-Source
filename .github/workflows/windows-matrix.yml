@@ -1,4 +1,4 @@
-# Copyright 2021-2022, Collabora, Ltd.
+# Copyright 2021-2023, Collabora, Ltd.
 # SPDX-License-Identifier: CC0-1.0
 
 name: Windows builds
@@ -30,6 +30,7 @@ jobs:
     with:
       preset: ${{ matrix.preset }}
       artifactName: "loader_${{ matrix.preset }}"
+      buildType: "RelWithDebInfo"
 
   organize-and-release-artifacts:
     if: inputs.organizeAndRelease
