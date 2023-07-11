@@ -12,19 +12,28 @@ on:
   workflow_dispatch:
 
 jobs:
-  generate_matrix:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: "${{ steps.set-matrix.outputs.matrix }}"
-    steps:
-      - uses: "actions/checkout@v3"
-      - id: set-matrix
-        run: "python3 .github/scripts/generate_windows_matrix_build.py matrix"
+  # generate_matrix:
+  #   runs-on: ubuntu-latest
+  #   outputs:
+  #     matrix: "${{ steps.set-matrix.outputs.matrix }}"
+  #   steps:
+  #     - uses: "actions/checkout@v3"
+  #     - id: set-matrix
+  #       run: "python3 .github/scripts/generate_windows_matrix_build.py matrix"
   msvc-build:
-    needs: generate_matrix
+    # needs: generate_matrix
     strategy:
       fail-fast: true
-      matrix: "${{fromJson(needs.generate_matrix.outputs.matrix)}}"
+      # TODO: Fix matrix generation? Broke recently due to changes in github actions
+      # matrix: "${{fromJson(needs.generate_matrix.outputs.matrix)}}"
+      matrix:
+        preset:
+          - win32
+          - x64
+          - win32_uwp
+          - x64_uwp
+          - arm64_uwp
+          - arm_uwp
 
     uses: "./.github/workflows/msvc-build-preset.yml"
     with:
