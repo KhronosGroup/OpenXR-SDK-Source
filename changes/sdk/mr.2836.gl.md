@@ -1,0 +1,1 @@
+- build system: Support SDK hotfix versions (fourth version component).

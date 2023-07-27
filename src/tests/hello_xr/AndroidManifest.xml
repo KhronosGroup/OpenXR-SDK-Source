@@ -20,8 +20,10 @@
     android:required="false"
     android:version="1" />
 
-  <!-- If building externally with the OpenXR loader AAR, this would be merged in automatically. -->
+  <!-- Recommended for haptic feedback -->
   <uses-permission android:name="android.permission.VIBRATE" />
+
+  <!-- If building externally with the OpenXR loader AAR, this would be merged in automatically. -->
   <uses-permission android:name="org.khronos.openxr.permission.OPENXR" />
   <uses-permission android:name="org.khronos.openxr.permission.OPENXR_SYSTEM" />
 
@@ -32,6 +34,8 @@
     <!-- so client-side code of runtime/layers can talk to their service sides -->
     <intent>
       <action android:name="org.khronos.openxr.OpenXRRuntimeService" />
+    </intent>
+    <intent>
       <action android:name="org.khronos.openxr.OpenXRApiLayerService" />
     </intent>
   </queries>

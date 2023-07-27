@@ -6,6 +6,8 @@ class OpenXRVersion {
     public int major;
     public int minor;
     public int patch;
+    public boolean hasHotfix;
+    public int hotfix;
 
     /// Returns a version code for Android usage.
     int getVersionCode() {
@@ -17,17 +19,22 @@ class OpenXRVersion {
 
     @Override
     String toString() {
-        "${major}.${minor}.${patch}"
+        if (hasHotfix) {
+            "${major}.${minor}.${patch}.${hotfix}"
+        } else {
+            "${major}.${minor}.${patch}"
+        }
     }
 
     /**
      * Parses the registry (as a text file) or the openxr.h header to get the version.
      * @param project Gradle project
-     * @param fn registry or header filename
+     * @param registryOrHeaderFile registry or header File
+     * @param hotfixFile HOTFIX File
      * @return version parsed
      */
-    static def parseOpenXRVersionFile(Project project, def fn) {
-        def matches = project.file(fn).readLines().find {
+    static def parseOpenXRVersionFile(def registryOrHeaderFile, def hotfixFile) {
+        def matches = registryOrHeaderFile.readLines().find {
             it.contains('XR_CURRENT_API_VERSION')
         } =~ ~/\(([^\)]+)\)/
         def components = matches[0][1].split(',').collect { it.replace(' ', '').trim() }
@@ -35,6 +42,11 @@ class OpenXRVersion {
         version.major = Integer.parseInt(components[0])
         version.minor = Integer.parseInt(components[1])
         version.patch = Integer.parseInt(components[2])
+
+        if (hotfixFile.exists()) {
+            version.hasHotfix = true
+            version.hotfix = Integer.parseInt(hotfixFile.text.trim())
+        }
         version
     }
 }
@@ -42,8 +54,10 @@ class OpenXRVersion {
 class OpenXRVersionPlugin implements Plugin<Project> {
 
     void apply(Project project) {
-        project.ext.versionOpenXR = OpenXRVersion.parseOpenXRVersionFile(project,
-                "${project.repoRoot}/specification/registry/xr.xml")
+        def registryFile = project.file("${project.repoRoot}/specification/registry/xr.xml")
+        def hotfixFile = project.file("${project.repoRoot}/HOTFIX")
+
+        project.ext.versionOpenXR = OpenXRVersion.parseOpenXRVersionFile(registryFile, hotfixFile)
         project.group = "org.khronos.openxr"
 
         if (project.file("${project.repoRoot}/SNAPSHOT").exists()) {
