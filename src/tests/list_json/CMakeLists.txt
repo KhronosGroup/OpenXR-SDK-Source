@@ -18,9 +18,6 @@
 file(GLOB LOCAL_HEADERS "*.h")
 file(GLOB LOCAL_SOURCE "*.cpp")
 
-# For including compiled shaders
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
-
 if(ANDROID)
     add_library(openxr_runtime_list_json MODULE
         ${LOCAL_SOURCE}
@@ -59,10 +56,8 @@ if(WIN32)
     endif()
     target_link_libraries(openxr_runtime_list_json ole32)
     if(MSVC)
-        # Right now can't build this on MinGW because of directxcolors, etc.
+        # Right now can't build this on MinGW because of directxcolors, directxmath, etc.
         target_link_libraries(openxr_runtime_list_json d3d11 d3d12 d3dcompiler dxgi)
-    else()
-        target_compile_definitions(openxr_runtime_list_json PRIVATE MISSING_DIRECTX_COLORS)
     endif()
 endif()
 

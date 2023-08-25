@@ -1,4 +1,0 @@
----
-- issue.2053.gl
----
-- Android AAR artifacts (loader) and hello_xr: Fix `<queries>` element contents.

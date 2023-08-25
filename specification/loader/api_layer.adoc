@@ -382,8 +382,8 @@ On Android the loader finds API layers by reading all
 and implicit layers:
 
 ----
-openxr/1/api_layers/implicit.d
-openxr/1/api_layers/explicit.d
+openxr/__major_ver__/api_layers/implicit.d
+openxr/__major_ver__/api_layers/explicit.d
 ----
 
 [Note]
@@ -399,19 +399,19 @@ order for implicit and explicit API layers:
 
 ===== Implicit API Layers
 
-. `/product/etc/openxr/1/api_layers/implicit.d`
-. `/odm/etc/openxr/1/api_layers/implicit.d`
-. `/oem/etc/openxr/1/api_layers/implicit.d`
-. `/system/etc/openxr/1/api_layers/implicit.d`
-. `/vendor/etc/openxr/1/api_layers/implicit.d`
+1. `/product/etc/openxr/__major_ver__/api_layers/implicit.d`
+2. `/odm/etc/openxr/__major_ver__/api_layers/implicit.d`
+3. `/oem/etc/openxr/__major_ver__/api_layers/implicit.d`
+4. `/system/etc/openxr/__major_ver__/api_layers/implicit.d`
+5. `/vendor/etc/openxr/__major_ver__/api_layers/implicit.d`
 
 ===== Explicit API Layers
 
-. `/product/etc/openxr/1/api_layers/explicit.d`
-. `/oem/etc/openxr/1/api_layers/explicit.d`
-. `/vendor/etc/openxr/1/api_layers/explicit.d`
-. `/system/etc/openxr/1/api_layers/explicit.d`
-. `/odm/etc/openxr/1/api_layers/explicit.d`
+1. `/product/etc/openxr/__major_ver__/api_layers/explicit.d`
+2. `/oem/etc/openxr/__major_ver__/api_layers/explicit.d`
+3. `/vendor/etc/openxr/__major_ver__/api_layers/explicit.d`
+4. `/system/etc/openxr/__major_ver__/api_layers/explicit.d`
+5. `/odm/etc/openxr/__major_ver__/api_layers/explicit.d`
 
 [[api-layer-manifest-file-format]]
 ==== API Layer Manifest File Format ====

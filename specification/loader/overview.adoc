@@ -135,7 +135,7 @@ enabled API layers and into the appropriate runtime.
 [NOTE]
 .Note
 ====
-Some OpenXR commands don't actually take an object, such as
+Some OpenXR commands do not take an object, such as
 `xrEnumerateApiLayerProperties` and
 `xrEnumerateInstanceExtensionProperties`.
 These commands typically only provide information for other commands which

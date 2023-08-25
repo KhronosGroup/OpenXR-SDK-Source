@@ -792,11 +792,13 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrSessionBeginDebugUtilsLabelRegion
     if (XR_SUCCESS != test_result) {
         return test_result;
     }
-    auto info_with_lock = g_session_info.getWithLock(session);
-    if (info_with_lock.second != nullptr) {
-        GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
-        if (nullptr != gen_instance_info) {
-            gen_instance_info->debug_data.BeginLabelRegion(session, *labelInfo);
+    {
+        auto info_with_lock = g_session_info.getWithLock(session);
+        if (info_with_lock.second != nullptr) {
+            GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
+            if (nullptr != gen_instance_info) {
+                gen_instance_info->debug_data.BeginLabelRegion(session, *labelInfo);
+            }
         }
     }
     return GenValidUsageNextXrSessionBeginDebugUtilsLabelRegionEXT(session, labelInfo);
@@ -807,11 +809,13 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrSessionEndDebugUtilsLabelRegionEX
     if (XR_SUCCESS != test_result) {
         return test_result;
     }
-    auto info_with_lock = g_session_info.getWithLock(session);
-    if (info_with_lock.second != nullptr) {
-        GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
-        if (nullptr != gen_instance_info) {
-            gen_instance_info->debug_data.EndLabelRegion(session);
+    {
+        auto info_with_lock = g_session_info.getWithLock(session);
+        if (info_with_lock.second != nullptr) {
+            GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
+            if (nullptr != gen_instance_info) {
+                gen_instance_info->debug_data.EndLabelRegion(session);
+            }
         }
     }
     return GenValidUsageNextXrSessionEndDebugUtilsLabelRegionEXT(session);
@@ -823,11 +827,13 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrSessionInsertDebugUtilsLabelEXT(X
     if (XR_SUCCESS != test_result) {
         return test_result;
     }
-    auto info_with_lock = g_session_info.getWithLock(session);
-    if (info_with_lock.second != nullptr) {
-        GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
-        if (nullptr != gen_instance_info) {
-            gen_instance_info->debug_data.InsertLabel(session, *labelInfo);
+    {
+        auto info_with_lock = g_session_info.getWithLock(session);
+        if (info_with_lock.second != nullptr) {
+            GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
+            if (nullptr != gen_instance_info) {
+                gen_instance_info->debug_data.InsertLabel(session, *labelInfo);
+            }
         }
     }
     return GenValidUsageNextXrSessionInsertDebugUtilsLabelEXT(session, labelInfo);

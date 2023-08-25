@@ -63,6 +63,8 @@ while read -r header; do
 done < include/generated_header_list.txt
 
 # These go just in SDK
+generate_src src xr_generated_dispatch_table_core.c  "$TARNAME"
+generate_src src xr_generated_dispatch_table_core.h  "$TARNAME"
 generate_src src xr_generated_dispatch_table.c  "$TARNAME"
 generate_src src xr_generated_dispatch_table.h  "$TARNAME"
 generate_src src/loader xr_generated_loader.cpp  "$TARNAME"

@@ -29,6 +29,7 @@ sub-sections below.
 This information is also important if the active runtime needs to be changed
 by an external entity (on those platforms that support updating).
 
+[[linux-active-runtime-location]]
 ===== Linux Active Runtime Location
 
 On Linux, the active runtime information is contained inside a
@@ -41,43 +42,57 @@ directory (typically `/etc`), under the relative path:
 openxr/<major_api_version>
 ```
 
-<major_api_version> should be replaced with the integer value for the
+`__<major_api_version>__` should be replaced with the integer value for the
 corresponding OpenXR API version.
 
-The JSON file is named "active_runtime.json" and contains the necessary
-information on how OpenXR components can load the appropriate runtime
-library.
+Two JSON file names are checked in each directory.
+First, the loader looks for `active_runtime.__<arch>__.json`, where
+`__<arch>__` is an architecture and ABI specifier from the
+<<architecture-identifiers>> table.
+If no such file is found, `active_runtime.json` is then checked.
+The JSON file contains the necessary information on how OpenXR components
+can load the appropriate runtime library.
 
-For example, a globally-configured OpenXR 1.x active runtime file might be
-at:
+For example, a globally-configured OpenXR 1.x active runtime file on an
+x86_64 PC might be at:
 
 ```
-/etc/xdg/openxr/1/active_runtime.json
+/etc/xdg/openxr/1/active_runtime.x86_64.json
 ```
 
 When multiple such files exist, `XDG_CONFIG_HOME` is preferred, followed by
 the elements of `XDG_CONFIG_DIRS` in order, followed by the system's global
 configuration directory.
+Both filenames are tested in a given directory before moving on.
 This allows the user's preference to easily override a global default.
 
+[NOTE]
+.NOTE
+====
+`active_runtime` filenames may be a symbolic link to a file with a
+runtime-specific name, for ease of runtime switching and enumeration by the
+user or system tools.
+See <<linux-installed-runtimes-enumeration>> for more information.
+====
+
+[[windows-active-runtime-location]]
 ===== Windows Active Runtime Location
 
-The Windows OpenXR active runtime information is actually located in the
-Windows Registry (not to be confused with the OpenXR registry) under the
-key:
+The Windows OpenXR active runtime information is located in the Windows
+Registry (not to be confused with the OpenXR registry) under the key:
 
 ```
 HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenXR\<major_api_version>
 ```
 
-Where <major_api_version> should be replaced with the integer value for the
-corresponding OpenXR API major version.
+Where `__<major_api_version>__` should be replaced with the integer value
+for the corresponding OpenXR API version.
 
 [NOTE]
 .Important
 ====
 If using a 32-bit application on a 64-bit Windows install, "WOW6432Node" is
-added before "SOFTWARE", in the above path like so:
+added before "SOFTWARE" in the preceding path as follows:
 
 ```
 HKEY_LOCAL_MACHINE\WOW6432Node\SOFTWARE\Khronos\OpenXR\<major_api_version>
@@ -170,12 +185,19 @@ construct an object corresponding to an equivalent JSON runtime manifest
 file as used on other platforms.
 
 If no runtime is found this way, as a fall-back, a similar process as on
-Linux takes place, searching for `active_runtime.json` files in:
+Linux takes place, searching for `active_runtime.__<arch>__.json` and
+`active_runtime.json` files in the following locations in priority order:
 
-* `/oem/etc/openxr/1`
-* `/vendor/etc/openxr/1`
-* `/system/etc/openxr/1`
+1. `/product/etc/openxr/__major_ver__`
+2. `/odm/etc/openxr/__major_ver__`
+3. `/oem/etc/openxr/__major_ver__`
+4. `/vendor/etc/openxr/__major_ver__`
+5. `/system/etc/openxr/__major_ver__`
 
+`__<major_api_version>__` should be replaced with the integer value for the
+corresponding OpenXR API version, and `__<arch>__` is an architecture and
+ABI specifier from the <<architecture-identifiers>> table.
+Both filenames are checked in each directory before moving on to the next.
 
 [[android-ipc]]
 ====== Android IPC and Runtime Access
@@ -254,15 +276,114 @@ It is harmless to leave it in place, but the broker no longer requires it.
 ```
 ====
 
-If no runtime is found this way, as a fall-back, a similar process as on
-Linux takes place, searching for `active_runtime.json` files in the
-following priority order:
+[[architecture-identifiers]]
+===== Architecture/ABI Identifiers
 
-. `/product/etc/openxr/1`
-. `/odm/etc/openxr/1`
-. `/oem/etc/openxr/1`
-. `/vendor/etc/openxr/1`
-. `/system/etc/openxr/1`
+On platforms such as <<linux-active-runtime-location,Linux>> and
+<<android-active-runtime-location,Android>> where the active runtime
+manifest may be found by filename, the following table of known
+architectures and ABIs is used.
+
+:url-android-ndk-abis: https://developer.android.com/ndk/guides/abis
+:url-debian-ports: https://www.debian.org/ports/
+
+[cols="1,1,1,4"]
+|===
+|Architecture/ABI Identifier |{url-android-ndk-abis}[Android NDK ABI] Name | {url-debian-ports}[Debian Port] Name |Description
+
+|`x32`
+  |
+  | `x32`
+  | 64-bit x86 instructions, using an ILP32 model (32-bit pointers)
+
+|`x86_64`
+  | `x86_64`
+  | `x86_64`
+  | 64-bit x86
+
+|`i686`
+  | `x86`
+  | `i386`
+  | 32-bit x86
+
+|`aarch64`
+  | `arm64-v8a`
+  | `aarch64`
+  | 64-bit ARM architecture, little endian
+
+|`armv7a-vfp`
+  | `armeabi-v7a` (See <<android-arm32-note,note>>.)
+  | `armhf`
+  | 32-bit ARMv7-A architecture, little endian, with hardware floating point and VFP PCS ABI
+
+|`armv5te`
+  |
+  | `armel`
+  | 32-bit ARMv5TE architecture or compatible, little endian
+
+|`mips64`
+  |
+  | `mips64el`
+  | 64-bit MIPS architecture, little endian
+
+|`mips`
+  |
+  | `mipsel`
+  | 32-bit MIPS architecture, little endian
+
+|`ppc64`
+  |
+  | `ppc64`
+  | 64-bit PowerPC architecture, big endian
+
+|`ppc64el`
+  |
+  | `ppc64el`
+  | 64-bit POWER8/POWER9 architecture, little endian (OpenPOWER ELF ABI v2)
+
+|`s390x`
+  |
+  | `s390x`
+  | 64-bit S390/z-Series architecture, big endian
+
+|`hppa`
+  |
+  | `hppa`
+  | 32-bit HP PA-RISC architecture, big endian
+
+|`alpha`
+  |
+  | `alpha`
+  | 64-bit Alpha architecture
+
+|`ia64`
+  |
+  | `ia64`
+  | 64-bit IA-64 architecture
+
+|`m68k`
+  |
+  | `m68k`
+  | 32-bit Motorola 68000-based architecture, big endian
+
+|`riscv64`
+  |
+  | `riscv64`
+  | 64-bit RISC-V architecture, little endian
+
+|`sparc64`
+  |
+  | `sparc64`
+  | 64-bit SPARC architecture
+
+|===
+
+[[android-arm32-note]]
+Note: The preceding table defines `armv7a-vfp` as the architecture/ABI
+identifier for 32-bit ARM in Android.
+While the Android ABI called `armeabi-v7a` does not use VFP PCS as the
+__system__ ABI, a definition in `openxr_platform_defines.h` enables the VFP
+PCS calling convention for all OpenXR API calls and function pointers.
 
 [[runtime-enumeration]]
 ==== Runtime Enumeration
@@ -307,8 +428,8 @@ the registry, as described in <<Windows Manifest Registry Usage>>:
   enumeration (for example, if hardware configuration, or first time setup
   hasn't been run by the user yet).
 
-For instance, the OpenXR 1.x runtime used as an example in section <<Windows
-Active Runtime Location>> would add a `DWORD` value in:
+For instance, the OpenXR 1.x runtime used as an example in section
+<<windows-active-runtime-location>> would add a `DWORD` value in:
 
 ```
 HKEY_LOCAL_MACHINE\SOFTWARE\Khronos\OpenXR\1\AvailableRuntimes
@@ -322,13 +443,14 @@ C:\Windows\system32\my_system_runtime.json
 
 And set it to `0`.
 
-All considerations for 32 bit platforms mentioned in section <<Windows
-Active Runtime Location>> still apply.
+All considerations for 32 bit platforms mentioned in section
+<<windows-active-runtime-location>> still apply.
 
 Tools that want to change the currently `ActiveRuntime` should not modify
-the list of `AvailableRuntimes`, and just copy the path to the correct
+the list of `AvailableRuntimes`, but rather copy the path to the correct
 location.
 
+[[linux-installed-runtimes-enumeration]]
 ===== Linux Installed Runtimes Enumeration
 
 As previously defined, the OpenXR configuration on Linux is either stored in
@@ -337,15 +459,15 @@ directory.
 
 Aside from the currently active runtime, installed runtimes that make
 themselves available for enumeration should install their runtime manifest
-into this directory, using any name suitable.
+into one of these directories, using any name suitable.
 
 Rules about precedence in different directories for runtime enumeration
-follow the same rules as in section <<Linux Active Runtime Location>> for
-selecting the folder containing an `active_runtime.json`.
+follow the same rules as in section <<linux-active-runtime-location>> for
+selecting the folder containing the active runtime manifest.
 
-Tools that want to change the current `active_runtime.json` should only
-update the symlink to the active runtime, and not move, copy or delete any
-other files.
+Tools that want to change the current active runtime should only update the
+`active_runtime.__<arch>__.json` and/or `active_runtime.json` symlink to the
+active runtime, and not move, copy, or delete any other files.
 
 [[runtime-manifest-file-format]]
 ==== Runtime Manifest File Format
@@ -767,15 +889,6 @@ The following sections detail the differences between the various versions.
 * Introduced the concept of negotiation.
 ** Requires runtimes to export `xrNegotiateLoaderRuntimeInterface` function.
 
-
-[[android-runtime-negotiation]]
-==== Android Runtime Negotiation ====
-
-The Android loader uses the same protocol for initializing the dispatch
-table as described above.
-The only difference is that the Android loader queries API layer and
-extension information directly from the respective libraries and does not
-use the json manifest files used by the Windows and Linux loaders.
 
 [[additional-loader-requirements]]
 === Additional Loader Requirements ===

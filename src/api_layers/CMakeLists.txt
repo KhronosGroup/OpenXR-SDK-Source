@@ -67,6 +67,10 @@ run_xr_xml_generate(api_dump_generator.py xr_generated_api_dump.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/automatic_source_generator.py)
 run_xr_xml_generate(api_dump_generator.py xr_generated_api_dump.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/automatic_source_generator.py)
+set(API_DUMP_GENERATED_OUTPUT ${GENERATED_OUTPUT})
+set(API_DUMP_GENERATED_DEPENDS ${GENERATED_DEPENDS})
+unset(GENERATED_OUTPUT)
+unset(GENERATED_DEPENDS)
 
 add_library(XrApiLayer_api_dump SHARED
     api_dump.cpp
@@ -74,7 +78,7 @@ add_library(XrApiLayer_api_dump SHARED
 
     ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h
     # target-specific generated files
-    ${GENERATED_OUTPUT}
+    ${API_DUMP_GENERATED_OUTPUT}
 
     # Dispatch table
     ${COMMON_GENERATED_OUTPUT}
@@ -88,7 +92,7 @@ target_link_libraries(XrApiLayer_api_dump PRIVATE Threads::Threads OpenXR::heade
 target_compile_definitions(XrApiLayer_api_dump PRIVATE ${OPENXR_ALL_SUPPORTED_DEFINES})
 add_dependencies(XrApiLayer_api_dump
     generate_openxr_header
-    xr_global_generated_files
+    xr_common_generated_files
 )
 
 target_include_directories(XrApiLayer_api_dump
@@ -131,6 +135,10 @@ run_xr_xml_generate(validation_layer_generator.py xr_generated_core_validation.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/automatic_source_generator.py)
 run_xr_xml_generate(validation_layer_generator.py xr_generated_core_validation.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/automatic_source_generator.py)
+set(CORE_VALIDATION_GENERATED_OUTPUT ${GENERATED_OUTPUT})
+set(CORE_VALIDATION_GENERATED_DEPENDS ${GENERATED_DEPENDS})
+unset(GENERATED_OUTPUT)
+unset(GENERATED_DEPENDS)
 
 add_library(XrApiLayer_core_validation SHARED
     core_validation.cpp
@@ -141,7 +149,7 @@ add_library(XrApiLayer_core_validation SHARED
     ${PROJECT_SOURCE_DIR}/src/common/object_info.h
 
     # target-specific generated files
-    ${GENERATED_OUTPUT}
+    ${CORE_VALIDATION_GENERATED_OUTPUT}
 
     # Dispatch table
     ${COMMON_GENERATED_OUTPUT}
@@ -155,7 +163,7 @@ target_link_libraries(XrApiLayer_core_validation PRIVATE Threads::Threads OpenXR
 target_compile_definitions(XrApiLayer_core_validation PRIVATE ${OPENXR_ALL_SUPPORTED_DEFINES})
 add_dependencies(XrApiLayer_core_validation
     generate_openxr_header
-    xr_global_generated_files
+    xr_common_generated_files
 )
 target_include_directories(XrApiLayer_core_validation
     PRIVATE

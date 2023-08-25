@@ -1,35 +1,33 @@
+// Copyright (c) 2017-2023, The Khronos Group Inc.
+// Copyright (c) 2016, Oculus VR, LLC.
+// Portions of macOS, iOS, functionality copyright (c) 2016, The Brenwill Workshop Ltd.
+//
+// SPDX-License-Identifier: Apache-2.0
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+/* REUSE-IgnoreStart */
+/* The following has copyright notices that duplicate the header above */
+
 /*
 ================================================================================================
 
-Description	:	Convenient wrapper for the OpenGL API.
-Author		:	J.M.P. van Waveren
-Date		:	12/21/2014
-Language	:	C99
-Format		:	Real tabs with the tab size equal to 4 spaces.
-Copyright	:	Copyright (c) 2016 Oculus VR, LLC. All Rights reserved.
-                        :	Portions copyright (c) 2016 The Brenwill Workshop Ltd. All Rights reserved.
-
-
-LICENSE
-=======
-
-Copyright (c) 2016 Oculus VR, LLC.
-Portions of macOS, iOS, functionality copyright (c) 2016 The Brenwill Workshop Ltd.
-
-SPDX-License-Identifier: Apache-2.0
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-     http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-
+Description  : Convenient wrapper for the OpenGL API.
+Orig. Author : J.M.P. van Waveren
+Orig. Date   : 12/21/2014
+Language     : C99
+Copyright    : Copyright (c) 2016 Oculus VR, LLC. All Rights reserved.
+             : Portions copyright (c) 2016 The Brenwill Workshop Ltd. All Rights reserved.
 
 IMPLEMENTATION
 ==============

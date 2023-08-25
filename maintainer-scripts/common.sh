@@ -34,7 +34,7 @@ makeSubset() {
 
 }
 
-COMMON_FILES=".gitignore .gitattributes .git-blame-ignore-revs CODE_OF_CONDUCT.md LICENSES .reuse .editorconfig"
+COMMON_FILES=".gitignore .gitattributes .git-blame-ignore-revs CODE_OF_CONDUCT.md LICENSES .reuse .editorconfig HOTFIX"
 export COMMON_FILES
 COMMON_EXCLUDE_PATTERN="KhronosExperimental"
 export COMMON_EXCLUDE_PATTERN

@@ -23,6 +23,7 @@ and omits the samples, tests, and API layers, as they are not typically built as
 
 ## Directory Structure
 
+<!-- REUSE-IgnoreStart -->
 - `BUILDING.md` - Instructions for building the projects
 - `README.md` - This file
 - `COPYING.md` - Copyright and licensing information
@@ -34,6 +35,7 @@ and omits the samples, tests, and API layers, as they are not typically built as
 - `src/api_layer` - Sample code for developing API layers
 - `src/loader` - OpenXR loader code
 - `src/tests` - various test code (if looking for sample code start with `hello_xr/`)
+<!-- REUSE-IgnoreEnd -->
 
 Currently the best sample code is in [src/tests/hello_xr/](src/tests/hello_xr).  More will be added in the future.
 

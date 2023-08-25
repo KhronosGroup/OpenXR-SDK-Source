@@ -525,6 +525,8 @@ process:
 .2+| <build>/src folder
     l| xr_generated_dispatch_table.h
     l| xr_generated_dispatch_table.c
+    l| xr_generated_dispatch_table_core.h
+    l| xr_generated_dispatch_table_core.c
 .2+| <build>/src/loader folder
     l| xr_loader_generated.hpp
     l| xr_loader_generated.cpp
@@ -537,8 +539,9 @@ sname:XrGeneratedDispatchTable structure.
 This structure can be used to store function pointers for any OpenXR
 commands defined in the xr.xml at the time the loader was built.
 It includes slots for both core and extension function pointers.
-Currently, the loader uses this structure as well as the provided API
-Layers.
+Currently, the provided API Layers use this structure and the loader
+uses a structure which has a subset of the function pointers (defined
+in `xr_generated_dispatch_table_core.h`).
 
 A partial listing from the generated table follows:
 

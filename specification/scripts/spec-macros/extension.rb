@@ -270,13 +270,14 @@ class BasetypeInlineMacro < LinkInlineMacroBase
     named :basetype
     match /basetype:(\w+)/
 
-    # def process parent, target, attributes
-    #   if parent.document.attributes['cross-file-links']
-    #     return Inline.new(parent, :anchor, target, :type => :link, :target => (target + '.html'))
-    #   else
-    #     return Inline.new(parent, :anchor, '<code>' + target + '</code>', :type => :xref, :target => ('#' + target), :attributes => {'fragment' => target, 'refid' => target})
-    #   end
-    # end
+    def process parent, target, attributes
+        node = super parent, target, attributes
+        if parent.document.attributes['cross-file-links']
+            node
+        else
+            create_inline parent, :quoted, %(<code>#{node.convert}</code>)
+      end
+    end
 
     def exists? target
         $apiNames.basetypes.has_key? target

@@ -32,7 +32,7 @@ ifneq (,$(strip $(VERY_STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level WARN
 endif
 
-SPECREVISION = 1.0.28
+SPECREVISION = 1.0.29
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -384,26 +384,14 @@ BACKEND_ARGS=--backend html5
 $(ASCIIDOCTOR_TARGETS):
 	$(ECHO) "[asciidoctor] $(SPECSRC) -> $(call MAKE_RELATIVE,$@)"
 	$(QUIET)$(MKDIR) "$(@D)"
-	$(QUIET)if [ $$(uname -s | cut -c 1-6) == "CYGWIN" ]; then \
-	OUTSPEC_DOS=$$(cygpath -w $@) ;\
-	SPECSRC_DOS=$$(cygpath -w $(SPECSRC)) ;\
-	ATTRIBOPTS_DOS='$(ATTRIBOPTS)' ;\
-	ADOCOPTS_DOS="--doctype book -a data-uri -r $$(cygpath -w $(CURDIR)/scripts/spec-macros.rb) $$ATTRIBOPTS_DOS" ;\
-	BATCH_FILE=$$(cygpath -w $$(mktemp)).bat ;\
-	echo $(ASCIIDOC) $$ADOCOPTS_DOS $(BACKEND_ARGS) --out-file $$OUTSPEC_DOS $$SPECSRC_DOS > $$BATCH_FILE ;\
-	CMD /C $$BATCH_FILE ;\
-	rm -f $$BATCH_FILE ;\
-	else \
-	$(ASCIIDOC) $(ADOCOPTS) $(BACKEND_ARGS) --out-file $@ $(SPECSRC) 2>&1 | tee $(LOGFILE) ;\
-	if [ -s $(LOGFILE) ]; then \
+	$(QUIET)$(ASCIIDOC) $(ADOCOPTS) $(BACKEND_ARGS) --out-file $@ $(SPECSRC) 2>&1 | tee $(LOGFILE)
+	$(QUIET)if [ -s $(LOGFILE) ]; then \
 		echo "Failure: $(LOGFILE) exists and is not empty!"; \
 		false; \
 	else \
 		rm $(LOGFILE); \
-	fi; \
 	fi
 	$(POSTPROCESS)
-# TODO: Postprocess step(s) may have broken the Cygwin build. Not sure this matters anymore with WSL, though.
 
 
 ################################################

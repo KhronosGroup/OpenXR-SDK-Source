@@ -15,9 +15,20 @@
 # limitations under the License.
 #
 
-add_executable(openxr_c_compile_test
-    main.c
-)
+if(ANDROID)
+    add_library(openxr_c_compile_test MODULE
+        main.c
+        $<TARGET_OBJECTS:android_native_app_glue>
+    )
+    target_link_libraries(openxr_c_compile_test ${ANDROID_LIBRARY} ${ANDROID_LOG_LIBRARY})
+    target_include_directories(openxr_c_compile_test PRIVATE ${ANDROID_NATIVE_APP_GLUE})
+else()
+    add_executable(openxr_c_compile_test
+        main.c
+    )
+endif()
+set_target_properties(openxr_c_compile_test PROPERTIES FOLDER ${TESTS_FOLDER})
+
 add_dependencies(openxr_c_compile_test
     generate_openxr_header
 )
@@ -37,5 +48,3 @@ target_link_libraries(openxr_c_compile_test OpenXR::openxr_loader)
 if(MSVC)
     target_compile_options(openxr_c_compile_test PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
 endif()
-
-set_target_properties(openxr_c_compile_test PROPERTIES FOLDER ${TESTS_FOLDER})

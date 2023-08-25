@@ -1024,6 +1024,8 @@ class ValidityOutputGenerator(OutputGenerator):
         child_structs = self.keepOnlyRequired(self.struct_children.get(structname, []),
                                               self.registry.typedict)
         if child_structs:
+            if values:
+                print('The struct: {} has children, it may not have a "values" attribute itself.'.format(structname))
             assert(not values)
             if len(child_structs) > 1:
                 entry += 'one of the following XrStructureType values: '

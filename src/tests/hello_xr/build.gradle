@@ -95,3 +95,24 @@ android {
     }
 }
 
+// For signing of release binaries - env var must contain an absolute path
+// CI always does this.
+def keystorePropertiesFilename = System.getenv("KEYSTORE_PROPERTIES")
+if (keystorePropertiesFilename) {
+    def keystorePropertiesFile = file("${keystorePropertiesFilename}")
+    if (keystorePropertiesFile.exists()) {
+        println("Signing release artifacts for hello_xr")
+        def keystoreProperties = new Properties()
+        keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+        android.signingConfigs {
+            release {
+                keyAlias keystoreProperties['keyAlias']
+                keyPassword keystoreProperties['keyPassword']
+                storeFile file("${project.repoRoot}/" + keystoreProperties['storeFile'])
+                storePassword keystoreProperties['storePassword']
+            }
+        }
+        android.buildTypes.release.signingConfig android.signingConfigs.release
+    }
+}
+

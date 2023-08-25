@@ -22,7 +22,7 @@ MAIN_RE = re.compile(
         (?P<gl>OpenGL(ES)?)|   # OpenGL and OpenGLES as words
         (?P<dimension>[0-9]D)| # Things like 2D are words
         (?P<word>              # Normal-ish words, which are....
-            ([A-Z]([a-z]+([0-9](?!D))*)+)|  # Capital letter followed by at least one lowercase letter, possibly ending in some digits as long as the digits aren't followed by "D"
+            ([A-Z]([a-z]+([0-9](?!D[A-Z]{1}))*)+)|  # Capital letter followed by at least one lowercase letter, possibly ending in some digits as long as the digits aren't followed by a "D" then another word
             ([A-Z][A-Z0-9]+(?![a-z]))       # Or, all-caps letter and digit mix starting with a letter, excluding the last capital before some lowercase
         )''', re.VERBOSE)
 

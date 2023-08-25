@@ -51,6 +51,7 @@ target_include_directories(hello_xr
     PRIVATE
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/src/common
+    ${PROJECT_SOURCE_DIR}/src/tests/hello_xr/vulkan_shaders
 
     # for helper headers
     ${PROJECT_SOURCE_DIR}/external/include
@@ -78,10 +79,8 @@ if(WIN32)
     endif()
     target_link_libraries(hello_xr ole32)
     if(MSVC)
-        # Right now can't build this on MinGW because of directxcolors, etc.
+        # Right now can't build this on MinGW because of directxcolors, directxmath, etc.
         target_link_libraries(hello_xr d3d11 d3d12 d3dcompiler dxgi)
-    else()
-        target_compile_definitions(hello_xr PRIVATE MISSING_DIRECTX_COLORS)
     endif()
 endif()
 

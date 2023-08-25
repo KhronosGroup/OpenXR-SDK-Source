@@ -1,5 +1,0 @@
----
-- issue.303.gh.OpenXR-SDK-Source
-- issue.1711.gl
----
-- Android AAR artifacts: Use `jar` instead of 7-zip to perform archiving, and document requirements in `build-aar.sh`
