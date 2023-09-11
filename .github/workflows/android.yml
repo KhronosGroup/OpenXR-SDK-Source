@@ -23,7 +23,7 @@ jobs:
   loader:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Get modern CMake and Ninja
         uses: lukka/get-cmake@v3.26.4
 
@@ -59,7 +59,7 @@ jobs:
   build-helloxr:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Get modern CMake and Ninja
         uses: lukka/get-cmake@v3.26.4
       - name: set up JDK 11
