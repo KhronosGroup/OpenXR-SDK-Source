@@ -54,6 +54,10 @@ if(WIN32)
     target_link_libraries(loader_test PRIVATE d3d11)
 endif()
 
+add_test(NAME loader_test
+    COMMAND loader_test
+    WORKING_DIRECTORY "$<TARGET_FILE_DIR:loader_test>")
+
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resources)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resources/layers)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resources/runtimes)

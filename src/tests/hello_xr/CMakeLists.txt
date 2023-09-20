@@ -29,6 +29,21 @@ if(ANDROID)
         ${VULKAN_SHADERS}
         $<TARGET_OBJECTS:android_native_app_glue>)
     target_link_libraries(hello_xr ${ANDROID_LIBRARY} ${ANDROID_LOG_LIBRARY})
+
+    # Only for Android because it lacks a command line
+    set(HELLOXR_DEFAULT_GRAPHICS_PLUGIN "OpenGLES" CACHE STRING "Which graphics plugin should be used by default for Hello XR artifacts?")
+    # These are the recognized options: provide them as a helper in the CMake GUI
+    set_property(CACHE HELLOXR_DEFAULT_GRAPHICS_PLUGIN PROPERTY STRINGS "OpenGLES" "Vulkan")
+
+    # Now handle the value, normally provided by Gradle
+    if(HELLOXR_DEFAULT_GRAPHICS_PLUGIN STREQUAL "OpenGLES")
+        message(STATUS "hello_xr will default to OpenGL ES graphics plugin")
+        target_compile_definitions(hello_xr PRIVATE DEFAULT_GRAPHICS_PLUGIN_OPENGLES)
+    elseif(HELLOXR_DEFAULT_GRAPHICS_PLUGIN STREQUAL "Vulkan")
+        message(STATUS "hello_xr will default to Vulkan graphics plugin")
+        target_compile_definitions(hello_xr PRIVATE DEFAULT_GRAPHICS_PLUGIN_VULKAN)
+    endif()
+
 else()
     add_executable(hello_xr
         ${LOCAL_SOURCE}

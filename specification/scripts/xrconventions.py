@@ -205,7 +205,7 @@ class OpenXRConventions(ConventionsBase):
            instead. N.b. this may need to change on a per-refpage basis if
            there are multiple documents involved.
         """
-        return 'https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html'
+        return 'https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html'
 
     @property
     def xml_api_name(self):

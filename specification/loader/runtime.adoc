@@ -2,6 +2,8 @@
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
+:uri-xdg-basedir: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+
 [[runtime-interaction]]
 == Runtime Interaction ==
 
@@ -10,7 +12,7 @@ runtime to properly interact.
 
 
 [[runtime-discovery]]
-=== Runtime Discovery ===
+=== Runtime Discovery
 
 OpenXR may have a choice of multiple runtimes on a user's system.
 The selection of the active runtime is handled external to the loader.
@@ -33,8 +35,7 @@ by an external entity (on those platforms that support updating).
 ===== Linux Active Runtime Location
 
 On Linux, the active runtime information is contained inside a
-JSON-formatted file located in a standard
-https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html[XDG
+JSON-formatted file located in a standard {uri-xdg-basedir}[XDG
 configuration directory] or the system's standard global configuration
 directory (typically `/etc`), under the relative path:
 
@@ -419,7 +420,7 @@ Each installed runtime should add a `DWORD` value under that key.
 The `DWORD`'s name is the full path to the runtime's manifest
 
 Similarly to how Implicit API layers can control their activation state in
-the registry, as described in <<Windows Manifest Registry Usage>>:
+the registry, as described in <<windows-manifest-registry-usage>>:
 
 * A value of `0` indicates that the runtime can be discovered by tools that
   want to enumerate all installed runtimes.
@@ -654,7 +655,7 @@ must: provide documentation on how to properly package the necessary files.
 
 
 [[overriding-the-default-runtime-usage]]
-==== Overriding the Default Runtime Usage ====
+==== Overriding the Default Runtime Usage
 
 There may be times that a developer wishes to ignore the standard runtime
 discovery process and force the loader to use a specific runtime.
@@ -695,7 +696,7 @@ export XR_RUNTIME_JSON=/home/user/.config/openxr/1/steamxr.json
 
 
 [[loader-runtime-interface-negotiation]]
-=== Loader/Runtime Interface Negotiation ===
+=== Loader/Runtime Interface Negotiation
 
 The OpenXR symbols exported by a runtime must not clash with the loader's
 exported OpenXR symbols.
@@ -795,7 +796,7 @@ the application is exiting, or some period of inactivity occurs.
 
 
 [[loader-runtime-negotiation-process]]
-==== Loader/Runtime Negotiation Process ====
+==== Loader/Runtime Negotiation Process
 
 Once the loader has obtained a valid address to the runtime's
 fname:xrNegotiateLoaderRuntimeInterface function, the loader will create a
@@ -855,7 +856,7 @@ fname:xrNegotiateLoaderRuntimeInterface function and each runtime then must:
 
 
 [[runtime-exporting-of-commands]]
-==== Runtime Exporting of Commands ====
+==== Runtime Exporting of Commands
 
 The fname:xrNegotiateLoaderRuntimeInterface should be directly exported by a
 runtime so that using "GetProcAddress" on Windows or "dlsym" on Linux,
@@ -876,14 +877,14 @@ with `-Bsymbolic`.
 
 
 [[runtime-interface-versions]]
-==== Runtime Interface Versions ====
+==== Runtime Interface Versions
 
 The current Runtime Interface is at version 1.
 The following sections detail the differences between the various versions.
 
 
 [[runtime-interface-version-1]]
-===== Runtime Interface Version 1 =====
+===== Runtime Interface Version 1
 
 * Defined manifest file version 1.0.0.
 * Introduced the concept of negotiation.
@@ -891,7 +892,7 @@ The following sections detail the differences between the various versions.
 
 
 [[additional-loader-requirements]]
-=== Additional Loader Requirements ===
+=== Additional Loader Requirements
 
 * The loader must: not call the runtime for `xrEnumerateApiLayerProperties`
 * The loader must: not call the runtime for

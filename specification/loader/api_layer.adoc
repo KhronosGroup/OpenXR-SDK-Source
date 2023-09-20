@@ -9,7 +9,7 @@ This section details how the loader interacts with API layers.
 
 
 [[api-layer-call-chains-and-distributed-dispatch]]
-=== API Layer Call Chains and Distributed Dispatch ===
+=== API Layer Call Chains and Distributed Dispatch
 
 Remember, an API layer does not need to intercept all commands, instead, it
 can choose to intercept only a subset.
@@ -54,7 +54,7 @@ OpenXR functions to the first entity in the call chain.
 
 
 [[api-layer-discovery]]
-=== API Layer Discovery ===
+=== API Layer Discovery
 
 As mentioned in the <<implicit-vs-explicit-api-layers, Implicit vs Explicit
 API Layers>> section, API layers can be categorized into two categories:
@@ -87,7 +87,7 @@ files to identify the names and attributes of API layers and their
 extensions.
 
 [[desktop-api-layer-discovery]]
-==== Desktop API Layer Discovery ====
+==== Desktop API Layer Discovery
 
 On Desktop systems (such as Windows and Linux) JSON formatted manifest files
 are used to store OpenXR component information.
@@ -102,7 +102,7 @@ The following sections define the standard locations the OpenXR loader
 searches when looking for JSON manifest files.
 
 [[windows-manifest-registry-usage]]
-===== Windows Manifest Registry Usage =====
+===== Windows Manifest Registry Usage
 
 On Windows, the OpenXR loader will scan the Windows registry for details on
 JSON manifest files in the following locations:
@@ -239,7 +239,7 @@ being loaded.
 
 
 [[linux-manifest-search-paths]]
-===== Linux Manifest Search Paths =====
+===== Linux Manifest Search Paths
 
 On Linux, the OpenXR loader will scan for JSON manifest files using the
 following base folders:
@@ -335,7 +335,7 @@ $HOME/.local/share/openxr/1/api_layers/implicit.d
 
 
 [[overriding-the-default-api-layer-paths]]
-===== Overriding the Default API Layer Paths =====
+===== Overriding the Default API Layer Paths
 
 There may be times that a developer wishes to force the loader to use their
 own explicit API layers (or specific explicit API layers).
@@ -374,7 +374,7 @@ export XR_API_LAYER_PATH=<my_api_layer_path_1>:<my_api_layer_path_2>:<my_api_lay
 ====
 
 [[android-api-layer-discovery]]
-==== Android API Layer Discovery ====
+==== Android API Layer Discovery
 
 On Android the loader finds API layers by reading all
 <<api-layer-manifest-file-format, Manifest files>> with the extension
@@ -414,7 +414,7 @@ order for implicit and explicit API layers:
 5. `/odm/etc/openxr/__major_ver__/api_layers/explicit.d`
 
 [[api-layer-manifest-file-format]]
-==== API Layer Manifest File Format ====
+==== API Layer Manifest File Format
 
 On Windows, Linux and Android, the loader uses manifest files to discover
 API layers.
@@ -578,7 +578,7 @@ files for each (all of which may point to the same shared library).
 
 
 [[api-layer-manifest-file-version-history]]
-===== API Layer Manifest File Version History =====
+===== API Layer Manifest File Version History
 
 The current highest supported API layer manifest file format supported is
 1.0.0.
@@ -604,7 +604,7 @@ The fields of the 1.0.0 file format include:
 
 
 [[loader-api-layer-interface-negotiation]]
-=== Loader/API Layer Interface Negotiation ===
+=== Loader/API Layer Interface Negotiation
 
 Now that an API layer has been discovered, an application can choose to load
 it (or it is loaded by default if it is an implicit API layer).
@@ -752,7 +752,7 @@ struct XrNegotiateApiLayerRequest {
     `xrCreateInstance` time.
 
 [[loader-api-layer-negotiation-process]]
-==== Loader/API Layer Negotiation Process ====
+==== Loader/API Layer Negotiation Process
 
 Once the loader has obtained a valid address to the API layer's
 fname:xrNegotiateLoaderApiLayerInterface function, the loader will create a
@@ -826,14 +826,14 @@ individually.
 
 
 [[api-layer-interface-versions]]
-==== API Layer Interface Versions ====
+==== API Layer Interface Versions
 
 The current API layer interface is at version 1.
 The following sections detail the differences between the various versions.
 
 
 [[api-layer-interface-version-1]]
-===== API Layer Interface Version 1 =====
+===== API Layer Interface Version 1
 
 * Defined manifest file version 1.0.0.
 * Introduced the concept of negotiation.
@@ -842,7 +842,7 @@ The following sections detail the differences between the various versions.
 
 
 [[api-layer-intercept-requirements]]
-=== API Layer Intercept Requirements ===
+=== API Layer Intercept Requirements
 
 * API Layers intercept an OpenXR command by defining a C/C++ function with
   signature *identical* to the OpenXR API for that command.
@@ -873,7 +873,7 @@ The following sections detail the differences between the various versions.
 
 
 [[api-layer-conventions-and-rules]]
-=== API Layer Conventions and Rules ===
+=== API Layer Conventions and Rules
 
 An API layer, when inserted into an otherwise compliant OpenXR
 implementation, must still result in a compliant OpenXR implementation.
@@ -909,7 +909,7 @@ Therefore, it must follow some conventions and rules defined below:
 
 
 [[api-layer-create-instance-process]]
-=== API Layer Create Instance Process ===
+=== API Layer Create Instance Process
 
 After <<loader-api-layer-interface-negotiation, interface negotiation>> and
 any directed `xrEnumerateInstanceExtensionProperties` calls, the next time
@@ -1017,10 +1017,10 @@ During the `xrCreateInstance` call, the following happens:
   the application):
 .. Record the API layer's name, `xrGetInstanceProcAddr` address, and the
    `xrCreateApiLayerInstance` address.
-.. Build a `XrApiLayerNextInfo` structure for the API layer recording the name and
-   command addresses.
-... If this is the first API layer (the one closest to the runtime) we want it
-    to enter the loader again when we're done.
+.. Build a `XrApiLayerNextInfo` structure for the API layer recording the
+   name and command addresses.
+... If this is the first API layer (the one closest to the runtime) we want
+    it to enter the loader again when we're done.
     So, the loader sets the following:
 .... `XrApiLayerNextInfo.nextGetInstanceProcAddr` =
      `loaderXrTermGetInstanceProcAddr`
@@ -1029,10 +1029,10 @@ During the `xrCreateInstance` call, the following happens:
 .... `XrApiLayerNextInfo.next` = NULL
 ... Otherwise, the loader sets the information to the previous API layer's
     information:
-.... `XrApiLayerNextInfo.nextGetInstanceProcAddr` =
-     Previous `XrApiLayerNextInfo.loaderXrTermGetInstanceProcAddr`
-.... `XrApiLayerNextInfo.nextCreateLayerInstance` =
-     Previous `XrApiLayerNextInfo.loaderXrTermCreateLayerInstance`
+.... `XrApiLayerNextInfo.nextGetInstanceProcAddr` = Previous
+     `XrApiLayerNextInfo.loaderXrTermGetInstanceProcAddr`
+.... `XrApiLayerNextInfo.nextCreateLayerInstance` = Previous
+     `XrApiLayerNextInfo.loaderXrTermCreateLayerInstance`
 .... `XrApiLayerNextInfo.next` = address to previous `XrApiLayerNextInfo`
 . The loader will then update the `XrApiLayerCreateInfo.nextInfo` to point to the
   last created `XrApiLayerNextInfo` since this is the first API layer in the
@@ -1051,9 +1051,9 @@ During the `xrCreateInstance` call, the following happens:
   down the call-chain to the next fname:xrCreateApiLayerInstance, using a
   pointer to its sname:XrApiLayerCreateInfo structure instead of the one
   that was passed in during its fname:xrCreateApiLayerInstance command.
-.. If the call passes, this API layer may choose to setup its own dispatch table to
-   the next API layer's commands using the returned `XrInstance`, the next
-   API layer's `xrGetInstanceProcAddr` and the
+.. If the call passes, this API layer may choose to setup its own dispatch
+   table to the next API layer's commands using the returned `XrInstance`,
+   the next API layer's `xrGetInstanceProcAddr` and the
    fname:GeneratedXrPopulateDispatchTable utility command provided in the
    generated `xr_generated_dispatch_table.h` header.
 . Finally, the API layer should return the result passed in from the next API layer.

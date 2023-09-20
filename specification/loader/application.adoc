@@ -11,11 +11,11 @@ structure which, in turn, is passed into the `XrInstanceCreateInfo`
 structure.
 If either the loader or the active runtime do not support the requested
 version, they may return an error and fail instance creation.
-Refer to the <<openxr-spec,OpenXR API Specification>> documentation on
-`xrCreateInstance` for more information about this.
+Refer to the link:{uri-openxr-ratified-spec}[OpenXR API Specification]
+documentation on `xrCreateInstance` for more information about this.
 
 [[interfacing-with-openxr-functions]]
-=== Interfacing with OpenXR Functions ===
+=== Interfacing with OpenXR Functions
 There are two ways an application can choose interface with OpenXR functions
 through the loader:
 
@@ -28,7 +28,7 @@ extensions supported by the runtime, and any commands exposed by enabled API
 layers.
 
 [[openxr-direct-exports]]
-==== OpenXR Direct Exports ====
+==== OpenXR Direct Exports
 
 The loader library on Windows and Linux will directly export all core OpenXR
 commands for the OpenXR version it supports.
@@ -112,7 +112,7 @@ chain.
 
 
 [[openxr-indirect-linking]]
-==== OpenXR Indirect Linking ====
+==== OpenXR Indirect Linking
 
 With loader indirect linking an application dynamically generates its own
 dispatch table of OpenXR commands.
@@ -137,7 +137,7 @@ image::images/app_dispatch_table_call_chain.svg[align="center", title="Call Chai
 
 
 [[openxr-loader-library-name]]
-==== OpenXR Loader Library Name ====
+==== OpenXR Loader Library Name
 
 The OpenXR loader's dynamic library name is dependent on the user's
 underlying operating system.
@@ -157,7 +157,7 @@ versions of OpenXR.
 
 
 [[application-api-layer-usage]]
-=== Application API Layer Usage ===
+=== Application API Layer Usage
 
 Applications desiring OpenXR functionality beyond what the core API offers
 may use various API layers or extensions.
@@ -201,7 +201,7 @@ to ensure that you are using it properly.
 
 
 [[implicit-vs-explicit-api-layers]]
-==== Implicit vs Explicit API Layers ====
+==== Implicit vs Explicit API Layers
 
 Explicit API layers are API layers which are enabled by an application (e.g.
 with the `xrCreateInstance` function) or by setting a
@@ -260,7 +260,7 @@ explicit is dependent on the operating system, as shown in the table below.
 
 
 [[forcing-api-layer-folders]]
-==== Forcing API Layer Folders (Desktop Only) ====
+==== Forcing API Layer Folders (Desktop Only)
 
 Desktop developers may also override the way the loader searches for API
 layers.
@@ -272,7 +272,7 @@ Paths>> section under "API Layer Interaction".
 
 
 [[forced-loading-of-api-layers]]
-==== Forced Loading of API Layers (Desktop Only) ====
+==== Forced Loading of API Layers (Desktop Only)
 
 Desktop developers may want to enable API layers that are not enabled by the
 given application they are using.
@@ -325,7 +325,7 @@ export XR_ENABLE_API_LAYERS=XR_APILAYER_LUNARG_test1:XR_APILAYER_LUNARG_test2
 
 
 [[overall-api-layer-ordering]]
-==== Overall API Layer Ordering ====
+==== Overall API Layer Ordering
 
 The overall ordering of all API layers by the loader based on the above
 looks as follows:
@@ -345,7 +345,7 @@ or after the loader calls it.
 
 
 [[application-usage-of-extensions]]
-=== Application Usage of Extensions ===
+=== Application Usage of Extensions
 
 Extensions are optional functionality provided by the loader, an API layer,
 or a runtime.
@@ -355,7 +355,8 @@ These extensions can be created by a runtime vendor to expose new runtime
 and/or XR hardware functionality, or by an API layer writer to expose some
 internal feature, or by the loader to add additional loader functionality.
 Information about various extensions can be found in the
-<<openxr-spec,OpenXR API Specification>>, and `openxr.h` header file.
+link:{uri-openxr-ratified-spec}[OpenXR API Specification], and `openxr.h`
+header file.
 
 To use extension functionality, the application should: call
 `xrEnumerateInstanceExtensionProperties` to determine if the extension is
@@ -376,9 +377,9 @@ layer) then only extensions from that API layer are enumerated.
 
 Duplicate extensions (e.g. an implicit API layer and runtime might report
 support for the same extension) are eliminated by the loader.
-For duplicates, the API layer version is reported and the runtime version
-is culled according to the loader ordering - an extension name is removed
-from the extension request list after loading the layer.
+For duplicates, the API layer version is reported and the runtime version is
+culled according to the loader ordering - an extension name is removed from
+the extension request list after loading the layer.
 
 If an application fails to enable the extension using the
 "enabledExtensionNames" field in the `XrInstanceCreateInfo` structure passed

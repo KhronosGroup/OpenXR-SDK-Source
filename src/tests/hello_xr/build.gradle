@@ -4,22 +4,11 @@
 
 // Open this directory in Android Studio, or build with Gradle,
 // to build the "hello_xr" sample application
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:7.4.2'
-    }
+
+plugins {
+    id 'com.android.application' version '7.4.2'
 }
 
-repositories {
-    google()
-    mavenCentral()
-}
-
-apply plugin: 'com.android.application'
 
 // These next few lines are just to make the version match the OpenXR release.
 project.ext.repoRoot = file('../../../')
@@ -29,6 +18,7 @@ android {
     compileSdk 29
     ndkVersion "21.4.7075529"
     buildToolsVersion = "30.0.3"
+    namespace 'org.khronos.openxr.hello_xr'
 
     defaultConfig {
         applicationId "org.khronos.openxr.hello_xr"
@@ -40,8 +30,7 @@ android {
 
         externalNativeBuild {
             cmake {
-                arguments '-DANDROID_STL=c++_shared',
-                        '-DBUILD_API_LAYERS=OFF',
+                arguments '-DBUILD_API_LAYERS=OFF',
                         '-DBUILD_TESTS=ON',
                         '-DBUILD_LOADER=ON',
                         '-DBUILD_CONFORMANCE_TESTS=OFF',
@@ -81,14 +70,14 @@ android {
         OpenGLES {
             dimension 'api'
             applicationIdSuffix '.opengles'
-            externalNativeBuild.cmake.cppFlags '-DDEFAULT_GRAPHICS_PLUGIN_OPENGLES'
+            externalNativeBuild.cmake.arguments += '-DHELLOXR_DEFAULT_GRAPHICS_PLUGIN=OpenGLES'
 
             resValue "string", "app_name", "Hello XR (OpenGL ES)"
         }
         Vulkan {
             dimension 'api'
             applicationIdSuffix '.vulkan'
-            externalNativeBuild.cmake.cppFlags '-DDEFAULT_GRAPHICS_PLUGIN_VULKAN'
+            externalNativeBuild.cmake.arguments += '-DHELLOXR_DEFAULT_GRAPHICS_PLUGIN=Vulkan'
 
             resValue "string", "app_name", "Hello XR (Vulkan)"
         }

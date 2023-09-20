@@ -13,7 +13,7 @@ releasing of loader changes for all supported platforms.
 However, the OpenXR loader is an Open Source project that does accept
 contributions from the OpenXR community.
 
-=== Building Instructions ===
+=== Building Instructions
 
 The latest instructions for building the OpenXR source can always be found
 in the BUILDING.md file.
@@ -22,7 +22,7 @@ build steps in this file in order to reduce unnecessary duplication.
 
 
 [[cmake-usage]]
-==== CMake Usage ====
+==== CMake Usage
 
 All OpenXR source utilizes the CMake tool to generate platform-specific
 build files.
@@ -77,20 +77,20 @@ generate the header yourself (preferred), or supply equivalent definitions:
 ====
 
 
-=== Contributing to the Loader ===
+=== Contributing to the Loader
 
 Khronos would be pleased if you decided to contribute to the loader source
 code.
 
 [[coding-standard]]
-=== Coding Standard ===
+=== Coding Standard
 
 The following sections define what coding standard is in place for the
 OpenXR loader code.
 Every attempt must: be made to follow these rules when adding new code.
 
 
-==== General Format of Code ====
+==== General Format of Code
 
 The loader code is formatted using clang-format with the following settings:
 
@@ -103,7 +103,7 @@ Clang-format is required: to be executed prior to committing new code
 whenever possible.
 
 
-==== Language Selection ====
+==== Language Selection
 
 Internally, the loader is implemented using the pass:[C++] language, taking
 advantage of pass:[C++]11 standard features.
@@ -223,13 +223,13 @@ static void checkAllFilesInThePath(const std::string &search_path) {
 ====
 
 
-==== API Naming ====
+==== API Naming
 
 Identifiers in the OpenXR API (e.g. types, parameters, constants, etc.) all
 follow a set of naming rules, providing a consistent scheme for developers.
 
 
-===== General Naming Rules =====
+===== General Naming Rules
 
 Names of all identifiers should: generally be written with full words,
 avoiding abbreviations whenever possible, as a concise description of what
@@ -252,7 +252,7 @@ Also, as a general rule, Hungarian notation should: not be avoided whenever
 possible.
 
 
-===== Naming of Files and Directories =====
+===== Naming of Files and Directories
 
 All files and files must: be named with lower-snake-case names.
 Additionally, any C-language files must: end with either .c or .h, while any
@@ -271,7 +271,7 @@ loader_interfaces.h
 ====
 
 
-===== Naming of #Defines =====
+===== Naming of #Defines
 
 All #defines must: be named in all-caps upper-snake-case and must be defined
 to a specific value.
@@ -287,7 +287,7 @@ to a specific value.
 ====
 
 
-===== Variable Naming =====
+===== Variable Naming
 
 .Local Variables
 All local variables and function/method parameters must: use
@@ -319,7 +319,7 @@ std::vector<<std::string>> g_my_global_file_list;
 ====
 
 
-===== Function and Parameter Naming =====
+===== Function and Parameter Naming
 
 Functions must: use lower-camel-case for their naming and function
 parameters must: use lower-snake-case for their naming.
@@ -337,7 +337,7 @@ void thisOtherFunction2() {
 ----
 ====
 
-===== Structure/Enumeration Naming =====
+===== Structure/Enumeration Naming
 
 Structures and Enumerations must: be named using upper-camel-case.
 
@@ -370,7 +370,7 @@ enum XrLoaderInterfaceStructs {
 ----
 ====
 
-===== Class Component Naming =====
+===== Class Component Naming
 
 The specific components of a class must be named in the following ways:
 

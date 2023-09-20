@@ -327,6 +327,6 @@ void android_main(struct android_app* app) {
 
 #else  // !defined(XR_USE_PLATFORM_ANDROID)
 
-int main() { main_body(); }
+int main() { return main_body(); }
 
 #endif  // defined(XR_USE_PLATFORM_ANDROID)

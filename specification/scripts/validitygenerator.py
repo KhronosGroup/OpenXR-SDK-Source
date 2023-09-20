@@ -1086,8 +1086,8 @@ class ValidityOutputGenerator(OutputGenerator):
                     self.logMsg(
                         'diag', 'makeStructureExtensionPointer: struct', struct, 'IS NOT required')
 
-        entry += '{} must: be {} or a valid pointer to the <<valid-usage-for-structure-pointer-chains, next structure in a structure chain>>'.format(
-            self.makeParameterName(param_name), self.null)
+        link = "link:{uri-next-chain}[next structure in a structure chain]"
+        entry += f'{self.makeParameterName(param_name)} must: be {self.null} or a valid pointer to the {link}'
         if not extensionstructs:
             return entry
         entry += '. See also: '

@@ -882,15 +882,14 @@ def genExtension(baseDir, extpath, name, info):
     fp = open(pageName, 'w', encoding='utf-8')
 
     # OpenXR-specific
-    sections = OrderedDict()
-    sections['Specification'] = 'See link:{html_spec_relative}#%s[ %s] in the main specification for complete information.' % (
-        name, name)
+    ref_page_sections = OrderedDict()
+    ref_page_sections['Specification'] = f'See link:{{html_spec_relative}}#{name}[{name}] in the main specification for complete information.'
 
     refPageShell(name,
                  "{} extension".format(ext_type),
                  fp,
                  appbody,
-                 sections=sections,
+                 sections=ref_page_sections,
                  tail_content=tail_content)
 
     # Restore leveloffset for boilerplate in refPageTail

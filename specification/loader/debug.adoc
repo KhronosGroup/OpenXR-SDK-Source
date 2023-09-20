@@ -9,7 +9,7 @@ There may be times that a developer wishes to debug the loader.
 The following sections define useful tips in debugging the OpenXR loader.
 
 [[loader-logging]]
-=== Loader Logging ===
+=== Loader Logging
 
 The user can define the `XR_LOADER_DEBUG` environment variable which will
 enable logging.
@@ -54,7 +54,7 @@ export XR_LOADER_DEBUG=error
 ----
 ====
 
-=== Additional Debug Suggestions ===
+=== Additional Debug Suggestions
 
 If you are seeing issues which may be related to the loader's use of either
 an API layer or a runtime, there is another setting that may assist you in

@@ -660,10 +660,6 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrCreateSession(XrInstance instance
         auto const &enabled_extensions = gen_instance_info->enabled_extensions;
         has_headless |= (enabled_extensions.end() !=
                          std::find(enabled_extensions.begin(), enabled_extensions.end(), XR_MND_HEADLESS_EXTENSION_NAME));
-#ifdef XR_KHR_headless
-        has_headless |= (enabled_extensions.end() !=
-                         std::find(enabled_extensions.begin(), enabled_extensions.end(), XR_KHR_HEADLESS_EXTENSION_NAME));
-#endif  // XR_KHR_headless
 
         bool got_right_graphics_binding_count = (num_graphics_bindings_found == 1);
         if (!got_right_graphics_binding_count && has_headless) {

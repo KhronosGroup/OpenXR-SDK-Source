@@ -287,7 +287,7 @@ class EntityDatabase(ABC):
         ret = []
         for member in members:
             name_tag = member.find('name')
-            if name_tag:
+            if name_tag is not None:
                 ret.append(name_tag.text)
         return ret
 
