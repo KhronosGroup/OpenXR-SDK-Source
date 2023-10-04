@@ -409,11 +409,11 @@ struct OpenXrProgram : IOpenXrProgram
             CHECK_XRCMD(xrEnumerateInstanceExtensionProperties(layerName, (uint32_t)extensions.size(), &instanceExtensionCount, extensions.data()));
 
             const std::string indentStr(indent, ' ');
-            Log::Write(Log::Level::Info, Fmt("%s Available Extensions: (%d)", indentStr.c_str(), instanceExtensionCount));
+            Log::Write(Log::Level::Info, Fmt("%s Available OPENXR Extensions: (%d)", indentStr.c_str(), instanceExtensionCount));
 
             for (const XrExtensionProperties& extension : extensions) 
             {
-                Log::Write(Log::Level::Info, Fmt("%s  Name=%s SpecVersion=%d", indentStr.c_str(), extension.extensionName,
+                Log::Write(Log::Level::Info, Fmt("OPENXR Extension: %s  Name=%s SpecVersion=%d", indentStr.c_str(), extension.extensionName,
                                                     extension.extensionVersion));
 
 #if ENABLE_OPENXR_FB_REFRESH_RATE

@@ -122,7 +122,6 @@
 #include <openxr/fb_body_tracking.h>
 #include <openxr/fb_composition_layer_depth_test.h>
 #include <openxr/fb_eye_tracking_social.h>
-#include <openxr/fb_face_tracking.h>
 #include <openxr/fb_haptic_amplitude_envelope.h>
 #include <openxr/fb_haptic_pcm.h>
 #include <openxr/fb_scene.h>
@@ -140,6 +139,7 @@
 #include <openxr/meta_local_dimming.h>
 #include <openxr/openxr_extension_helpers.h>
 #include <openxr/openxr_oculus.h>
+#include <openxr/metax1_simultaneous_hands_controllers_management.h>
 
 #ifdef XR_USE_PLATFORM_ANDROID
 #define PLATFORM_ANDROID 1
