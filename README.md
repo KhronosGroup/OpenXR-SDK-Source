@@ -27,3 +27,10 @@ I posted a hello_xr.exe test app and an OpenGL ES / Vulkan pre-built APK for Sid
 
 https://github.com/BattleAxeVR/OpenXR-SDK-Source/assets/11604039/57f9c068-79d2-402f-b37b-58a24c3bdea0
 
+NB: On standalone builds, you need to run this ADB command to enable experimental features:
+
+adb shell setprop debug.oculus.experimentalEnabled 1
+
+See:
+
+https://developer.oculus.com/documentation/native/android/mobile-experimental-features/
