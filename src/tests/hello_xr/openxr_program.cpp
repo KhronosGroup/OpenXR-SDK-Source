@@ -225,15 +225,26 @@ void move_player(const glm::vec2& left_thumbstick_values)
 
 void rotate_player(const float right_thumbstick_x_value)
 {
+    static bool was_last_x_value_0 = true;
+
     if (fabs(right_thumbstick_x_value) < deadzone)
     {
+        was_last_x_value_0 = true;
         return;
     }
 
 #if PREFER_SNAP_TURNING
+    if (!was_last_x_value_0)
+    {
+        return;
+    }
+
+    const float rotation_degrees = (right_thumbstick_x_value > 0.0f) ? -SNAP_TURN_DEGREES : SNAP_TURN_DEGREES; 
 #else
     // Rotate player about +Y (UP) axis
     const float rotation_degrees = -right_thumbstick_x_value * rotation_speed;
+#endif
+    
     //player_pose.euler_angles_degrees_.y = fmodf(player_pose.euler_angles_degrees_.y + rotation_degrees, 360.0f);
     player_pose.euler_angles_degrees_.y += rotation_degrees;
 
@@ -246,9 +257,9 @@ void rotate_player(const float right_thumbstick_x_value)
 	{
 		player_pose.euler_angles_degrees_.y += 360.0f;
 	}
-#endif
+
     player_pose.update_rotation_from_euler();
-    
+    was_last_x_value_0 = false;
 }
 #endif
 
