@@ -1,1 +1,0 @@
-adb shell setprop debug.xr.graphicsPlugin Vulkan
