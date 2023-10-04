@@ -230,6 +230,8 @@ void rotate_player(const float right_thumbstick_x_value)
         return;
     }
 
+#if PREFER_SNAP_TURNING
+#else
     // Rotate player about +Y (UP) axis
     const float rotation_degrees = -right_thumbstick_x_value * rotation_speed;
     //player_pose.euler_angles_degrees_.y = fmodf(player_pose.euler_angles_degrees_.y + rotation_degrees, 360.0f);
@@ -244,8 +246,9 @@ void rotate_player(const float right_thumbstick_x_value)
 	{
 		player_pose.euler_angles_degrees_.y += 360.0f;
 	}
-
+#endif
     player_pose.update_rotation_from_euler();
+    
 }
 #endif
 
