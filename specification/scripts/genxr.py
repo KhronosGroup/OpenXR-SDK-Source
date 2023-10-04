@@ -105,6 +105,7 @@ def makeGenOpts(args):
     emitExtensionsPat    = makeREstring(emitExtensions, allExtensions)
     featuresPat          = makeREstring(features, allFeatures)
 
+    # REUSE-IgnoreStart
     # Copyright text prefixing all headers (list of strings).
     prefixStrings = [
         '/*',
@@ -115,6 +116,7 @@ def makeGenOpts(args):
         '*/',
         ''
     ]
+    # REUSE-IgnoreEnd
 
     # Text specific to OpenXR headers
     xrPrefixStrings = [

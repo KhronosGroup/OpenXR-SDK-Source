@@ -1,0 +1,61 @@
+// Copyright (c) 2020-2023, The Khronos Group Inc.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+// Open this directory in Android Studio, or build with Gradle,
+// to build the "c_compile_test" sample application
+
+plugins {
+    id 'com.android.application' version '7.4.2'
+}
+
+
+// These next few lines are just to make the version match the OpenXR release.
+project.ext.repoRoot = file('../../../')
+apply from: file('../../version.gradle')
+
+android {
+    compileSdk 29
+    ndkVersion "21.4.7075529"
+    buildToolsVersion = "30.0.3"
+    namespace 'org.khronos.openxr.c_compile_test'
+
+    defaultConfig {
+        applicationId "org.khronos.openxr.c_compile_test"
+        // for Vulkan, need at least 24
+        minSdkVersion 24
+
+        versionName = project.versionOpenXR.toString() + project.versionQualifier
+        versionCode = project.versionOpenXR.getVersionCode()
+
+        externalNativeBuild {
+            cmake {
+                arguments '-DBUILD_API_LAYERS=OFF',
+                        '-DBUILD_TESTS=ON',
+                        '-DBUILD_LOADER=ON',
+                        '-DBUILD_CONFORMANCE_TESTS=OFF',
+                        '-DBUILD_ALL_EXTENSIONS=ON'
+                targets "openxr_loader", "openxr_c_compile_test"
+            }
+        }
+    }
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "${project.repoRoot}/CMakeLists.txt"
+        }
+    }
+
+}
+

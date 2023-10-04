@@ -32,7 +32,7 @@ ifneq (,$(strip $(VERY_STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level WARN
 endif
 
-SPECREVISION = 1.0.27
+SPECREVISION = 1.0.30
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -53,10 +53,11 @@ GENOPTS =
 
 SCRIPTS       := ./scripts
 SPECTOOLS     := $(SCRIPTS)/spec_tools
-XRAPI	      := $(GENDIR)/apimap.py
+PYAPIMAP      := $(GENDIR)/apimap.py
+RBAPIMAP      := $(GENDIR)/apimap.rb
 METADIR       := $(GENDIR)/meta
 
-VK_REF_PAGE_ROOT := https://www.khronos.org/registry/vulkan/specs/1.3-extensions/man/html
+VK_REF_PAGE_ROOT := https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/
 
 MAKE_RELATIVE = $(patsubst $(CURDIR)/%,%,$(1))
 
@@ -181,7 +182,7 @@ GENSTAMPS := \
   $(METADIR)/extinc \
 
 # The actual generated index
-GENDEPENDS := $(XRAPI) $(GENSTAMPS) $(GENDIR)/index.adoc
+GENDEPENDS := $(PYAPIMAP) $(RBAPIMAP) $(GENSTAMPS) $(GENDIR)/index.adoc
 
 # The rule for every genxr-generated file
 $(GENDEPENDS) $(GENHEADERS): $(BASIC_GENERATED_DEPENDS)
@@ -194,9 +195,10 @@ $(GENDEPENDS) $(GENHEADERS): $(BASIC_GENERATED_DEPENDS)
 $(GENSTAMPS): STAMP_NOTE = (and additional files in $(@D))
 
 # Extra deps
-$(GENDIR)/api/apiinc: $(XRAPI) $(SCRIPTS)/docgenerator.py
+$(GENDIR)/api/apiinc: $(PYAPIMAP) $(SCRIPTS)/docgenerator.py
 $(GENDIR)/validity/validinc: $(SCRIPTS)/validitygenerator.py $(SPECTOOLS)/validity.py $(SPECTOOLS)/attributes.py $(SPECTOOLS)/data_structures.py
-$(XRAPI): $(SCRIPTS)/pygenerator.py $(SCRIPTS)/docgenerator.py
+$(PYAPIMAP): $(SCRIPTS)/pygenerator.py $(SCRIPTS)/docgenerator.py
+$(RBAPIMAP): $(SCRIPTS)/rubygenerator.py $(SCRIPTS)/docgenerator.py
 $(GENHEADERS): $(SCRIPTS)/cgenerator.py
 $(REFLECTHEADERS): $(SCRIPTS)/creflectiongenerator.py $(SCRIPTS)/jinja_helpers.py $(wildcard $(SCRIPTS)/template_*)
 
@@ -227,7 +229,7 @@ extinc: $(METADIR)/extinc
 # The actual generated include files
 GENINCLUDE = $(GENAPI) $(GENVALIDITY) $(GENSYNC) $(GENMETA)
 .PHONY: generated
-generated: $(GENDEPENDS) $(XRAPI)
+generated: $(GENDEPENDS)
 
 ################################################
 # OpenXR Style Guide
@@ -246,7 +248,7 @@ ASCIIDOCTOR_TARGETS += $(STYLEGUIDE)
 # Target-specific variables and deps customizing the AsciiDoctor rule
 $(STYLEGUIDE): SPECSRC=$(STYLESRC)
 $(STYLEGUIDE): LOGFILE=$(OUTDIR)/adoc_styleguide_stderr.txt
-$(STYLEGUIDE): $(STYLESRC) $(STYLEFILES) $(GENDIR)/validity/validinc $(GENDIR)/api/apiinc
+$(STYLEGUIDE): $(STYLESRC) $(STYLEFILES) $(GENDIR)/validity/validinc $(GENDIR)/api/apiinc $(RBAPIMAP)
 
 
 ################################################
@@ -264,7 +266,7 @@ ASCIIDOCTOR_TARGETS += $(LOADERGUIDE)
 # Target-specific variables and deps customizing the AsciiDoctor rule
 $(LOADERGUIDE): SPECSRC=$(LOADERSRC)
 $(LOADERGUIDE): LOGFILE=$(OUTDIR)/adoc_loader_stderr.txt
-$(LOADERGUIDE): $(LOADERSRC) $(LOADERFILES)
+$(LOADERGUIDE): $(LOADERSRC) $(LOADERFILES) $(RBAPIMAP)
 
 
 ################################################
@@ -351,7 +353,9 @@ ATTRIBOPTS   = -a revnumber="$(SPECREVISION)" \
 	       -a appendices=$(APPENDICES) \
 	       $(EXTATTRIBS)
 
-ADOCOPTS = --doctype book -a data-uri -r $(CURDIR)/scripts/openxr-macros.rb $(ATTRIBOPTS)
+# Look in $(GENERATED) for explicitly required non-extension Ruby, such
+# as apimap.rb
+ADOCOPTS = --doctype book -a data-uri -I$(GENDIR) -r $(CURDIR)/scripts/spec-macros.rb $(ATTRIBOPTS)
 
 ifneq (,$(strip $(RELEASE)))
 # No dates or internal commit hashes in release builds for reproducibility
@@ -380,26 +384,14 @@ BACKEND_ARGS=--backend html5
 $(ASCIIDOCTOR_TARGETS):
 	$(ECHO) "[asciidoctor] $(SPECSRC) -> $(call MAKE_RELATIVE,$@)"
 	$(QUIET)$(MKDIR) "$(@D)"
-	$(QUIET)if [ $$(uname -s | cut -c 1-6) == "CYGWIN" ]; then \
-	OUTSPEC_DOS=$$(cygpath -w $@) ;\
-	SPECSRC_DOS=$$(cygpath -w $(SPECSRC)) ;\
-	ATTRIBOPTS_DOS='$(ATTRIBOPTS)' ;\
-	ADOCOPTS_DOS="--doctype book -a data-uri -r $$(cygpath -w $(CURDIR)/scripts/openxr-macros.rb) $$ATTRIBOPTS_DOS" ;\
-	BATCH_FILE=$$(cygpath -w $$(mktemp)).bat ;\
-	echo $(ASCIIDOC) $$ADOCOPTS_DOS $(BACKEND_ARGS) --out-file $$OUTSPEC_DOS $$SPECSRC_DOS > $$BATCH_FILE ;\
-	CMD /C $$BATCH_FILE ;\
-	rm -f $$BATCH_FILE ;\
-	else \
-	$(ASCIIDOC) $(ADOCOPTS) $(BACKEND_ARGS) --out-file $@ $(SPECSRC) 2>&1 | tee $(LOGFILE) ;\
-	if [ -s $(LOGFILE) ]; then \
+	$(QUIET)$(ASCIIDOC) $(ADOCOPTS) $(BACKEND_ARGS) --out-file $@ $(SPECSRC) 2>&1 | tee $(LOGFILE)
+	$(QUIET)if [ -s $(LOGFILE) ]; then \
 		echo "Failure: $(LOGFILE) exists and is not empty!"; \
 		false; \
 	else \
 		rm $(LOGFILE); \
-	fi; \
 	fi
 	$(POSTPROCESS)
-# TODO: Postprocess step(s) may have broken the Cygwin build. Not sure this matters anymore with WSL, though.
 
 
 ################################################
@@ -414,7 +406,7 @@ MANSOURCES   = $(CORESOURCES) $(VENSOURCES) $(KHRSOURCES)
 MANGENERATED = $(wildcard $(REFPATH)/*)
 MANHTML      = $(MANSOURCES:$(REFPATH)/%.txt=$(MANHTMLDIR)/%.html)
 MANDEPS      = $(GENINCLUDE) $(GENDEPENDS)
-HTML_SPEC_RELATIVE ?= ../../$(SPEC_FILENAME_STEM).html
+HTML_SPEC_RELATIVE ?= ../../html/$(SPEC_FILENAME_STEM).html
 
 # Asciidoctor options to build refpages
 #
@@ -429,8 +421,7 @@ ADOCREFOPTS  = -a stylesheet=khronos.css \
                -a refprefix='refpage.' \
                -a isrefpage \
                -a html_spec_relative='$(HTML_SPEC_RELATIVE)' \
-               -a imagesdir=$(CURDIR)/sources \
-               -a vkRefPageRoot='$(VK_REF_PAGE_ROOT)'
+               -a imagesdir=$(CURDIR)/sources
 
 # Pure makefile lowercase function, generated by a script.
 make_lower = $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,$(subst G,g,$(subst H,h,$(subst I,i,$(subst J,j,$(subst K,k,$(subst L,l,$(subst M,m,$(subst N,n,$(subst O,o,$(subst P,p,$(subst Q,q,$(subst R,r,$(subst S,s,$(subst T,t,$(subst U,u,$(subst V,v,$(subst W,w,$(subst X,x,$(subst Y,y,$(subst Z,z,$(1)))))))))))))))))))))))))))
@@ -459,7 +450,7 @@ EXTENSION_SOURCES := $(foreach ext,$(patsubst xr_%,%,$(EXTENSIONS_LOWER)),$(call
 GENREF = $(SCRIPTS)/genRef.py
 LOGFILE = $(REFPATH)/refpage.log
 refpages: $(REFPATH)/apispec.txt
-$(REFPATH)/apispec.txt: $(SPECFILES) $(EXTENSION_SOURCES) $(GENREF) $(SCRIPTS)/reflib.py $(XRAPI)
+$(REFPATH)/apispec.txt: $(SPECFILES) $(EXTENSION_SOURCES) $(GENREF) $(SCRIPTS)/reflib.py $(PYAPIMAP)
 	$(ECHO) "[genRef.py]   $(REGISTRY) and spec -> $@"
 	$(ECHO) "                                          (and additional files in $(@D))"
 	$(QUIET)$(MKDIR) "$(REFPATH)"
@@ -487,7 +478,7 @@ buildmanpages: $(MANHTML) $(MANHTMLDIR)/openxr.html
 
 # This target does not at present, since OpenXR does not alias refpage
 # content yet.
-manaliases: $(XRAPI)
+manaliases: $(PYAPIMAP)
 
 # This is the single-page ref page.
 # 'doctype-manpage' allows use of the "book" style but still enable the
@@ -636,7 +627,7 @@ clean_dirt:
 # Clean intermediate generated files
 # Don't remove OUTDIR, since it contains the config stamp and final output targets
 clean_generated:
-	$(RMRF) $(XRAPI) $(GENDIR)/index.adoc
+	$(RMRF) $(PYAPIMAP) $(RBAPIMAP) $(GENDIR)/index.adoc
 	$(RMRF) $(GENDIR)/api $(GENDIR)/validity $(GENDIR)/hostsynctable $(METADIR) $(REFPATH)
 
 # Clean generated targets as well as intermediates.

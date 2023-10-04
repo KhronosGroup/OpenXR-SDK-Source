@@ -14,9 +14,9 @@ The overall class diagram looks roughly like the following:
 image::images/class_diagram.svg[align="center", title="Loader Class Diagram"]
 
 [[class-roles]]
-=== Class Roles ===
+=== Class Roles
 
-==== Manifest File Classes ====
+==== Manifest File Classes
 
 The Desktop OpenXR loader uses JSON manifest files for information about
 available <<api-layer-manifest-file-format, API layers>> and
@@ -132,7 +132,7 @@ void ApiLayerManifestFile::CreateIfValid(
     instance of `ApiLayerManifestFile` and add it to this vector.
 
 
-==== Library Interface Classes ====
+==== Library Interface Classes
 
 The OpenXR loader is responsible with interfacing with other libraries to
 complete its tasks.
@@ -257,7 +257,7 @@ static XrResult ApiLayerInterface::LoadApiLayers(
     layer that is enabled and has completed loading and negotiation.
 
 
-==== The LoaderInstance Class ====
+==== The LoaderInstance Class
 
 The primary OpenXR object is the `XrInstance`, and from that most other data
 is either queried or created.
@@ -313,7 +313,7 @@ sequence called `loaderXrTermCreateInstance` after the last API layer in
 order to create the runtime instance.
 
 
-==== Logging Classes ====
+==== Logging Classes
 
 .LoaderLogger
 
@@ -498,7 +498,7 @@ Two steps are required before the loader enables this class:
   * Calling fname:xrCreateDebugUtilsMessengerEXT.
 
 [[automatically-generated-code]]
-=== Automatically Generated Code ===
+=== Automatically Generated Code
 
 In order to allow the OpenXR loader to be as flexible as possible, we
 generate a large portion of the code automatically using the xr.xml registry
@@ -525,20 +525,23 @@ process:
 .2+| <build>/src folder
     l| xr_generated_dispatch_table.h
     l| xr_generated_dispatch_table.c
+    l| xr_generated_dispatch_table_core.h
+    l| xr_generated_dispatch_table_core.c
 .2+| <build>/src/loader folder
     l| xr_loader_generated.hpp
     l| xr_loader_generated.cpp
 |====
 
-==== xr_generated_dispatch_table.h ====
+==== xr_generated_dispatch_table.h
 
 This C-style header contains the definition of the
 sname:XrGeneratedDispatchTable structure.
 This structure can be used to store function pointers for any OpenXR
 commands defined in the xr.xml at the time the loader was built.
 It includes slots for both core and extension function pointers.
-Currently, the loader uses this structure as well as the provided API
-Layers.
+Currently, the provided API Layers use this structure and the loader uses a
+structure which has a subset of the function pointers (defined in
+`xr_generated_dispatch_table_core.h`).
 
 A partial listing from the generated table follows:
 
@@ -587,14 +590,14 @@ void GeneratedXrPopulateDispatchTable(
     `xrGetInstanceProcAddr`.
 
 
-==== xr_generated_dispatch_table.c ====
+==== xr_generated_dispatch_table.c
 
 This file is paired with the above `xr_generated_dispatch_table.h` header
 and only implements the fname:GeneratedXrPopulateDispatchTable function used
 to populate the elements of a dispatch table.
 
 
-==== xr_loader_generated.hpp ====
+==== xr_loader_generated.hpp
 
 `xr_loader_generated.hpp` contains prototypes for all the manually defined
 instance command trampoline and terminator functions.
@@ -602,13 +605,13 @@ This is done so that they can be referenced in the `xr_loader_generated.cpp`
 source file which is used for `xrGetInstanceProcAddr` as well as setting up
 the loader dispatch table.
 
-==== xr_loader_generated.cpp ====
+==== xr_loader_generated.cpp
 
 The `xr_loader_generated.cpp` source file contains the implementation of all
 generated OpenXR trampoline functions.
 
 [[manually-implemented-code]]
-=== Manually Implemented Code ===
+=== Manually Implemented Code
 
 Some OpenXR command terminator and trampoline functions need to be manually
 implemented in the loader.
@@ -643,7 +646,7 @@ implemented in the loader.
 |====
 
 [[functional-flow]]
-=== Functional Flow ===
+=== Functional Flow
 
 The loader supports a single XrInstance at a time in order to avoid tracking
 handle values and their relationship to the `LoaderInstance`.
@@ -653,7 +656,7 @@ This enables the loader to work with future extensions and handle types
 without change.
 
 [[platform-specific-behavior]]
-=== Platform-Specific Behavior ===
+=== Platform-Specific Behavior
 
 The OpenXR loader design is intended to be flexible on supported on a
 variety of platforms.
@@ -664,7 +667,7 @@ OpenXR loader.
 
 
 [[library-handling]]
-==== Library Handling ====
+==== Library Handling
 
 The loader works with libraries and runtimes which are exposed as either a
 static or dynamic external library files.
@@ -767,8 +770,8 @@ fname:LoaderPlatformLibraryGetProcAddrError function:
 const char *LoaderPlatformLibraryGetProcAddrError(
     const std::string &path);
 ----
-  * pname:path must: be a constant string containing the name of the
-    entry point that was attempted to be queried during the previous
+  * pname:path must: be a constant string containing the name of the entry
+    point that was attempted to be queried during the previous
     fname:LoaderPlatformLibraryGetProcAddr call.
 
 The returned C-style character string contains any available
@@ -776,7 +779,7 @@ platform-specific error code that may have occurred.
 
 
 [[environment-variable-usage]]
-==== Environment Variable Usage ====
+==== Environment Variable Usage
 
 Several environment variables are used in the OpenXR loader, especially on
 the Desktop (Windows/Linux).
@@ -840,7 +843,7 @@ appropriate method will be used.
 Otherwise, it will fall back to the standard fname:PlatformUtilsGetEnv call.
 
 [[active-runtime-file-management]]
-==== Active Runtime File Management ====
+==== Active Runtime File Management
 
 .Querying the Active Runtime File name
 

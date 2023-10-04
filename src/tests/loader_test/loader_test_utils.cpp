@@ -20,10 +20,6 @@
 // Author: Dave Houlton <daveh@lunarg.com>
 //
 
-#ifdef XR_USE_GRAPHICS_API_OPENGL
-#include "gfxwrapper_opengl.h"  // for GL Extensions
-#endif
-
 #include "loader_test_utils.hpp"
 #include "xr_dependencies.h"
 #include <openxr/openxr.h>

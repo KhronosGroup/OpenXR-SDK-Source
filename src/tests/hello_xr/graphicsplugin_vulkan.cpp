@@ -1097,6 +1097,10 @@ struct Swapchain {
             hWnd = nullptr;
             UnregisterClassW(L"hello_xr", hInst);
         }
+        if (hUser32Dll != NULL) {
+            ::FreeLibrary(hUser32Dll);
+            hUser32Dll = NULL;
+        }
 #endif
 
         m_vkDevice = nullptr;
@@ -1110,6 +1114,7 @@ struct Swapchain {
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
     HINSTANCE hInst{NULL};
     HWND hWnd{NULL};
+    HINSTANCE hUser32Dll{NULL};
 #endif
     const VkExtent2D size{640, 480};
     VkInstance m_vkInstance{VK_NULL_HANDLE};
@@ -1138,8 +1143,13 @@ void Swapchain::Create(VkInstance instance, VkPhysicalDevice physDevice, VkDevic
 
 // adjust the window size and show at InitDevice time
 #if defined(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2)
-    // Make sure we're 1:1 for HMD pixels
-    SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+    typedef DPI_AWARENESS_CONTEXT(WINAPI * PFN_SetThreadDpiAwarenessContext)(DPI_AWARENESS_CONTEXT);
+    hUser32Dll = ::LoadLibraryA("user32.dll");
+    if (PFN_SetThreadDpiAwarenessContext SetThreadDpiAwarenessContextFn =
+            reinterpret_cast<PFN_SetThreadDpiAwarenessContext>(::GetProcAddress(hUser32Dll, "SetThreadDpiAwarenessContext"))) {
+        // Make sure we're 1:1 for HMD pixels
+        SetThreadDpiAwarenessContextFn(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+    }
 #endif
     RECT rect{0, 0, (LONG)size.width, (LONG)size.height};
     AdjustWindowRect(&rect, WS_OVERLAPPEDWINDOW, false);

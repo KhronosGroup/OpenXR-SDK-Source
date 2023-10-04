@@ -75,10 +75,12 @@ def printCopyrightSourceComments(fp):
 
     Writes an asciidoc comment block, which copyrights the source
     file."""
+    # REUSE-IgnoreStart
     print('// Copyright 2014-2023 The Khronos Group Inc.', file=fp)
     print('//', file=fp)
     # This works around constraints of the 'reuse' tool
     print('// SPDX' + '-License-Identifier: CC-BY-4.0', file=fp)
+    # REUSE-IgnoreEnd
     print('', file=fp)
 
 
@@ -835,6 +837,10 @@ def genExtension(baseDir, extpath, name, info):
             # Do not link to spec version or extension name - those ref pages are not created.
             continue
 
+        if req_name.startswith('/interaction_profiles'):
+            # We do not yet make ref pages for interaction profiles, though we may in the future
+            continue
+
         if required.get('extends'):
             # These are either extensions of enumerated types, or const enum
             # values: neither of which get a ref page - although we could
@@ -876,15 +882,14 @@ def genExtension(baseDir, extpath, name, info):
     fp = open(pageName, 'w', encoding='utf-8')
 
     # OpenXR-specific
-    sections = OrderedDict()
-    sections['Specification'] = 'See link:{html_spec_relative}#%s[ %s] in the main specification for complete information.' % (
-        name, name)
+    ref_page_sections = OrderedDict()
+    ref_page_sections['Specification'] = f'See link:{{html_spec_relative}}#{name}[{name}] in the main specification for complete information.'
 
     refPageShell(name,
                  "{} extension".format(ext_type),
                  fp,
                  appbody,
-                 sections=sections,
+                 sections=ref_page_sections,
                  tail_content=tail_content)
 
     # Restore leveloffset for boilerplate in refPageTail

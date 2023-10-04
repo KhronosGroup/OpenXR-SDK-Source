@@ -29,15 +29,17 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
     # Override the base class header warning so the comment indicates this file.
     #   self            the UtilitySourceOutputGenerator object
     def outputGeneratedHeaderWarning(self):
+        # REUSE-IgnoreStart
         generated_warning = ''
         generated_warning += '// Copyright (c) 2017-2023, The Khronos Group Inc.\n'
-        generated_warning += '// Copyright (c) 2017-2019 Valve Corporation\n'
-        generated_warning += '// Copyright (c) 2017-2019 LunarG, Inc.\n'
+        generated_warning += '// Copyright (c) 2017-2019, Valve Corporation\n'
+        generated_warning += '// Copyright (c) 2017-2019, LunarG, Inc.\n\n'
         # Broken string is to avoid confusing the REUSE tool here.
-        generated_warning += '// SPDX-License-' + 'Identifier: Apache-2.0 OR MIT\n'
+        generated_warning += '// SPDX-License-' + 'Identifier: Apache-2.0 OR MIT\n\n'
         generated_warning += '// *********** THIS FILE IS GENERATED - DO NOT EDIT ***********\n'
         generated_warning += '//     See utility_source_generator.py for modifications\n'
         generated_warning += '// ************************************************************\n'
+        # REUSE-IgnoreEnd
         write(generated_warning, file=self.outFile)
 
     # Call the base class to properly begin the file, and then add
@@ -47,14 +49,24 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
     def beginFile(self, genOpts):
         AutomaticSourceOutputGenerator.beginFile(self, genOpts)
         preamble = ''
-        if self.genOpts.filename == 'xr_generated_dispatch_table.h':
-            preamble += '#pragma once\n'
+        if self.genOpts.filename == 'xr_generated_dispatch_table_core.h':
+            preamble += '#pragma once\n\n'
+            preamble += '#include <openxr/openxr.h>\n'
+        elif self.genOpts.filename == 'xr_generated_dispatch_table.h':
+            preamble += '#pragma once\n\n'
+            preamble += '#include "xr_dependencies.h"\n'
+            preamble += '#include <openxr/openxr.h>\n'
+            preamble += '#include <openxr/openxr_platform.h>\n'
+        elif self.genOpts.filename == 'xr_generated_dispatch_table_core.c':
+            preamble += '#include "xr_generated_dispatch_table_core.h"\n'
         elif self.genOpts.filename == 'xr_generated_dispatch_table.c':
+            preamble += '#include <time.h>\n'
             preamble += '#include "xr_generated_dispatch_table.h"\n'
+        else:
+            raise RuntimeError("Unknown filename! " + self.genOpts.filename)
 
-        preamble += '#include "xr_dependencies.h"\n'
-        preamble += '#include <openxr/openxr.h>\n'
-        preamble += '#include <openxr/openxr_platform.h>\n\n'
+        preamble += '\n'
+
         write(preamble, file=self.outFile)
 
     # Write out all the information for the appropriate file,
@@ -67,9 +79,14 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
         file_data += 'extern "C" { \n'
         file_data += '#endif\n'
 
-        if self.genOpts.filename == 'xr_generated_dispatch_table.h':
+        if self.genOpts.filename == 'xr_generated_dispatch_table_core.h':
             file_data += self.outputDispatchTable()
             file_data += self.outputDispatchPrototypes()
+        elif self.genOpts.filename == 'xr_generated_dispatch_table.h':
+            file_data += self.outputDispatchTable()
+            file_data += self.outputDispatchPrototypes()
+        elif self.genOpts.filename == 'xr_generated_dispatch_table_core.c':
+            file_data += self.outputDispatchTableHelper()
         elif self.genOpts.filename == 'xr_generated_dispatch_table.c':
             file_data += self.outputDispatchTableHelper()
         else:
@@ -114,6 +131,16 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
                 commands = self.ext_commands
 
             for cur_cmd in commands:
+                if self.genOpts.filename == 'xr_generated_dispatch_table_core.h':
+                    if self.isCoreExtensionName(cur_cmd.ext_name):
+                        pass
+                    # Loader implements XR_EXT_debug_utils
+                    elif cur_cmd.ext_name == 'XR_EXT_debug_utils':
+                        pass
+                    else:
+                        # Skip anything that is not core or XR_EXT_debug_utils in the loader dispatch table
+                        continue
+
                 # If we've switched to a new "feature" print out a comment on what it is.  Usually,
                 # this is a group of core commands or a group of commands in an extension.
                 if cur_cmd.ext_name != cur_extension_name:
@@ -166,6 +193,16 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
                 # it is not needed anywhere else, so skip it.
                 if cur_cmd.name in self.no_trampoline_or_terminator:
                     continue
+
+                if self.genOpts.filename == 'xr_generated_dispatch_table_core.c':
+                    if self.isCoreExtensionName(cur_cmd.ext_name):
+                        pass
+                    # Loader implements XR_EXT_debug_utils
+                    elif cur_cmd.ext_name == 'XR_EXT_debug_utils':
+                        pass
+                    else:
+                        # Skip anything that is not core or XR_EXT_debug_utils in the loader dispatch table
+                        continue
 
                 # If we've switched to a new "feature" print out a comment on what it is.  Usually,
                 # this is a group of core commands or a group of commands in an extension.

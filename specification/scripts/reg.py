@@ -1220,6 +1220,10 @@ class Registry:
                         extname = elem.get('extname')
                         version = elem.get('version')
                         if extname is not None:
+                            # if this enum is not defined in an extension that is being emitted
+                            # then it should not be included in the emitted header file
+                            if re.match(self.genOpts.emitExtensions, extname) is None:
+                                continue;
                             # 'supported' attribute was injected when the <enum> element was
                             # moved into the <enums> group in Registry.parseTree()
                             supported_list = elem.get('supported').split(",")

@@ -1,9 +1,9 @@
 // Copyright (c) 2017-2023, The Khronos Group Inc.
-// Copyright notice at https://www.khronos.org/registry/speccopyright.html
+// Copyright notice at https://registry.khronos.org/speccopyright.html
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
-= OpenXR^(R)^  Loader - Design and Operation {apititle}
+= OpenXR(TM)  Loader - Design and Operation
 Copyright (c) 2017-2023, The Khronos Group Inc.
 :data-uri:
 :icons: font
@@ -19,6 +19,7 @@ All Rights reserved.
 
 toc::[]
 
+include::{config}/attribs.adoc[]
 
 [[introduction]]
 = Introduction =
@@ -29,9 +30,17 @@ Intended use of this document is as a detailed design document and a tool
 for learning general OpenXR loader behavior.
 
 In the event of any discrepancies between this document and the
-(https://www.khronos.org/registry/OpenXR[OpenXR specification]), that
-document is authoritative.
+{uri-openxr-registry-root}[OpenXR specification], that document is
+authoritative.
 
+OpenXR(TM) and the OpenXR logo are trademarks owned by The Khronos Group
+Inc.
+and are registered as a trademark in China, the European Union, Japan, and
+the United Kingdom.
+OpenGL and OpenGL ES are registered trademarks of Hewlett Packard
+Enterprise, all used under license by Khronos.
+All other product names, trademarks, and/or company names are used solely
+for identification and belong to their respective owners.
 
 [[introduction-terminology]]
 == Terminology ==

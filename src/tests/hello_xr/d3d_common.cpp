@@ -5,7 +5,7 @@
 #include "pch.h"
 #include "common.h"
 
-#if (defined(XR_USE_GRAPHICS_API_D3D11) || defined(XR_USE_GRAPHICS_API_D3D12)) && !defined(MISSING_DIRECTX_COLORS)
+#if defined(XR_USE_GRAPHICS_API_D3D11) || defined(XR_USE_GRAPHICS_API_D3D12)
 
 #include <common/xr_linear.h>
 #include <DirectXColors.h>

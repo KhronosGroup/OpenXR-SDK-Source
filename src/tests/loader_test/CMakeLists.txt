@@ -1,4 +1,4 @@
-# Copyright (c) 2017 The Khronos Group Inc.
+# Copyright (c) 2017-2023, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -14,20 +14,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# Author:
-#
 
 add_executable(loader_test
     loader_test_utils.cpp
     loader_test.cpp
 )
 openxr_add_filesystem_utils(loader_test)
-set_target_properties(loader_test PROPERTIES FOLDER ${TESTS_FOLDER})
-target_link_libraries(loader_test PRIVATE openxr_loader)
+set_target_properties(loader_test PROPERTIES FOLDER ${LOADER_TESTS_FOLDER})
+target_link_libraries(loader_test PRIVATE OpenXR::openxr_loader)
 
 add_dependencies(loader_test
     generate_openxr_header
     XrApiLayer_test
+    XrApiLayer_api_dump
     test_runtime
 )
 if(TARGET openxr-gfxwrapper)
@@ -53,12 +52,11 @@ if(WIN32)
         target_compile_options(loader_test PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
     endif()
     target_link_libraries(loader_test PRIVATE d3d11)
-
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    # No special options needed.
-else()
-    message(FATAL_ERROR "Unsupported Platform")
 endif()
+
+add_test(NAME loader_test
+    COMMAND loader_test
+    WORKING_DIRECTORY "$<TARGET_FILE_DIR:loader_test>")
 
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resources)
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/resources/layers)

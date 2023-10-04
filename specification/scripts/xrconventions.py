@@ -22,7 +22,7 @@ MAIN_RE = re.compile(
         (?P<gl>OpenGL(ES)?)|   # OpenGL and OpenGLES as words
         (?P<dimension>[0-9]D)| # Things like 2D are words
         (?P<word>              # Normal-ish words, which are....
-            ([A-Z]([a-z]+([0-9](?!D))*)+)|  # Capital letter followed by at least one lowercase letter, possibly ending in some digits as long as the digits aren't followed by "D"
+            ([A-Z]([a-z]+([0-9](?!D[A-Z]{1}))*)+)|  # Capital letter followed by at least one lowercase letter, possibly ending in some digits as long as the digits aren't followed by a "D" then another word
             ([A-Z][A-Z0-9]+(?![a-z]))       # Or, all-caps letter and digit mix starting with a letter, excluding the last capital before some lowercase
         )''', re.VERBOSE)
 
@@ -205,7 +205,7 @@ class OpenXRConventions(ConventionsBase):
            instead. N.b. this may need to change on a per-refpage basis if
            there are multiple documents involved.
         """
-        return 'https://www.khronos.org/registry/OpenXR/specs/1.0/html/xrspec.html'
+        return 'https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html'
 
     @property
     def xml_api_name(self):
@@ -249,7 +249,7 @@ class OpenXRConventions(ConventionsBase):
         """Return a set of directories not to automatically descend into
            when reflowing spec text
         """
-        return ('styleguide',)
+        return tuple()
 
     @property
     def zero(self):

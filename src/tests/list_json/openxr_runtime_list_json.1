@@ -1,0 +1,26 @@
+.\" Composed by Ryan Pavlik <ryan.pavlik@collabora.com>
+.\" Copyright 2023, Collabora, Ltd.
+.\" SPDX-License-Identifier: Apache-2.0
+.Dd August 7, 2023
+.Dt OPENXR_RUNTIME_LIST_JSON 1
+.Os
+.Sh NAME                 \" Section Header - required - don't modify
+.Nm openxr_runtime_list_json
+.Nd A small OpenXR application that reports information about your OpenXR runtime in a JSON format
+.Sh SYNOPSIS             \" Section Header - required - don't modify
+.Nm
+.Sh DESCRIPTION          \" Section Header - required - don't modify
+.Nm
+is a small non-interactive application written using the
+.Tn OpenXR
+API, that outputs data about your runtime to standard output in a JSON format.
+.Pp
+It accepts no arguments.
+The data reported is intended to resemble the file format used by OpenXR-Inventory, so that the output may redirected to a file and then edited to perform updates to that database.
+.Sh EXIT STATUS
+.Ex -std
+.Sh SEE ALSO
+.Xr openxr_runtime_list 1 ,
+https://github.com/KhronosGroup/OpenXR-Inventory ,
+https://registry.khronos.org/OpenXR/ ,
+https://github.com/KhronosGroup/OpenXR-SDK-Source/tree/main/src/tests/list_json

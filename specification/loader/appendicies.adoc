@@ -5,7 +5,7 @@
 [[Appendicies]]
 == Appendicies ==
 
-=== Table of Debug Environment Variables ===
+=== Table of Debug Environment Variables
 
 The following are all the Debug Environment Variables available for use with
 the loader.
@@ -56,7 +56,7 @@ discovery.
 
 |====
 
-=== Glossary of Terms ===
+=== Glossary of Terms
 
 .Glossary of Terms
 

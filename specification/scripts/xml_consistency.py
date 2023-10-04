@@ -120,10 +120,7 @@ class EntityDatabase(OrigEntityDatabase):
         # and it provides file line info which is useful in messages.
         try:
             import lxml.etree as etree
-            HAS_LXML = True
         except ImportError:
-            HAS_LXML = False
-        if not HAS_LXML:
             return super().makeRegistry()
 
         registryFile = str(SPECIFICATION_DIR / 'registry/xr.xml')
@@ -240,7 +237,7 @@ class Checker(XMLChecker):
 
             if bare_end:
                 # If bare_end is set, end is always non-empty because it means it's a bitmask.
-                assert(end)
+                assert end
                 if not name.endswith(end) and not stripped_name.endswith(bare_end):
                     self.record_error('Got an enum value whose name does not match the pattern: got', name,
                                       'but expected something that ended with', end, ', or', bare_end,
@@ -275,7 +272,7 @@ class Checker(XMLChecker):
         codes = super().get_codes_for_command_and_type(cmd_name, type_name)
 
         # Filter out any based on the specific command
-        if cmd_name.startswith(_DESTROY_PREFIX):
+        if codes is not None and cmd_name.startswith(_DESTROY_PREFIX):
             # xrDestroyX should not return XR_ERROR_anything_LOST or XR_anything_LOSS_PENDING
             codes = {x for x in codes if not x.endswith("_LOST")}
             codes = {x for x in codes if not x.endswith("_LOSS_PENDING")}
@@ -346,7 +343,7 @@ class Checker(XMLChecker):
             self.record_error('Two-call-idiom call has count parameter', param_name,
                               'with type', param_type, 'instead of uint32_t')
         type_elem = param_elem.find('type')
-        assert(type_elem is not None)
+        assert type_elem is not None
 
         tail = type_elem.tail.strip()
         if '*' != tail:
@@ -370,7 +367,7 @@ class Checker(XMLChecker):
                               optional, '- expected "true"')
 
         type_elem = param_elem.find('type')
-        assert(type_elem is not None)
+        assert type_elem is not None
 
         tail = type_elem.tail.strip()
         if '*' not in tail:
@@ -378,6 +375,7 @@ class Checker(XMLChecker):
                               'that is not a pointer:', type_elem.text, type_elem.tail)
 
         length = LengthEntry.parse_len_from_param(param_elem)
+        assert length is not None
         if not length[0].other_param_name:
             self.record_error('Two-call-idiom call has array parameter', param_name,
                               'whose first length is not another parameter:', length[0])
@@ -444,9 +442,11 @@ class Checker(XMLChecker):
         if not array_param_name:
             self.record_error('Apparent two-call-idiom call missing an array output parameter')
 
-        if not capacity_input_param_name or \
-                not count_output_param_name or \
-                not array_param_name:
+        if (capacity_input_param_match is None or
+                count_output_param_match is None or
+                capacity_input_param_name is None or
+                count_output_param_name is None or
+                array_param_name is None):
             # If we're missing at least one, stop checking two-call stuff here.
             return
 

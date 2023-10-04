@@ -96,6 +96,7 @@ def makeGenOpts(args):
     emitExtensionsPat    = makeREstring(emitExtensions, allExtensions)
     featuresPat          = makeREstring(features, allFeatures)
 
+    # REUSE-IgnoreStart
     # Copyright text prefixing all headers (list of strings).
     prefixStrings = [
         '/*',
@@ -115,6 +116,7 @@ def makeGenOpts(args):
         '*/',
         ''
     ]
+    # REUSE-IgnoreEnd
 
     # Text specific to OpenXR headers
     xrPrefixStrings = [
@@ -191,37 +193,29 @@ def makeGenOpts(args):
                 apientryp         = 'XRAPI_PTR *',)
             ]
 
-    genOpts['xr_generated_dispatch_table.h'] = [
-          UtilitySourceOutputGenerator,
-          AutomaticSourceGeneratorOptions(
-            conventions       = conventions,
-            filename          = 'xr_generated_dispatch_table.h',
-            directory         = directory,
-            apiname           = 'openxr',
-            profile           = None,
-            versions          = featuresPat,
-            emitversions      = featuresPat,
-            defaultExtensions = 'openxr',
-            addExtensions     = None,
-            removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat)
-        ]
+    DISPATCH_TABLE_FILES = [
+        'xr_generated_dispatch_table.h',
+        'xr_generated_dispatch_table.c',
+        'xr_generated_dispatch_table_core.h',
+        'xr_generated_dispatch_table_core.c',
+    ]
 
-    genOpts['xr_generated_dispatch_table.c'] = [
-          UtilitySourceOutputGenerator,
-          AutomaticSourceGeneratorOptions(
-            conventions       = conventions,
-            filename          = 'xr_generated_dispatch_table.c',
-            directory         = directory,
-            apiname           = 'openxr',
-            profile           = None,
-            versions          = featuresPat,
-            emitversions      = featuresPat,
-            defaultExtensions = 'openxr',
-            addExtensions     = None,
-            removeExtensions  = None,
-            emitExtensions    = emitExtensionsPat)
-        ]
+    for filename in DISPATCH_TABLE_FILES:
+        genOpts[filename] = [
+              UtilitySourceOutputGenerator,
+              AutomaticSourceGeneratorOptions(
+                conventions       = conventions,
+                filename          = filename,
+                directory         = directory,
+                apiname           = 'openxr',
+                profile           = None,
+                versions          = featuresPat,
+                emitversions      = featuresPat,
+                defaultExtensions = 'openxr',
+                addExtensions     = None,
+                removeExtensions  = None,
+                emitExtensions    = emitExtensionsPat)
+            ]
 
     genOpts['xr_generated_loader.hpp'] = [
           LoaderSourceOutputGenerator,

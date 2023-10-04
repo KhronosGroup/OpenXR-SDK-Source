@@ -1,0 +1,9 @@
+# Copyright (c) 2019-2023, The Khronos Group Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
+
+_xrNegotiateLoaderApiLayerInterface
+_TestLayerAlwaysFailNegotiateLoaderApiLayerInterface
+_TestLayerNullGipaNegotiateLoaderApiLayerInterface
+_TestLayerInvalidInterfaceNegotiateLoaderApiLayerInterface
+_TestLayerInvalidApiNegotiateLoaderApiLayerInterface

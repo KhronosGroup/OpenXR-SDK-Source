@@ -660,10 +660,6 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrCreateSession(XrInstance instance
         auto const &enabled_extensions = gen_instance_info->enabled_extensions;
         has_headless |= (enabled_extensions.end() !=
                          std::find(enabled_extensions.begin(), enabled_extensions.end(), XR_MND_HEADLESS_EXTENSION_NAME));
-#ifdef XR_KHR_headless
-        has_headless |= (enabled_extensions.end() !=
-                         std::find(enabled_extensions.begin(), enabled_extensions.end(), XR_KHR_HEADLESS_EXTENSION_NAME));
-#endif  // XR_KHR_headless
 
         bool got_right_graphics_binding_count = (num_graphics_bindings_found == 1);
         if (!got_right_graphics_binding_count && has_headless) {
@@ -792,11 +788,13 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrSessionBeginDebugUtilsLabelRegion
     if (XR_SUCCESS != test_result) {
         return test_result;
     }
-    auto info_with_lock = g_session_info.getWithLock(session);
-    if (info_with_lock.second != nullptr) {
-        GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
-        if (nullptr != gen_instance_info) {
-            gen_instance_info->debug_data.BeginLabelRegion(session, *labelInfo);
+    {
+        auto info_with_lock = g_session_info.getWithLock(session);
+        if (info_with_lock.second != nullptr) {
+            GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
+            if (nullptr != gen_instance_info) {
+                gen_instance_info->debug_data.BeginLabelRegion(session, *labelInfo);
+            }
         }
     }
     return GenValidUsageNextXrSessionBeginDebugUtilsLabelRegionEXT(session, labelInfo);
@@ -807,11 +805,13 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrSessionEndDebugUtilsLabelRegionEX
     if (XR_SUCCESS != test_result) {
         return test_result;
     }
-    auto info_with_lock = g_session_info.getWithLock(session);
-    if (info_with_lock.second != nullptr) {
-        GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
-        if (nullptr != gen_instance_info) {
-            gen_instance_info->debug_data.EndLabelRegion(session);
+    {
+        auto info_with_lock = g_session_info.getWithLock(session);
+        if (info_with_lock.second != nullptr) {
+            GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
+            if (nullptr != gen_instance_info) {
+                gen_instance_info->debug_data.EndLabelRegion(session);
+            }
         }
     }
     return GenValidUsageNextXrSessionEndDebugUtilsLabelRegionEXT(session);
@@ -823,11 +823,13 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrSessionInsertDebugUtilsLabelEXT(X
     if (XR_SUCCESS != test_result) {
         return test_result;
     }
-    auto info_with_lock = g_session_info.getWithLock(session);
-    if (info_with_lock.second != nullptr) {
-        GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
-        if (nullptr != gen_instance_info) {
-            gen_instance_info->debug_data.InsertLabel(session, *labelInfo);
+    {
+        auto info_with_lock = g_session_info.getWithLock(session);
+        if (info_with_lock.second != nullptr) {
+            GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second->instance_info;
+            if (nullptr != gen_instance_info) {
+                gen_instance_info->debug_data.InsertLabel(session, *labelInfo);
+            }
         }
     }
     return GenValidUsageNextXrSessionInsertDebugUtilsLabelEXT(session, labelInfo);
@@ -841,9 +843,9 @@ extern "C" {
 
 // Function used to negotiate an interface betewen the loader and an API layer.  Each library exposing one or
 // more API layers needs to expose at least this function.
-LAYER_EXPORT XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoaderInfo *loaderInfo,
-                                                                    const char * /*apiLayerName*/,
-                                                                    XrNegotiateApiLayerRequest *apiLayerRequest) {
+LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoaderInfo *loaderInfo,
+                                                                               const char * /*apiLayerName*/,
+                                                                               XrNegotiateApiLayerRequest *apiLayerRequest) {
     if (nullptr == loaderInfo || nullptr == apiLayerRequest || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
         loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo) ||
         apiLayerRequest->structType != XR_LOADER_INTERFACE_STRUCT_API_LAYER_REQUEST ||
@@ -857,9 +859,8 @@ LAYER_EXPORT XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(const XrNego
 
     apiLayerRequest->layerInterfaceVersion = XR_CURRENT_LOADER_API_LAYER_VERSION;
     apiLayerRequest->layerApiVersion = XR_CORE_VALIDATION_API_VERSION;
-    apiLayerRequest->getInstanceProcAddr = reinterpret_cast<PFN_xrGetInstanceProcAddr>(GenValidUsageXrGetInstanceProcAddr);
-    apiLayerRequest->createApiLayerInstance =
-        reinterpret_cast<PFN_xrCreateApiLayerInstance>(CoreValidationXrCreateApiLayerInstance);
+    apiLayerRequest->getInstanceProcAddr = GenValidUsageXrGetInstanceProcAddr;
+    apiLayerRequest->createApiLayerInstance = CoreValidationXrCreateApiLayerInstance;
 
     return XR_SUCCESS;
 }

@@ -25,6 +25,7 @@ cmake_minimum_required(VERSION 3.0)
 project(OPENXR)
 
 find_package(PythonInterp 3)
+include(CTest)
 
 # Enable IDE GUI folders.  "Helper targets" that don't have interesting source code should set their FOLDER property to this
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -33,6 +34,8 @@ set(LOADER_FOLDER "Loader")
 set(HELPER_FOLDER "Helpers")
 set(CODEGEN_FOLDER "Generated")
 set(TESTS_FOLDER "Tests")
+set(CONFORMANCE_TESTS_FOLDER "Conformance Test Suite")
+set(LOADER_TESTS_FOLDER "Loader Tests")
 set(API_LAYERS_FOLDER "Layers")
 set(SAMPLES_FOLDER "Samples")
 

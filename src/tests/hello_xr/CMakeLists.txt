@@ -1,4 +1,4 @@
-# Copyright (c) 2017 The Khronos Group Inc.
+# Copyright (c) 2017-2023, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -13,8 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Author:
 #
 
 file(GLOB LOCAL_HEADERS "*.h")
@@ -31,6 +29,21 @@ if(ANDROID)
         ${VULKAN_SHADERS}
         $<TARGET_OBJECTS:android_native_app_glue>)
     target_link_libraries(hello_xr ${ANDROID_LIBRARY} ${ANDROID_LOG_LIBRARY})
+
+    # Only for Android because it lacks a command line
+    set(HELLOXR_DEFAULT_GRAPHICS_PLUGIN "OpenGLES" CACHE STRING "Which graphics plugin should be used by default for Hello XR artifacts?")
+    # These are the recognized options: provide them as a helper in the CMake GUI
+    set_property(CACHE HELLOXR_DEFAULT_GRAPHICS_PLUGIN PROPERTY STRINGS "OpenGLES" "Vulkan")
+
+    # Now handle the value, normally provided by Gradle
+    if(HELLOXR_DEFAULT_GRAPHICS_PLUGIN STREQUAL "OpenGLES")
+        message(STATUS "hello_xr will default to OpenGL ES graphics plugin")
+        target_compile_definitions(hello_xr PRIVATE DEFAULT_GRAPHICS_PLUGIN_OPENGLES)
+    elseif(HELLOXR_DEFAULT_GRAPHICS_PLUGIN STREQUAL "Vulkan")
+        message(STATUS "hello_xr will default to Vulkan graphics plugin")
+        target_compile_definitions(hello_xr PRIVATE DEFAULT_GRAPHICS_PLUGIN_VULKAN)
+    endif()
+
 else()
     add_executable(hello_xr
         ${LOCAL_SOURCE}
@@ -53,10 +66,7 @@ target_include_directories(hello_xr
     PRIVATE
     ${PROJECT_SOURCE_DIR}/src
     ${PROJECT_SOURCE_DIR}/src/common
-
-    # for OpenXR headers
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_BINARY_DIR}/include
+    ${PROJECT_SOURCE_DIR}/src/tests/hello_xr/vulkan_shaders
 
     # for helper headers
     ${PROJECT_SOURCE_DIR}/external/include
@@ -73,7 +83,7 @@ if(Vulkan_FOUND)
     )
 endif()
 
-target_link_libraries(hello_xr openxr_loader)
+target_link_libraries(hello_xr OpenXR::openxr_loader)
 if(TARGET openxr-gfxwrapper)
     target_link_libraries(hello_xr openxr-gfxwrapper)
 endif()
@@ -84,10 +94,8 @@ if(WIN32)
     endif()
     target_link_libraries(hello_xr ole32)
     if(MSVC)
-        # Right now can't build this on MinGW because of directxcolors, etc.
+        # Right now can't build this on MinGW because of directxcolors, directxmath, etc.
         target_link_libraries(hello_xr d3d11 d3d12 d3dcompiler dxgi)
-    else()
-        target_compile_definitions(hello_xr PRIVATE MISSING_DIRECTX_COLORS)
     endif()
 endif()
 

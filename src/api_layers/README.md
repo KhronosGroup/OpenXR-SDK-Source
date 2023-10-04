@@ -16,7 +16,7 @@ the next enabled API layer, or runtime, which does implement that
 command.
 This directory contains several functional API layers which can be used by
 an OpenXR application.
-For more information on API Layers, refer to section 2.5 on the OpenXR
+For more information on API Layers, refer to section 2.7 on the OpenXR
 Specification.
 
 <br/>

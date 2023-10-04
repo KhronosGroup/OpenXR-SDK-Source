@@ -37,6 +37,13 @@ else()
     set(LAYER_MANIFEST_PREFIX)
 endif()
 
+# Windows needs bigobj support since we have generated code.
+if(MSVC)
+    add_compile_options("/bigobj")
+elseif(WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "^Clang|GNU$")
+    add_compile_options("-Wa,-mbig-obj")
+endif()
+
 # Basics for api_dump API Layer
 
 gen_xr_layer_json(
@@ -60,12 +67,18 @@ run_xr_xml_generate(api_dump_generator.py xr_generated_api_dump.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/automatic_source_generator.py)
 run_xr_xml_generate(api_dump_generator.py xr_generated_api_dump.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/automatic_source_generator.py)
+set(API_DUMP_GENERATED_OUTPUT ${GENERATED_OUTPUT})
+set(API_DUMP_GENERATED_DEPENDS ${GENERATED_DEPENDS})
+unset(GENERATED_OUTPUT)
+unset(GENERATED_DEPENDS)
 
 add_library(XrApiLayer_api_dump SHARED
     api_dump.cpp
+    XrApiLayer_api_dump.def
+
     ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h
     # target-specific generated files
-    ${GENERATED_OUTPUT}
+    ${API_DUMP_GENERATED_OUTPUT}
 
     # Dispatch table
     ${COMMON_GENERATED_OUTPUT}
@@ -75,21 +88,17 @@ add_library(XrApiLayer_api_dump SHARED
 )
 set_target_properties(XrApiLayer_api_dump PROPERTIES FOLDER ${API_LAYERS_FOLDER})
 
-target_link_libraries(XrApiLayer_api_dump PRIVATE Threads::Threads)
+target_link_libraries(XrApiLayer_api_dump PRIVATE Threads::Threads OpenXR::headers)
 target_compile_definitions(XrApiLayer_api_dump PRIVATE ${OPENXR_ALL_SUPPORTED_DEFINES})
 add_dependencies(XrApiLayer_api_dump
     generate_openxr_header
-    xr_global_generated_files
+    xr_common_generated_files
 )
 
 target_include_directories(XrApiLayer_api_dump
     PRIVATE
     ${PROJECT_SOURCE_DIR}/src/common
     ${CMAKE_CURRENT_SOURCE_DIR}
-
-    # for OpenXR headers
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_BINARY_DIR}/include
 
     # for generated dispatch table
     ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -126,15 +135,21 @@ run_xr_xml_generate(validation_layer_generator.py xr_generated_core_validation.h
     ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/automatic_source_generator.py)
 run_xr_xml_generate(validation_layer_generator.py xr_generated_core_validation.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/automatic_source_generator.py)
+set(CORE_VALIDATION_GENERATED_OUTPUT ${GENERATED_OUTPUT})
+set(CORE_VALIDATION_GENERATED_DEPENDS ${GENERATED_DEPENDS})
+unset(GENERATED_OUTPUT)
+unset(GENERATED_DEPENDS)
 
 add_library(XrApiLayer_core_validation SHARED
     core_validation.cpp
+    XrApiLayer_core_validation.def
+
     ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h
     ${PROJECT_SOURCE_DIR}/src/common/object_info.cpp
     ${PROJECT_SOURCE_DIR}/src/common/object_info.h
 
     # target-specific generated files
-    ${GENERATED_OUTPUT}
+    ${CORE_VALIDATION_GENERATED_OUTPUT}
 
     # Dispatch table
     ${COMMON_GENERATED_OUTPUT}
@@ -144,19 +159,15 @@ add_library(XrApiLayer_core_validation SHARED
 )
 set_target_properties(XrApiLayer_core_validation PROPERTIES FOLDER ${API_LAYERS_FOLDER})
 
-target_link_libraries(XrApiLayer_core_validation PRIVATE Threads::Threads)
+target_link_libraries(XrApiLayer_core_validation PRIVATE Threads::Threads OpenXR::headers)
 target_compile_definitions(XrApiLayer_core_validation PRIVATE ${OPENXR_ALL_SUPPORTED_DEFINES})
 add_dependencies(XrApiLayer_core_validation
     generate_openxr_header
-    xr_global_generated_files
+    xr_common_generated_files
 )
 target_include_directories(XrApiLayer_core_validation
     PRIVATE
     ${PROJECT_SOURCE_DIR}/src/common
-
-    # for OpenXR headers
-    ${PROJECT_SOURCE_DIR}/include
-    ${PROJECT_BINARY_DIR}/include
 
     # for generated dispatch table
     ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -192,11 +203,10 @@ if(WIN32)
 
 elseif(APPLE)
     # Apple api_dump-specific information
-    set_target_properties(XrApiLayer_api_dump PROPERTIES LINK_FLAGS "-Wl")
+    set_target_properties(XrApiLayer_api_dump PROPERTIES LINK_FLAGS "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_api_dump.expsym")
 
     # Apple core_validation-specific information
-    set_target_properties(XrApiLayer_core_validation PROPERTIES LINK_FLAGS "-Wl")
-
+    set_target_properties(XrApiLayer_core_validation PROPERTIES LINK_FLAGS "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_core_validation.expsym")
 else()
     # Linux api_dump-specific information
     set_target_properties(XrApiLayer_api_dump PROPERTIES LINK_FLAGS "-Wl,-Bsymbolic,--exclude-libs,ALL")

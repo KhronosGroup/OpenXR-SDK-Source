@@ -162,7 +162,7 @@ def test_extension(ckr):
     # Check formatting of extension names:
     # the following is the canonical way to refer to an extension
     # (link wrapped in backticks)
-    expected_replacement = '`<<%s>>`' % EXT
+    expected_replacement = 'apiext:%s' % EXT
 
     # Extension name mentioned without any markup, should be added
     assert (loneMsgReplacement(ckr.check('asdf %s asdf' % EXT))
@@ -187,7 +187,7 @@ def test_extension(ckr):
             == expected_replacement)
 
     # This shouldn't cause errors because this is how we want it to look.
-    assert not ckr.check('asdf `<<%s>>` asdf' % EXT).messages
+    assert not ckr.check('asdf apiext:%s asdf' % EXT).messages
 
     # This doesn't (shouldn't?) cause errors because just backticks on their own
     # "escape" names from the "missing markup" tests.

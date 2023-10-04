@@ -31,23 +31,24 @@ different modules, including the loader, API layers, and runtimes.
 image::images/high_level_loader.svg[align="center", title="High Level View of the OpenXR Loader"]
 
 
-=== Who Should Read This Document ===
+=== Who Should Read This Document
 
 While this document is primarily targeted at developers of
 https://www.khronos.org/openxr[OpenXR] runtimes or API layers, and those
 wishing to contribute to the OpenXR loader; the information contained in it
 may be useful to anyone wanting a better understanding of OpenXR.
 
-The <<openxr-spec,OpenXR API Specification>> should be used as the primary
-means of understanding the OpenXR API and all care has been made to not
-conflict with any element of that document.
-In any case where this document and the <<openxr-spec,OpenXR API
-Specification>> differ, behavior as defined by the OpenXR specification
-must: be considered the correct standard.
+The link:{uri-openxr-ratified-spec}[OpenXR API Specification] should be used
+as the primary means of understanding the OpenXR API and all care has been
+made to not conflict with any element of that document.
+In any case where this document and the
+link:{uri-openxr-ratified-spec}[OpenXR API Specification] differ, behavior
+as defined by the OpenXR specification must: be considered the correct
+standard.
 
 
 [[openxr-loader]]
-=== OpenXR Loader ===
+=== OpenXR Loader
 
 The loader is critical to detecting, exposing, and possibly loading any
 available OpenXR runtime or API layer on the system.
@@ -61,10 +62,10 @@ between the loader and:
 * <<api-layer-interaction, OpenXR API Layers>>
 * <<runtime-interaction, OpenXR Runtimes>>
 
-In addition, this document also covers various <<loader-internals, internal
+In addition, this document also covers various <<loader-design, internal
 design>> elements of the OpenXR loader.
 
-==== Goals of the Loader ====
+==== Goals of the Loader
 
 The loader was designed with the following goals in mind.
 
@@ -77,7 +78,7 @@ OpenXR application.
 
 
 [[openxr-api-layers]]
-=== OpenXR API Layers ===
+=== OpenXR API Layers
 
 API layers are optional components that augment the OpenXR system.
 They may intercept, evaluate, modify, and insert existing OpenXR commands on
@@ -107,7 +108,7 @@ document.
 
 
 [[openxr-runtimes]]
-=== OpenXR Runtimes ===
+=== OpenXR Runtimes
 
 OpenXR works with multiple runtimes each supporting one or more devices.
 Each OpenXR runtime controls a complete VR/AR/MR system.
@@ -121,7 +122,7 @@ For more information on how the OpenXR interacts with runtimes, refer to the
 <<runtime-interaction, "Runtime Interaction">> section of this document.
 
 [[openxr-objects]]
-=== OpenXR Objects ===
+=== OpenXR Objects
 
 OpenXR uses an object model to control the scope of a particular action or
 operation.
@@ -135,7 +136,7 @@ enabled API layers and into the appropriate runtime.
 [NOTE]
 .Note
 ====
-Some OpenXR commands don't actually take an object, such as
+Some OpenXR commands do not take an object, such as
 `xrEnumerateApiLayerProperties` and
 `xrEnumerateInstanceExtensionProperties`.
 These commands typically only provide information for other commands which
@@ -144,7 +145,7 @@ do take an object.
 
 
 [[openxr-call-chains]]
-=== OpenXR Call Chains ===
+=== OpenXR Call Chains
 
 When an (optional) API layer is loaded, the loader links together a _call
 chain_ that includes each function selected by the layer.

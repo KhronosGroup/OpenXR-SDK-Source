@@ -19,6 +19,263 @@ along with any public pull requests that have been accepted.
 In this repository in particular, since it is primarily software,
 pull requests may be integrated as they are accepted even between periodic updates.
 
+## OpenXR SDK 1.0.30 (2023-09-20)
+
+This release is primarily a quality improvement release, fixing a range of
+issues in the registry and SDK, including fixing a loader bug related to layers,
+in addition to a new vendor extension and an updated vendor extension.
+
+- Registry
+  - Add missing enum tags for enum-sized array struct members.
+    ([internal MR 2731](https://gitlab.khronos.org/openxr/openxr/merge_requests/2731))
+  - Fix EGL "get proc addr" function pointer typedef.
+    ([internal MR 2939](https://gitlab.khronos.org/openxr/openxr/merge_requests/2939))
+  - New vendor extension: `XR_YVR_controller_interaction`
+    ([internal MR 2841](https://gitlab.khronos.org/openxr/openxr/merge_requests/2841))
+  - `XR_BD_controller_interaction`: Add support for G3 devices
+    ([internal MR 2872](https://gitlab.khronos.org/openxr/openxr/merge_requests/2872))
+  - Fix specification errors highlighted by fixed tooling.
+    ([internal MR 2923](https://gitlab.khronos.org/openxr/openxr/merge_requests/2923))
+- SDK
+  - Add installable manual page for `openxr_runtime_list_json`.
+    ([internal MR 2899](https://gitlab.khronos.org/openxr/openxr/merge_requests/2899))
+  - Remove unused diagram exports from loader directory.
+    ([internal MR 2907](https://gitlab.khronos.org/openxr/openxr/merge_requests/2907))
+  - Update URLs in manual pages.
+    ([internal MR 2935](https://gitlab.khronos.org/openxr/openxr/merge_requests/2935))
+  - Validation Layer: Remove conditional `XR_KHR_headless` support as the extension
+    is not part of OpenXR 1.0.
+    ([internal MR 2901](https://gitlab.khronos.org/openxr/openxr/merge_requests/2901))
+  - build system: Add CTest support for running the loader test.
+    ([internal MR 2289](https://gitlab.khronos.org/openxr/openxr/merge_requests/2289),
+    [OpenXR-SDK-Source issue 309](https://github.com/KhronosGroup/OpenXR-SDK-Source/issues/309),
+    [internal issue 1733](https://gitlab.khronos.org/openxr/openxr/issues/1733))
+  - hello_xr: Clean up how we specify the default graphics plugin on Android.
+    ([internal MR 2917](https://gitlab.khronos.org/openxr/openxr/merge_requests/2917))
+  - list_json: Add missing return statement for exit code.
+    ([internal MR 2936](https://gitlab.khronos.org/openxr/openxr/merge_requests/2936))
+  - loader: fix for implicit/explicit api layer loading logic
+    ([OpenXR-SDK-Source PR 421](https://github.com/KhronosGroup/OpenXR-SDK-Source/pull/421),
+    [internal issue 2079](https://gitlab.khronos.org/openxr/openxr/issues/2079))
+
+## OpenXR SDK 1.0.29 (2023-08-25)
+
+This release contains several fixes to the specification registry, improvements
+to the loader, layers, and loader test, as well as enhancements to the loader
+documentation/specification to support architecture and ABI specific active
+runtime manifest names on Linux and Android.
+
+- Registry
+  - Change `PFNEGLGETPROCADDRESSPROC` (for `eglGetProcAddress`) to a locally
+    defined type to avoid compiler errors.
+    ([internal MR 2468](https://gitlab.khronos.org/openxr/openxr/merge_requests/2468))
+  - Extension reservation: Register author ID and reserve vendor extensions for
+    YVR.
+    ([internal MR 2832](https://gitlab.khronos.org/openxr/openxr/merge_requests/2832))
+  - New vendor extension: `XR_META_passthrough_preferences`
+    ([internal MR 2694](https://gitlab.khronos.org/openxr/openxr/merge_requests/2694))
+  - `XR_HTCX_vive_tracker_interaction`: Added new role paths for wrists and ankles.
+    ([internal MR 2728](https://gitlab.khronos.org/openxr/openxr/merge_requests/2728))
+- SDK
+  - Changes also included in 1.0.28.1 SDK hotfix release
+    - layers: Build with `/bigobj` or equivalent on Windows due to increased number
+      of generated functions with spec growth.
+      ([internal MR 2837](https://gitlab.khronos.org/openxr/openxr/merge_requests/2837),
+      [internal issue 2051](https://gitlab.khronos.org/openxr/openxr/issues/2051),
+      [OpenXR-SDK-Source PR 414](https://github.com/KhronosGroup/OpenXR-SDK-Source/pull/414))
+  - Changes also included in 1.0.28.2 SDK hotfix release
+    - Android AAR artifacts (loader) and hello_xr: Fix `<queries>` element contents.
+      ([internal MR 2840](https://gitlab.khronos.org/openxr/openxr/merge_requests/2840),
+      [internal issue 2053](https://gitlab.khronos.org/openxr/openxr/issues/2053))
+    - Android AAR artifacts: Fix C++ standard library selection for Android artifacts
+      in `build-aar.sh`
+      ([internal MR 2836](https://gitlab.khronos.org/openxr/openxr/merge_requests/2836),
+      [internal issue 2052](https://gitlab.khronos.org/openxr/openxr/issues/2052))
+    - Android AAR artifacts: Use `jar` instead of 7-zip to perform archiving, and
+      document requirements in `build-aar.sh`
+      ([internal MR 2836](https://gitlab.khronos.org/openxr/openxr/merge_requests/2836),
+      [OpenXR-SDK-Source issue 303](https://github.com/KhronosGroup/OpenXR-SDK-Source/issues/303),
+      [internal issue 1711](https://gitlab.khronos.org/openxr/openxr/issues/1711))
+    - build system: Support SDK hotfix versions (fourth version component).
+      ([internal MR 2836](https://gitlab.khronos.org/openxr/openxr/merge_requests/2836))
+  - Add XrVector2f length function to `xr_linear.h`
+    ([internal MR 2876](https://gitlab.khronos.org/openxr/openxr/merge_requests/2876))
+  - Add build.gradle files for list_json, c_compile_test.
+    ([internal MR 2908](https://gitlab.khronos.org/openxr/openxr/merge_requests/2908))
+  - Change `PFNEGLGETPROCADDRESSPROC` (for `eglGetProcAddress`) to a locally
+    defined type to avoid compiler errors.
+    ([internal MR 2468](https://gitlab.khronos.org/openxr/openxr/merge_requests/2468))
+  - Enable `loader_test` tests which require a valid extension
+    ([internal MR 2790](https://gitlab.khronos.org/openxr/openxr/merge_requests/2790))
+  - Fix building hello_xr with mingw compiler.
+    ([internal MR 2850](https://gitlab.khronos.org/openxr/openxr/merge_requests/2850))
+  - Improvement: Reduce size of dispatch table in OpenXR loader. (Full size table
+    still shipped in OpenXR-SDK even though it is not used by the loader anymore.)
+    ([internal MR 2810](https://gitlab.khronos.org/openxr/openxr/merge_requests/2810),
+    [internal MR 2842](https://gitlab.khronos.org/openxr/openxr/merge_requests/2842))
+  - Maintenance script updates.
+    ([internal MR 2900](https://gitlab.khronos.org/openxr/openxr/merge_requests/2900))
+  - loader: Add support for architecture-specific active runtime manifests for
+    Linux, macOS, and Android.
+    ([internal MR 2450](https://gitlab.khronos.org/openxr/openxr/merge_requests/2450),
+    [internal issue 2066](https://gitlab.khronos.org/openxr/openxr/issues/2066),
+    [internal MR 2871](https://gitlab.khronos.org/openxr/openxr/merge_requests/2871))
+  - loader: refactor to use jnipp on Android
+    ([internal MR 2812](https://gitlab.khronos.org/openxr/openxr/merge_requests/2812))
+  - loader: disable `loader_test` if api layer building is disabled
+    ([internal MR 2843](https://gitlab.khronos.org/openxr/openxr/merge_requests/2843))
+  - loader_test: Replace session test with action test to make test more
+    maintainable.
+    ([internal MR 2786](https://gitlab.khronos.org/openxr/openxr/merge_requests/2786))
+  - validation layer: Fix deadlock when calling `XR_EXT_debug_utils` functions.
+    ([internal MR 2865](https://gitlab.khronos.org/openxr/openxr/merge_requests/2865))
+
+## OpenXR SDK 1.0.28 (2023-07-10)
+
+This release contains improved compatibility and code quality fixes for the
+loader, support for loading certain API layers on Android-based devices, and a
+number of other improvements, in addition to the new extensions. Additionally,
+the loader documentation now describes how OpenXR handles compatibility with
+Android API levels of 30 and above: runtimes may need to update accordingly to
+support this compatibility solution.
+
+- **OpenXR SDK 1.0.28.2** hotfix release includes the following fixes
+  - Loader spec: Fix description of `<queries>` element contents: existing
+    description would fail to install.
+    ([internal MR 2840](https://gitlab.khronos.org/openxr/openxr/merge_requests/2840),
+    [internal issue 2053](https://gitlab.khronos.org/openxr/openxr/issues/2053))
+  - Android AAR artifacts (loader) and hello_xr: Fix `<queries>` element contents.
+    ([internal MR 2840](https://gitlab.khronos.org/openxr/openxr/merge_requests/2840),
+    [internal issue 2053](https://gitlab.khronos.org/openxr/openxr/issues/2053))
+  - Android AAR artifacts: Fix C++ standard library selection for Android artifacts
+    in `build-aar.sh`
+    ([internal MR 2836](https://gitlab.khronos.org/openxr/openxr/merge_requests/2836),
+    [internal issue 2052](https://gitlab.khronos.org/openxr/openxr/issues/2052))
+  - Android AAR artifacts: Use `jar` instead of 7-zip to perform archiving, and
+    document requirements in `build-aar.sh`
+    ([internal MR 2836](https://gitlab.khronos.org/openxr/openxr/merge_requests/2836),
+    [OpenXR-SDK-Source issue 303](https://github.com/KhronosGroup/OpenXR-SDK-Source/issues/303),
+    [internal issue 1711](https://gitlab.khronos.org/openxr/openxr/issues/1711))
+  - build system: Support SDK hotfix versions (fourth version component).
+    ([internal MR 2836](https://gitlab.khronos.org/openxr/openxr/merge_requests/2836))
+- **OpenXR SDK 1.0.28.1** hotfix release includes the following fix
+  - API dump layer: Fix build on Windows on ARM64.
+    ([OpenXR-SDK-Source PR 414](https://github.com/KhronosGroup/OpenXR-SDK-Source/pull/414))
+- Registry
+  - Added defines to `xr.xml` for extension enum base and enum stride.
+    ([internal MR 2693](https://gitlab.khronos.org/openxr/openxr/merge_requests/2693),
+    [OpenXR-Docs issue 148](https://github.com/KhronosGroup/OpenXR-Docs/issues/148),
+    [internal issue 1979](https://gitlab.khronos.org/openxr/openxr/issues/1979))
+  - Extension reservation: Reserve an extension for `XR_EXT_future`
+    ([internal MR 2631](https://gitlab.khronos.org/openxr/openxr/merge_requests/2631))
+  - Extension reservation: Register `ANDROID` author ID and reserve 15 extensions
+    for it.
+    ([internal MR 2690](https://gitlab.khronos.org/openxr/openxr/merge_requests/2690))
+  - Extension reservation: Reserve extensions for "user presence" and "locate
+    spaces"
+    ([internal MR 2705](https://gitlab.khronos.org/openxr/openxr/merge_requests/2705))
+  - Extension reservation: Reserve 25 extensions for Magic Leap.
+    ([internal MR 2778](https://gitlab.khronos.org/openxr/openxr/merge_requests/2778))
+  - Extension reservation: Reserve extension for `XR_KHR_extendable_action_binding`
+    ([internal MR 2779](https://gitlab.khronos.org/openxr/openxr/merge_requests/2779))
+  - Fix spelling.
+    ([internal MR 2766](https://gitlab.khronos.org/openxr/openxr/merge_requests/2766))
+  - Fixed the error code specification for `xrGetControllerModelPropertiesMSFT`
+    function.
+    ([internal MR 2600](https://gitlab.khronos.org/openxr/openxr/merge_requests/2600))
+  - New multi-vendor extension: `XR_EXT_hand_interaction`
+    ([internal MR 2116](https://gitlab.khronos.org/openxr/openxr/merge_requests/2116))
+  - New multi-vendor extension: `XR_EXT_plane_detection`
+    ([internal MR 2510](https://gitlab.khronos.org/openxr/openxr/merge_requests/2510),
+    [internal MR 2791](https://gitlab.khronos.org/openxr/openxr/merge_requests/2791))
+  - New multi-vendor extension: `XR_EXT_hand_tracking_data_source`
+    ([internal MR 2568](https://gitlab.khronos.org/openxr/openxr/merge_requests/2568))
+  - New vendor extension: `XR_META_passthrough_color_lut`
+    ([internal MR 2507](https://gitlab.khronos.org/openxr/openxr/merge_requests/2507))
+  - New vendor extension: `XR_META_virtual_keyboard`
+    ([internal MR 2555](https://gitlab.khronos.org/openxr/openxr/merge_requests/2555))
+  - New vendor extension: `XR_OPPO_controller_interaction`
+    ([OpenXR-Docs PR 146](https://github.com/KhronosGroup/OpenXR-Docs/pull/146))
+  - Update Magic Leap contact
+    ([internal MR 2699](https://gitlab.khronos.org/openxr/openxr/merge_requests/2699))
+  - `XR_FB_face_tracking`: Non-functional registry change, fixing a problem with
+    standalone headers.
+    ([internal MR 2663](https://gitlab.khronos.org/openxr/openxr/merge_requests/2663))
+  - `XR_FB_scene`: Introduce `XrSemanticLabelsSupportInfoFB` and bump spec version
+    to 3.
+    ([internal MR 2682](https://gitlab.khronos.org/openxr/openxr/merge_requests/2682))
+  - `XR_FB_spatial_entity` and `XR_FB_scene`: Add `XR_ERROR_SIZE_INSUFFICIENT`
+    return code to functions which use the two-call idiom.
+    ([internal MR 2718](https://gitlab.khronos.org/openxr/openxr/merge_requests/2718))
+  - `XR_FB_touch_controller_pro`: Fix XML to require the `touch_controller_pro`
+    interaction profile for the extension
+    ([internal MR 2806](https://gitlab.khronos.org/openxr/openxr/merge_requests/2806))
+  - registry: Remove extraneous whitespace from some commands.
+    ([OpenXR-SDK-Source PR 397](https://github.com/KhronosGroup/OpenXR-SDK-Source/pull/397))
+  - schematron: Improve self tests.
+    ([internal MR 2680](https://gitlab.khronos.org/openxr/openxr/merge_requests/2680))
+  - schematron: Require vendor tag on interaction profile paths introduced by
+    extensions.
+    ([internal MR 2684](https://gitlab.khronos.org/openxr/openxr/merge_requests/2684))
+  - scripts: Allow schematron to check an alternate XML file.
+    ([internal MR 2670](https://gitlab.khronos.org/openxr/openxr/merge_requests/2670))
+- SDK
+  - Allow compilation of OpenXR SDK on Mac
+    ([internal MR 2788](https://gitlab.khronos.org/openxr/openxr/merge_requests/2788),
+    [internal MR 2789](https://gitlab.khronos.org/openxr/openxr/merge_requests/2789),
+    [internal MR 2790](https://gitlab.khronos.org/openxr/openxr/merge_requests/2790),
+    [internal MR 2800](https://gitlab.khronos.org/openxr/openxr/merge_requests/2800))
+  - Common: Add `stdint.h` include to `platform_utils.hpp` for GCC 13+
+    ([OpenXR-SDK-Source PR 406](https://github.com/KhronosGroup/OpenXR-SDK-Source/pull/406))
+  - Describe building OpenXR SDK on macOS with Xcode
+    ([internal MR 2768](https://gitlab.khronos.org/openxr/openxr/merge_requests/2768))
+  - Handle clang-format-16 in `runClangFormat.sh`, and adjust source files so its
+    output matches the earlier version used on CI.
+    ([internal MR 2666](https://gitlab.khronos.org/openxr/openxr/merge_requests/2666),
+    [internal MR 2814](https://gitlab.khronos.org/openxr/openxr/merge_requests/2814))
+  - Improvement: Fix clang warning `-Wundef`.
+    ([internal MR 2717](https://gitlab.khronos.org/openxr/openxr/merge_requests/2717))
+  - Improvement: Fix leftover warnings when building with `-Wall`.
+    ([internal MR 2754](https://gitlab.khronos.org/openxr/openxr/merge_requests/2754),
+    [OpenXR-SDK-Source PR 410](https://github.com/KhronosGroup/OpenXR-SDK-Source/pull/410))
+  - Loader: On Android, use a single logcat tag for all parts of the loader.
+    ([internal MR 2688](https://gitlab.khronos.org/openxr/openxr/merge_requests/2688))
+  - Loader: Update the required `queries` elements for an OpenXR application on
+    Android, so that runtime and layer components loaded in the application process
+    may access their own package in API >29.
+    ([internal MR 2708](https://gitlab.khronos.org/openxr/openxr/merge_requests/2708))
+  - Loader: Search system directories for API layer manifests on Android
+    ([internal MR 2709](https://gitlab.khronos.org/openxr/openxr/merge_requests/2709))
+  - Loader: Add Product and OEM partition to active runtime search path on Android
+    ([internal MR 2709](https://gitlab.khronos.org/openxr/openxr/merge_requests/2709))
+  - Loader: Improve casting to `uint32_t` edge case handling.
+    ([internal MR 2745](https://gitlab.khronos.org/openxr/openxr/merge_requests/2745))
+  - Loader: Clear possible dangling `next` pointers in `XR_EXT_debug_utils` label
+    structures.
+    ([internal MR 2764](https://gitlab.khronos.org/openxr/openxr/merge_requests/2764))
+  - Validation Layer: Fix the validation_layer_generator to not check static array
+    addresses.
+    ([OpenXR-SDK-Source PR 399](https://github.com/KhronosGroup/OpenXR-SDK-Source/pull/399))
+  - api_layers: Update API Layers spec section in README.md
+    ([internal MR 2753](https://gitlab.khronos.org/openxr/openxr/merge_requests/2753))
+  - cmake: Set up alias targets `OpenXR::openxr_loader` and `OpenXR::headers` so
+    that the loader and headers may be used the same whether you used
+    `find_package(OpenXR)` on binaries or have included the source tree as a
+    subproject.
+    ([internal MR 2793](https://gitlab.khronos.org/openxr/openxr/merge_requests/2793))
+  - gradle: Add license for gradlew and gradlew.bat
+    ([internal MR 2725](https://gitlab.khronos.org/openxr/openxr/merge_requests/2725))
+  - gradle: General cleanup and updates of Android build system.
+    ([internal MR 2796](https://gitlab.khronos.org/openxr/openxr/merge_requests/2796))
+  - hello_xr: Enable building with latest Android Studio canary
+    ([OpenXR-SDK-Source PR 393](https://github.com/KhronosGroup/OpenXR-SDK-Source/pull/393))
+  - layers: Code cleanup and calling convention fixes
+    ([internal MR 2784](https://gitlab.khronos.org/openxr/openxr/merge_requests/2784))
+  - loader test: Fix for Windows 32-bit
+    ([internal MR 2784](https://gitlab.khronos.org/openxr/openxr/merge_requests/2784))
+  - loader test: Fix CMake dependencies.
+    ([internal MR 2776](https://gitlab.khronos.org/openxr/openxr/merge_requests/2776))
+
 ## OpenXR SDK 1.0.27 (2023-03-21)
 
 This release contains a large list of improvements, including interaction
