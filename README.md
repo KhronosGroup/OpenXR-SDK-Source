@@ -34,3 +34,10 @@ adb shell setprop debug.oculus.experimentalEnabled 1
 See:
 
 https://developer.oculus.com/documentation/native/android/mobile-experimental-features/
+
+STANDALONE TEST BUILD with SNAP TURN ENABLED:
+https://github.com/BattleAxeVR/OpenXR-SDK-Source/blob/main/hello_xr-Vulkan-release.apk
+
+PC VR TEST BUILD with SNAP TURN ENABLED:
+https://github.com/BattleAxeVR/OpenXR-SDK-Source/blob/main/hello_xr.exe
+
