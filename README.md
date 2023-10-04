@@ -23,3 +23,7 @@ Body tracking extension works fine on Standalone but gives a runtime error on PC
 I also implemented waist-oriented locomotion, where available. This works on Quest 1, 2, and Pro, both on Android and Link/AirLink on PC. 
 
 I posted a hello_xr.exe test app and an OpenGL ES / Vulkan pre-built APK for SideLoading / ADB pushing to try it out quickly.
+
+
+https://github.com/BattleAxeVR/OpenXR-SDK-Source/assets/11604039/57f9c068-79d2-402f-b37b-58a24c3bdea0
+
