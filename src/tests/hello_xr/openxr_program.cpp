@@ -97,7 +97,7 @@ void update_sdl_joysticks()
 }
 #endif
 
-#if 0
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
 const glm::vec3 left_direction(-1.0f, 0.0f, 0.0f);
 const glm::vec3 right_direction(1.0f, 1.0f, 0.0f);
 const glm::vec3 up_direction(0.0f, 1.0f, 0.0f);
@@ -1732,7 +1732,7 @@ struct OpenXrProgram : IOpenXrProgram
 	PFN_xrLocateBodyJointsFB xrLocateBodyJointsFB = nullptr;
     
     bool body_tracking_enabled_ = false;
-    XrBodyTrackerFB body_tracker_ = nullptr;
+    XrBodyTrackerFB body_tracker_ = {};
     XrBodyJointLocationFB body_joints_[XR_BODY_JOINT_COUNT_FB] = {};
     XrBodyJointLocationsFB body_joint_locations_{ XR_TYPE_BODY_JOINT_LOCATIONS_FB, nullptr };
 
@@ -1790,7 +1790,7 @@ struct OpenXrProgram : IOpenXrProgram
 		}
 
 		xrDestroyBodyTrackerFB(body_tracker_);
-		body_tracker_ = nullptr;
+		body_tracker_ = {};
 		body_tracking_enabled_ = false;
 
 		Log::Write(Log::Level::Info, "OPENXR - Body tracker destroyed...");

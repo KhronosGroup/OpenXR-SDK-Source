@@ -51,9 +51,6 @@
 #include <android/native_window.h>
 #include <jni.h>
 #include <sys/system_properties.h>
-#include <android/asset_manager.h>
-#include <android/asset_manager_jni.h>
-#include <android/permission_manager.h>
 #endif
 
 #ifdef XR_USE_PLATFORM_WAYLAND
@@ -118,7 +115,6 @@
 #include <openxr/openxr_platform.h>
 #include <openxr/openxr_reflection.h>
 
-// OVR SDK headers (found in $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Include)
 #include <openxr/fb_body_tracking.h>
 #include <openxr/fb_composition_layer_depth_test.h>
 #include <openxr/fb_eye_tracking_social.h>
@@ -149,7 +145,7 @@
 #define PLATFORM_PC 1
 #endif
 
-#define ENABLE_OPENXR_FB_REFRESH_RATE 0
+#define ENABLE_OPENXR_FB_REFRESH_RATE 1
 #define DEFAULT_REFRESH_RATE 90.0f
 #define DESIRED_REFRESH_RATE 90.0f
 

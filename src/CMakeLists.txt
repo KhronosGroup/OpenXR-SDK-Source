@@ -92,21 +92,8 @@ endif()
 find_package(Threads REQUIRED)
 find_package(JsonCpp)
 
-if(ANDROID)
-option(BUILD_LOADER "Build loader" OFF) 
-
-add_library(openxr_loader SHARED IMPORTED)
-set_property(
-        TARGET
-        openxr_loader
-        PROPERTY
-        IMPORTED_LOCATION
-        $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Libs/Android/${ANDROID_ABI}/${CMAKE_BUILD_TYPE}/libopenxr_loader.so
-)
-else()
+### All options defined here
 option(BUILD_LOADER "Build loader" ON)
-endif()
-
 option(BUILD_ALL_EXTENSIONS "Build loader and layers with all extensions" OFF)
 option(
     BUILD_LOADER_WITH_EXCEPTION_HANDLING
@@ -187,7 +174,6 @@ if((OPENGL_FOUND OR OpenGLES_FOUND) AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/comm
     endif()
     if(ANDROID)
         target_include_directories(openxr-gfxwrapper PUBLIC ${ANDROID_NATIVE_APP_GLUE})
-        target_include_directories(openxr-gfxwrapper PUBLIC $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Include)
 
         # Note: For some reason, just adding this to the gfxwrapper library results in failure at load time.
         # So, each consuming target must add $<TARGET_OBJECTS:android_native_app_glue> to their sources

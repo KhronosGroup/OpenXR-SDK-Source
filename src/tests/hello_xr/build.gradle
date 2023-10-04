@@ -28,20 +28,7 @@ android {
         versionName = project.versionOpenXR.toString() + project.versionQualifier
         versionCode = project.versionOpenXR.getVersionCode()
 
-        //externalNativeBuild {
-         //   cmake {
-          //      arguments '-DANDROID_STL=c++_shared',
-            //            '-DBUILD_API_LAYERS=OFF',
-              //          '-DBUILD_TESTS=ON',
-              //          '-DBUILD_LOADER=ON',
-              //          '-DBUILD_CONFORMANCE_TESTS=OFF',
-              //          '-DBUILD_ALL_EXTENSIONS=ON'
-             //   targets "openxr_loader", "hello_xr"
-            //}
-        // }
-
         externalNativeBuild {
-
             cmake {
                 arguments '-DBUILD_API_LAYERS=OFF',
                         '-DBUILD_TESTS=ON',
@@ -50,10 +37,6 @@ android {
                         '-DBUILD_ALL_EXTENSIONS=ON'
                 targets "openxr_loader", "hello_xr"
             }
-            cmake {
-                cppFlags ''
-            }
-       
         }
     }
     sourceSets {
