@@ -147,6 +147,10 @@ bool supports_face_tracking_ = false;
 bool supports_body_tracking_ = false;
 #endif
 
+#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+bool supports_simultaneous_hands_and_controllers_ = false;
+#endif
+
 int current_eye = 0;
 float IPD = 0.0063f;
 
@@ -473,18 +477,26 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if ENABLE_OPENXR_FB_FACE_TRACKING
-				if (!strcmp(extension.extensionName, XR_FB_FACE_TRACKING_EXTENSION_NAME))
-				{
-					Log::Write(Log::Level::Info, "FB OPENXR XR_FB_FACE_TRACKING_EXTENSION_NAME - DETECTED");
+                if (!strcmp(extension.extensionName, XR_FB_FACE_TRACKING_EXTENSION_NAME)) // header was removed, what replaced it?
+                {
+	                Log::Write(Log::Level::Info, "FB OPENXR XR_FB_FACE_TRACKING_EXTENSION_NAME - DETECTED");
                     supports_face_tracking_ = true;
-				}
+                }
 #endif
 
 #if ENABLE_OPENXR_FB_BODY_TRACKING
-				if (!strcmp(extension.extensionName, XR_FB_BODY_TRACKING_EXTENSION_NAME))
+				if(!strcmp(extension.extensionName, XR_FB_BODY_TRACKING_EXTENSION_NAME))
 				{
 					Log::Write(Log::Level::Info, "FB OPENXR XR_FB_BODY_TRACKING_EXTENSION_NAME - DETECTED");
-                    supports_body_tracking_ = true;
+					supports_body_tracking_ = true;
+				}
+#endif
+
+#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+				if(!strcmp(extension.extensionName, XR_METAX1_SIMULTANEOUS_HANDS_CONTROLLERS_MANAGEMENT_EXTENSION_NAME))
+				{
+					Log::Write(Log::Level::Info, "FB OPENXR XR_METAX1_simultaneous_hands_controllers_management - DETECTED");
+					supports_simultaneous_hands_and_controllers_ = true;
 				}
 #endif
             }
@@ -634,6 +646,18 @@ struct OpenXrProgram : IOpenXrProgram
 		else
 		{
 			Log::Write(Log::Level::Info, "Body Tracking is NOT supported");
+		}
+#endif
+
+#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+		if(supports_simultaneous_hands_and_controllers_)
+		{
+			Log::Write(Log::Level::Info, "Simultaneous hands and controllers are supported");
+			extensions.push_back(XR_METAX1_SIMULTANEOUS_HANDS_CONTROLLERS_MANAGEMENT_EXTENSION_NAME);
+		}
+		else
+		{
+			Log::Write(Log::Level::Info, "Simultaneous hands and controllers are NOT supported");
 		}
 #endif
 
@@ -1134,6 +1158,13 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_FB_BODY_TRACKING
 		CreateBodyTracker();
 #endif
+
+#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+        if(AreSimultaneousHandsAndControllersSupported())
+        {
+            SetSimultaneousHandsAndControllersEnabled(true);
+        }
+#endif
     }
 
     void CreateSwapchains() override 
@@ -1144,7 +1175,22 @@ struct OpenXrProgram : IOpenXrProgram
 
         // Read graphics properties for preferred swapchain length and logging.
         XrSystemProperties systemProperties{XR_TYPE_SYSTEM_PROPERTIES};
+
+#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+		XrSystemSimultaneousHandsControllersPropertiesMETAX1 simultaneous_properties = { XR_TYPE_SYSTEM_SIMULTANEOUS_HANDS_CONTROLLERS_PROPERTIES_METAX1 };
+
+		if(supports_simultaneous_hands_and_controllers_)
+		{
+			simultaneous_properties.next = systemProperties.next; // for when I add eye tracking ext to this sample, it's chained to pnext here
+			systemProperties.next = &simultaneous_properties;
+		}
+#endif
+
         CHECK_XRCMD(xrGetSystemProperties(m_instance, m_systemId, &systemProperties));
+
+#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+        supports_simultaneous_hands_and_controllers_ = simultaneous_properties.supportsSimultaneousHandsAndControllers;
+#endif
 
         // Log system properties.
         Log::Write(Log::Level::Info,
@@ -1817,6 +1863,71 @@ struct OpenXrProgram : IOpenXrProgram
     }
 #endif
 
+#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+	PFN_xrResumeSimultaneousHandsControllersTrackingMETAX1 xrResumeSimultaneousHandsControllersTrackingMETAX1 = nullptr;
+	PFN_xrPauseSimultaneousHandsControllersTrackingMETAX1 xrPauseSimultaneousHandsControllersTrackingMETAX1 = nullptr;
+
+    bool simultaneous_hands_and_controllers_enabled_ = false;
+
+    bool AreSimultaneousHandsAndControllersSupported() const override 
+    {
+        return supports_simultaneous_hands_and_controllers_;
+    }
+
+    bool AreSimultaneousHandsAndControllersEnabled() const override 
+    {
+        return simultaneous_hands_and_controllers_enabled_;
+    }
+
+    void SetSimultaneousHandsAndControllersEnabled(const bool enabled) override 
+    {
+		if(supports_simultaneous_hands_and_controllers_)
+		{
+			if(enabled)
+			{
+				if(xrResumeSimultaneousHandsControllersTrackingMETAX1 == nullptr)
+				{
+					XR_LOAD(m_instance, xrResumeSimultaneousHandsControllersTrackingMETAX1);
+
+					if(xrResumeSimultaneousHandsControllersTrackingMETAX1 == nullptr)
+					{
+						return;
+					}
+				}
+
+				XrSimultaneousHandsControllersTrackingResumeInfoMETAX1 simultaneous_hands_controllers_resume_info = { XR_TYPE_SIMULTANEOUS_HANDS_CONTROLLERS_TRACKING_RESUME_INFO_METAX1 };
+				XrResult res = xrResumeSimultaneousHandsControllersTrackingMETAX1(m_session, &simultaneous_hands_controllers_resume_info);
+
+				if(XR_UNQUALIFIED_SUCCESS(res))
+				{
+					simultaneous_hands_and_controllers_enabled_ = true;
+					Log::Write(Log::Level::Warning, Fmt("Simultaneous Hands and Controllers Successfully enabled"));
+				}
+			}
+			else
+			{
+				if(xrPauseSimultaneousHandsControllersTrackingMETAX1 == nullptr)
+				{
+					XR_LOAD(m_instance, xrPauseSimultaneousHandsControllersTrackingMETAX1);
+
+					if(xrPauseSimultaneousHandsControllersTrackingMETAX1 == nullptr)
+					{
+						return;
+					}
+				}
+
+				XrSimultaneousHandsControllersTrackingPauseInfoMETAX1 simultaneous_hands_controllers_pause_info = { XR_TYPE_SIMULTANEOUS_HANDS_CONTROLLERS_TRACKING_PAUSE_INFO_METAX1 };
+				XrResult res = xrPauseSimultaneousHandsControllersTrackingMETAX1(m_session, &simultaneous_hands_controllers_pause_info);
+
+				if(XR_UNQUALIFIED_SUCCESS(res))
+				{
+					simultaneous_hands_and_controllers_enabled_ = false;
+					Log::Write(Log::Level::Warning, Fmt("Simultaneous Hands and Controllers Successfully disabled"));
+				}
+			}
+		}
+    }
+#endif
 
     // Return event if one is available, otherwise return null.
     const XrEventDataBaseHeader* TryReadNextEvent() 
@@ -2175,6 +2286,7 @@ struct OpenXrProgram : IOpenXrProgram
 			frameEndInfo.next = &local_dimming_settings_;
 		}
 #endif
+
         CHECK_XRCMD(xrEndFrame(m_session, &frameEndInfo));
     }
 

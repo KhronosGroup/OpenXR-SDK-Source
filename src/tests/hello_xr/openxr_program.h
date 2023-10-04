@@ -69,6 +69,12 @@ struct IOpenXrProgram
 	virtual bool GetGazePose(const int eye, XrPosef& gaze_pose) = 0;
 #endif
 
+#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+    virtual bool AreSimultaneousHandsAndControllersSupported() const = 0;
+    virtual bool AreSimultaneousHandsAndControllersEnabled() const = 0;
+    virtual void SetSimultaneousHandsAndControllersEnabled(const bool enabled) = 0;
+#endif
+
 #if USE_SDL_JOYSTICKS
     virtual void InitSDLJoysticks() = 0;
     virtual void ShutdownSDLJoySticks() = 0;
