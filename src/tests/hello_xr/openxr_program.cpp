@@ -962,6 +962,10 @@ struct OpenXrProgram : IOpenXrProgram
             actionInfo.countSubactionPaths = 0;
             actionInfo.subactionPaths = nullptr;
             CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionInfo, &m_input.quitAction));
+
+#if ENABLE_EXT_EYE_TRACKING
+            CreateEXTEyeTracking();
+#endif
         }
 
         std::array<XrPath, Side::COUNT> selectPath;
@@ -1198,10 +1202,6 @@ struct OpenXrProgram : IOpenXrProgram
 
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 		CreateSocialEyeTracker();
-#endif
-
-#if ENABLE_EXT_EYE_TRACKING
-        CreateEXTEyeTracking();
 #endif
 
 #if ENABLE_OPENXR_META_FOVEATION_EYE_TRACKED
@@ -1853,7 +1853,9 @@ struct OpenXrProgram : IOpenXrProgram
 		XrSpaceLocation gazeLocation{ XR_TYPE_SPACE_LOCATION, &eyeGazeSampleTime };
 		XrResult gaze_result = xrLocateSpace(m_input.gazeActionSpace, m_appSpace, predicted_display_time, &gazeLocation);
 
-        if(gaze_result == XR_SUCCESS) 
+        ext_gaze_pose_valid_ = (gaze_result == XR_SUCCESS);
+
+        if(ext_gaze_pose_valid_)
         {
 #if LOG_EYE_TRACKING_DATA
 
@@ -2735,10 +2737,10 @@ struct OpenXrProgram : IOpenXrProgram
 					XrQuaternionf world_orientation;
 					XrMatrix4x4f_GetRotation(&world_orientation, &world_eye_gaze_matrix);
 
-					XrPosef local_eye_laser_pose;
-					local_eye_laser_pose.position = eye_pose.position;
-					//XrVector3f_Add(&final_pose.position, &gaze_pose.position, &eye_pose.position);
-					local_eye_laser_pose.orientation = world_orientation;
+                    XrPosef local_eye_laser_pose;
+                    local_eye_laser_pose.position = eye_pose.position;
+                    //XrVector3f_Add(&final_pose.position, &gaze_pose.position, &eye_pose.position);
+                    local_eye_laser_pose.orientation = world_orientation;
 
 					XrVector3f world_laser_offset;
 					XrMatrix4x4f_TransformVector3f(&world_laser_offset, &world_eye_gaze_matrix, &local_laser_offset);
