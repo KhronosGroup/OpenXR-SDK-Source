@@ -152,19 +152,27 @@
 #define ENABLE_OPENXR_FB_RENDER_MODEL 0
 
 #define ENABLE_OPENXR_FB_SHARPENING (PLATFORM_ANDROID && 1) // Only works on standalone Android builds, not PC / Link
-#define TOGGLE_SHARPENING_AT_RUNTIME_USING_RIGHT_GRIP (ENABLE_OPENXR_FB_SHARPENING && 1) // for debugging / comparison
+#define TOGGLE_SHARPENING_AT_RUNTIME_USING_RIGHT_GRIP (ENABLE_OPENXR_FB_SHARPENING && 0) // for debugging / comparison
 #define ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS ENABLE_OPENXR_FB_SHARPENING
 
+// This is pointless, as Quest Pro supports LD as a platform-wide system setting. Just use that.
 #define ENABLE_OPENXR_FB_LOCAL_DIMMING (PLATFORM_ANDROID && 0)
 
-#define ENABLE_OPENXR_HAND_TRACKING 0
-#define ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL (PLATFORM_PC && 1) // eye-tracking only enabled on PC for now (needs permissions on Android, requires java calls. TODO)
+// Eye tracking only enabled on PC for now (needs permissions on Android, requires java calls. TODO)
+#define ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL (PLATFORM_PC && 0) 
+#define ENABLE_EXT_EYE_TRACKING (PLATFORM_PC && 1)
+#define ENABLE_EYE_TRACKING (ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL || ENABLE_EXT_EYE_TRACKING)
+
 #define DRAW_LOCAL_EYE_LASERS (ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL && 1)
 #define DRAW_WORLD_EYE_LASERS (ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL && USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION && 1)
 
 #define ENABLE_OPENXR_META_FOVEATION_EYE_TRACKED (PLATFORM_PC && 0)
+
+// Face tracking (not implemented yet)
 #define ENABLE_OPENXR_FB_FACE_TRACKING 0
-#define ENABLE_OPENXR_FB_BODY_TRACKING 1
+
+#define ENABLE_OPENXR_HAND_TRACKING 0
+#define ENABLE_OPENXR_FB_BODY_TRACKING 1 // Hand tracking is redundant if you have body tracking, which includes all the same finger joints
 #define ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS ((ENABLE_OPENXR_FB_BODY_TRACKING || ENABLE_OPENXR_HAND_TRACKING) && 1)
 
 #define ENABLE_QUAD_LAYER 0

@@ -135,6 +135,10 @@ bool supports_hand_tracking_ = false;
 bool supports_eye_tracking_social_ = false;
 #endif
 
+#if ENABLE_EXT_EYE_TRACKING
+bool supports_ext_eye_tracking_ = false;
+#endif
+
 #if ENABLE_OPENXR_META_FOVEATION_EYE_TRACKED
 bool supports_meta_foveation_eye_tracked_ = false;
 #endif
@@ -145,7 +149,6 @@ bool supports_face_tracking_ = false;
 #endif
 
 #if ENABLE_OPENXR_FB_BODY_TRACKING
-//#define XR_FB_body_tracking_EXPERIMENTAL_VERSION 2
 bool supports_body_tracking_ = false;
 #endif
 
@@ -359,7 +362,11 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
-		DestroyEyeTracker();
+		DestroySocialEyeTracker();
+#endif
+
+#if ENABLE_EXT_EYE_TRACKING
+		DestroyEXTEeyeTracking();
 #endif
 
 #if ENABLE_OPENXR_META_FOVEATION_EYE_TRACKED
@@ -439,7 +446,7 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_FB_REFRESH_RATE
 				if (!strcmp(extension.extensionName, XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME))
 				{
-                    Log::Write(Log::Level::Info, "FB OPENXR XR_FB_DISPLAY_REFRESH_RATE_EXTENSION_NAME - DETECTED");
+                    Log::Write(Log::Level::Info, "FB OPENXR XR_FB_display_refresh_rate - DETECTED");
 					supports_refresh_rate_ = true;
 				}
 #endif
@@ -447,7 +454,7 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_FB_RENDER_MODEL
 				if (!strcmp(extension.extensionName, XR_FB_RENDER_MODEL_EXTENSION_NAME))
 				{
-                    Log::Write(Log::Level::Info, "FB OPENXR XR_FB_RENDER_MODEL_EXTENSION_NAME - DETECTED");
+                    Log::Write(Log::Level::Info, "FB OPENXR XR_FB_render_model - DETECTED");
 					supports_render_model_ = true;
 				}
 #endif
@@ -455,7 +462,7 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_FB_COMPOSITION_LAYER_SETTINGS
 				if (!strcmp(extension.extensionName, XR_FB_COMPOSITION_LAYER_SETTINGS_EXTENSION_NAME))
 				{
-                    Log::Write(Log::Level::Info, "FB OPENXR XR_FB_COMPOSITION_LAYER_SETTINGS_EXTENSION_NAME - DETECTED");
+                    Log::Write(Log::Level::Info, "FB OPENXR XR_FB_composition_layer_settings - DETECTED");
 					supports_composition_layer_ = true;
 				}
 #endif
@@ -463,7 +470,7 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_FB_LOCAL_DIMMING
 				if (!strcmp(extension.extensionName, XR_META_LOCAL_DIMMING_EXTENSION_NAME))
 				{
-                    Log::Write(Log::Level::Info, "FB OPENXR XR_META_LOCAL_DIMMING_EXTENSION_NAME - DETECTED");
+                    Log::Write(Log::Level::Info, "FB OPENXR XR_META_local_dimming - DETECTED");
 					supports_local_dimming_ = true;
 				}
 #endif
@@ -471,7 +478,7 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_HAND_TRACKING
 				if (!strcmp(extension.extensionName, XR_EXT_HAND_TRACKING_EXTENSION_NAME))
 				{
-					Log::Write(Log::Level::Info, "FB OPENXR XR_EXT_HAND_TRACKING_EXTENSION_NAME - DETECTED");
+					Log::Write(Log::Level::Info, "FB OPENXR XR_EXT_hand_tracking - DETECTED");
                     supports_hand_tracking_ = true;
 				}
 #endif
@@ -479,23 +486,31 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 				if (!strcmp(extension.extensionName, XR_FB_EYE_TRACKING_SOCIAL_EXTENSION_NAME))
 				{
-					Log::Write(Log::Level::Info, "FB OPENXR XR_FB_EYE_TRACKING_SOCIAL_EXTENSION_NAME - DETECTED");
+					Log::Write(Log::Level::Info, "FB OPENXR XR_FB_eye_tracking_social - DETECTED");
 					supports_eye_tracking_social_ = true;
+				}
+#endif
+
+#if ENABLE_EXT_EYE_TRACKING
+				if(!strcmp(extension.extensionName, XR_EXT_EYE_GAZE_INTERACTION_EXTENSION_NAME))
+				{
+					Log::Write(Log::Level::Info, "FB OPENXR XR_EXT_eye_gaze_interaction - DETECTED");
+                    supports_ext_eye_tracking_ = true;
 				}
 #endif
 
 #if ENABLE_OPENXR_META_FOVEATION_EYE_TRACKED
 				if (!strcmp(extension.extensionName, XR_META_FOVEATION_EYE_TRACKED_EXTENSION_NAME))
 				{
-					Log::Write(Log::Level::Info, "FB OPENXR XR_META_FOVEATION_EYE_TRACKED_EXTENSION_NAME - DETECTED");
+					Log::Write(Log::Level::Info, "FB OPENXR XR_META_foveation_eye_tracked - DETECTED");
 					supports_meta_foveation_eye_tracked_ = true;
 				}
 #endif
 
 #if ENABLE_OPENXR_FB_FACE_TRACKING
-                if (!strcmp(extension.extensionName, XR_FB_FACE_TRACKING_EXTENSION_NAME)) // header was removed, what replaced it?
+                if (!strcmp(extension.extensionName, XR_FB_FACE_TRACKING_EXTENSION_NAME))
                 {
-	                Log::Write(Log::Level::Info, "FB OPENXR XR_FB_FACE_TRACKING_EXTENSION_NAME - DETECTED");
+	                Log::Write(Log::Level::Info, "FB OPENXR XR_FB_face_tracking - DETECTED");
                     supports_face_tracking_ = true;
                 }
 #endif
@@ -503,7 +518,7 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_FB_BODY_TRACKING
 				if(!strcmp(extension.extensionName, XR_FB_BODY_TRACKING_EXTENSION_NAME))
 				{
-					Log::Write(Log::Level::Info, "FB OPENXR XR_FB_BODY_TRACKING_EXTENSION_NAME - DETECTED");
+					Log::Write(Log::Level::Info, "FB OPENXR XR_FB_body_tracking - DETECTED");
 					supports_body_tracking_ = true;
 				}
 #endif
@@ -620,19 +635,31 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 		if (supports_eye_tracking_social_)
 		{
-			Log::Write(Log::Level::Info, "Eye Tracking is supported (Quest Pro)");
+			Log::Write(Log::Level::Info, "FB Social Eye Tracking is supported");
 			extensions.push_back(XR_FB_EYE_TRACKING_SOCIAL_EXTENSION_NAME);
 		}
 		else
 		{
-			Log::Write(Log::Level::Info, "Eye Tracking is NOT supported");
+			Log::Write(Log::Level::Info, "FB Social Eye Tracking is NOT supported");
+		}
+#endif
+
+#if ENABLE_EXT_EYE_TRACKING
+		if(supports_ext_eye_tracking_)
+		{
+			Log::Write(Log::Level::Info, "EXT Eye Tracking is supported");
+			extensions.push_back(XR_EXT_EYE_GAZE_INTERACTION_EXTENSION_NAME);
+		}
+		else
+		{
+			Log::Write(Log::Level::Info, "EXT Eye Tracking is NOT supported");
 		}
 #endif
 
 #if ENABLE_OPENXR_META_FOVEATION_EYE_TRACKED
 		if (supports_meta_foveation_eye_tracked_)
 		{
-			Log::Write(Log::Level::Info, "Foveation Eye Tracking is supported (Quest Pro)");
+			Log::Write(Log::Level::Info, "Foveation Eye Tracking is supported");
 			extensions.push_back(XR_META_FOVEATION_EYE_TRACKED_EXTENSION_NAME);
 		}
 		else
@@ -656,12 +683,12 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_FB_BODY_TRACKING
 		if (supports_body_tracking_)
 		{
-			Log::Write(Log::Level::Info, "Body Tracking is supported");
+			Log::Write(Log::Level::Info, "FB Meta Body Tracking is supported");
 			extensions.push_back(XR_FB_BODY_TRACKING_EXTENSION_NAME);
 		}
 		else
 		{
-			Log::Write(Log::Level::Info, "Body Tracking is NOT supported");
+			Log::Write(Log::Level::Info, "FB Meta Body Tracking is NOT supported");
 		}
 #endif
 
@@ -854,6 +881,12 @@ struct OpenXrProgram : IOpenXrProgram
 #if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
 		XrAction thumbstickXAction{ XR_NULL_HANDLE };
 		XrAction thumbstickYAction{ XR_NULL_HANDLE };
+#endif
+
+#if ENABLE_EXT_EYE_TRACKING
+		XrAction gazeAction{ XR_NULL_HANDLE };
+		XrSpace gazeActionSpace;
+		XrBool32 gazeActive;
 #endif
     };
 
@@ -1164,7 +1197,11 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
-		CreateEyeTracker();
+		CreateSocialEyeTracker();
+#endif
+
+#if ENABLE_EXT_EYE_TRACKING
+        CreateEXTEyeTracking();
 #endif
 
 #if ENABLE_OPENXR_META_FOVEATION_EYE_TRACKED
@@ -1629,22 +1666,30 @@ struct OpenXrProgram : IOpenXrProgram
 	PFN_xrDestroyEyeTrackerFB xrDestroyEyeTrackerFB = nullptr;
 	PFN_xrGetEyeGazesFB xrGetEyeGazesFB = nullptr;
 
-    bool eye_tracking_enabled_ = false;
-	XrEyeTrackerFB eye_tracker_ = nullptr;
-	XrEyeGazesFB eye_gazes_{ XR_TYPE_EYE_GAZES_FB, nullptr };
+    bool social_eye_tracking_enabled_ = false;
+	XrEyeTrackerFB social_eye_tracker_ = nullptr;
+	XrEyeGazesFB social_eye_gazes_{ XR_TYPE_EYE_GAZES_FB, nullptr };
 
-	bool GetGazePose(const int eye, XrPosef& gaze_pose) override
+	bool GetGazePoseSocial(const int eye, XrPosef& gaze_pose) override
 	{
-		if (eye_tracking_enabled_&& eye_gazes_.gaze[eye].isValid)
+		if (social_eye_tracking_enabled_ && social_eye_gazes_.gaze[eye].isValid)
 		{
-			gaze_pose = eye_gazes_.gaze[eye].gazePose;
+			gaze_pose = social_eye_gazes_.gaze[eye].gazePose;
 			return true;
 		}
 
 		return false;
 	}
 
-	void CreateEyeTracker()
+    void SetSocialEyeTrackerEnabled(const bool enabled) override
+    {
+		if(supports_eye_tracking_social_ && m_instance && m_session)
+		{
+            social_eye_tracking_enabled_ = enabled;
+		}
+    }
+
+	void CreateSocialEyeTracker()
 	{
 		if (supports_eye_tracking_social_ && m_instance && m_session)
 		{
@@ -1659,19 +1704,19 @@ struct OpenXrProgram : IOpenXrProgram
 			}
 
 			XrEyeTrackerCreateInfoFB create_info{ XR_TYPE_EYE_TRACKER_CREATE_INFO_FB };
-			XrResult result = xrCreateEyeTrackerFB(m_session, &create_info, &eye_tracker_);
+			XrResult result = xrCreateEyeTrackerFB(m_session, &create_info, &social_eye_tracker_);
 
 			if (result == XR_SUCCESS)
 			{
-				Log::Write(Log::Level::Info, "OPENXR - Eye tracking enabled and running...");
-				eye_tracking_enabled_ = true;
+				Log::Write(Log::Level::Info, "OPENXR - Social Eye tracking enabled and running...");
+                social_eye_tracking_enabled_ = true;
 			}
 		}
 	}
 
-	void DestroyEyeTracker()
+	void DestroySocialEyeTracker()
 	{
-		if (eye_tracker_)
+		if (social_eye_tracker_)
 		{
 			if (xrDestroyEyeTrackerFB == nullptr)
 			{
@@ -1683,17 +1728,17 @@ struct OpenXrProgram : IOpenXrProgram
 				return;
 			}
 
-			xrDestroyEyeTrackerFB(eye_tracker_);
-			eye_tracker_ = nullptr;
-			eye_tracking_enabled_ = false;
+			xrDestroyEyeTrackerFB(social_eye_tracker_);
+			social_eye_tracker_ = nullptr;
+            social_eye_tracking_enabled_ = false;
 
-			Log::Write(Log::Level::Info, "OPENXR - Eye tracker destroyed...");
+			Log::Write(Log::Level::Info, "OPENXR - Social Eye tracker destroyed...");
 		}
 	}
 
-	void UpdateEyeTrackerGazes()
+	void UpdateSocialEyeTrackerGazes() override
 	{
-		if (eye_tracker_ && eye_tracking_enabled_)
+		if (social_eye_tracker_ && social_eye_tracking_enabled_)
 		{
 			if (xrGetEyeGazesFB == nullptr)
 			{
@@ -1709,18 +1754,112 @@ struct OpenXrProgram : IOpenXrProgram
 			gazes_info.baseSpace = m_appSpace;
 
 #if LOG_EYE_TRACKING_DATA
-			XrResult result = xrGetEyeGazesFB(eye_tracker_, &gazes_info, &eye_gazes_);
+			XrResult result = xrGetEyeGazesFB(social_eye_tracker_, &gazes_info, &social_eye_gazes_);
 
 			if (result == XR_SUCCESS)
 			{
 				Log::Write(Log::Level::Info, Fmt("OPENXR GAZES: Left Eye => %.2f, %.2f, Right Eye => %.2f, %.2f",
-					eye_gazes_.gaze[Side::LEFT].gazePose.orientation.x, eye_gazes_.gaze[Side::LEFT].gazePose.orientation.y,
-					eye_gazes_.gaze[Side::RIGHT].gazePose.orientation.x, eye_gazes_.gaze[Side::RIGHT].gazePose.orientation.y));
+                    social_eye_gazes_.gaze[Side::LEFT].gazePose.orientation.x, social_eye_gazes_.gaze[Side::LEFT].gazePose.orientation.y,
+                    social_eye_gazes_.gaze[Side::RIGHT].gazePose.orientation.x, social_eye_gazes_.gaze[Side::RIGHT].gazePose.orientation.y));
 			}
 #else
-			xrGetEyeGazesFB(eye_tracker_, &gazes_info, &eye_gazes_);
+			xrGetEyeGazesFB(social_eye_tracker_, &gazes_info, &social_eye_gazes_);
 #endif
 		}
+	}
+#endif
+
+#if ENABLE_EXT_EYE_TRACKING
+	bool ext_eye_tracking_enabled_ = false;
+	XrPosef ext_gaze_pose_;
+    bool ext_gaze_pose_valid_ = false;
+
+    XrEyeGazeSampleTimeEXT last_ext_gaze_pose_time_{ XR_TYPE_EYE_GAZE_SAMPLE_TIME_EXT };
+
+	XrSystemEyeGazeInteractionPropertiesEXT ext_gaze_interaction_properties_ = 
+    {
+	    XR_TYPE_SYSTEM_EYE_GAZE_INTERACTION_PROPERTIES_EXT, nullptr, true 
+    };
+	
+	bool GetGazePoseEXT(XrPosef& gaze_pose) override
+	{
+		if(supports_ext_eye_tracking_ && ext_eye_tracking_enabled_ && ext_gaze_pose_valid_)
+		{
+			gaze_pose = ext_gaze_pose_;
+			return true;
+		}
+
+		return false;
+	}
+
+    void CreateEXTEyeTracking()
+    {
+        if(supports_ext_eye_tracking_ && m_instance && m_session)
+        {
+			XrActionCreateInfo actionInfo{ XR_TYPE_ACTION_CREATE_INFO };
+			strcpy_s(actionInfo.actionName, "eye_tracking");
+			actionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+			strcpy_s(actionInfo.localizedActionName, "Eye Tracking");
+			CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionInfo, &m_input.gazeAction));
+
+			XrPath eyeGazeInteractionProfilePath;
+			XrPath gazePosePath;
+			CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/ext/eye_gaze_interaction", &eyeGazeInteractionProfilePath));
+			CHECK_XRCMD(xrStringToPath(m_instance, "/user/eyes_ext/input/gaze_ext/pose", &gazePosePath));
+
+			XrActionSuggestedBinding bindings;
+			bindings.action = m_input.gazeAction;
+			bindings.binding = gazePosePath;
+
+			XrInteractionProfileSuggestedBinding suggestedBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
+			suggestedBindings.interactionProfile = eyeGazeInteractionProfilePath;
+			suggestedBindings.suggestedBindings = &bindings;
+			suggestedBindings.countSuggestedBindings = 1;
+			CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &suggestedBindings));
+
+			XrActionSpaceCreateInfo createActionSpaceInfo{ XR_TYPE_ACTION_SPACE_CREATE_INFO };
+			createActionSpaceInfo.action = m_input.gazeAction;
+			createActionSpaceInfo.poseInActionSpace = Math::Pose::Identity();
+			CHECK_XRCMD(xrCreateActionSpace(m_session, &createActionSpaceInfo, &m_input.gazeActionSpace));
+
+            SetEXTEyeTrackerEnabled(true);
+        }
+    }
+
+    void DestroyEXTEeyeTracking()
+    {
+		if(supports_ext_eye_tracking_ && m_instance && m_session)
+		{
+            SetEXTEyeTrackerEnabled(false);
+		}
+    }
+
+	void SetEXTEyeTrackerEnabled(const bool enabled) override
+	{
+		if(supports_ext_eye_tracking_ && m_instance && m_session)
+		{
+            ext_eye_tracking_enabled_ = enabled;
+		}
+	}
+
+	void UpdateEXTEyeTrackerGaze(XrTime predicted_display_time) override
+	{
+        if(!supports_ext_eye_tracking_ || !ext_eye_tracking_enabled_)
+        {
+            return;
+        }
+
+		XrEyeGazeSampleTimeEXT eyeGazeSampleTime{ XR_TYPE_EYE_GAZE_SAMPLE_TIME_EXT };
+		XrSpaceLocation gazeLocation{ XR_TYPE_SPACE_LOCATION, &eyeGazeSampleTime };
+		XrResult gaze_result = xrLocateSpace(m_input.gazeActionSpace, m_appSpace, predicted_display_time, &gazeLocation);
+
+        if(gaze_result == XR_SUCCESS) 
+        {
+#if LOG_EYE_TRACKING_DATA
+
+#endif
+        }
+
 	}
 #endif
 
@@ -2500,15 +2639,15 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
-        if (eye_tracking_enabled_)
+        if (supports_eye_tracking_social_ && social_eye_tracking_enabled_)
         {
-            UpdateEyeTrackerGazes();
+            UpdateSocialEyeTrackerGazes();
 
             for (int eye : { Side::LEFT, Side::RIGHT }) 
             {
                 XrPosef gaze_pose;
 
-                if (GetGazePose(eye, gaze_pose))
+                if (GetGazePoseSocial(eye, gaze_pose))
                 {
 					const XrPosef& eye_pose = m_views[eye].pose;
 
@@ -2562,6 +2701,71 @@ struct OpenXrProgram : IOpenXrProgram
                 }
             }
         }
+#endif
+
+#if ENABLE_EXT_EYE_TRACKING
+		if(supports_ext_eye_tracking_ && ext_eye_tracking_enabled_)
+		{
+			UpdateEXTEyeTrackerGaze(predictedDisplayTime);
+
+			XrPosef gaze_pose;
+
+            if(GetGazePoseEXT(gaze_pose))
+            {
+				for(int eye : { Side::LEFT, Side::RIGHT })
+				{
+					const XrPosef& eye_pose = m_views[eye].pose;
+
+					const float laser_length = 10.0f;
+					const float half_laser_length = laser_length * 0.5f;
+					const float distance_to_eye = 0.1f;
+
+					// Apply an offset so the lasers aren't overlapping the eye directly
+					XrVector3f local_laser_offset = { 0.0f, 0.0f, (-half_laser_length - distance_to_eye) };
+
+					XrMatrix4x4f gaze_rotation_matrix;
+					XrMatrix4x4f_CreateFromQuaternion(&gaze_rotation_matrix, &gaze_pose.orientation);
+
+					XrMatrix4x4f eye_rotation_matrix;
+					XrMatrix4x4f_CreateFromQuaternion(&eye_rotation_matrix, &eye_pose.orientation);
+
+					XrMatrix4x4f world_eye_gaze_matrix;
+					XrMatrix4x4f_Multiply(&world_eye_gaze_matrix, &gaze_rotation_matrix, &eye_rotation_matrix);
+
+					XrQuaternionf world_orientation;
+					XrMatrix4x4f_GetRotation(&world_orientation, &world_eye_gaze_matrix);
+
+					XrPosef local_eye_laser_pose;
+					local_eye_laser_pose.position = eye_pose.position;
+					//XrVector3f_Add(&final_pose.position, &gaze_pose.position, &eye_pose.position);
+					local_eye_laser_pose.orientation = world_orientation;
+
+					XrVector3f world_laser_offset;
+					XrMatrix4x4f_TransformVector3f(&world_laser_offset, &world_eye_gaze_matrix, &local_laser_offset);
+
+					XrVector3f_Add(&local_eye_laser_pose.position, &local_eye_laser_pose.position, &world_laser_offset);
+
+					// Make a slender laser pointer-like box for gazes
+					XrVector3f gaze_cube_scale{ 0.001f, 0.001f, laser_length };
+
+#if DRAW_LOCAL_EYE_LASERS
+					cubes.push_back(Cube{ local_eye_laser_pose, gaze_cube_scale });
+#endif
+
+#if DRAW_WORLD_EYE_LASERS
+					const BVR::GLMPose glm_local_eye_laser_pose = BVR::convert_to_glm(local_eye_laser_pose);
+					const glm::vec3 world_eye_laser_position = player_pose.translation_ + (player_pose.rotation_ * glm_local_eye_laser_pose.translation_);
+					const glm::fquat world_eye_laser_rotation = glm::normalize(player_pose.rotation_ * glm_local_eye_laser_pose.rotation_);
+
+					XrPosef world_eye_laser_pose;
+					world_eye_laser_pose.position = BVR::convert_to_xr(world_eye_laser_position);
+					world_eye_laser_pose.orientation = BVR::convert_to_xr(world_eye_laser_rotation);
+
+					cubes.push_back(Cube{ world_eye_laser_pose, gaze_cube_scale });
+#endif
+				}
+            }
+		}
 #endif
 
 #if ENABLE_OPENXR_FB_BODY_TRACKING

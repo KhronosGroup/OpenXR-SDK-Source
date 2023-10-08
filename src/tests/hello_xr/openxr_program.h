@@ -66,7 +66,20 @@ struct IOpenXrProgram
 #endif
 
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
-	virtual bool GetGazePose(const int eye, XrPosef& gaze_pose) = 0;
+    virtual bool GetGazePoseSocial(const int eye, XrPosef& gaze_pose) = 0;
+    virtual void SetSocialEyeTrackerEnabled(const bool enabled) = 0;
+    virtual void UpdateSocialEyeTrackerGazes() = 0;
+#endif
+
+#if ENABLE_EXT_EYE_TRACKING
+	virtual bool GetGazePoseEXT(XrPosef& gaze_pose) = 0;
+    virtual void SetEXTEyeTrackerEnabled(const bool enabled) = 0;
+    virtual void UpdateEXTEyeTrackerGaze(XrTime predicted_display_time) = 0;
+#endif
+
+#if ENABLE_EYE_TRACKING && 0
+	virtual bool GetGazePose(const int eye, XrPosef& gaze_pose, const bool prefer_ext) = 0;
+    virtual void UpdateEyeTrackers(XrTime predicted_display_time) = 0;
 #endif
 
 #if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
