@@ -1849,16 +1849,19 @@ struct OpenXrProgram : IOpenXrProgram
             return;
         }
 
-		XrEyeGazeSampleTimeEXT eyeGazeSampleTime{ XR_TYPE_EYE_GAZE_SAMPLE_TIME_EXT };
-		XrSpaceLocation gazeLocation{ XR_TYPE_SPACE_LOCATION, &eyeGazeSampleTime };
-		XrResult gaze_result = xrLocateSpace(m_input.gazeActionSpace, m_appSpace, predicted_display_time, &gazeLocation);
+		XrEyeGazeSampleTimeEXT eye_gaze_sample_time{ XR_TYPE_EYE_GAZE_SAMPLE_TIME_EXT };
+		XrSpaceLocation gaze_location{ XR_TYPE_SPACE_LOCATION, &eye_gaze_sample_time };
+		XrResult gaze_result = xrLocateSpace(m_input.gazeActionSpace, m_appSpace, predicted_display_time, &gaze_location);
 
         ext_gaze_pose_valid_ = (gaze_result == XR_SUCCESS);
 
         if(ext_gaze_pose_valid_)
         {
-#if LOG_EYE_TRACKING_DATA
+            ext_gaze_pose_ = gaze_location.pose;
 
+#if LOG_EYE_TRACKING_DATA
+			Log::Write(Log::Level::Info, Fmt("OPENXR EXT GAZE: X,Y,Z,W => %.2f, %.2f %.2f, %.2f",
+                ext_gaze_pose_.orientation.x, ext_gaze_pose_.orientation.y, ext_gaze_pose_.orientation.z, ext_gaze_pose_.orientation.w));
 #endif
         }
 
