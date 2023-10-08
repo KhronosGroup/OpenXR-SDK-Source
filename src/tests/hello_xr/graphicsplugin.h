@@ -7,6 +7,7 @@
 struct Cube {
     XrPosef Pose;
     XrVector3f Scale;
+    XrVector4f Colour;
 };
 
 // Wraps a graphics API so the main openxr program can be graphics API-independent.

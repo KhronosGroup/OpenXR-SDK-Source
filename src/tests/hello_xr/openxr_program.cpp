@@ -2654,6 +2654,7 @@ struct OpenXrProgram : IOpenXrProgram
 
                 if (GetGazePoseSocial(eye, gaze_pose))
                 {
+                    XrVector4f social_laser_colour{ 0.0f, 1.0f, 1.0f, 1.0f };
 					const XrPosef& eye_pose = m_views[eye].pose;
 
                     const float laser_length = 10.0f;
@@ -2689,7 +2690,7 @@ struct OpenXrProgram : IOpenXrProgram
                     XrVector3f gaze_cube_scale{ 0.001f, 0.001f, laser_length };
 
 #if DRAW_LOCAL_EYE_LASERS
-                    cubes.push_back(Cube{ local_eye_laser_pose, gaze_cube_scale });
+                    cubes.push_back(Cube{ local_eye_laser_pose, gaze_cube_scale, social_laser_colour });
 #endif
 
 #if DRAW_WORLD_EYE_LASERS
@@ -2701,7 +2702,7 @@ struct OpenXrProgram : IOpenXrProgram
                     world_eye_laser_pose.position = BVR::convert_to_xr(world_eye_laser_position);
                     world_eye_laser_pose.orientation = BVR::convert_to_xr(world_eye_laser_rotation);
 
-					cubes.push_back(Cube{ world_eye_laser_pose, gaze_cube_scale });
+					cubes.push_back(Cube{ world_eye_laser_pose, gaze_cube_scale, social_laser_colour });
 #endif
                 }
             }
@@ -2717,6 +2718,8 @@ struct OpenXrProgram : IOpenXrProgram
 
             if(GetGazePoseEXT(gaze_pose))
             {
+                XrVector4f ext_laser_colour{ 0.0f, 1.0f, 1.0f, 1.0f };
+
 				for(int eye : { Side::LEFT, Side::RIGHT })
 				{
 					const XrPosef& eye_pose = m_views[eye].pose;
@@ -2754,7 +2757,7 @@ struct OpenXrProgram : IOpenXrProgram
 					XrVector3f gaze_cube_scale{ 0.001f, 0.001f, laser_length };
 
 #if DRAW_LOCAL_EYE_LASERS
-					cubes.push_back(Cube{ local_eye_laser_pose, gaze_cube_scale });
+					cubes.push_back(Cube{ local_eye_laser_pose, gaze_cube_scale, ext_laser_colour });
 #endif
 
 #if DRAW_WORLD_EYE_LASERS
@@ -2766,7 +2769,7 @@ struct OpenXrProgram : IOpenXrProgram
 					world_eye_laser_pose.position = BVR::convert_to_xr(world_eye_laser_position);
 					world_eye_laser_pose.orientation = BVR::convert_to_xr(world_eye_laser_rotation);
 
-					cubes.push_back(Cube{ world_eye_laser_pose, gaze_cube_scale });
+					cubes.push_back(Cube{ world_eye_laser_pose, gaze_cube_scale, ext_laser_colour });
 #endif
 				}
             }
