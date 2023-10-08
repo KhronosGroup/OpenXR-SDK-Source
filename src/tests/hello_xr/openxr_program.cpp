@@ -2702,7 +2702,13 @@ struct OpenXrProgram : IOpenXrProgram
                     world_eye_laser_pose.position = BVR::convert_to_xr(world_eye_laser_position);
                     world_eye_laser_pose.orientation = BVR::convert_to_xr(world_eye_laser_rotation);
 
-					cubes.push_back(Cube{ world_eye_laser_pose, gaze_cube_scale, social_laser_colour });
+#if ENABLE_EXT_EYE_TRACKING
+                    if(!supports_ext_eye_tracking_ || !ext_eye_tracking_enabled_)
+#endif
+                    {
+                        cubes.push_back(Cube{ world_eye_laser_pose, gaze_cube_scale, social_laser_colour });
+                    }
+					
 #endif
                 }
             }
@@ -2757,7 +2763,12 @@ struct OpenXrProgram : IOpenXrProgram
 					XrVector3f gaze_cube_scale{ 0.001f, 0.001f, laser_length };
 
 #if DRAW_LOCAL_EYE_LASERS
-					cubes.push_back(Cube{ local_eye_laser_pose, gaze_cube_scale, ext_laser_colour });
+#if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
+                    if(!supports_eye_tracking_social_ || !social_eye_tracking_enabled_)
+#endif
+                    {
+                        cubes.push_back(Cube{ local_eye_laser_pose, gaze_cube_scale, ext_laser_colour });
+                    }
 #endif
 
 #if DRAW_WORLD_EYE_LASERS
