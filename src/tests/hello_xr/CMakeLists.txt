@@ -83,7 +83,29 @@ if(Vulkan_FOUND)
     )
 endif()
 
+option(ENABLE_META_OPENXR_SDK "Enable Meta OpenXR SDK" ON)
+
+if(ENABLE_META_OPENXR_SDK)
+    
+    target_include_directories(hello_xr PUBLIC $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Include)
+    
+    if(ANDROID)
+        add_library(meta_openxr_loader SHARED IMPORTED)
+
+        set_target_properties(meta_openxr_loader
+                PROPERTIES
+                IMPORTED_LOCATION $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader.so
+                )
+
+        #target_link_libraries(hello_xr meta_openxr_loader)
+    endif()
+    
+else()
+
+endif()
+
 target_link_libraries(hello_xr OpenXR::openxr_loader)
+
 if(TARGET openxr-gfxwrapper)
     target_link_libraries(hello_xr openxr-gfxwrapper)
 endif()
@@ -103,8 +125,6 @@ if(Vulkan_LIBRARY)
     target_link_libraries(hello_xr ${Vulkan_LIBRARY})
 endif()
 
-#target_include_directories(hello_xr PUBLIC $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Include)
-target_include_directories(hello_xr PUBLIC C:/ovr_openxr_mobile_sdk_57.0/OpenXR/Include)
 target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/glm)
 target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/SDL/include)
 
