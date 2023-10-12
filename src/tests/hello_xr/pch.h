@@ -136,6 +136,8 @@
 #include <openxr/openxr_extension_helpers.h>
 #include <openxr/openxr_oculus.h>
 #include <openxr/metax1_simultaneous_hands_controllers_management.h>
+#include <openxr/metax2_detached_controllers.h>
+#include <openxr/metax1_environment_depth.h>
 
 #ifdef XR_USE_PLATFORM_ANDROID
 #define PLATFORM_ANDROID 1
