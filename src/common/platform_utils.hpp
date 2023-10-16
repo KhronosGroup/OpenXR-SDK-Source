@@ -327,14 +327,19 @@ static inline std::string PlatformUtilsGetSecureEnv(const char* name) {
 
 #include <sys/system_properties.h>
 
-static inline bool PlatformUtilsGetEnvSet(const char* /* name */) {
-    // Stub func
-    return false;
-}
+namespace detail {
 
-static inline std::string PlatformUtilsGetEnv(const char* /* name */) {
-    // Stub func
-    return {};
+static inline char* ImplGetEnv(const char* name) { return getenv(name); }
+}  // namespace detail
+
+static inline bool PlatformUtilsGetEnvSet(const char* name) { return detail::ImplGetEnv(name) != nullptr; }
+
+static inline std::string PlatformUtilsGetEnv(const char* name) {
+    auto str = detail::ImplGetEnv(name);
+    if (str == nullptr) {
+        return {};
+    }
+    return str;
 }
 
 static inline std::string PlatformUtilsGetSecureEnv(const char* /* name */) {
