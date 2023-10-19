@@ -2058,11 +2058,11 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
 
 #if 1
             extensions.push_back("VK_KHR_swapchain");
+            extensions.push_back("VK_EXT_descriptor_indexing");
 			extensions.push_back("VK_KHR_fragment_shading_rate");
 			extensions.push_back("VK_KHR_maintenance1");
 			extensions.push_back("VK_KHR_buffer_device_address");
             extensions.push_back("VK_NV_mesh_shader");
-            extensions.push_back("VK_EXT_descriptor_indexing");
 
 #elif 0
 			extensions.push_back("VK_KHR_swapchain");
@@ -2129,7 +2129,6 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
             deviceInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data();
 
 #if ENABLE_STREAMLINE
-
             deviceInfo.pEnabledFeatures = nullptr;
             //deviceInfo.pNext = get_enabled_features_pnext();
 
