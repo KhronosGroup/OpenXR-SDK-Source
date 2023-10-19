@@ -14,6 +14,21 @@
 #include <cmath>
 #include <set>
 
+#if ENABLE_STREAMLINE
+#include <sl.h>
+#include <sl_dlss.h>
+#include <sl_consts.h>
+#include <sl_hooks.h>
+
+#include <sl_helpers.h>
+#include <sl_helpers_vk.h>
+#include <sl_nrd.h>
+#include <sl_security.h>
+
+#pragma comment(lib, "sl.interposer.lib")
+#elif XR_USE_PLATFORM_WIN32
+#pragma comment(lib, "vulkan-1.lib")
+#endif
 
 #if USE_SDL_JOYSTICKS
 #include "SDL3/SDL.h"
