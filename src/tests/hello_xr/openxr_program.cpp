@@ -25,6 +25,103 @@
 #include <sl_nrd.h>
 #include <sl_security.h>
 
+static constexpr int STREAMLINE_APP_ID = 231313132;
+static constexpr uint64_t SDK_VERSION = sl::kSDKVersion;
+static const char* STREAMLINE_PROJECT_ID = "b5559ce7-7b69-430c-863c-54554b2cb367";
+
+void StreamLineCallback(sl::LogType type, const char* msg)
+{
+	std::string prefix = (type == sl::LogType::eInfo) ? "Info: " : (type == sl::LogType::eWarn) ? "Warn: " : "Error: ";
+	std::string message = prefix + msg;
+
+    Log::Write(Log::Level::Info, message);
+}
+
+const std::wstring s_interposer_dll_filename_ = L"sl.interposer.dll";
+HMODULE s_interposer_ = {};
+const bool check_signature_ = false;
+
+sl::Preferences prefs_{};
+
+bool is_dlss_supported_ = false;
+
+sl::DLSSOptimalSettings dlss_settings_{};
+sl::DLSSOptions dlss_options_{};
+
+//void SetDLSSOptions(const sl::DLSSOptions consts);
+//void QueryDLSSOptimalSettings(DLSSSettings& settings);
+//void EvaluateDLSS(nvrhi::ICommandList* commandList);
+//void CleanupDLSS();
+
+//void set_dlss_textures(VkCommandBuffer command_buffer, const int eye);
+//void set_dlss_options(const int eye);
+//void shutdown_dlss();
+
+bool streamline_initialized_ = false;
+
+bool InitStreamLine()
+{
+	if(streamline_initialized_)
+	{
+		return true;
+	}
+
+	std::vector<sl::Feature> features_to_load;
+
+	features_to_load.push_back(sl::kFeatureDLSS);
+
+	if(features_to_load.empty())
+	{
+		return false;
+	}
+
+	if(s_interposer_ == nullptr)
+	{
+		//if(check_signature_ && !sl::security::verifyEmbeddedSignature(s_interposer_dll_filename_.c_str()))
+		{
+			//return false;
+		}
+
+		s_interposer_ = LoadLibraryW(s_interposer_dll_filename_.c_str());
+	}
+
+	if(s_interposer_ == nullptr)
+	{
+		return false;
+	}
+
+	prefs_ = {};
+
+#if 1
+	prefs_.flags |= sl::PreferenceFlags::eUseManualHooking;
+#endif
+
+	prefs_.renderAPI = sl::RenderAPI::eVulkan;
+	prefs_.featuresToLoad = features_to_load.data();
+	prefs_.numFeaturesToLoad = (uint32_t)features_to_load.size();
+
+	prefs_.showConsole = true; // for debugging, set to false in production
+	prefs_.logLevel = sl::LogLevel::eDefault;
+
+	prefs_.pathsToPlugins = {};
+	prefs_.numPathsToPlugins = 0;
+	prefs_.pathToLogsAndData = L".";
+	prefs_.logMessageCallback = &StreamLineCallback;
+	prefs_.applicationId = STREAMLINE_APP_ID;
+	prefs_.engineVersion = "v1.0";
+	prefs_.projectId = STREAMLINE_PROJECT_ID;
+
+	const sl::Result init_result = slInit(prefs_, SDK_VERSION);
+
+	if(init_result != sl::Result::eOk)
+	{
+		return false;
+	}
+
+	streamline_initialized_ = true;
+	return true;
+}
+
 #pragma comment(lib, "sl.interposer.lib")
 #elif XR_USE_PLATFORM_WIN32
 #pragma comment(lib, "vulkan-1.lib")

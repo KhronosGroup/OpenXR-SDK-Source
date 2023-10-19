@@ -2004,8 +2004,17 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
         CHECK_XRCMD(pfnGetVulkanInstanceExtensionsKHR(instance, createInfo->systemId, extensionNamesSize, &extensionNamesSize,
                                                       &extensionNames[0]));
         {
+
+#if ENABLE_STREAMLINE
+            std::vector<const char*> extensions;
+            extensions.push_back("VK_EXT_debug_utils");
+            extensions.push_back("VK_KHR_get_physical_device_properties2");
+            extensions.push_back("VK_KHR_win32_surface");
+            extensions.push_back("VK_KHR_surface");
+#else
             // Note: This cannot outlive the extensionNames above, since it's just a collection of views into that string!
             std::vector<const char*> extensions = ParseExtensionString(&extensionNames[0]);
+#endif
 
             // Merge the runtime's request with the applications requests
             for (uint32_t i = 0; i < createInfo->vulkanCreateInfo->enabledExtensionCount; ++i) {
@@ -2017,8 +2026,12 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
             instInfo.enabledExtensionCount = (uint32_t)extensions.size();
             instInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data();
 
-            auto pfnCreateInstance = (PFN_vkCreateInstance)createInfo->pfnGetInstanceProcAddr(nullptr, "vkCreateInstance");
-            *vulkanResult = pfnCreateInstance(&instInfo, createInfo->vulkanAllocator, vulkanInstance);
+#if ENABLE_STREAMLINE
+            *vulkanResult = vkCreateInstance(&instInfo, createInfo->vulkanAllocator, vulkanInstance);
+#else
+			auto pfnCreateInstance = (PFN_vkCreateInstance)createInfo->pfnGetInstanceProcAddr(nullptr, "vkCreateInstance");
+			*vulkanResult = pfnCreateInstance(&instInfo, createInfo->vulkanAllocator, vulkanInstance);
+#endif
         }
 
         return XR_SUCCESS;
@@ -2041,9 +2054,56 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
             // Note: This cannot outlive the extensionNames above, since it's just a collection of views into that string!
             std::vector<const char*> extensions;
 
+#if ENABLE_STREAMLINE
+
+#if 1
+            extensions.push_back("VK_KHR_swapchain");
+			extensions.push_back("VK_KHR_fragment_shading_rate");
+			extensions.push_back("VK_KHR_maintenance1");
+			extensions.push_back("VK_KHR_buffer_device_address");
+            extensions.push_back("VK_NV_mesh_shader");
+            extensions.push_back("VK_EXT_descriptor_indexing");
+
+#elif 0
+			extensions.push_back("VK_KHR_swapchain");
+			extensions.push_back("VK_EXT_descriptor_indexing");
+			extensions.push_back("VK_EXT_scalar_block_layout");
+			extensions.push_back("VK_KHR_maintenance3");
+			extensions.push_back("VK_KHR_get_memory_requirements2");
+			extensions.push_back("VK_KHR_dedicated_allocation");
+			extensions.push_back("VK_KHR_acceleration_structure");
+			extensions.push_back("VK_KHR_ray_tracing_pipeline");
+			extensions.push_back("VK_KHR_ray_query");
+			extensions.push_back("VK_NV_ray_tracing_motion_blur");
+			extensions.push_back("VK_KHR_spirv_1_4");
+			extensions.push_back("VK_KHR_shader_float_controls");
+			extensions.push_back("VK_KHR_pipeline_library");
+			extensions.push_back("VK_KHR_deferred_host_operations");
+			extensions.push_back("VK_EXT_host_query_reset");
+			extensions.push_back("VK_KHR_shader_clock");
+			extensions.push_back("VK_KHR_push_descriptor");
+			extensions.push_back("VK_KHR_dynamic_rendering");
+			extensions.push_back("VK_KHR_timeline_semaphore");
+			extensions.push_back("VK_EXT_shader_demote_to_helper_invocation");
+			extensions.push_back("VK_NVX_binary_import");
+			extensions.push_back("VK_NVX_image_view_handle");
+#else
+            extensions.push_back("VK_KHR_swapchain");
+            //extensions.push_back("VK_KHR_external_memory");
+            //extensions.push_back("VK_KHR_external_memory_win32");
+            //extensions.push_back("VK_KHR_external_fence");
+            //extensions.push_back("VK_KHR_external_fence_win32");
+            //extensions.push_back("VK_KHR_external_semaphore");
+            //extensions.push_back("VK_KHR_external_semaphore_win32");
+            extensions.push_back("VK_KHR_get_memory_requirements2");
+            //extensions.push_back("VK_KHR_dedicated_allocation");
+#endif
+
+#else
             if (deviceExtensionNamesSize > 0) {
                 extensions = ParseExtensionString(&deviceExtensionNames[0]);
             }
+#endif
 
             // Merge the runtime's request with the applications requests
             for (uint32_t i = 0; i < createInfo->vulkanCreateInfo->enabledExtensionCount; ++i) {
@@ -2068,8 +2128,19 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
             deviceInfo.enabledExtensionCount = (uint32_t)extensions.size();
             deviceInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data();
 
+#if ENABLE_STREAMLINE
+
+            deviceInfo.pEnabledFeatures = nullptr;
+            //deviceInfo.pNext = get_enabled_features_pnext();
+
+            VkDevice           vk_logical_device_{ VK_NULL_HANDLE };
+            VkResult res = vkCreateDevice(m_vkPhysicalDevice, &deviceInfo, nullptr, &vk_logical_device_);
+            *vulkanResult = res;
+            vulkanDevice = &vk_logical_device_;
+#else
             auto pfnCreateDevice = (PFN_vkCreateDevice)createInfo->pfnGetInstanceProcAddr(m_vkInstance, "vkCreateDevice");
             *vulkanResult = pfnCreateDevice(m_vkPhysicalDevice, &deviceInfo, createInfo->vulkanAllocator, vulkanDevice);
+#endif
         }
 
         return XR_SUCCESS;
