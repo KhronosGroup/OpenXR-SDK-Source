@@ -43,6 +43,58 @@ using std::endl;
 // clean output for the test.
 #define FILTER_OUT_LOADER_ERRORS 1
 
+#define DEFINE_TEST(test_name) void test_name(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32_t& failed)
+
+#define INIT_TEST(test_name)    \
+    uint32_t local_total = 0;   \
+    uint32_t local_passed = 0;  \
+    uint32_t local_skipped = 0; \
+    uint32_t local_failed = 0;  \
+    cout << "    Starting " << #test_name << endl;
+
+#define TEST_REPORT(test_name)                                                                                             \
+    cout << "    Finished " << #test_name << ": ";                                                                         \
+    if (local_failed > 0) {                                                                                                \
+        cout << "Failed (Local - Passed: " << std::to_string(local_passed) << ", Failed: " << std::to_string(local_failed) \
+             << ", Skipped: " << std::to_string(local_skipped) << ")" << endl                                              \
+             << endl;                                                                                                      \
+    } else {                                                                                                               \
+        cout << "Passed (Local - Passed: " << std::to_string(local_passed) << ", Failed: " << std::to_string(local_failed) \
+             << ", Skipped: " << std::to_string(local_skipped) << ")" << endl                                              \
+             << endl;                                                                                                      \
+    }                                                                                                                      \
+    total += local_total;                                                                                                  \
+    passed += local_passed;                                                                                                \
+    failed += local_failed;                                                                                                \
+    skipped += local_skipped;
+
+#define TEST_EQUAL(test, expected, cout_string)                  \
+    local_total++;                                               \
+    if (expected != (test)) {                                    \
+        cout << "        " << cout_string << ": Failed" << endl; \
+        local_failed++;                                          \
+    } else {                                                     \
+        cout << "        " << cout_string << ": Passed" << endl; \
+        local_passed++;                                          \
+    }
+
+#define TEST_NOT_EQUAL(test, expected, cout_string)              \
+    local_total++;                                               \
+    if (expected == (test)) {                                    \
+        cout << "        " << cout_string << ": Failed" << endl; \
+        local_failed++;                                          \
+    } else {                                                     \
+        cout << "        " << cout_string << ": Passed" << endl; \
+        local_passed++;                                          \
+    }
+
+#define TEST_FAIL(cout_string) \
+    local_total++;             \
+    local_failed++;            \
+    cout << "        " << cout_string << ": Failed" << endl;
+
+#define RUN_TEST(test) test(total_tests, total_passed, total_skipped, total_failed);
+
 bool g_has_installed_runtime = false;
 
 void CleanupEnvironmentVariables() {
@@ -82,26 +134,12 @@ bool DetectInstalledRuntime() {
 }
 
 // Test the xrEnumerateApiLayerProperties function through the loader.
-void TestEnumLayers(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32_t& failed) {
-    uint32_t local_total = 0;
-    uint32_t local_passed = 0;
-    uint32_t local_skipped = 0;
-    uint32_t local_failed = 0;
-#if FILTER_OUT_LOADER_ERRORS == 1
-    std::streambuf* original_cerr = nullptr;
-#endif
+DEFINE_TEST(TestEnumLayers) {
+    INIT_TEST(TestEnumLayers)
+
     try {
         XrResult test_result = XR_SUCCESS;
         std::vector<XrApiLayerProperties> layer_props;
-
-#if FILTER_OUT_LOADER_ERRORS == 1
-        // Re-direct std::cerr to a string since we're intentionally causing errors and we don't
-        // want it polluting the output stream.
-        std::stringstream buffer;
-        original_cerr = std::cerr.rdbuf(buffer.rdbuf());
-#endif
-
-        cout << "    Starting TestEnumLayers" << endl;
 
         uint32_t in_layer_value = 0;
         uint32_t out_layer_value = 0;
@@ -237,60 +275,25 @@ void TestEnumLayers(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32
         }
 
     } catch (...) {
-        cout << "Exception triggered during test, automatic failure" << endl;
-        local_failed++;
-        local_total++;
+        TEST_FAIL("Exception triggered during test, automatic failure")
     }
-
-#if FILTER_OUT_LOADER_ERRORS == 1
-    // Restore std::cerr to the original buffer
-    std::cerr.rdbuf(original_cerr);
-#endif
 
     // Cleanup
     CleanupEnvironmentVariables();
 
     // Output results for this test
-    cout << "    Finished TestEnumLayers : ";
-    if (local_failed > 0) {
-        cout << "Failed (Local - Passed: " << std::to_string(local_passed) << ", Failed: " << std::to_string(local_failed)
-             << ", Skipped: " << std::to_string(local_skipped) << ")" << endl
-             << endl;
-    } else {
-        cout << "Passed (Local - Passed: " << std::to_string(local_passed) << ", Failed: " << std::to_string(local_failed)
-             << ", Skipped: " << std::to_string(local_skipped) << ")" << endl
-             << endl;
-    }
-    total += local_total;
-    passed += local_passed;
-    failed += local_failed;
-    skipped += local_skipped;
+    TEST_REPORT(TestEnumLayers)
 }
 
 // Test the xrEnumerateInstanceExtensionProperties function through the loader.
-void TestEnumInstanceExtensions(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32_t& failed) {
-    uint32_t local_total = 0;
-    uint32_t local_passed = 0;
-    uint32_t local_skipped = 0;
-    uint32_t local_failed = 0;
-#if FILTER_OUT_LOADER_ERRORS == 1
-    std::streambuf* original_cerr = nullptr;
-#endif
+DEFINE_TEST(TestEnumInstanceExtensions) {
+    INIT_TEST(TestEnumInstanceExtensions)
 
     try {
         XrResult test_result = XR_SUCCESS;
         uint32_t in_extension_value;
         uint32_t out_extension_value;
         std::vector<XrExtensionProperties> properties;
-
-        cout << "    Starting TestEnumInstanceExtensions" << endl;
-
-#if FILTER_OUT_LOADER_ERRORS == 1
-        // Re-direct std::cerr to a string since we're intentionally causing errors and we don't
-        // want it polluting the output stream.
-        std::stringstream buffer;
-        original_cerr = std::cerr.rdbuf(buffer.rdbuf());
-#endif
 
         for (uint32_t test = 0; test < 2; ++test) {
             std::string subtest_name;
@@ -427,90 +430,17 @@ void TestEnumInstanceExtensions(uint32_t& total, uint32_t& passed, uint32_t& ski
             }
         }
     } catch (std::exception const& e) {
-        cout << "Exception triggered during test (" << e.what() << "), automatic failure" << endl;
-        local_failed++;
-        local_total++;
-
+        TEST_FAIL("Exception triggered during test (" << e.what() << "), automatic failure")
     } catch (...) {
-        cout << "Exception triggered during test, automatic failure" << endl;
-        local_failed++;
-        local_total++;
+        TEST_FAIL("Exception triggered during test, automatic failure")
     }
-
-#if FILTER_OUT_LOADER_ERRORS == 1
-    // Restore std::cerr to the original buffer
-    std::cerr.rdbuf(original_cerr);
-#endif
 
     // Cleanup
     CleanupEnvironmentVariables();
 
     // Output results for this test
-    cout << "    Finished TestEnumInstanceExtensions : ";
-    if (local_failed > 0) {
-        cout << "Failed (Local - Passed: " << std::to_string(local_passed) << ", Failed: " << std::to_string(local_failed)
-             << ", Skipped: " << std::to_string(local_skipped) << ")" << endl
-             << endl;
-    } else {
-        cout << "Passed (Local - Passed: " << std::to_string(local_passed) << ", Failed: " << std::to_string(local_failed)
-             << ", Skipped: " << std::to_string(local_skipped) << ")" << endl
-             << endl;
-    }
-    total += local_total;
-    passed += local_passed;
-    failed += local_failed;
-    skipped += local_skipped;
+    TEST_REPORT(TestEnumInstanceExtensions)
 }
-
-#define DEFINE_TEST(test_name) void test_name(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32_t& failed)
-
-#define INIT_TEST(test_name)    \
-    uint32_t local_total = 0;   \
-    uint32_t local_passed = 0;  \
-    uint32_t local_skipped = 0; \
-    uint32_t local_failed = 0;  \
-    cout << "    Starting " << #test_name << endl;
-
-#define TEST_REPORT(test_name)                                                                                             \
-    cout << "    Finished " << #test_name << ": ";                                                                         \
-    if (local_failed > 0) {                                                                                                \
-        cout << "Failed (Local - Passed: " << std::to_string(local_passed) << ", Failed: " << std::to_string(local_failed) \
-             << ", Skipped: " << std::to_string(local_skipped) << ")" << endl                                              \
-             << endl;                                                                                                      \
-    } else {                                                                                                               \
-        cout << "Passed (Local - Passed: " << std::to_string(local_passed) << ", Failed: " << std::to_string(local_failed) \
-             << ", Skipped: " << std::to_string(local_skipped) << ")" << endl                                              \
-             << endl;                                                                                                      \
-    }                                                                                                                      \
-    total += local_total;                                                                                                  \
-    passed += local_passed;                                                                                                \
-    failed += local_failed;                                                                                                \
-    skipped += local_skipped;
-
-#define TEST_EQUAL(test, expected, cout_string)                  \
-    local_total++;                                               \
-    if (expected != (test)) {                                    \
-        cout << "        " << cout_string << ": Failed" << endl; \
-        local_failed++;                                          \
-    } else {                                                     \
-        cout << "        " << cout_string << ": Passed" << endl; \
-        local_passed++;                                          \
-    }
-
-#define TEST_NOT_EQUAL(test, expected, cout_string)              \
-    local_total++;                                               \
-    if (expected == (test)) {                                    \
-        cout << "        " << cout_string << ": Failed" << endl; \
-        local_failed++;                                          \
-    } else {                                                     \
-        cout << "        " << cout_string << ": Passed" << endl; \
-        local_passed++;                                          \
-    }
-
-#define TEST_FAIL(cout_string) \
-    local_total++;             \
-    local_failed++;            \
-    cout << "        " << cout_string << ": Failed" << endl;
 
 // Test creating and destroying an OpenXR instance through the loader.
 DEFINE_TEST(TestCreateDestroyInstance) {
@@ -747,15 +677,15 @@ int main(int argc, char* argv[]) {
 
     g_has_installed_runtime = DetectInstalledRuntime();
 
-    TestEnumLayers(total_tests, total_passed, total_skipped, total_failed);
-    TestEnumInstanceExtensions(total_tests, total_passed, total_skipped, total_failed);
+    RUN_TEST(TestEnumLayers)
+    RUN_TEST(TestEnumInstanceExtensions)
 
     if (g_has_installed_runtime) {
         cout << "Installed XR runtime detected - doing active runtime tests" << endl;
         cout << "----------------------------------------------------------" << endl;
-        TestCreateDestroyInstance(total_tests, total_passed, total_skipped, total_failed);
-        TestGetSystem(total_tests, total_passed, total_skipped, total_failed);
-        TestCreateDestroyAction(total_tests, total_passed, total_skipped, total_failed);
+        RUN_TEST(TestCreateDestroyInstance)
+        RUN_TEST(TestGetSystem)
+        RUN_TEST(TestCreateDestroyAction)
     } else {
         cout << "No installed XR runtime detected - active runtime tests skipped(!)" << endl;
     }

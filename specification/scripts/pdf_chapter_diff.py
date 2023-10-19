@@ -382,8 +382,8 @@ def fill_pair_gaps(pairs):
     new_pages = [new_page for _, new_page in pairs
                  if new_page is not None]
 
-    assert(orig_pages == sorted(orig_pages))
-    assert(new_pages == sorted(new_pages))
+    assert orig_pages == sorted(orig_pages)
+    assert new_pages == sorted(new_pages)
 
     fixed_pairs = []
 
@@ -452,7 +452,7 @@ class GranularPdfDiff:
 
 if __name__ == "__main__":
     SPECDIR = Path(__file__).resolve().parent.parent
-    assert(SPECDIR.name == "specification")
+    assert SPECDIR.name == "specification"
     ORIG = SPECDIR / 'compare-base' / 'openxr.pdf'
     NEW = SPECDIR / 'generated' / 'out' / '1.0' / 'openxr.pdf'
     DIFFDIR = SPECDIR / 'diffs'

@@ -47,20 +47,27 @@ class MacroChecker(object):
         # apiPrefix, followed by some word characters or * as many times as desired,
         # NOT followed by >> and NOT preceded by one of the characters in that first character class.
         # (which distinguish "names being used somewhere other than prose").
-        self.suspected_missing_macro_re = re.compile(
-            r'\b(?<![-=:/[\.`+,])(?P<entity_name>{}[\w*]+)\b(?!>>)'.format(
-                self.entity_db.case_insensitive_name_prefix_pattern)
+        self.suspected_missing_macro_re = re.compile( fr'''
+            \b(?<![-=:/[\.`+,])  # NOT preceded by one of these characters
+            (?P<entity_name>{self.entity_db.case_insensitive_name_prefix_pattern}[\w*]+)  # Something that looks like our entity names
+            \b(?!>>)  # NOT followed by >>
+            ''', re.VERBOSE
         )
         self.heading_command_re = re.compile(
-            r'=+ (?P<command>{}[\w]+)'.format(self.entity_db.name_prefix)
+            fr'=+ (?P<command>{self.entity_db.name_prefix}[\w]+)'
         )
 
         macros_pattern = '|'.join((re.escape(macro)
                                    for macro in self.entity_db.macros))
         # the "formatting" group is to strip matching */**/_/__
         # surrounding an entire macro.
-        self.macro_re = re.compile(
-            r'(?P<formatting>\**|_*)(?P<macro>{}):(?P<entity_name>[\w*]+((?P<subscript>[\[][^\]]*[\]]))?)(?P=formatting)'.format(macros_pattern))
+        self.macro_re = re.compile(fr'''
+            (?P<formatting>\**|_*)                    # opening formatting
+                (?P<macro>{macros_pattern}):          # macro name and colon
+                (?P<entity_name>(([-\w]+[.])*)[-\w*]+(?P<subscript>\[([^\]]*)\])?)
+            (?P=formatting)                           # matching trailing formatting
+            ''',
+            re.VERBOSE)
 
     def haveLinkTarget(self, entity):
         """Report if we have parsed an API include (or heading) for an entity.

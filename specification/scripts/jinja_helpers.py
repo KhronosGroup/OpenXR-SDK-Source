@@ -31,7 +31,7 @@ _WHITESPACE = re.compile(r"[\s\n]+")
 def _undecorate(name):
     """Undecorate a name by removing the leading Xr and making it lowercase."""
     lower = name.lower()
-    assert(lower.startswith('xr'))
+    assert lower.startswith('xr')
     return lower[2:]
 
 

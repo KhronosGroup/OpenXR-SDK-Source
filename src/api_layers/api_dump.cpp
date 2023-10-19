@@ -591,21 +591,31 @@ XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrDestroyInstance(XrInstance instance
     return XR_SUCCESS;
 }
 
-extern "C" {
-
 // Function used to negotiate an interface betewen the loader and an API layer.  Each library exposing one or
 // more API layers needs to expose at least this function.
-LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoaderInfo *loaderInfo,
-                                                                               const char * /*apiLayerName*/,
-                                                                               XrNegotiateApiLayerRequest *apiLayerRequest) {
-    if (nullptr == loaderInfo || nullptr == apiLayerRequest || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
-        loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo) ||
-        apiLayerRequest->structType != XR_LOADER_INTERFACE_STRUCT_API_LAYER_REQUEST ||
+extern "C" LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(
+    const XrNegotiateLoaderInfo *loaderInfo, const char * /*apiLayerName*/, XrNegotiateApiLayerRequest *apiLayerRequest) {
+    if (loaderInfo == nullptr || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
+        loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo)) {
+        LogPlatformUtilsError("loaderInfo struct is not valid");
+        return XR_ERROR_INITIALIZATION_FAILED;
+    }
+
+    if (loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
+        loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_API_LAYER_VERSION) {
+        LogPlatformUtilsError("loader interface version is not in the range [minInterfaceVersion, maxInterfaceVersion]");
+        return XR_ERROR_INITIALIZATION_FAILED;
+    }
+
+    if (loaderInfo->minApiVersion > XR_CURRENT_API_VERSION || loaderInfo->maxApiVersion < XR_CURRENT_API_VERSION) {
+        LogPlatformUtilsError("loader api version is not in the range [minApiVersion, maxApiVersion]");
+        return XR_ERROR_INITIALIZATION_FAILED;
+    }
+
+    if (apiLayerRequest == nullptr || apiLayerRequest->structType != XR_LOADER_INTERFACE_STRUCT_API_LAYER_REQUEST ||
         apiLayerRequest->structVersion != XR_API_LAYER_INFO_STRUCT_VERSION ||
-        apiLayerRequest->structSize != sizeof(XrNegotiateApiLayerRequest) ||
-        loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
-        loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_API_LAYER_VERSION ||
-        loaderInfo->maxApiVersion < XR_CURRENT_API_VERSION || loaderInfo->minApiVersion > XR_CURRENT_API_VERSION) {
+        apiLayerRequest->structSize != sizeof(XrNegotiateApiLayerRequest)) {
+        LogPlatformUtilsError("apiLayerRequest is not valid");
         return XR_ERROR_INITIALIZATION_FAILED;
     }
 
@@ -616,5 +626,3 @@ LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(c
 
     return XR_SUCCESS;
 }
-
-}  // extern "C"

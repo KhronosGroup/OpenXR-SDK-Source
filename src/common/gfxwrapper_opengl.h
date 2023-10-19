@@ -190,7 +190,7 @@ Platform headers / declarations
 #define USE_SYNC_OBJECT 0  // 0 = GLsync, 1 = EGLSyncKHR, 2 = storage buffer
 
 #if !defined(_XOPEN_SOURCE)
-#if __STDC_VERSION__ >= 199901L
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #define _XOPEN_SOURCE 600
 #else
 #define _XOPEN_SOURCE 500
@@ -213,6 +213,18 @@ Platform headers / declarations
 #include <X11/extensions/Xrandr.h>     // for resolution changes
 #include <GL/glx.h>
 
+#ifdef Success
+#undef Success
+#endif  // Success
+
+#ifdef Always
+#undef Always
+#endif  // Always
+
+#ifdef None
+#undef None
+#endif  // None
+
 #elif defined(OS_LINUX_XCB) || defined(OS_LINUX_XCB_GLX)
 #define XR_USE_PLATFORM_XCB 1
 
@@ -224,6 +236,18 @@ Platform headers / declarations
 #include <xcb/glx.h>
 #include <xcb/dri2.h>
 #include <GL/glx.h>
+
+#ifdef Success
+#undef Success
+#endif  // Success
+
+#ifdef Always
+#undef Always
+#endif  // Always
+
+#ifdef None
+#undef None
+#endif  // None
 
 #elif defined(OS_LINUX_WAYLAND)
 #define XR_USE_PLATFORM_WAYLAND 1
@@ -245,12 +269,6 @@ Platform headers / declarations
 
 #define GRAPHICS_API_OPENGL 1
 #define OUTPUT_PATH ""
-
-#if !defined(__USE_GNU)
-// These prototypes are only included when __USE_GNU is defined but that causes other compile errors.
-extern int pthread_setname_np(pthread_t __target_thread, __const char *__name);
-extern int pthread_setaffinity_np(pthread_t thread, size_t cpusetsize, const cpu_set_t *cpuset);
-#endif  // !__USE_GNU
 
 #elif defined(OS_APPLE_MACOS)
 
@@ -495,6 +513,7 @@ extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
 extern PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
 extern PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
 extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+extern PFNGLVERTEXATTRIBIPOINTERPROC glVertexAttribIPointer;
 extern PFNGLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 extern PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
 extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
@@ -596,6 +615,21 @@ extern PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB;
 extern PFNGLXSWAPINTERVALEXTPROC glXSwapIntervalEXT;
 extern PFNGLXDELAYBEFORESWAPNVPROC glXDelayBeforeSwapNV;
 #endif
+
+extern PFNGLBINDSAMPLERPROC glBindSampler;
+extern PFNGLDELETESAMPLERSPROC glDeleteSamplers;
+extern PFNGLGENSAMPLERSPROC glGenSamplers;
+extern PFNGLGETSAMPLERPARAMETERIIVPROC glGetSamplerParameterIiv;
+extern PFNGLGETSAMPLERPARAMETERIUIVPROC glGetSamplerParameterIuiv;
+extern PFNGLGETSAMPLERPARAMETERFVPROC glGetSamplerParameterfv;
+extern PFNGLGETSAMPLERPARAMETERIVPROC glGetSamplerParameteriv;
+extern PFNGLISSAMPLERPROC glIsSampler;
+extern PFNGLSAMPLERPARAMETERIIVPROC glSamplerParameterIiv;
+extern PFNGLSAMPLERPARAMETERIUIVPROC glSamplerParameterIuiv;
+extern PFNGLSAMPLERPARAMETERFPROC glSamplerParameterf;
+extern PFNGLSAMPLERPARAMETERFVPROC glSamplerParameterfv;
+extern PFNGLSAMPLERPARAMETERIPROC glSamplerParameteri;
+extern PFNGLSAMPLERPARAMETERIVPROC glSamplerParameteriv;
 
 #elif defined(OS_APPLE_MACOS)
 

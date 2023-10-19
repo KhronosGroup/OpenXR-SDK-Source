@@ -22,7 +22,20 @@ from spec_tools.shared import MessageId
 ###
 # "Configuration" constants
 
-EXTRA_DEFINES = ('XRAPI_ATTR', 'XRAPI_CALL', 'XRAPI_PTR', 'XR_NO_STDINT_H')
+FREEFORM_CATEGORY = 'freeform'
+REFLINK_MACRO = 'reflink'
+
+EXTRA_DEFINES = (
+    'XRAPI_ATTR',
+    'XRAPI_CALL',
+    'XRAPI_PTR',
+    'XR_NO_STDINT_H',
+)
+
+# TODO move permissions into XML eventually
+EXTRA_REFPAGES = (
+    'org.khronos.openxr.permission.ext.HAND_TRACKING',
+)
 
 # These are marked with the code: macro
 SYSTEM_TYPES = set(('void', 'char', 'float', 'size_t',
@@ -61,12 +74,17 @@ class XREntityDatabase(EntityDatabase):
         # TODO: What about flag wildcards? There are a few such uses...
         self.addMacro('elink', ('enums', 'flags',), link=True)
         self.addMacro('basetype', ('basetypes',), link=True)
+        self.addMacro(REFLINK_MACRO, (FREEFORM_CATEGORY,), link=True)
+
 
     def populateEntities(self):
         # These are not mentioned in the XML
         for name in EXTRA_DEFINES:
-            self.addEntity(name, 'dlink', category='configdefines',
-                           generates=False)
+            self.addEntity(name, 'dlink',
+                           category=FREEFORM_CATEGORY, generates=False)
+        for name in EXTRA_REFPAGES:
+            self.addEntity(name, REFLINK_MACRO,
+                           category=FREEFORM_CATEGORY, generates=False)
 
     def handleType(self, name, info, requires):
         """Extend superclass implementation for OpenXR bitmasks."""
@@ -117,6 +135,14 @@ class XRMacroCheckerFile(MacroCheckerFile):
         # Everything else about block opening is standard.
         super().processBlockOpen(block_type, context=context,
                                  delimiter=delimiter)
+
+    def perform_entity_check(self, t):
+        """Returns True if an entity check should be performed on this
+           refpage type.
+
+           May override."""
+
+        return t != FREEFORM_CATEGORY
 
     @property
     def allowEnumXrefs(self):

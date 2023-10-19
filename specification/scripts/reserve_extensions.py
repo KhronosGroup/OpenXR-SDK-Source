@@ -30,3 +30,6 @@ def generate_reserved_extensions(vendor: str, first_extension: int, extensions: 
     </extension>
         """.strip())
         print()
+
+if __name__ == "__main__":
+    generate_reserved_extensions()

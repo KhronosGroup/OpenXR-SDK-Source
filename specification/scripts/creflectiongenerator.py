@@ -90,7 +90,8 @@ class CReflectionOutputGenerator(OutputGenerator):
         return ret
 
     def endFile(self):
-        assert(self.template)
+        assert self.template
+        assert self.registry
         file_data = ''
 
         unprotected_structs = self._get_structs_for_protect()

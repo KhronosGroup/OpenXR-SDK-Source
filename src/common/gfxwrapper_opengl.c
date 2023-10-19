@@ -291,6 +291,7 @@ PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
 PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
 PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
 PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
+PFNGLVERTEXATTRIBIPOINTERPROC glVertexAttribIPointer;
 PFNGLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
 PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
 PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
@@ -393,6 +394,21 @@ PFNGLXSWAPINTERVALEXTPROC glXSwapIntervalEXT;
 PFNGLXDELAYBEFORESWAPNVPROC glXDelayBeforeSwapNV;
 #endif
 
+PFNGLBINDSAMPLERPROC glBindSampler;
+PFNGLDELETESAMPLERSPROC glDeleteSamplers;
+PFNGLGENSAMPLERSPROC glGenSamplers;
+PFNGLGETSAMPLERPARAMETERIIVPROC glGetSamplerParameterIiv;
+PFNGLGETSAMPLERPARAMETERIUIVPROC glGetSamplerParameterIuiv;
+PFNGLGETSAMPLERPARAMETERFVPROC glGetSamplerParameterfv;
+PFNGLGETSAMPLERPARAMETERIVPROC glGetSamplerParameteriv;
+PFNGLISSAMPLERPROC glIsSampler;
+PFNGLSAMPLERPARAMETERIIVPROC glSamplerParameterIiv;
+PFNGLSAMPLERPARAMETERIUIVPROC glSamplerParameterIuiv;
+PFNGLSAMPLERPARAMETERFPROC glSamplerParameterf;
+PFNGLSAMPLERPARAMETERFVPROC glSamplerParameterfv;
+PFNGLSAMPLERPARAMETERIPROC glSamplerParameteri;
+PFNGLSAMPLERPARAMETERIVPROC glSamplerParameteriv;
+
 void GlBootstrapExtensions() {
 #if defined(OS_WINDOWS)
     wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)GetExtension("wglChoosePixelFormatARB");
@@ -445,6 +461,7 @@ void GlInitExtensions() {
     glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)GetExtension("glDeleteVertexArrays");
     glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)GetExtension("glBindVertexArray");
     glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)GetExtension("glVertexAttribPointer");
+    glVertexAttribIPointer = (PFNGLVERTEXATTRIBIPOINTERPROC)GetExtension("glVertexAttribIPointer");
     glVertexAttribDivisor = (PFNGLVERTEXATTRIBDIVISORPROC)GetExtension("glVertexAttribDivisor");
     glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYPROC)GetExtension("glDisableVertexAttribArray");
     glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)GetExtension("glEnableVertexAttribArray");
@@ -538,6 +555,21 @@ void GlInitExtensions() {
 
     glDebugMessageControl = (PFNGLDEBUGMESSAGECONTROLPROC)GetExtension("glDebugMessageControl");
     glDebugMessageCallback = (PFNGLDEBUGMESSAGECALLBACKPROC)GetExtension("glDebugMessageCallback");
+
+    glBindSampler = (PFNGLBINDSAMPLERPROC)GetExtension("glBindSampler");
+    glDeleteSamplers = (PFNGLDELETESAMPLERSPROC)GetExtension("glDeleteSamplers");
+    glGenSamplers = (PFNGLGENSAMPLERSPROC)GetExtension("glGenSamplers");
+    glGetSamplerParameterIiv = (PFNGLGETSAMPLERPARAMETERIIVPROC)GetExtension("glGetSamplerParameterIiv");
+    glGetSamplerParameterIuiv = (PFNGLGETSAMPLERPARAMETERIUIVPROC)GetExtension("glGetSamplerParameterIuiv");
+    glGetSamplerParameterfv = (PFNGLGETSAMPLERPARAMETERFVPROC)GetExtension("glGetSamplerParameterfv");
+    glGetSamplerParameteriv = (PFNGLGETSAMPLERPARAMETERIVPROC)GetExtension("glGetSamplerParameteriv");
+    glIsSampler = (PFNGLISSAMPLERPROC)GetExtension("glIsSampler");
+    glSamplerParameterIiv = (PFNGLSAMPLERPARAMETERIIVPROC)GetExtension("glSamplerParameterIiv");
+    glSamplerParameterIuiv = (PFNGLSAMPLERPARAMETERIUIVPROC)GetExtension("glSamplerParameterIuiv");
+    glSamplerParameterf = (PFNGLSAMPLERPARAMETERFPROC)GetExtension("glSamplerParameterf");
+    glSamplerParameterfv = (PFNGLSAMPLERPARAMETERFVPROC)GetExtension("glSamplerParameterfv");
+    glSamplerParameteri = (PFNGLSAMPLERPARAMETERIPROC)GetExtension("glSamplerParameteri");
+    glSamplerParameteriv = (PFNGLSAMPLERPARAMETERIVPROC)GetExtension("glSamplerParameteriv");
 
     glExtensions.timer_query = GlCheckExtension("GL_EXT_timer_query");
     glExtensions.texture_clamp_to_border = true;  // always available
@@ -1626,7 +1658,7 @@ void ksGpuContext_UnsetCurrent(ksGpuContext *context) {
 #if defined(OS_WINDOWS)
     wglMakeCurrent(context->hDC, NULL);
 #elif defined(OS_LINUX_XLIB) || defined(OS_LINUX_XCB_GLX)
-    glXMakeCurrent(context->xDisplay, None, NULL);
+    glXMakeCurrent(context->xDisplay, /* None */ 0L, NULL);
 #elif defined(OS_LINUX_XCB)
     xcb_glx_make_current(context->connection, 0, 0, 0);
 #elif defined(OS_APPLE_MACOS)

@@ -48,22 +48,30 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
     #   gen_opts        the UtilitySourceGeneratorOptions object
     def beginFile(self, genOpts):
         AutomaticSourceOutputGenerator.beginFile(self, genOpts)
+        assert self.genOpts
+        assert self.genOpts.filename
+
         preamble = ''
+
+        if self.genOpts.filename.endswith('.h'):
+            # All .h start the same
+            preamble += '#pragma once\n\n'
+
+        elif self.genOpts.filename.endswith('.c'):
+            # All .c files start the same
+            header = self.genOpts.filename.replace('.c', '.h')
+            preamble += f'#include "{header}"\n\n'
+        else:
+            raise RuntimeError("Unknown filename extension! " + self.genOpts.filename)
+
+        # The different .h files have different includes
         if self.genOpts.filename == 'xr_generated_dispatch_table_core.h':
-            preamble += '#pragma once\n\n'
             preamble += '#include <openxr/openxr.h>\n'
+
         elif self.genOpts.filename == 'xr_generated_dispatch_table.h':
-            preamble += '#pragma once\n\n'
             preamble += '#include "xr_dependencies.h"\n'
             preamble += '#include <openxr/openxr.h>\n'
             preamble += '#include <openxr/openxr_platform.h>\n'
-        elif self.genOpts.filename == 'xr_generated_dispatch_table_core.c':
-            preamble += '#include "xr_generated_dispatch_table_core.h"\n'
-        elif self.genOpts.filename == 'xr_generated_dispatch_table.c':
-            preamble += '#include <time.h>\n'
-            preamble += '#include "xr_generated_dispatch_table.h"\n'
-        else:
-            raise RuntimeError("Unknown filename! " + self.genOpts.filename)
 
         preamble += '\n'
 
@@ -73,24 +81,24 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
     # and then call down to the base class to wrap everything up.
     #   self            the UtilitySourceOutputGenerator object
     def endFile(self):
+        assert self.genOpts
+        assert self.genOpts.filename
+
         file_data = ''
 
         file_data += '#ifdef __cplusplus\n'
         file_data += 'extern "C" { \n'
         file_data += '#endif\n'
 
-        if self.genOpts.filename == 'xr_generated_dispatch_table_core.h':
+        if self.genOpts.filename.endswith('.h'):
             file_data += self.outputDispatchTable()
             file_data += self.outputDispatchPrototypes()
-        elif self.genOpts.filename == 'xr_generated_dispatch_table.h':
-            file_data += self.outputDispatchTable()
-            file_data += self.outputDispatchPrototypes()
-        elif self.genOpts.filename == 'xr_generated_dispatch_table_core.c':
+
+        elif self.genOpts.filename.endswith('.c'):
             file_data += self.outputDispatchTableHelper()
-        elif self.genOpts.filename == 'xr_generated_dispatch_table.c':
-            file_data += self.outputDispatchTableHelper()
+
         else:
-            raise RuntimeError("Unknown filename! " + self.genOpts.filename)
+            raise RuntimeError("Unknown filename extension! " + self.genOpts.filename)
 
         file_data += '\n'
         file_data += '#ifdef __cplusplus\n'
@@ -115,6 +123,7 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
     # Write out a C-style structure used to store the Dispatch table information
     #   self            the ApiDumpOutputGenerator object
     def outputDispatchTable(self):
+        assert self.genOpts
         commands = []
         table = ''
         cur_extension_name = ''
@@ -171,6 +180,7 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
     # an instance handle and a corresponding xrGetInstanceProcAddr command.
     #   self            the ApiDumpOutputGenerator object
     def outputDispatchTableHelper(self):
+        assert self.genOpts
         commands = []
         table_helper = ''
         cur_extension_name = ''

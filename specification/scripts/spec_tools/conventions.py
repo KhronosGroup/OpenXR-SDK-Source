@@ -179,7 +179,7 @@ class ConventionsBase(abc.ABC):
 
         Do not edit these defaults, override self.makeProseList().
         """
-        assert(serial_comma)  # did not implement what we did not need
+        assert serial_comma  # did not implement what we did not need
         if isinstance(fmt, str):
             fmt = ProseListFormats.from_string(fmt)
 

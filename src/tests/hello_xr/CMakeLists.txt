@@ -72,7 +72,7 @@ target_include_directories(hello_xr
     ${PROJECT_SOURCE_DIR}/external/include
 )
 
-if(GLSLANG_VALIDATOR AND NOT GLSLC_COMMAND)
+if(GLSLANG_VALIDATOR AND NOT GLSL_COMPILER)
     target_compile_definitions(hello_xr PRIVATE USE_GLSLANGVALIDATOR)
 endif()
 
@@ -90,7 +90,11 @@ endif()
 if(WIN32)
     if(MSVC)
         target_compile_definitions(hello_xr PRIVATE _CRT_SECURE_NO_WARNINGS)
-        target_compile_options(hello_xr PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
+        target_compile_options(hello_xr PRIVATE /Zc:wchar_t /Zc:forScope /W4)
+        if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            # If actually msvc and not clang-cl
+            target_compile_options(openxr_c_compile_test PRIVATE /WX)
+        endif()
     endif()
     target_link_libraries(hello_xr ole32)
     if(MSVC)

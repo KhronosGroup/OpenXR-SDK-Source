@@ -41,7 +41,7 @@ EXTNAME_RE = re.compile("^(?P<api>XR|VK)_(?P<tag>(?P<base_tag>[A-Z]+?)(?P<experi
 def undecorate(name):
     """Undecorate a name by removing the leading Xr and making it lowercase."""
     lower = name.lower()
-    assert(lower.startswith('xr'))
+    assert lower.startswith('xr')
     return lower[2:]
 
 
@@ -977,7 +977,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             if lengths is not None:
                 is_array = True
                 is_null_terminated = any(elt.null_terminated for elt in lengths)
-                assert(('null-terminated' in member.get('len')) == is_null_terminated)
+                assert ('null-terminated' in member.get('len')) == is_null_terminated
 
                 # Get the name of the (first) variable to use for the count.
                 for length in lengths:
@@ -1047,8 +1047,8 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                         frame = currentframe()
                         frameinfo = getframeinfo(frame) if frame is not None else None
                         self.printCodeGenWarningMessage(
-                            frameinfo.filename if frameinfo is not None else None,
-                            (frameinfo.lineno + 1) if frameinfo is not None else None,
+                            frameinfo.filename if frame is not None else None,
+                            (frameinfo.lineno + 1) if frame is not None else None,
                             'Struct \"%s\" has different children than possible parent struct \"%s\".' % (
                                 type_name, generic_struct_name))
         if is_union:
@@ -1166,7 +1166,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             if lengths:
                 is_array = any(not elt.null_terminated for elt in lengths)
                 is_null_terminated = any(elt.null_terminated for elt in lengths)
-                # assert(is_null_terminated == new_is_null_terminated)
+                # assert is_null_terminated == new_is_null_terminated
                 # Get the name of the (first) variable to use for the count.
                 length_params = tuple(length.other_param_name
                                       for length in lengths
@@ -1534,7 +1534,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         if not self.isHandle(param.type):
             return None
         name = param.name
-        assert(param.pointer_count <= 1)
+        assert param.pointer_count <= 1
         if param.pointer_count == 1:
             if param.pointer_count_var is None:
                 # Just a pointer

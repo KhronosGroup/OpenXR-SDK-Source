@@ -235,7 +235,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                         tramp_variable_defines += '    if (XR_SUCCEEDED(result)) {\n'
 
                         # These should be mutually exclusive - verify it.
-                        assert((not cur_cmd.is_destroy_disconnect) or
+                        assert ((not cur_cmd.is_destroy_disconnect) or
                                (pointer_count == 0))
                     else:
                         tramp_variable_defines += self.printCodeGenErrorMessage(
