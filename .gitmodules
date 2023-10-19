@@ -4,3 +4,6 @@
 [submodule "src/external/SDL"]
 	path = src/external/SDL
 	url = https://github.com/libsdl-org/SDL.git
+[submodule "src/external/Streamline"]
+	path = src/external/Streamline
+	url = https://github.com/BattleAxeVR/Streamline.git
