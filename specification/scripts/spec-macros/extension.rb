@@ -145,7 +145,8 @@ end
 # Generic reference page link to any entity with an anchor/refpage
 class ReflinkInlineMacro < LinkInlineMacroBase
     named :reflink
-    match /reflink:([-\w]+)/
+    # Permissions included periods in the middle, so we want to accept periods in the middle of names but not the end.
+    match /reflink:(([-\w]+[.])*[-\w]+)/
 end
 
 # Link to an extension appendix/refpage

@@ -237,7 +237,7 @@ class ValidityOutputGenerator(OutputGenerator):
         if begins_states:
             for state_name in sorted(begins_states):
                 end_commands = self.states.get_commands(state_name, StateRelationship.END)
-                assert(end_commands)
+                assert end_commands
 
                 entry = ValidityEntry(anchor=(state_name, 'beginstate'))
                 entry += 'flink:{} must: not be called more than once without first successfully calling '.format(
@@ -249,7 +249,7 @@ class ValidityOutputGenerator(OutputGenerator):
         if ends_states:
             for state_name in sorted(ends_states):
                 begin_commands = self.states.get_commands(state_name, StateRelationship.BEGIN)
-                assert(begin_commands)
+                assert begin_commands
 
                 entry = ValidityEntry(anchor=(state_name, 'beginstate'))
                 entry += 'flink:{} must: only be called after a successful call to '.format(
@@ -262,8 +262,8 @@ class ValidityOutputGenerator(OutputGenerator):
             for state_name in sorted(checks_states):
                 begin_commands = self.states.get_commands(state_name, StateRelationship.BEGIN)
                 end_commands = self.states.get_commands(state_name, StateRelationship.END)
-                assert(begin_commands)
-                assert(end_commands)
+                assert begin_commands
+                assert end_commands
 
                 begin_command_list = '/'.join('flink:{}'.format(command)
                                               for command in begin_commands)
@@ -746,6 +746,7 @@ class ValidityOutputGenerator(OutputGenerator):
 
     def isBaseHeaderType(self, typename):
         """Returns true if the type is a struct that is a "base header" type."""
+        assert self.registry
         info = self.registry.typedict.get(typename)
         if not info:
             return False
@@ -759,6 +760,7 @@ class ValidityOutputGenerator(OutputGenerator):
 
     def createValidationLineForParameter(self, blockname, param, params, typecategory):
         """Make an entire validation entry for a given parameter."""
+        assert self.registry
         param_name = getElemName(param)
         paramtype = getElemType(param)
         see_also = None
@@ -998,17 +1000,17 @@ class ValidityOutputGenerator(OutputGenerator):
         Creates VUID named like the member name.
         """
         info = self.registry.typedict.get(structname)
-        assert(info is not None)
+        assert info is not None
 
         # If this fails (meaning we have something other than a struct in here),
         # then the caller is wrong:
         # probably passing the wrong value for structname.
         members = info.getMembers()
-        assert(members)
+        assert members
 
         param = findNamedElem(members, self.structtype_member_name)
         # OpenXR gets some structs without a type field in here, so cannot assert
-        # assert(param is not None)
+        # assert param is not None
         if param is None:
             return None
 
@@ -1026,7 +1028,7 @@ class ValidityOutputGenerator(OutputGenerator):
         if child_structs:
             if values:
                 print('The struct: {} has children, it may not have a "values" attribute itself.'.format(structname))
-            assert(not values)
+            assert not values
             if len(child_structs) > 1:
                 entry += 'one of the following XrStructureType values: '
             entry += ', '.join(self.makeStructureTypeFromName(child)

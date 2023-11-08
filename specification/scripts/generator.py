@@ -14,6 +14,7 @@ import re
 import shutil
 import sys
 import tempfile
+from typing import Optional
 try:
     from pathlib import Path
 except ImportError:
@@ -1289,4 +1290,4 @@ class OutputGenerator:
         write('', file=self.outFile)
 
     def setRegistry(self, registry):
-        self.registry = registry
+        self.registry: Optional["Registry"] = registry

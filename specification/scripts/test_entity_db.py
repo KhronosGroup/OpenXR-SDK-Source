@@ -20,11 +20,11 @@ def db():
 
 
 def test_likely_recognized(db):
-    assert(db.likelyRecognizedEntity('xrBla'))
-    assert(db.likelyRecognizedEntity('XrBla'))
-    assert(db.likelyRecognizedEntity('XR_BLA'))
+    assert db.likelyRecognizedEntity('xrBla')
+    assert db.likelyRecognizedEntity('XrBla')
+    assert db.likelyRecognizedEntity('XR_BLA')
 
 
 def test_db(db):
-    assert(db.findEntity('xrCreateInstance'))
-    assert(db.findEntity('XRAPI_CALL'))
+    assert db.findEntity('xrCreateInstance')
+    assert db.findEntity('XRAPI_CALL')

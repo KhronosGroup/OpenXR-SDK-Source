@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 #
 # Copyright (c) 2019 Collabora, Ltd.
+# Copyright (c) 2018-2023, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -473,7 +474,7 @@ class Checker(XMLChecker):
         Called from check."""
         t = info.elem.find('proto/type')
         if t is None:
-            self.record_warning("Got a command without a return type?")
+            self.record_error("Got a command without a return type?")
         else:
             return_type = t.text
             if return_type != 'XrResult':
@@ -566,7 +567,7 @@ class Checker(XMLChecker):
                                           "but XML says", ver_from_xml)
                 else:
                     if ver_from_xml == '1':
-                        self.record_warning(
+                        self.record_error(
                             "Cannot find version history in spec text - make sure it has lines starting exactly like '* Revision 1, ....'",
                             filename=fn)
                     else:
@@ -601,8 +602,8 @@ class Checker(XMLChecker):
                     continue
                 # print(name, item_name)
                 if not item_name.endswith(vendor):
-                    self.record_warning("Extension-defined name", item_name,
-                                        "has wrong or missing vendor tag: expected to end with", vendor)
+                    self.record_error("Extension-defined name", item_name,
+                                      "has wrong or missing vendor tag: expected to end with", vendor)
 
 
 if __name__ == "__main__":

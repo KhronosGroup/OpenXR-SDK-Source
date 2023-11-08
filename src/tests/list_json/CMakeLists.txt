@@ -52,8 +52,13 @@ target_link_libraries(openxr_runtime_list_json OpenXR::openxr_loader)
 if(WIN32)
     if(MSVC)
         target_compile_definitions(openxr_runtime_list_json PRIVATE _CRT_SECURE_NO_WARNINGS)
-        target_compile_options(openxr_runtime_list_json PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
+        target_compile_options(openxr_runtime_list_json PRIVATE /Zc:wchar_t /Zc:forScope /W4)
+        if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+            # If actually msvc and not clang-cl
+            target_compile_options(openxr_runtime_list_json PRIVATE /WX)
+        endif()
     endif()
+
     target_link_libraries(openxr_runtime_list_json ole32)
     if(MSVC)
         # Right now can't build this on MinGW because of directxcolors, directxmath, etc.

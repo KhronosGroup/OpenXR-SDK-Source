@@ -46,5 +46,9 @@ endif()
 
 target_link_libraries(openxr_c_compile_test OpenXR::openxr_loader)
 if(MSVC)
-    target_compile_options(openxr_c_compile_test PRIVATE /Zc:wchar_t /Zc:forScope /W4 /WX)
+    target_compile_options(openxr_c_compile_test PRIVATE /Zc:wchar_t /Zc:forScope /W4)
+    if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        # If actually msvc and not clang-cl
+        target_compile_options(openxr_c_compile_test PRIVATE /WX)
+    endif()
 endif()

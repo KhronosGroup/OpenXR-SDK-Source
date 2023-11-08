@@ -213,6 +213,7 @@ bool CoreValidationWriteHtmlFooter() {
 
 // For routing platform_utils.hpp messages.
 void LogPlatformUtilsError(const std::string &message) {
+    (void)message;
 #if !defined(NDEBUG)
     std::cerr << message << std::endl;
 #if defined(XR_OS_WINDOWS)
@@ -839,30 +840,38 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrSessionInsertDebugUtilsLabelEXT(X
 // NOTE: Add new validation checking above this comment block
 // ############################################################
 
-extern "C" {
-
 // Function used to negotiate an interface betewen the loader and an API layer.  Each library exposing one or
 // more API layers needs to expose at least this function.
-LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoaderInfo *loaderInfo,
-                                                                               const char * /*apiLayerName*/,
-                                                                               XrNegotiateApiLayerRequest *apiLayerRequest) {
-    if (nullptr == loaderInfo || nullptr == apiLayerRequest || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
-        loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo) ||
-        apiLayerRequest->structType != XR_LOADER_INTERFACE_STRUCT_API_LAYER_REQUEST ||
+extern "C" LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(
+    const XrNegotiateLoaderInfo *loaderInfo, const char * /*apiLayerName*/, XrNegotiateApiLayerRequest *apiLayerRequest) {
+    if (loaderInfo == nullptr || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
+        loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo)) {
+        LogPlatformUtilsError("loaderInfo struct is not valid");
+        return XR_ERROR_INITIALIZATION_FAILED;
+    }
+
+    if (loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
+        loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_API_LAYER_VERSION) {
+        LogPlatformUtilsError("loader interface version is not in the range [minInterfaceVersion, maxInterfaceVersion]");
+        return XR_ERROR_INITIALIZATION_FAILED;
+    }
+
+    if (loaderInfo->minApiVersion > XR_CURRENT_API_VERSION || loaderInfo->maxApiVersion < XR_CURRENT_API_VERSION) {
+        LogPlatformUtilsError("loader api version is not in the range [minApiVersion, maxApiVersion]");
+        return XR_ERROR_INITIALIZATION_FAILED;
+    }
+
+    if (apiLayerRequest == nullptr || apiLayerRequest->structType != XR_LOADER_INTERFACE_STRUCT_API_LAYER_REQUEST ||
         apiLayerRequest->structVersion != XR_API_LAYER_INFO_STRUCT_VERSION ||
-        apiLayerRequest->structSize != sizeof(XrNegotiateApiLayerRequest) ||
-        loaderInfo->minInterfaceVersion > XR_CURRENT_LOADER_API_LAYER_VERSION ||
-        loaderInfo->maxInterfaceVersion < XR_CURRENT_LOADER_API_LAYER_VERSION ||
-        loaderInfo->maxApiVersion < XR_CORE_VALIDATION_API_VERSION || loaderInfo->minApiVersion > XR_CORE_VALIDATION_API_VERSION) {
+        apiLayerRequest->structSize != sizeof(XrNegotiateApiLayerRequest)) {
+        LogPlatformUtilsError("apiLayerRequest is not valid");
         return XR_ERROR_INITIALIZATION_FAILED;
     }
 
     apiLayerRequest->layerInterfaceVersion = XR_CURRENT_LOADER_API_LAYER_VERSION;
-    apiLayerRequest->layerApiVersion = XR_CORE_VALIDATION_API_VERSION;
+    apiLayerRequest->layerApiVersion = XR_CURRENT_API_VERSION;
     apiLayerRequest->getInstanceProcAddr = GenValidUsageXrGetInstanceProcAddr;
     apiLayerRequest->createApiLayerInstance = CoreValidationXrCreateApiLayerInstance;
 
     return XR_SUCCESS;
 }
-
-}  // extern "C"

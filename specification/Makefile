@@ -32,7 +32,7 @@ ifneq (,$(strip $(VERY_STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level WARN
 endif
 
-SPECREVISION = 1.0.30
+SPECREVISION = 1.0.31
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -344,7 +344,6 @@ GITREMARK  ?= from git branch: $(GITBRANCH)
 ATTRIBOPTS   = -a revnumber="$(SPECREVISION)" \
 	       -a revremark="$(SPECREMARK)" \
 	       -a apititle="$(APITITLE)" \
-	       -a stem=latexmath \
 	       -a config=$(CURDIR)/config \
 	       -a pdf-page-size=$(PAGESIZE) \
 	       -a pdf-stylesdir=config \

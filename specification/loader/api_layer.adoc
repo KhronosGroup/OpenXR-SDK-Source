@@ -160,7 +160,7 @@ the correct JSON manifest files based on the type of content stored in the
 manifest file.
 
 Additionally, the major version of the OpenXR API is used to separate up
-each group of elements so that they don't conflict with one another in the
+each group of elements so that they do not conflict with one another in the
 future.
 
 Finally, each API layer type has their own sub-key under which their list of

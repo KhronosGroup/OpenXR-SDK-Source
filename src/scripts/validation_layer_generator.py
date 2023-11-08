@@ -65,6 +65,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
     #   gen_opts        the ValidationSourceGeneratorOptions object
     def beginFile(self, genOpts):
         AutomaticSourceOutputGenerator.beginFile(self, genOpts)
+        assert self.genOpts
         preamble = ''
         if self.genOpts.filename == 'xr_generated_core_validation.hpp':
             preamble += '#pragma once\n'
@@ -106,12 +107,16 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             preamble += '#include <utility>\n'
             preamble += '#include <vector>\n'
             preamble += '\n'
+            preamble += '#ifdef __clang__\n'
+            preamble += '#pragma GCC diagnostic ignored "-Wunused-parameter"\n'
+            preamble += '#endif\n'
         write(preamble, file=self.outFile)
 
     # Write out all the information for the appropriate file,
     # and then call down to the base class to wrap everything up.
     #   self            the ValidationSourceOutputGenerator object
     def endFile(self):
+        assert self.genOpts
         file_data = ''
         if self.genOpts.filename == 'xr_generated_core_validation.hpp':
             file_data += self.outputValidationHeaderInfo()
@@ -125,6 +130,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
 
     def makeInfoName(self, handle_type=None, handle_type_name=None):
         if not handle_type_name:
+            assert handle_type
             handle_type_name = handle_type.name
         base_handle_name = undecorate(handle_type_name)
         return 'g_%s_info' % base_handle_name
@@ -167,9 +173,9 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         active_structures = dict()
         for cur_state in self.api_states:
             type_name = '%s' % cur_state.type
-            cur_list = []
-            if active_structures.get(type_name) is not None:
-                cur_list = active_structures.get(type_name)
+            cur_list = active_structures.get(type_name)
+            if cur_list is None:
+                cur_list = []
             cur_list.append(cur_state.variable)
             active_structures[type_name] = cur_list
         for type_name, variable_list in active_structures.items():
@@ -495,13 +501,13 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             avoid_dupe = None
             if cur_value.alias:
                 aliased_value = [x for x in enum_tuple.values if x.name == cur_value.alias][0]
-                if aliased_value.protect_value and aliased_value.protect_value != cur_value.protect_value and aliased_value.protect_value != struct_tuple.protect_value:
+                if struct_tuple and aliased_value.protect_value and aliased_value.protect_value != cur_value.protect_value and aliased_value.protect_value != struct_tuple.protect_value:
                     avoid_dupe = aliased_value.protect_string
                     next_chain_info += '#if !(%s)\n' % avoid_dupe
                 else:
                     # This would unconditionally cause a duplicate case
                     continue
-            if struct_tuple.protect_value:
+            if struct_tuple and struct_tuple.protect_value:
                 next_chain_info += '#if %s\n' % struct_tuple.protect_string
 
             next_chain_info += self.writeIndent(2)
@@ -516,7 +522,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             next_chain_info += '}\n'
             next_chain_info += self.writeIndent(3)
             next_chain_info += 'break;\n'
-            if struct_tuple.protect_value:
+            if struct_tuple and struct_tuple.protect_value:
                 next_chain_info += '#endif // %s\n' % struct_tuple.protect_string
             if avoid_dupe:
                 next_chain_info += '#endif // !(%s)\n' % avoid_dupe
@@ -834,6 +840,10 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         else:
             verify_extensions += self.writeIndent(indent)
             verify_extensions += '// No system extensions to check dependencies for\n'
+            for arg in ('gen_instance_info', 'command', 'struct_name', 'objects_info', 'extensions'):
+                verify_extensions += self.writeIndent(indent)
+                verify_extensions += f'(void){arg};\n'
+
         verify_extensions += self.writeIndent(indent)
         verify_extensions += 'return true;\n'
         verify_extensions += '}\n\n'
@@ -1410,7 +1420,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         if is_array:
             long_count_name = param_member_prefix
             if param_member.is_static_array:
-                assert(param_member.static_array_sizes is not None)
+                assert param_member.static_array_sizes is not None
                 short_count_var = param_member.static_array_sizes[0]
                 long_count_name = param_member.static_array_sizes[0]
             elif param_member.array_count_var:
@@ -1569,7 +1579,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             if is_relation_group:
                 for child in relation_group.child_struct_names:
                     child_struct = self.getStruct(child)
-                    if child_struct.protect_value:
+                    if child_struct and child_struct.protect_value:
                         param_member_contents += '#if %s\n' % child_struct.protect_string
 
                     param_member_contents += self.writeIndent(indent)
@@ -1703,7 +1713,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                     param_member_contents += self.writeIndent(indent)
                     param_member_contents += '}\n'
 
-                    if child_struct.protect_value:
+                    if child_struct and child_struct.protect_value:
                         param_member_contents += '#endif // %s\n' % child_struct.protect_string
 
             param_member_contents += self.writeIndent(indent)
@@ -1874,7 +1884,11 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             struct_check += '                          const %s* value) {\n' % xr_struct.name
             setup_bail = False
             struct_check += '    XrResult xr_result = XR_SUCCESS;\n'
+            struct_check += '    (void)xr_result;\n'
 
+            for arg in ('instance_info', 'command_name', 'objects_info', 'check_members', 'value'):
+                struct_check += self.writeIndent(indent)
+                struct_check += f'(void){arg};\n'
             # Check to see if this struct is the base of a relation group
             relation_group = self.getRelationGroupForBaseStruct(xr_struct.name)
             if relation_group is not None:
@@ -1883,6 +1897,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             # If this struct is the base of a relation group, check to see if this call really should go to any one of
             # it's children instead of itself.
             if is_base_type:
+                assert relation_group
                 for member in xr_struct.members:
                     if member.name == 'next':
                         struct_check += self.writeIndent(indent)
@@ -1893,7 +1908,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                             xr_struct.name, member.name)
                 for child in relation_group.child_struct_names:
                     child_struct = self.getStruct(child)
-                    if child_struct.protect_value:
+                    if child_struct and child_struct.protect_value:
                         struct_check += '#if %s\n' % child_struct.protect_string
                     struct_check += self.writeIndent(indent)
                     struct_check += 'if (value->type == %s) {\n' % self.genXrStructureType(
@@ -1902,7 +1917,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                     struct_check += self.writeIndent(indent)
                     struct_check += 'const %s* new_value = reinterpret_cast<const %s*>(value);\n' % (
                         child, child)
-                    if child_struct.ext_name and not self.isCoreExtensionName(child_struct.ext_name):
+                    if child_struct and child_struct.ext_name and not self.isCoreExtensionName(child_struct.ext_name):
                         struct_check += self.writeIndent(indent)
                         struct_check += 'if (nullptr != instance_info && !ExtensionEnabled(instance_info->enabled_extensions, "%s")) {\n' % child_struct.ext_name
                         indent += 1
@@ -1930,7 +1945,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                     indent -= 1
                     struct_check += self.writeIndent(indent)
                     struct_check += '}\n'
-                    if child_struct.protect_value:
+                    if child_struct and child_struct.protect_value:
                         struct_check += '#endif // %s\n' % child_struct.protect_string
 
                 struct_check += self.writeIndent(indent)
@@ -2424,6 +2439,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         if first_param.is_handle:
             first_handle_tuple = self.getHandle(first_param.type)
             first_handle_name = self.getFirstHandleName(first_param)
+            assert first_handle_tuple
             if first_handle_tuple.name == 'XrInstance':
                 next_validate_func += '        GenValidUsageXrInstanceInfo *gen_instance_info = g_instance_info.get(%s);\n' % first_handle_name
             else:
@@ -2458,7 +2474,8 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             last_handle_tuple = self.getHandle(last_param.type)
             last_handle_name = last_param.name
             if is_create:
-                assert(last_handle_tuple.name != 'XrInstance')
+                assert last_handle_tuple
+                assert last_handle_tuple.name != 'XrInstance'
 
                 next_validate_func += '        if (XR_SUCCESS == result && nullptr != %s) {\n' % last_handle_name
                 next_validate_func += '            std::unique_ptr<GenValidUsageXrHandleInfo> handle_info(new GenValidUsageXrHandleInfo());\n'
@@ -2497,6 +2514,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 # If this object contains a state that needs tracking, free it
                 valid_type_list = []
                 for cur_state in self.api_states:
+                    assert last_handle_tuple
                     if last_handle_tuple.name == cur_state.type and cur_state.type not in valid_type_list:
                         valid_type_list.append(cur_state.type)
                         next_validate_func += self.writeIndent(3)
