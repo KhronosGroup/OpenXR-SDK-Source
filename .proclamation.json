@@ -1,6 +1,6 @@
 {
-    "#": "This is a config file for proclamation, the changelog combiner: https://gitlab.com/ryanpavlik/proclamation",
-    "$schema": "https://ryanpavlik.gitlab.io/proclamation/proclamation.schema.json",
+    "#": "This is a config file for proclamation, the changelog combiner: https://gitlab.com/proclamation/proclamation",
+    "$schema": "https://proclamation.gitlab.io/proclamation/proclamation.schema.json",
     "projects": [
         {
             "project_name": "OpenXR SDK",
