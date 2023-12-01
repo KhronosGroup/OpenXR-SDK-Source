@@ -10,13 +10,14 @@ variables:
   VULKAN_SDK_VERSION: "1.1.114.0"
 
 stages:
-  - stage: Check
-    jobs:
-      - template: shared/check_clang_format.yml
-
   - stage: Build
     jobs:
+      # Check code formatting
+      - template: shared/check_clang_format.yml
+
+      # Build on Linux and Windows
       - template: shared/build_jobs.yml
+
       # Build the loader documentation
       - job: loader_docs
         pool:
