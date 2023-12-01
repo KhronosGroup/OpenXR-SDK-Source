@@ -13,6 +13,10 @@ jobs:
   # Build the loader, API layers, and samples on Linux
   - job: linux_build
     displayName: "Linux"
+    pool:
+      vmImage: "ubuntu-latest"
+    # 20230614
+    container: khronosgroup/docker-images:openxr-sdk@sha256:fbc5fe29a0787cccc8f66bd9bd03c9dbddf591c7d1aea673108c38c908b280f5
     strategy:
       matrix:
         xlib:
@@ -24,10 +28,6 @@ jobs:
         wayland:
           buildType: RelWithDebInfo
           presentationBackend: wayland
-    pool:
-      vmImage: "ubuntu-latest"
-    # 20230614
-    container: khronosgroup/docker-images:openxr-sdk@sha256:fbc5fe29a0787cccc8f66bd9bd03c9dbddf591c7d1aea673108c38c908b280f5
 
     steps:
       # First build as debug
@@ -46,6 +46,7 @@ jobs:
 
   # This job computes the product of the config dimensions
   - job: generator
+    displayName: "Compute build matrix"
     pool:
       vmImage: "ubuntu-latest"
     steps:
@@ -59,8 +60,8 @@ jobs:
 
   # Build the loader, API layers, and samples on Windows
   - job: windows_build
-    dependsOn: generator
     displayName: "Windows MSVC"
+    dependsOn: generator
     variables:
       VULKAN_SDK: "$(System.DefaultWorkingDirectory)\\vulkan_sdk\\$(VULKAN_SDK_VERSION)"
     pool:
@@ -100,11 +101,11 @@ jobs:
   #         useVulkan: 'true'
 
   - job: combine_artifacts
+    displayName: "Organize artifacts"
     dependsOn:
       - generator
       - windows_build
     condition: ${{ eq(parameters.isSdkSourceRepo, true) }}
-    displayName: "Organize artifacts"
     pool:
       vmImage: "windows-latest"
     steps:

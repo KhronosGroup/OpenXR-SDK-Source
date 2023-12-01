@@ -26,8 +26,8 @@ stages:
         # container: khronosgroup/docker-images@sha256:091f1d988744f0b5149126d1f4bdba342b72c01dc90c2d06d4a61738bec5521c
         steps:
           - script: make loader
+            displayName: "Build loader document"
             workingDirectory: specification
-            displayName: Build loader document
           - publish: $(System.DefaultWorkingDirectory)/specification/generated/out/1.0/loader.html
             artifact: LoaderDoc
 
@@ -71,9 +71,8 @@ stages:
           - task: DownloadPipelineArtifact@2
             displayName: Download archived OpenXR-SDK
             inputs:
-              source: current
-              artifact: sdk-tarball
-              path: "$(Pipeline.Workspace)"
+              artifactName: sdk-tarball
+              targetPath: "$(Pipeline.Workspace)"
           - script: ls -la
             displayName: List files in directory
           - script: ls -la sdk-tarball* || true
@@ -98,9 +97,8 @@ stages:
           - task: DownloadPipelineArtifact@2
             displayName: Download archived OpenXR-SDK
             inputs:
-              source: current
-              artifact: sdk-tarball
-              path: "$(Pipeline.Workspace)"
+              artifactName: sdk-tarball
+              targetPath: "$(Pipeline.Workspace)"
 
           - task: ExtractFiles@1
             inputs:
