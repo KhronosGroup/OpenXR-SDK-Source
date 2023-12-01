@@ -94,7 +94,10 @@ set_target_properties(hello_xr PROPERTIES FOLDER ${SAMPLES_FOLDER})
 source_group("Headers" FILES ${LOCAL_HEADERS})
 source_group("Shaders" FILES ${VULKAN_SHADERS})
 
-target_link_libraries(hello_xr PRIVATE OpenXR::openxr_loader)
+target_link_libraries(hello_xr
+    PRIVATE OpenXR::openxr_loader
+    PUBLIC OpenXR::headers
+)
 
 compile_glsl(run_hello_xr_glsl_compiles ${VULKAN_SHADERS})
 
