@@ -115,6 +115,11 @@
 #include <openxr/openxr_platform.h>
 #include <openxr/openxr_reflection.h>
 
+#define ADD_EXTRA_CUBES 1
+#define ENABLE_ADVANCED_FEATURES 0
+
+#if ENABLE_ADVANCED_FEATURES
+
 #include <openxr/extx1_event_channel.h>
 #include <openxr/fb_composition_layer_depth_test.h>
 #include <openxr/fb_eye_tracking_social.h>
@@ -213,7 +218,6 @@
 #define ADD_AIM_POSE 1
 #define DRAW_AIM_POSE (ADD_AIM_POSE && 1)
 
-#define ADD_EXTRA_CUBES 1
 #define BODY_CUBE_SIZE 0.02f
 #define ADD_GROUND 1
 
@@ -225,3 +229,4 @@
 #define LOG_MATRICES 0
 
 #include "utils.h"
+#endif

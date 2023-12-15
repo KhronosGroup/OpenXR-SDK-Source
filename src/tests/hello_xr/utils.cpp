@@ -1,3 +1,6 @@
+#include "pch.h"
+
+#if ENABLE_ADVANCED_FEATURES
 #include "utils.h"
 
 namespace BVR
@@ -130,7 +133,6 @@ XrPosef convert_to_xr(const GLMPose& glm_pose)
 
 }
 
-
-
+#endif
 
 
