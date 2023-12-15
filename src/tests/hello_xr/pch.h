@@ -115,8 +115,11 @@
 #include <openxr/openxr_platform.h>
 #include <openxr/openxr_reflection.h>
 
+#include <openxr/extx1_event_channel.h>
 #include <openxr/fb_composition_layer_depth_test.h>
 #include <openxr/fb_eye_tracking_social.h>
+#include <openxr/fb_face_tracking2.h>
+
 #include <openxr/fb_haptic_amplitude_envelope.h>
 #include <openxr/fb_haptic_pcm.h>
 #include <openxr/fb_scene.h>
@@ -130,14 +133,22 @@
 #include <openxr/fb_spatial_entity_user.h>
 #include <openxr/fb_touch_controller_pro.h>
 #include <openxr/fb_touch_controller_proximity.h>
-#include <openxr/meta_foveation_eye_tracked.h>
-#include <openxr/meta_local_dimming.h>
-#include <openxr/openxr_extension_helpers.h>
-#include <openxr/openxr_oculus.h>
 #include <openxr/metax1_hand_tracking_microgestures.h>
 #include <openxr/metax1_simultaneous_hands_controllers_management.h>
 #include <openxr/metax2_detached_controllers.h>
 #include <openxr/metax2_environment_depth.h>
+#include <openxr/meta_automatic_layer_filter.h>
+#include <openxr/meta_body_tracking_calibration.h>
+#include <openxr/meta_body_tracking_fidelity.h>
+#include <openxr/meta_body_tracking_full_body.h>
+#include <openxr/meta_environment_depth.h>
+#include <openxr/meta_foveation_eye_tracked.h>
+#include <openxr/meta_local_dimming.h>
+#include <openxr/meta_recommended_layer_resolution.h>
+#include <openxr/meta_spatial_entity_mesh.h>
+#include <openxr/meta_touch_controller_plus.h>
+#include <openxr/openxr_extension_helpers.h>
+//#include <openxr/openxr_oculus_helpers.h>
 
 #ifdef XR_USE_PLATFORM_ANDROID
 #define PLATFORM_ANDROID 1
@@ -147,7 +158,7 @@
 #define PLATFORM_PC 1
 #endif
 
-#define ENABLE_STREAMLINE (PLATFORM_PC && 1)
+#define ENABLE_STREAMLINE (PLATFORM_PC && 0)
 
 #define ENABLE_OPENXR_FB_REFRESH_RATE 1
 #define DEFAULT_REFRESH_RATE 90.0f

@@ -14,6 +14,8 @@
 #include <cmath>
 #include <set>
 
+#include "utils.cpp"
+
 #if ENABLE_STREAMLINE
 #include <sl.h>
 #include <sl_dlss.h>

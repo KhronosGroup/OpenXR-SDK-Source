@@ -121,7 +121,7 @@ if(XR_USE_GRAPHICS_API_VULKAN)
     target_link_libraries(hello_xr PRIVATE ${Vulkan_LIBRARY})
 endif()
 
-option(ENABLE_META_OPENXR_SDK "Enable Meta OpenXR SDK" OFF)
+option(ENABLE_META_OPENXR_SDK "Enable Meta OpenXR SDK" ON)
 
 if(ENABLE_META_OPENXR_SDK)
     
