@@ -40,6 +40,7 @@ set(LOCAL_SOURCE
     logger.cpp
     main.cpp
     openxr_program.cpp
+    utils.cpp
     pch.cpp
     platformplugin_android.cpp
     platformplugin_factory.cpp
@@ -112,6 +113,8 @@ target_include_directories(
         "${CMAKE_CURRENT_BINARY_DIR}"
 )
 
+target_link_libraries(hello_xr PRIVATE OpenXR::openxr_loader)
+
 if(GLSLANG_VALIDATOR AND NOT GLSLC_COMMAND)
     target_compile_definitions(hello_xr PRIVATE USE_GLSLANGVALIDATOR)
 endif()
@@ -120,30 +123,6 @@ if(XR_USE_GRAPHICS_API_VULKAN)
     target_include_directories(hello_xr PRIVATE ${Vulkan_INCLUDE_DIRS})
     target_link_libraries(hello_xr PRIVATE ${Vulkan_LIBRARY})
 endif()
-
-option(ENABLE_META_OPENXR_SDK "Enable Meta OpenXR SDK" ON)
-
-if(ENABLE_META_OPENXR_SDK)
-    
-    target_include_directories(hello_xr PUBLIC $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Include)
-    
-    if(ANDROID)
-        add_library(meta_openxr_loader SHARED IMPORTED)
-
-        set_target_properties(meta_openxr_loader
-                PROPERTIES
-                IMPORTED_LOCATION $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Libs/Android/arm64-v8a/Release/libopenxr_loader.so
-                )
-
-        #target_link_libraries(hello_xr meta_openxr_loader)
-    endif()
-    
-else()
-
-endif()
-
-#target_link_libraries(hello_xr OpenXR::openxr_loader)
-
 
 if(TARGET openxr-gfxwrapper)
     target_link_libraries(hello_xr PRIVATE openxr-gfxwrapper)
@@ -174,10 +153,6 @@ if(WIN32)
     endif()
 endif()
 
-target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/glm)
-target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/SDL/include)
-
-
 if(NOT ANDROID)
     install(
         TARGETS hello_xr RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -191,3 +166,7 @@ if(NOT ANDROID)
         )
     endif()
 endif()
+
+target_include_directories(hello_xr PUBLIC $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Include)
+target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/glm)
+target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/SDL/include)

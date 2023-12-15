@@ -116,7 +116,10 @@
 #include <openxr/openxr_reflection.h>
 
 #define ADD_EXTRA_CUBES 1
-#define ENABLE_ADVANCED_FEATURES 0
+
+#ifndef ENABLE_ADVANCED_FEATURES
+#define ENABLE_ADVANCED_FEATURES 1
+#endif
 
 #if ENABLE_ADVANCED_FEATURES
 
