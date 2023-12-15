@@ -13,9 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-# Author:
-#
 
 # Force all compilers to output to binary folder without additional output (like Windows adds "Debug" and "Release" folders)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
@@ -23,15 +20,24 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
     string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_CURRENT_BINARY_DIR})
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_CURRENT_BINARY_DIR})
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_CURRENT_BINARY_DIR})
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+        ${CMAKE_CURRENT_BINARY_DIR}
+    )
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+        ${CMAKE_CURRENT_BINARY_DIR}
+    )
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG}
+        ${CMAKE_CURRENT_BINARY_DIR}
+    )
 endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
 
 # Copy the api_layer_platform_defines.h file and place it in the binary (build) directory.
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/api_layer_platform_defines.h ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+configure_file(
+    api_layer_platform_defines.h ${CMAKE_CURRENT_BINARY_DIR} COPYONLY
+)
 
 if(WIN32)
+    # Find the layer library adjacent to the manifest
     set(LAYER_MANIFEST_PREFIX "./")
 else()
     set(LAYER_MANIFEST_PREFIX)
@@ -47,9 +53,9 @@ endif()
 # Basics for api_dump API Layer
 
 gen_xr_layer_json(
-    ${CMAKE_CURRENT_BINARY_DIR}/XrApiLayer_api_dump.json
+    "${CMAKE_CURRENT_BINARY_DIR}/XrApiLayer_api_dump.json"
     LUNARG_api_dump
-    ${LAYER_MANIFEST_PREFIX}$<TARGET_FILE_NAME:XrApiLayer_api_dump>
+    "${LAYER_MANIFEST_PREFIX}$<TARGET_FILE_NAME:XrApiLayer_api_dump>"
     1
     "API Layer to record api calls as they occur"
     ""
@@ -57,65 +63,68 @@ gen_xr_layer_json(
 
 # Flag generated files that aren't generated in this directory.
 set_source_files_properties(
-    ${COMMON_GENERATED_OUTPUT}
-    PROPERTIES GENERATED TRUE
+    ${COMMON_GENERATED_OUTPUT} PROPERTIES GENERATED TRUE
 )
 
 set(GENERATED_OUTPUT)
 set(GENERATED_DEPENDS)
-run_xr_xml_generate(api_dump_generator.py xr_generated_api_dump.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/automatic_source_generator.py)
-run_xr_xml_generate(api_dump_generator.py xr_generated_api_dump.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/automatic_source_generator.py)
+run_xr_xml_generate(
+    api_dump_generator.py xr_generated_api_dump.hpp
+    "${PROJECT_SOURCE_DIR}/src/scripts/automatic_source_generator.py"
+)
+run_xr_xml_generate(
+    api_dump_generator.py xr_generated_api_dump.cpp
+    "${PROJECT_SOURCE_DIR}/src/scripts/automatic_source_generator.py"
+)
 set(API_DUMP_GENERATED_OUTPUT ${GENERATED_OUTPUT})
 set(API_DUMP_GENERATED_DEPENDS ${GENERATED_DEPENDS})
 unset(GENERATED_OUTPUT)
 unset(GENERATED_DEPENDS)
 
-add_library(XrApiLayer_api_dump SHARED
+add_library(
+    XrApiLayer_api_dump MODULE
     api_dump.cpp
     XrApiLayer_api_dump.def
-
-    ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h
+    "${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h"
     # target-specific generated files
     ${API_DUMP_GENERATED_OUTPUT}
-
     # Dispatch table
     ${COMMON_GENERATED_OUTPUT}
-
     # Included in this list to force generation
-    ${CMAKE_CURRENT_BINARY_DIR}/XrApiLayer_api_dump.json
+    "${CMAKE_CURRENT_BINARY_DIR}/XrApiLayer_api_dump.json"
 )
-set_target_properties(XrApiLayer_api_dump PROPERTIES FOLDER ${API_LAYERS_FOLDER})
-
-target_link_libraries(XrApiLayer_api_dump PRIVATE Threads::Threads OpenXR::headers)
-target_compile_definitions(XrApiLayer_api_dump PRIVATE ${OPENXR_ALL_SUPPORTED_DEFINES})
-add_dependencies(XrApiLayer_api_dump
-    generate_openxr_header
-    xr_common_generated_files
+set_target_properties(
+    XrApiLayer_api_dump PROPERTIES FOLDER ${API_LAYERS_FOLDER}
 )
 
-target_include_directories(XrApiLayer_api_dump
+target_link_libraries(
+    XrApiLayer_api_dump PRIVATE Threads::Threads OpenXR::headers
+)
+target_compile_definitions(
+    XrApiLayer_api_dump PRIVATE ${OPENXR_ALL_SUPPORTED_DEFINES}
+)
+add_dependencies(XrApiLayer_api_dump xr_common_generated_files)
+
+target_include_directories(
+    XrApiLayer_api_dump
     PRIVATE
-    ${PROJECT_SOURCE_DIR}/src/common
-    ${CMAKE_CURRENT_SOURCE_DIR}
-
-    # for generated dispatch table
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-
-    # for target-specific generated files
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR}
+        ${PROJECT_SOURCE_DIR}/src/common
+        # for generated dispatch table
+        ..
+        ${CMAKE_CURRENT_BINARY_DIR}/..
+        # for target-specific generated files
+        .
+        ${CMAKE_CURRENT_BINARY_DIR}
 )
-if(Vulkan_FOUND)
-    target_include_directories(XrApiLayer_api_dump
-        PRIVATE ${Vulkan_INCLUDE_DIRS}
+if(XR_USE_GRAPHICS_API_VULKAN)
+    target_include_directories(
+        XrApiLayer_api_dump PRIVATE ${Vulkan_INCLUDE_DIRS}
     )
 endif()
 if(BUILD_WITH_WAYLAND_HEADERS)
-    target_include_directories(XrApiLayer_api_dump
-        PRIVATE ${WAYLAND_CLIENT_INCLUDE_DIRS})
+    target_include_directories(
+        XrApiLayer_api_dump PRIVATE ${WAYLAND_CLIENT_INCLUDE_DIRS}
+    )
 endif()
 
 # Basics for core_validation API Layer
@@ -131,110 +140,148 @@ gen_xr_layer_json(
 
 set(GENERATED_OUTPUT)
 set(GENERATED_DEPENDS)
-run_xr_xml_generate(validation_layer_generator.py xr_generated_core_validation.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/automatic_source_generator.py)
-run_xr_xml_generate(validation_layer_generator.py xr_generated_core_validation.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/../scripts/automatic_source_generator.py)
+run_xr_xml_generate(
+    validation_layer_generator.py xr_generated_core_validation.hpp
+    "${PROJECT_SOURCE_DIR}/src/scripts/automatic_source_generator.py"
+)
+run_xr_xml_generate(
+    validation_layer_generator.py xr_generated_core_validation.cpp
+    "${PROJECT_SOURCE_DIR}/src/scripts/automatic_source_generator.py"
+)
 set(CORE_VALIDATION_GENERATED_OUTPUT ${GENERATED_OUTPUT})
 set(CORE_VALIDATION_GENERATED_DEPENDS ${GENERATED_DEPENDS})
 unset(GENERATED_OUTPUT)
 unset(GENERATED_DEPENDS)
 
-add_library(XrApiLayer_core_validation SHARED
+add_library(
+    XrApiLayer_core_validation MODULE
     core_validation.cpp
     XrApiLayer_core_validation.def
-
     ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h
     ${PROJECT_SOURCE_DIR}/src/common/object_info.cpp
     ${PROJECT_SOURCE_DIR}/src/common/object_info.h
-
     # target-specific generated files
     ${CORE_VALIDATION_GENERATED_OUTPUT}
-
     # Dispatch table
     ${COMMON_GENERATED_OUTPUT}
-
     # Included in this list to force generation
     ${CMAKE_CURRENT_BINARY_DIR}/XrApiLayer_core_validation.json
 )
-set_target_properties(XrApiLayer_core_validation PROPERTIES FOLDER ${API_LAYERS_FOLDER})
-
-target_link_libraries(XrApiLayer_core_validation PRIVATE Threads::Threads OpenXR::headers)
-target_compile_definitions(XrApiLayer_core_validation PRIVATE ${OPENXR_ALL_SUPPORTED_DEFINES})
-add_dependencies(XrApiLayer_core_validation
-    generate_openxr_header
-    xr_common_generated_files
+set_target_properties(
+    XrApiLayer_core_validation PROPERTIES FOLDER ${API_LAYERS_FOLDER}
 )
-target_include_directories(XrApiLayer_core_validation
+
+target_link_libraries(
+    XrApiLayer_core_validation PRIVATE Threads::Threads OpenXR::headers
+)
+target_compile_definitions(
+    XrApiLayer_core_validation PRIVATE ${OPENXR_ALL_SUPPORTED_DEFINES}
+)
+add_dependencies(XrApiLayer_core_validation xr_common_generated_files)
+target_include_directories(
+    XrApiLayer_core_validation
     PRIVATE
-    ${PROJECT_SOURCE_DIR}/src/common
-
-    # for generated dispatch table
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-
-    # for target-specific generated files
-    ${CMAKE_CURRENT_SOURCE_DIR}
-    ${CMAKE_CURRENT_BINARY_DIR}
-
+        ${PROJECT_SOURCE_DIR}/src/common
+        # for generated dispatch table
+        ..
+        ${CMAKE_CURRENT_BINARY_DIR}/..
+        # for target-specific generated files
+        .
+        ${CMAKE_CURRENT_BINARY_DIR}
 )
-if(Vulkan_FOUND)
-    target_include_directories(XrApiLayer_core_validation
-        PRIVATE ${Vulkan_INCLUDE_DIRS}
+if(XR_USE_GRAPHICS_API_VULKAN)
+    target_include_directories(
+        XrApiLayer_core_validation PRIVATE ${Vulkan_INCLUDE_DIRS}
     )
 endif()
 if(BUILD_WITH_WAYLAND_HEADERS)
-    target_include_directories(XrApiLayer_core_validation
-        PRIVATE ${WAYLAND_CLIENT_INCLUDE_DIRS})
+    target_include_directories(
+        XrApiLayer_core_validation PRIVATE ${WAYLAND_CLIENT_INCLUDE_DIRS}
+    )
 endif()
 
 if(WIN32)
     # Windows api_dump-specific information
-    target_compile_definitions(XrApiLayer_api_dump PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_compile_definitions(
+        XrApiLayer_api_dump PRIVATE _CRT_SECURE_NO_WARNINGS
+    )
     # Turn off transitional "changed behavior" warning message for Visual Studio versions prior to 2015.
     # The changed behavior is that constructor initializers are now fixed to clear the struct members.
-    target_compile_options(XrApiLayer_api_dump PRIVATE "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19>>:/wd4351>")
+    target_compile_options(
+        XrApiLayer_api_dump
+        PRIVATE
+            "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19>>:/wd4351>"
+    )
 
     # Windows core_validation-specific information
-    target_compile_definitions(XrApiLayer_core_validation PRIVATE _CRT_SECURE_NO_WARNINGS)
+    target_compile_definitions(
+        XrApiLayer_core_validation PRIVATE _CRT_SECURE_NO_WARNINGS
+    )
     # Turn off transitional "changed behavior" warning message for Visual Studio versions prior to 2015.
     # The changed behavior is that constructor initializers are now fixed to clear the struct members.
-    target_compile_options(XrApiLayer_core_validation PRIVATE "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19>>:/wd4351>")
+    target_compile_options(
+        XrApiLayer_core_validation
+        PRIVATE
+            "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19>>:/wd4351>"
+    )
 
 elseif(APPLE)
     # Apple api_dump-specific information
-    set_target_properties(XrApiLayer_api_dump PROPERTIES LINK_FLAGS "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_api_dump.expsym")
+    set_target_properties(
+        XrApiLayer_api_dump
+        PROPERTIES
+            LINK_FLAGS
+            "-Wl,-exported_symbols_list,\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_api_dump.expsym\""
+    )
 
     # Apple core_validation-specific information
-    set_target_properties(XrApiLayer_core_validation PROPERTIES LINK_FLAGS "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_core_validation.expsym")
+    set_target_properties(
+        XrApiLayer_core_validation
+        PROPERTIES
+            LINK_FLAGS
+            "-Wl,-exported_symbols_list,\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_core_validation.expsym\""
+    )
 else()
     # Linux api_dump-specific information
-    set_target_properties(XrApiLayer_api_dump PROPERTIES LINK_FLAGS "-Wl,-Bsymbolic,--exclude-libs,ALL")
+    set_target_properties(
+        XrApiLayer_api_dump PROPERTIES LINK_FLAGS
+                                       "-Wl,-Bsymbolic,--exclude-libs,ALL"
+    )
 
     # Linux core_validation-specific information
-    set_target_properties(XrApiLayer_core_validation PROPERTIES LINK_FLAGS "-Wl,-Bsymbolic,--exclude-libs,ALL")
+    set_target_properties(
+        XrApiLayer_core_validation
+        PROPERTIES LINK_FLAGS "-Wl,-Bsymbolic,--exclude-libs,ALL"
+    )
 endif()
 
 # Install explicit layers
-set(TARGET_NAMES
-    XrApiLayer_api_dump
-    XrApiLayer_core_validation)
+set(TARGET_NAMES XrApiLayer_api_dump XrApiLayer_core_validation)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     foreach(TARGET_NAME ${TARGET_NAMES})
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}.json
-            DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/openxr/${MAJOR}/api_layers/explicit.d
-            COMPONENT Layers)
-        install(TARGETS ${TARGET_NAME}
+        install(
+            FILES "${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}.json"
+            DESTINATION
+                "${CMAKE_INSTALL_DATAROOTDIR}/openxr/${MAJOR}/api_layers/explicit.d"
+            COMPONENT Layers
+        )
+        install(
+            TARGETS ${TARGET_NAME}
             DESTINATION ${CMAKE_INSTALL_LIBDIR}
-            COMPONENT Layers)
+            COMPONENT Layers
+        )
     endforeach()
 elseif(WIN32)
     foreach(TARGET_NAME ${TARGET_NAMES})
-        install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}.json
-            DESTINATION ${CMAKE_INSTALL_BINDIR}/api_layers
-            COMPONENT Layers)
-        install(TARGETS ${TARGET_NAME} 
-            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/api_layers
-            COMPONENT Layers)
+        install(
+            FILES "${CMAKE_CURRENT_BINARY_DIR}/${TARGET_NAME}.json"
+            DESTINATION "${CMAKE_INSTALL_BINDIR}/api_layers"
+            COMPONENT Layers
+        )
+        install(
+            TARGETS ${TARGET_NAME}
+            DESTINATION "${CMAKE_INSTALL_BINDIR}/api_layers"
+            COMPONENT Layers
+        )
     endforeach()
 endif()

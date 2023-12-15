@@ -24,6 +24,8 @@
 #               automatic_source_generator.py class to produce the
 #               generated source code for the API Dump layer.
 
+import dataclasses
+
 from automatic_source_generator import (AutomaticSourceOutputGenerator,
                                         undecorate)
 from generator import write
@@ -604,25 +606,9 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 valid_extension_structs = member_param.valid_extension_structs
             member_string += prefix_string
 
-            tmp_member_param = self.MemberOrParam(type=member_param.type,
-                                                  name=member_param.name,
-                                                  is_const=member_param.is_const,
-                                                  is_handle=member_param.is_handle,
-                                                  is_bool=member_param.is_bool,
-                                                  is_optional=member_param.is_optional,
-                                                  no_auto_validity=member_param.no_auto_validity,
-                                                  valid_extension_structs=valid_extension_structs,
-                                                  is_array=member_param.is_array,
-                                                  is_static_array=member_param.is_static_array,
-                                                  static_array_sizes=member_param.static_array_sizes,
-                                                  array_dimen=member_param.array_dimen,
-                                                  array_count_var=member_param.array_count_var,
-                                                  array_length_for=member_param.array_length_for,
-                                                  pointer_count=pointer_count,
-                                                  is_null_terminated=member_param.is_null_terminated,
-                                                  pointer_count_var=member_param.pointer_count_var,
-                                                  cdecl=member_param.cdecl,
-                                                  values=member_param.values)
+            tmp_member_param = dataclasses.replace(member_param,
+                                                   valid_extension_structs=valid_extension_structs,
+                                                   pointer_count=pointer_count,)
 
             if member_param.is_optional and member_param.is_const and member_param.pointer_count > 0:
                 member_string += self.writeIndent(indent)
@@ -728,25 +714,15 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         else:
             static_array_sizes = member_param.static_array_sizes[1:]
 
-        tmp_member_param = self.MemberOrParam(type=member_param.type,
-                                              name=member_param.name,
-                                              is_const=member_param.is_const,
-                                              is_handle=member_param.is_handle,
-                                              is_bool=member_param.is_bool,
-                                              is_optional=member_param.is_optional,
-                                              no_auto_validity=member_param.no_auto_validity,
-                                              valid_extension_structs=member_param.valid_extension_structs,
-                                              is_array=is_array,
-                                              is_static_array=is_static_array,
-                                              static_array_sizes=static_array_sizes,
-                                              array_dimen=array_dimen,
-                                              array_count_var=array_count_var,
-                                              array_length_for=array_length_for,
-                                              pointer_count=pointer_count,
-                                              is_null_terminated=member_param.is_null_terminated,
-                                              pointer_count_var=pointer_count_var,
-                                              cdecl=member_param.cdecl,
-                                              values=member_param.values)
+        tmp_member_param = dataclasses.replace(member_param,
+                                               is_array=is_array,
+                                               is_static_array=is_static_array,
+                                               static_array_sizes=static_array_sizes,
+                                               array_dimen=array_dimen,
+                                               array_count_var=array_count_var,
+                                               array_length_for=array_length_for,
+                                               pointer_count=pointer_count,
+                                               pointer_count_var=pointer_count_var,)
 
         member_array_string += self.writeExpandedMember(base_type, is_pointer, pointer_count, tmp_member_param,
                                                         member_param_prefix, member_param_name, True, prefix_string1, prefix_string2, True, indent)

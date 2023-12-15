@@ -110,6 +110,7 @@ getDocsFilenames() {
     # TODO omitting style guide VUID chapter for now
     git ls-files \
         $COMMON_FILES \
+        .env \
         .proclamation.json \
         .proclamation.json.license \
         CHANGELOG.Docs.md \
@@ -145,6 +146,7 @@ getSDKSourceFilenames() {
     git ls-files \
         $COMMON_FILES \
         .appveyor.yml \
+        .env \
         .proclamation.json \
         .proclamation.json.license \
         BUILDING.md \
@@ -258,9 +260,9 @@ getSDKFilenames() {
 getConformanceFilenames() {
     set -e
     # The src/conformance directory, plus the minimum subset of the other files required.
-    # TODO need a mention in the spec folder about how it's not under the same license (?)
     git ls-files \
         $COMMON_FILES \
+        .env \
         .proclamation.json \
         .proclamation.json.license \
         BUILDING.md \
@@ -272,8 +274,6 @@ getConformanceFilenames() {
         openxr-codespell.exclude \
         runClangFormat.sh \
         tox.ini \
-        .azure-pipelines/shared \
-        .azure-pipelines/openxr-cts.yml \
         .github/dependabot.yml \
         .github/scripts \
         .github/workflows/android-cts-build.yml \

@@ -15,72 +15,112 @@
 # limitations under the License.
 #
 
-file(GLOB LOCAL_HEADERS "*.h")
-file(GLOB LOCAL_SOURCE "*.cpp")
-file(GLOB VULKAN_SHADERS "vulkan_shaders/*.glsl")
-
-# For including compiled shaders
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
+set(LOCAL_HEADERS
+    check.h
+    common.h
+    d3d_common.h
+    geometry.h
+    graphicsapi.h
+    graphicsplugin.h
+    logger.h
+    openxr_program.h
+    options.h
+    pch.h
+    platformdata.h
+    platformplugin.h
+)
+set(LOCAL_SOURCE
+    d3d_common.cpp
+    graphicsplugin_d3d11.cpp
+    graphicsplugin_d3d12.cpp
+    graphicsplugin_factory.cpp
+    graphicsplugin_opengl.cpp
+    graphicsplugin_opengles.cpp
+    graphicsplugin_vulkan.cpp
+    logger.cpp
+    main.cpp
+    openxr_program.cpp
+    pch.cpp
+    platformplugin_android.cpp
+    platformplugin_factory.cpp
+    platformplugin_posix.cpp
+    platformplugin_win32.cpp
+)
+set(VULKAN_SHADERS vulkan_shaders/frag.glsl vulkan_shaders/vert.glsl)
 
 if(ANDROID)
-    add_library(hello_xr MODULE
+    add_library(
+        hello_xr MODULE
         ${LOCAL_SOURCE}
         ${LOCAL_HEADERS}
         ${VULKAN_SHADERS}
-        $<TARGET_OBJECTS:android_native_app_glue>)
-    target_link_libraries(hello_xr ${ANDROID_LIBRARY} ${ANDROID_LOG_LIBRARY})
+        $<TARGET_OBJECTS:android_native_app_glue>
+    )
+    target_link_libraries(
+        hello_xr PRIVATE ${ANDROID_LIBRARY} ${ANDROID_LOG_LIBRARY}
+    )
 
     # Only for Android because it lacks a command line
-    set(HELLOXR_DEFAULT_GRAPHICS_PLUGIN "OpenGLES" CACHE STRING "Which graphics plugin should be used by default for Hello XR artifacts?")
+    set(HELLOXR_DEFAULT_GRAPHICS_PLUGIN
+        "OpenGLES"
+        CACHE
+            STRING
+            "Which graphics plugin should be used by default for Hello XR artifacts?"
+    )
     # These are the recognized options: provide them as a helper in the CMake GUI
-    set_property(CACHE HELLOXR_DEFAULT_GRAPHICS_PLUGIN PROPERTY STRINGS "OpenGLES" "Vulkan")
+    set_property(
+        CACHE HELLOXR_DEFAULT_GRAPHICS_PLUGIN PROPERTY STRINGS "OpenGLES"
+                                                       "Vulkan"
+    )
 
     # Now handle the value, normally provided by Gradle
     if(HELLOXR_DEFAULT_GRAPHICS_PLUGIN STREQUAL "OpenGLES")
         message(STATUS "hello_xr will default to OpenGL ES graphics plugin")
-        target_compile_definitions(hello_xr PRIVATE DEFAULT_GRAPHICS_PLUGIN_OPENGLES)
+        target_compile_definitions(
+            hello_xr PRIVATE DEFAULT_GRAPHICS_PLUGIN_OPENGLES
+        )
     elseif(HELLOXR_DEFAULT_GRAPHICS_PLUGIN STREQUAL "Vulkan")
         message(STATUS "hello_xr will default to Vulkan graphics plugin")
-        target_compile_definitions(hello_xr PRIVATE DEFAULT_GRAPHICS_PLUGIN_VULKAN)
+        target_compile_definitions(
+            hello_xr PRIVATE DEFAULT_GRAPHICS_PLUGIN_VULKAN
+        )
     endif()
 
 else()
-    add_executable(hello_xr
-        ${LOCAL_SOURCE}
-        ${LOCAL_HEADERS}
-        ${VULKAN_SHADERS})
+    add_executable(hello_xr ${LOCAL_SOURCE} ${LOCAL_HEADERS} ${VULKAN_SHADERS})
 endif()
-set_target_properties(hello_xr PROPERTIES FOLDER ${SAMPLES_FOLDER})
 
+set_target_properties(hello_xr PROPERTIES FOLDER ${SAMPLES_FOLDER})
 source_group("Headers" FILES ${LOCAL_HEADERS})
 source_group("Shaders" FILES ${VULKAN_SHADERS})
 
+target_link_libraries(hello_xr PRIVATE OpenXR::openxr_loader)
+
 compile_glsl(run_hello_xr_glsl_compiles ${VULKAN_SHADERS})
 
-add_dependencies(hello_xr
-    generate_openxr_header
-    run_hello_xr_glsl_compiles
-)
+add_dependencies(hello_xr run_hello_xr_glsl_compiles)
 
-target_include_directories(hello_xr
+target_include_directories(
+    hello_xr
     PRIVATE
-    ${PROJECT_SOURCE_DIR}/src
-    ${PROJECT_SOURCE_DIR}/src/common
-    ${PROJECT_SOURCE_DIR}/src/tests/hello_xr/vulkan_shaders
-
-    # for helper headers
-    ${PROJECT_SOURCE_DIR}/external/include
+        "${PROJECT_SOURCE_DIR}/src"
+        "${PROJECT_SOURCE_DIR}/src/common"
+        "${PROJECT_SOURCE_DIR}/src/tests/hello_xr/vulkan_shaders"
+        # for helper headers
+        "${PROJECT_SOURCE_DIR}/external/include"
+        # For including compiled shaders
+        "${CMAKE_CURRENT_BINARY_DIR}"
 )
 
-if(GLSLANG_VALIDATOR AND NOT GLSL_COMPILER)
+target_link_libraries(hello_xr PRIVATE OpenXR::openxr_loader)
+
+if(GLSLANG_VALIDATOR AND NOT GLSLC_COMMAND)
     target_compile_definitions(hello_xr PRIVATE USE_GLSLANGVALIDATOR)
 endif()
 
-if(Vulkan_FOUND)
-    target_include_directories(hello_xr
-        PRIVATE
-        ${Vulkan_INCLUDE_DIRS}
-    )
+if(XR_USE_GRAPHICS_API_VULKAN)
+    target_include_directories(hello_xr PRIVATE ${Vulkan_INCLUDE_DIRS})
+    target_link_libraries(hello_xr PRIVATE ${Vulkan_LIBRARY})
 endif()
 
 option(ENABLE_META_OPENXR_SDK "Enable Meta OpenXR SDK" ON)
@@ -106,27 +146,34 @@ endif()
 
 target_link_libraries(hello_xr OpenXR::openxr_loader)
 
+
 if(TARGET openxr-gfxwrapper)
-    target_link_libraries(hello_xr openxr-gfxwrapper)
+    target_link_libraries(hello_xr PRIVATE openxr-gfxwrapper)
 endif()
 if(WIN32)
+    target_link_libraries(hello_xr PRIVATE ole32)
     if(MSVC)
         target_compile_definitions(hello_xr PRIVATE _CRT_SECURE_NO_WARNINGS)
         target_compile_options(hello_xr PRIVATE /Zc:wchar_t /Zc:forScope /W4)
-        if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        if(NOT
+           CMAKE_CXX_COMPILER_ID
+           STREQUAL
+           "Clang"
+        )
             # If actually msvc and not clang-cl
             target_compile_options(openxr_c_compile_test PRIVATE /WX)
         endif()
-    endif()
-    target_link_libraries(hello_xr ole32)
-    if(MSVC)
-        # Right now can't build this on MinGW because of directxcolors, directxmath, etc.
-        target_link_libraries(hello_xr d3d11 d3d12 d3dcompiler dxgi)
-    endif()
-endif()
 
-if(Vulkan_LIBRARY)
-    target_link_libraries(hello_xr ${Vulkan_LIBRARY})
+        # Right now can't build d3d features on MinGW because of directxcolors, directxmath, etc.
+        target_link_libraries(
+            hello_xr
+            PRIVATE
+                d3d11
+                d3d12
+                d3dcompiler
+                dxgi
+        )
+    endif()
 endif()
 
 target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/glm)
@@ -134,11 +181,15 @@ target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/SD
 
 
 if(NOT ANDROID)
-    install(TARGETS hello_xr
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        COMPONENT hello_xr)
+    install(
+        TARGETS hello_xr RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                                 COMPONENT hello_xr
+    )
     if(NOT WIN32)
-        install(FILES hello_xr.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1/ COMPONENT ManPages)
+        install(
+            FILES hello_xr.1
+            DESTINATION ${CMAKE_INSTALL_MANDIR}/man1/
+            COMPONENT ManPages
+        )
     endif()
 endif()
-

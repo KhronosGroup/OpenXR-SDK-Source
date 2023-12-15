@@ -36,6 +36,11 @@ ANDROID_STL=c++_static
 CONFIG=Release
 ANDROID_PLATFORM=24
 
+if [ -z "$ANDROID_NDK_HOME" ]; then
+    logMsg "No ANDROID_NDK_HOME defined!"
+    exit 1
+fi
+
 logMsg "ANDROID_NDK_HOME: ${ANDROID_NDK_HOME}"
 logMsg "ANDROID_STL: ${ANDROID_STL}"
 logMsg "CONFIG: ${CONFIG}"
@@ -80,9 +85,9 @@ for arch in x86 x86_64 armeabi-v7a arm64-v8a; do
 
     logMsg "Installing for arch ${arch}"
 
+    # Component-wise install of the build, since we do not want all components
     for comp in License Headers Loader Prefab; do
-        # Component-wise install of the build, since we do not want all components
-        cmake -DCMAKE_INSTALL_COMPONENT=${comp} -P "${BUILD_DIR}/${arch}/cmake_install.cmake"
+        cmake --install "${BUILD_DIR}/${arch}/" --strip --component "${comp}"
     done
 done
 
@@ -90,11 +95,65 @@ done
 DECORATED=$(cd "${BUILD_DIR}/x86/src/loader" && ls openxr_loader*.pom)
 cp "${BUILD_DIR}/x86/src/loader/${DECORATED}" .
 
-DIR=$(pwd)
+EXTRA_MANIFEST_ENTRIES="${BUILD_DIR}/x86/src/loader/additional_manifest.mf"
+
 (
     logMsg "Packing AAR file"
     cd "$INSTALL_DIR/openxr"
-    AARFILE="$DIR/${DECORATED%.pom}.aar"
-    jar --create --file="${AARFILE}" ./*
+    AARFILE="$ROOT/${DECORATED%.pom}.aar"
+    jar --create --file="${AARFILE}" "--manifest=${EXTRA_MANIFEST_ENTRIES}" ./*
     logMsg "AAR file created: ${AARFILE}"
+)
+
+logMsg "Archiving SDK sources"
+SOURCES_JAR_ROOT=sources-jar
+SOURCES_NAMESPACE_PATH=org/khronos/openxr/openxr_loader_for_android
+rm -f OpenXR-SDK.tar.gz
+rm -rf ${SOURCES_JAR_ROOT}
+mkdir -p ${SOURCES_JAR_ROOT}/${SOURCES_NAMESPACE_PATH}
+maintainer-scripts/archive-sdk.sh
+
+logMsg "Repacking SDK sources as a sources jar"
+SOURCESFILE="$ROOT/${DECORATED%.pom}-sources.jar"
+(
+    cd ${SOURCES_JAR_ROOT}/${SOURCES_NAMESPACE_PATH}
+    tar xf "${ROOT}/OpenXR-SDK.tar.gz"
+
+    # Add files we want, for reproducibility
+    mkdir -p maintainer-scripts
+    cp "${ROOT}/maintainer-scripts/build-aar.sh" maintainer-scripts
+    cp "${ROOT}/maintainer-scripts/archive-sdk.sh" maintainer-scripts
+    cp "${ROOT}/maintainer-scripts/common.sh" maintainer-scripts
+
+    # Drop files/dirs we don't care about
+    rm -rf \
+        .appveyor.yml \
+        .azure-pipelines \
+        .editorconfig \
+        .git-blame-ignore-revs \
+        .gitattributes \
+        .github \
+        .gitignore \
+        doc
+
+    # Drop licenses not actually used in this code, based on `reuse lint` in OpenXR-SDK
+    rm -f \
+        LICENSES/OFL-1.1-RFN.txt \
+        LICENSES/Unlicense.txt \
+        LICENSES/LicenseRef-Khronos-Free-Use-License-for-Software-and-Documentation.txt \
+        LICENSES/ISC.txt \
+        LICENSES/LicenseRef-KhronosSpecCopyright-WithNormativeWording-v10.txt \
+        LICENSES/Zlib.txt
+
+    # Remove the bare copy of Apache-2.0 named LICENSE since it is confusing.
+    rm -f LICENSE
+
+    # Move the copying and license files to the jar root
+    mv COPYING.adoc "$ROOT/${SOURCES_JAR_ROOT}"
+    mv LICENSES "$ROOT/${SOURCES_JAR_ROOT}"
+)
+(
+    cd ${SOURCES_JAR_ROOT}
+    jar --create --file="${SOURCESFILE}" "--manifest=${EXTRA_MANIFEST_ENTRIES}" ./*
+    logMsg "Sources JAR file created: ${SOURCESFILE}"
 )

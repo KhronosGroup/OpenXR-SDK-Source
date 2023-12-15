@@ -15,28 +15,28 @@
 # limitations under the License.
 #
 
-add_executable(openxr_runtime_list
-    list.cpp
+add_executable(openxr_runtime_list list.cpp)
+target_include_directories(
+    openxr_runtime_list
+    PRIVATE "${PROJECT_SOURCE_DIR}/src" "${PROJECT_SOURCE_DIR}/src/common"
+            "${PROJECT_SOURCE_DIR}/external/include"
 )
-add_dependencies(openxr_runtime_list
-    generate_openxr_header
-)
-target_include_directories(openxr_runtime_list
-    PRIVATE ${PROJECT_SOURCE_DIR}/src
-    PRIVATE ${PROJECT_SOURCE_DIR}/src/common
-    PRIVATE ${PROJECT_BINARY_DIR}/include
-    PRIVATE ${PROJECT_SOURCE_DIR}/external/include
-)
-if(Vulkan_FOUND)
-    target_include_directories(openxr_runtime_list
-        PRIVATE ${Vulkan_INCLUDE_DIRS}
+if(XR_USE_GRAPHICS_API_VULKAN)
+    target_include_directories(
+        openxr_runtime_list PRIVATE ${Vulkan_INCLUDE_DIRS}
     )
 endif()
 
 target_link_libraries(openxr_runtime_list OpenXR::openxr_loader)
 if(MSVC)
-    target_compile_options(openxr_runtime_list PRIVATE /Zc:wchar_t /Zc:forScope /W4)
-    if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    target_compile_options(
+        openxr_runtime_list PRIVATE /Zc:wchar_t /Zc:forScope /W4
+    )
+    if(NOT
+       CMAKE_CXX_COMPILER_ID
+       STREQUAL
+       "Clang"
+    )
         # If actually msvc and not clang-cl
         target_compile_options(openxr_runtime_list PRIVATE /WX)
     endif()
@@ -44,9 +44,14 @@ endif()
 
 set_target_properties(openxr_runtime_list PROPERTIES FOLDER ${TESTS_FOLDER})
 
-install(TARGETS openxr_runtime_list
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    COMPONENT openxr_runtime_list)
+install(
+    TARGETS openxr_runtime_list RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+                                        COMPONENT openxr_runtime_list
+)
 if(NOT WIN32)
-    install(FILES openxr_runtime_list.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1/ COMPONENT ManPages)
+    install(
+        FILES openxr_runtime_list.1
+        DESTINATION ${CMAKE_INSTALL_MANDIR}/man1/
+        COMPONENT ManPages
+    )
 endif()

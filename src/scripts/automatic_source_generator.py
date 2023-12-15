@@ -25,13 +25,15 @@
 #               way for the rest of the automatic source generation scripts.
 
 import re
-from collections import namedtuple
+from dataclasses import dataclass
 from inspect import currentframe, getframeinfo
 from typing import List, Optional, Tuple, Union
+from xml.etree import ElementTree as et
 
 from generator import (GeneratorOptions, MissingRegistryError, OutputGenerator,
                        noneStr, regSortFeatures, write)
-from spec_tools.attributes import LengthEntry, parse_optional_from_param
+from spec_tools.attributes import (LengthEntry, has_any_optional_in_param,
+                                   parse_optional_from_param)
 from spec_tools.util import getElemName
 
 
@@ -102,7 +104,340 @@ class AutomaticSourceGeneratorOptions(GeneratorOptions):
         self.alignFuncParam = alignFuncParam
         self.genEnumBeginEndRange = genEnumBeginEndRange
 
-# AutomaticSourceOutputGenerator - subclass of OutputGenerator.
+
+@dataclass
+class LengthMember:
+    """Length Member data"""
+
+    array_name: str
+    """The name of the array"""
+
+    length_name: str
+    """The name of the length parameter"""
+
+
+@dataclass
+class HandleData:
+    """Handle data"""
+
+    name: str
+    """The name of the handle"""
+
+    parent: Optional[str]
+    """The name of the handle's direct parent"""
+
+    ancestors: List[str]
+    """A list of all the handle's ancestors"""
+
+    protect_value: Optional[str]
+    """None or a comma-delimited list indicating #define values to use around this handle"""
+
+    protect_string: str
+    """Empty string or string to use after #if to protect this handle"""
+
+    ext_name: Optional[str]
+    """Name of extension this handle is associated with (or None)"""
+
+
+@dataclass
+class FlagBits:
+    """Flag data"""
+
+    name: str
+    """The name of the flag"""
+
+    type: str
+    """The base type of the flag (for example uint64_t)"""
+
+    valid_flags: str
+    """The list of valid flag values"""
+
+    protect_value: Optional[str]
+    """None or a comma-delimited list indicating #define values to use around this flag"""
+
+    protect_string: str
+    """Empty string or string to use after #if to protect this flag"""
+
+    ext_name: Optional[str]
+    """Name of extension this command is associated with (or None)"""
+
+
+@dataclass
+class EnumBitValue:
+    """Individual Enum bit value"""
+
+    name: str
+    """Name of an individual enum bit"""
+
+    protect_value: Optional[str]
+    """None or a comma-delimited list indicating #define values to use around this value"""
+
+    protect_string: str
+    """Empty string or string to use after #if to protect this value"""
+
+    ext_name: Optional[str]
+    """Name of extension this command is associated with (or None)"""
+
+    alias: Optional[str]
+    """None or the name of the type this is an alias for"""
+
+
+@dataclass
+class EnumData:
+    """Enum type data"""
+
+    name: str
+    """The name of the enum"""
+
+    values: List[EnumBitValue]
+    """List of possible EnumBitValue for this enum."""
+
+    protect_value: Optional[str]
+    """None or a comma-delimited list indicating #define values to use around this enum"""
+
+    protect_string: str
+    """Empty string or string to use after #if to protect this enum"""
+
+    ext_name: Optional[str]
+    """Name of extension this command is associated with (or None)"""
+
+
+@dataclass
+class MemberOrParam:
+    """Struct/Union member or Command parameter data"""
+
+    type: str
+    """The type of this parameter"""
+
+    is_handle: bool
+    """Boolean indicating if this type is a handle"""
+
+    is_const: bool
+    """Boolean indicating if this has a const identifier"""
+
+    is_bool: bool
+    """Boolean indicating if this is a boolean type"""
+
+    is_optional: bool
+    """Boolean indicating if this is optional (pointers may be NULL, etc)"""
+
+    is_array: bool
+    """Boolean indicating if this is an array"""
+
+    array_dimen: int
+    """Number of dimensions for this array"""
+
+    is_static_array: bool
+    """Boolean indicating if this is a statically sized array"""
+
+    static_array_sizes: Optional[List[int]]
+    """List of static array sizes for each dimension"""
+
+    array_count_var: str
+    """Name of array count if this is a value, and not a number"""
+
+    array_length_for: str
+    """Indicates the array parameter that this is a length for"""
+
+    pointer_count: int
+    """Depth of pointers for this type (* = 1, ** == 2)"""
+
+    pointer_count_var: str
+    """If this is a pointer, and an array, it's the max size of that array"""
+
+    is_null_terminated: bool
+    """Is this parameter null-terminated"""
+
+    no_auto_validity: bool
+    """Boolean indicating if this should not have any automatic validation performed"""
+
+    name: str
+    """The parameter name"""
+
+    valid_extension_structs: Optional[str]
+    """Name of valid extension structs for this param (usually for 'next')"""
+
+    cdecl: str
+    """The complete C-declaration for this parameter."""
+
+    values: Optional[str]
+    """None or comma-separated list of valid values"""
+
+
+@dataclass
+class StructUnionData:
+    """Information regarding a structure or union"""
+
+    name: str
+    """Name of the structure or union"""
+
+    ext_name: Optional[str]
+    """Name of extension this struct/union is associated with (or None)"""
+
+    required_exts: List[str]
+    """Additional extensions required for this struct/union to be valid"""
+
+    returned_only: bool
+    """Boolean indicating that this struct/union is only for returning information"""
+
+    members: List[MemberOrParam]
+    """List of MemberOrParam for each member in this struct/union"""
+
+    protect_value: Optional[str]
+    """None or a comma-delimited list indicating #define values to use around this structure/union"""
+
+    protect_string: str
+    """Empty string or string to use after #if to protect this structure/union"""
+
+
+@dataclass
+class CommandData:
+    """Command data"""
+
+    name: str
+    """Name of command"""
+
+    is_create_connect: bool
+    """Boolean indicating this is a create/connect command"""
+
+    is_destroy_disconnect: bool
+    """Boolean indicating this is a destroy/disconnect command"""
+
+    ext_name: Optional[str]
+    """Name of extension this command is associated with (or None)"""
+
+    ext_type: str
+    """Type of extension (instance, device)"""
+
+    required_exts: List[str]
+    """Additional extensions required for this command to be valid"""
+
+    handle_type: str
+    """Type of handle used as the primary type for this command"""
+
+    handle: str
+    """Base handle for this command"""
+
+    has_instance: bool
+    """True if an instance is used somewhere in the command"""
+
+    return_type: Optional[et.Element]
+    """Type of return (or None)"""
+
+    return_values: str
+    """Documented return values (core only)"""
+
+    params: List[MemberOrParam]
+    """List of MemberOrParam for each parameter in this command"""
+
+    protect_value: Optional[str]
+    """None or a comma-delimited list indicating #define values to use around this command"""
+
+    protect_string: str
+    """Empty string or string to use after #if to protect this command"""
+
+    begins_state: bool
+    """Boolean indicating this command begins some kind of state"""
+
+    ends_state: bool
+    """Boolean indicating this command ends some kind of state"""
+
+    checks_state: bool
+    """Boolean indicating this command checks for some kind of state"""
+
+    cdecl: str
+    """The complete C-declaration for this command"""
+
+
+@dataclass
+class ExtensionData:
+    """Information on a given extension"""
+
+    name: str
+    """Name of this extension (ex. XR_EXT_foo)"""
+
+    vendor_tag: str
+    """Vendor tag associated with this extension"""
+
+    type: str
+    """Type of extension (instance, device, ...)"""
+
+    define: str
+    """Define containing a string version of the extension name"""
+
+    num_commands: int
+    """Number of commands in the extension"""
+
+    required_exts: List[str]
+    """List of required extensions for using this extension's functionality"""
+
+    protect_value: Optional[str]
+    """None or a comma-delimited list indicating #define values to use around this extension"""
+
+    protect_string: str
+    """Empty string or string to use after #if to protect this extension"""
+
+
+@dataclass
+class BaseTypeData:
+    """Base type listing (converts from a type into a name which is used as a type somewhere else)."""
+
+    type: str
+    """The base type"""
+
+    name: str
+    """The name of the derived type"""
+
+
+@dataclass
+class TypeData:
+    """Type listing"""
+
+    name: str
+    """The name of the type"""
+
+    protect_value: Optional[str]
+    """None or a comma-delimited list indicating #define values to use around this type"""
+
+    protect_string: str
+    """Empty string or string to use after #if to protect this type"""
+
+    alias: Optional[str]
+    """None or the name of the type this is an alias for"""
+
+
+@dataclass
+class StructRelationGroup:
+    """Structure relation group data"""
+
+    generic_struct_name: str
+    """The name of the generic structure defining the common elements"""
+
+    child_struct_names: List[str]
+    """Children of the base structure"""
+
+
+@dataclass
+class ApiState:
+    """API state listing"""
+
+    state: str
+    """The name of the state"""
+
+    type: str
+    """The type that is associated with the state (handle/struct/...)"""
+
+    variable: str
+    """State variable"""
+
+    begin_commands: List[CommandData]
+    """List of commands that begin the current state"""
+
+    end_commands: List[CommandData]
+    """List of commands that end the current state"""
+
+    check_commands: List[CommandData]
+    """List of commands that check the current state"""
 
 
 class AutomaticSourceOutputGenerator(OutputGenerator):
@@ -111,216 +446,10 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # ** Global types for automatic source generation **
-        # Length Member data
-        self.LengthMember = namedtuple('LengthMember',
-                                       ['array_name',          # The name of the array
-                                        'length_name'])        # The name of the length parameter
-        # Handle data
-        self.HandleData = namedtuple('HandleData',
-                                     [  # The name of the handle
-                                         'name',
-                                         # The name of the handle's direct parent
-                                         'parent',
-                                         # A list of all the handle's ancestors
-                                         'ancestors',
-                                         # None or a comma-delimited list indicating #define values to use around this handle
-                                         'protect_value',
-                                         # Empty string or string to use after #if to protect this handle
-                                         'protect_string',
-                                         # Name of extension this handle is associated with (or None)
-                                         'ext_name'])
-        # Flag data
-        self.FlagBits = namedtuple('FlagBits',
-                                   [  # The name of the flag
-                                       'name',
-                                       # The base type of the flag (for example uint64_t)
-                                       'type',
-                                       # The list of valid flag values
-                                       'valid_flags',
-                                       # None or a comma-delimited list indicating #define values to use around this flag
-                                       'protect_value',
-                                       # Empty string or string to use after #if to protect this flag
-                                       'protect_string',
-                                       # Name of extension this command is associated with (or None)
-                                       'ext_name'])
-
-        # Individual Enum bit value
-        self.EnumBitValue = namedtuple('EnumBitValue',
-                                       [  # Name of an individual enum bit
-                                           'name',
-                                           # None or a comma-delimited list indicating #define values to use around this value
-                                           'protect_value',
-                                           # Empty string or string to use after #if to protect this value
-                                           'protect_string',
-                                           # Name of extension this command is associated with (or None)
-                                           'ext_name',
-                                           # None or the name of the type this is an alias for
-                                           'alias'])
-        # Enum type data
-        self.EnumData = namedtuple('EnumData',
-                                   [  # The name of the enum
-                                       'name',
-                                       # List of possible EnumBitValue for this enum.
-                                       'values',
-                                       # None or a comma-delimited list indicating #define values to use around this enum
-                                       'protect_value',
-                                       # Empty string or string to use after #if to protect this enum
-                                       'protect_string',
-                                       # Name of extension this command is associated with (or None)
-                                       'ext_name'])
-        # Struct/Union member or Command parameter data
-        self.MemberOrParam = namedtuple('MemberOrParam',
-                                        [  # The type of this parameter
-                                            'type',
-                                            # Boolean indicating if this type is a handle
-                                            'is_handle',
-                                            # Boolean indicating if this has a const identifier
-                                            'is_const',
-                                            # Boolean indicating if this is a boolean type
-                                            'is_bool',
-                                            # Boolean indicating if this is optional (pointers may be NULL, etc)
-                                            'is_optional',
-                                            # Boolean indicating if this is an array
-                                            'is_array',
-                                            # Number of dimensions for this array
-                                            'array_dimen',
-                                            # Boolean indicating if this is a statically sized array
-                                            'is_static_array',
-                                            # List of static array sizes for each dimension
-                                            'static_array_sizes',
-                                            # Name of array count if this is a value, and not a number
-                                            'array_count_var',
-                                            # Indicates the array parameter that this is a length for
-                                            'array_length_for',
-                                            # Depth of pointers for this type (* = 1, ** == 2)
-                                            'pointer_count',
-                                            # If this is a pointer, and an array, it's the max size of that array
-                                            'pointer_count_var',
-                                            # Is this parameter null-terminated
-                                            'is_null_terminated',
-                                            # Boolean indicating if this should not have any automatic validation performed
-                                            'no_auto_validity',
-                                            # The parameter name
-                                            'name',
-                                            # Name of valid extension structs for this param (usually for 'next')
-                                            'valid_extension_structs',
-                                            # The complete C-declaration for this parameter.
-                                            'cdecl',
-                                            # None or comma-separated list of valid values
-                                            'values'])
-        # Command data
-        self.CommandData = namedtuple('CommandData',
-                                      [  # Name of command
-                                          'name',
-                                          # Boolean indicating this is a create/connect command
-                                          'is_create_connect',
-                                          # Boolean indicating this is a destroy/disconnect command
-                                          'is_destroy_disconnect',
-                                          # Name of extension this command is associated with (or None)
-                                          'ext_name',
-                                          # Type of extension (instance, device)
-                                          'ext_type',
-                                          # Additional extensions required for this command to be valid
-                                          'required_exts',
-                                          # Type of handle used as the primary type for this command
-                                          'handle_type',
-                                          # Base handle for this command
-                                          'handle',
-                                          # True if an instance is used somewhere in the command
-                                          'has_instance',
-                                          # Type of return (or None)
-                                          'return_type',
-                                          # Documented return values (core only)
-                                          'return_values',
-                                          # List of MemberOrParam for each parameter in this command
-                                          'params',
-                                          # None or a comma-delimited list indicating #define values to use around this command
-                                          'protect_value',
-                                          # Empty string or string to use after #if to protect this command
-                                          'protect_string',
-                                          # Boolean indicating this command begins some kind of state
-                                          'begins_state',
-                                          # Boolean indicating this command ends some kind of state
-                                          'ends_state',
-                                          # Boolean indicating this command checks for some kind of state
-                                          'checks_state',
-                                          # The complete C-declaration for this command
-                                          'cdecl'])
-        # Information regarding a structure or union
-        self.StructUnionData = namedtuple('StructUnionData',
-                                          [  # Name of the structure or union
-                                              'name',
-                                              # Name of extension this struct/union is associated with (or None)
-                                              'ext_name',
-                                              # Additional extensions required for this struct/union to be valid
-                                              'required_exts',
-                                              # Boolean indicating that this struct/union is only for returning information
-                                              'returned_only',
-                                              # List of MemberOrParam for each member in this struct/union
-                                              'members',
-                                              # None or a comma-delimited list indicating #define values to use around this structure/union
-                                              'protect_value',
-                                              # Empty string or string to use after #if to protect this structure/union
-                                              'protect_string'])
-        # Information on a given extension
-        self.ExtensionData = namedtuple('ExtensionData',
-                                        [  # Name of this extension (ex. XR_EXT_foo)
-                                            'name',
-                                            # Vendor tag associated with this extension
-                                            'vendor_tag',
-                                            # Type of extension (instance, device, ...)
-                                            'type',
-                                            # Define containing a string version of the extension name
-                                            'define',
-                                            # Number of commands in the extension
-                                            'num_commands',
-                                            # List of required extensions for using this extension's functionality
-                                            'required_exts',
-                                            # None or a comma-delimited list indicating #define values to use around this extension
-                                            'protect_value',
-                                            # Empty string or string to use after #if to protect this extension
-                                            'protect_string'])
-        # Base type listing (converts from a type into a name which is used as a type somewhere else).
-        self.BaseTypeData = namedtuple('BaseTypeData',
-                                       [  # The base type
-                                           'type',
-                                           # The name of the derived type
-                                           'name'])
-        # Type listing
-        self.TypeData = namedtuple('TypeData',
-                                   [  # The name of the type
-                                       'name',
-                                       # None or a comma-delimited list indicating #define values to use around this type
-                                       'protect_value',
-                                       # Empty string or string to use after #if to protect this type
-                                       'protect_string',
-                                       # None or the name of the type this is an alias for
-                                       'alias'])
-        # Structure relation group data
-        self.StructRelationGroup = namedtuple('StructRelationGroup',
-                                              [  # The name of the generic structure defining the common elements
-                                                  'generic_struct_name',
-                                                  # Children of the base structure
-                                                  'child_struct_names'])
-        # API state listing
-        self.ApiState = namedtuple('ApiState',
-                                   [  # The name of the state
-                                       'state',
-                                       # The type that is associated with the state (handle/struct/...)
-                                       'type',
-                                       # State variable
-                                       'variable',
-                                       # List of commands that begin the current state
-                                       'begin_commands',
-                                       # List of commands that end the current state
-                                       'end_commands',
-                                       # List of commands that check the current state
-                                       'check_commands'])
         # Did we encounter an error
         self.encountered_error = False
         # List of strings containing all vendor tags
-        self.vendor_tags = []
+        self.vendor_tags: List[str] = []
         # Current vendor tag that should be used by this extension
         self.current_vendor_tag = ''
         # A define used to set the current API version in a component (in the loader, layers, etc).
@@ -328,25 +457,25 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         # A defined used to grab the current API Header's version
         self.header_version = ''
         # A list of all the API's core commands (CommandData).
-        self.core_commands = []
+        self.core_commands: List[CommandData] = []
         # A list of all the API's extension commands (CommandData).
-        self.ext_commands = []
+        self.ext_commands: List[CommandData] = []
         # A list of all extensions (ExtensionData) for this API
-        self.extensions = []
+        self.extensions: List[ExtensionData] = []
         # A list of all base data types (BaseTypeData) for this API
-        self.api_base_types = []
+        self.api_base_types: List[BaseTypeData] = []
         # A list of all handles (HandleData) for this API
-        self.api_handles = []
+        self.api_handles: List[HandleData] = []
         # A list of all structures (StructUnionData) for this API
-        self.api_structures = []
+        self.api_structures: List[StructUnionData] = []
         # A list of all unions (StructUnionData) for this API
-        self.api_unions = []
+        self.api_unions: List[StructUnionData] = []
         # A list of all enumeration (EnumData) for this API
-        self.api_enums = []
+        self.api_enums: List[EnumData] = []
         # A list of all flags (FlagBits) for this API
-        self.api_flags = []
+        self.api_flags: List[FlagBits] = []
         # A list of all bitmasks (EnumData) for this API
-        self.api_bitmasks = []
+        self.api_bitmasks: List[EnumData] = []
         # A list of all object types
         self.api_object_types = []
         # A list of all result types
@@ -572,7 +701,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                 if self.type == 'instance' or self.type == 'system':
                     # Add the completed extension to the list of extensions
                     self.extensions.append(
-                        self.ExtensionData(
+                        ExtensionData(
                             name=self.currentExtension,
                             vendor_tag=self.current_vendor_tag,
                             type=self.type,
@@ -636,7 +765,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                     extension_to_check = elem.get('extname', self.currentExtension)
                     alias = elem.get('alias')
                     values.append(
-                        self.EnumBitValue(
+                        EnumBitValue(
                             name=elem_name,
                             protect_value=enum_protect_value,
                             protect_string=enum_protect_string,
@@ -648,7 +777,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                                                   ' with the expected vendor tag \"%s\"' % (
                                                       name, self.currentExtension, self.current_vendor_tag))
                 self.api_enums.append(
-                    self.EnumData(
+                    EnumData(
                         name=name,
                         values=values,
                         protect_value=top_protect_value,
@@ -660,7 +789,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                                                   ' end with the expected vendor tag \"%s\"' % (
                                                       name, self.currentExtension, self.current_vendor_tag))
                 self.api_bitmasks.append(
-                    self.EnumData(
+                    EnumData(
                         name=name,
                         values=values,
                         protect_value=top_protect_value,
@@ -684,7 +813,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                                                               item_name, len(item_name), self.max_result_length))
                         alias = elem.get('alias')
                         self.api_result_types.append(
-                            self.TypeData(
+                            TypeData(
                                 name=item_name,
                                 protect_value=protect_value,
                                 protect_string=protect_string,
@@ -703,7 +832,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                                                           ' not end with the expected vendor tag \"%s\"' % (
                                                               item_name, self.currentExtension, self.current_vendor_tag))
                         self.api_object_types.append(
-                            self.TypeData(
+                            TypeData(
                                 name=item_name,
                                 protect_value=protect_value,
                                 protect_string=protect_string,
@@ -730,7 +859,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                         if alias:
                             self.aliases[item_name] = alias
                         self.api_structure_types.append(
-                            self.TypeData(
+                            TypeData(
                                 name=item_name,
                                 protect_value=protect_value,
                                 protect_string=protect_string,
@@ -799,7 +928,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             #  - We need to know when it's created and destroyed,
             #  - We need to setup unordered_maps and mutexes to track dispatch tables for each handle
             self.api_handles.append(
-                self.HandleData(
+                HandleData(
                     name=type_name,
                     parent=self.getHandleParent(type_name),
                     ancestors=self.getHandleAncestors(type_name),
@@ -813,7 +942,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             base_type = basetype_info[0]
             base_name = basetype_info[1]
             self.api_base_types.append(
-                self.BaseTypeData(
+                BaseTypeData(
                     type=base_type,
                     name=base_name))
         elif type_category == 'define':
@@ -831,7 +960,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             bitvalues = type_elem.get('bitvalues')
             # Record a bitmask and all it's valid flag bit values
             self.api_flags.append(
-                self.FlagBits(
+                FlagBits(
                     name=mask_name,
                     type=mask_type,
                     valid_flags=bitvalues,
@@ -927,6 +1056,16 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             required_exts.extend(ext_names.split(','))
         returned_only = (type_info.elem.get('returnedonly') == "true")
 
+        # Check if this is a base header.
+        if type_name.endswith("BaseHeader{}".format(self.current_vendor_tag)):
+            # Check if the relation group already existed
+            existing_relation_group = self.getRelationGroupForBaseStruct(type_name)
+            if existing_relation_group is None:
+                # Create with an empty child list
+                relation_group = StructRelationGroup(generic_struct_name=type_name,
+                                                            child_struct_names=[])
+                self._struct_relation_groups[type_name] = relation_group
+
         # Search through the members to determine all the array lengths
         arraylengths = dict()
         for member in members:
@@ -942,10 +1081,10 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             static_array_sizes = []
             no_auto_validity = True if member.get(
                 'noautovalidity') else False
-            is_optional = (self.paramIsOptional(member) or (member_name == 'next'))
+            is_optional = (member_name == 'next') or (has_any_optional_in_param(member))
             is_handle = self.isHandle(member_type)
-            is_static_array = self.paramIsStaticArray(member)
-            is_array = is_static_array
+            static_array_dim = self.paramIsStaticArray(member)
+            is_array = static_array_dim > 0
             array_count_var = ''
             # Determine if this is an array length member
             array_name_for_length = arraylengths.get(member_name, '')
@@ -961,7 +1100,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                 cdecl, member_type, member_name)
 
             # If this is a static array, grab the sizes
-            if is_static_array:
+            if static_array_dim:
                 static_array_sizes = self.paramStaticArraySizes(member)
 
             # If the enum field is there, then this is an array with an enum
@@ -989,26 +1128,27 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
 
             # Append this member to the list of current members
             members_info.append(
-                self.MemberOrParam(type=member_type,
-                                   name=member_name,
-                                   is_const=is_const,
-                                   is_handle=is_handle,
-                                   is_bool=True if 'XrBool' in member_type else False,
-                                   is_optional=is_optional,
-                                   no_auto_validity=no_auto_validity,
-                                   valid_extension_structs=self.registry.validextensionstructs[
-                                       type_name] if member_name == 'next' else None,
-                                   is_array=is_array,
-                                   is_static_array=is_static_array,
-                                   static_array_sizes=static_array_sizes,
-                                   array_dimen=array_dimen,
-                                   array_count_var=array_count_var,
-                                   array_length_for=array_name_for_length,
-                                   pointer_count=pointer_count,
-                                   pointer_count_var=pointer_count_var,
-                                   is_null_terminated=is_null_terminated,
-                                   cdecl=cdecl,
-                                   values=member_values))
+                MemberOrParam(type=member_type,
+                              name=member_name,
+                              is_const=is_const,
+                              is_handle=is_handle,
+                              is_bool=True if 'XrBool' in member_type else False,
+                              is_optional=is_optional,
+                              no_auto_validity=no_auto_validity,
+                              valid_extension_structs=self.registry.validextensionstructs[
+                                  type_name] if member_name == 'next' else None,
+                              is_array=is_array,
+                              is_static_array=(static_array_dim > 0),
+                              static_array_sizes=static_array_sizes,
+                              array_dimen=array_dimen,
+                              array_count_var=array_count_var,
+                              array_length_for=array_name_for_length,
+                              pointer_count=pointer_count,
+                              pointer_count_var=pointer_count_var,
+                              is_null_terminated=is_null_terminated,
+                              cdecl=cdecl,
+                              values=member_values))
+
         # If this structure/union expands a generic one, save the information and validate that
         # it contains at least the same elements as the generic one.
         if type_info.elem.get('parentstruct'):
@@ -1021,8 +1161,8 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                 else:
                     # Create with an empty child list for now
                     child_list = []
-                    relation_group = self.StructRelationGroup(generic_struct_name=generic_struct_name,
-                                                              child_struct_names=child_list)
+                    relation_group = StructRelationGroup(generic_struct_name=generic_struct_name,
+                                                         child_struct_names=child_list)
                     self._struct_relation_groups[generic_struct_name] = relation_group
 
                 # Get the structure information for the group's generic structure
@@ -1053,22 +1193,22 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                                 type_name, generic_struct_name))
         if is_union:
             self.api_unions.append(
-                self.StructUnionData(name=type_name,
-                                     ext_name=self.currentExtension,
-                                     required_exts=required_exts,
-                                     protect_value=protect_value,
-                                     protect_string=protect_string,
-                                     returned_only=returned_only,
-                                     members=members_info))
+                StructUnionData(name=type_name,
+                                ext_name=self.currentExtension,
+                                required_exts=required_exts,
+                                protect_value=protect_value,
+                                protect_string=protect_string,
+                                returned_only=returned_only,
+                                members=members_info))
         else:
             self.api_structures.append(
-                self.StructUnionData(name=type_name,
-                                     ext_name=self.currentExtension,
-                                     required_exts=required_exts,
-                                     protect_value=protect_value,
-                                     protect_string=protect_string,
-                                     returned_only=returned_only,
-                                     members=members_info))
+                StructUnionData(name=type_name,
+                                ext_name=self.currentExtension,
+                                required_exts=required_exts,
+                                protect_value=protect_value,
+                                protect_string=protect_string,
+                                returned_only=returned_only,
+                                members=members_info))
 
     # Add a command to the appropriate list of commands (core or extension)
     #   self            the AutomaticSourceOutputGenerator object
@@ -1077,6 +1217,8 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   name            the name of the command
     #   cmd_info        the XML information for this command
     def addCommandToDispatchList(self, ext_name, ext_type, name, cmd_info):
+        if self.registry is None:
+            raise MissingRegistryError()
         cmd_params = []
         required_exts = []
         is_core = True if self.isCoreExtensionName(ext_name) else False
@@ -1138,7 +1280,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
 
         # Generate a list of commands
         for param in params:
-            is_array = self.paramIsStaticArray(param)
+            is_array = self.paramIsStaticArray(param) > 0
             param_cdecl = self.makeCParamDecl(param, 0)
             array_count_var = ''
             pointer_count_var = ''
@@ -1183,16 +1325,16 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
 
             # Add the command parameter to the list
             cmd_params.append(
-                self.MemberOrParam(
+                MemberOrParam(
                     type=param_type,
                     name=param_name,
                     is_const=('const' in param_cdecl.strip().lower()),
                     is_handle=self.isHandle(param_type),
                     is_bool=('XrBool' in paramInfo[0]),
-                    is_optional=self.paramIsOptional(param),
+                    is_optional=has_any_optional_in_param(param),
                     no_auto_validity=(param.get('noautovalidity') is not None),
                     is_array=is_array,
-                    is_static_array=self.paramIsStaticArray(param),
+                    is_static_array=self.paramIsStaticArray(param) > 0,
                     static_array_sizes=self.paramStaticArraySizes(
                         param) if self.paramIsStaticArray(param) else None,
                     array_dimen=array_dimen,
@@ -1220,44 +1362,44 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
             if handle is not None and handle_type != 'XrInstance':
                 core_command_type = 'device'
             self.core_commands.append(
-                self.CommandData(name=name,
-                                 is_create_connect=is_create_connect,
-                                 is_destroy_disconnect=is_destroy_disconnect,
-                                 ext_name=ext_name,
-                                 ext_type=core_command_type,
-                                 required_exts=required_exts,
-                                 protect_value=protect_value,
-                                 protect_string=protect_string,
-                                 return_type=return_type,
-                                 return_values=return_values,
-                                 handle=handle,
-                                 handle_type=handle_type,
-                                 has_instance=cmd_has_instance,
-                                 params=cmd_params,
-                                 begins_state=begins_state,
-                                 ends_state=ends_state,
-                                 checks_state=checks_state,
-                                 cdecl=self.makeCDecls(cmd_info.elem)[0]))
+                CommandData(name=name,
+                            is_create_connect=is_create_connect,
+                            is_destroy_disconnect=is_destroy_disconnect,
+                            ext_name=ext_name,
+                            ext_type=core_command_type,
+                            required_exts=required_exts,
+                            protect_value=protect_value,
+                            protect_string=protect_string,
+                            return_type=return_type,
+                            return_values=return_values,
+                            handle=handle,
+                            handle_type=handle_type,
+                            has_instance=cmd_has_instance,
+                            params=cmd_params,
+                            begins_state=begins_state,
+                            ends_state=ends_state,
+                            checks_state=checks_state,
+                            cdecl=self.makeCDecls(cmd_info.elem)[0]))
         else:
             self.ext_commands.append(
-                self.CommandData(name=name,
-                                 is_create_connect=is_create_connect,
-                                 is_destroy_disconnect=is_destroy_disconnect,
-                                 ext_name=ext_name,
-                                 ext_type=ext_type,
-                                 required_exts=required_exts,
-                                 protect_value=protect_value,
-                                 protect_string=protect_string,
-                                 return_type=return_type,
-                                 return_values=return_values,
-                                 handle=handle,
-                                 handle_type=handle_type,
-                                 has_instance=cmd_has_instance,
-                                 params=cmd_params,
-                                 begins_state=begins_state,
-                                 ends_state=ends_state,
-                                 checks_state=checks_state,
-                                 cdecl=self.makeCDecls(cmd_info.elem)[0]))
+                CommandData(name=name,
+                            is_create_connect=is_create_connect,
+                            is_destroy_disconnect=is_destroy_disconnect,
+                            ext_name=ext_name,
+                            ext_type=ext_type,
+                            required_exts=required_exts,
+                            protect_value=protect_value,
+                            protect_string=protect_string,
+                            return_type=return_type,
+                            return_values=return_values,
+                            handle=handle,
+                            handle_type=handle_type,
+                            has_instance=cmd_has_instance,
+                            params=cmd_params,
+                            begins_state=begins_state,
+                            ends_state=ends_state,
+                            checks_state=checks_state,
+                            cdecl=self.makeCDecls(cmd_info.elem)[0]))
 
     def findState(self, state):
         for api_state in self.api_states:
@@ -1291,12 +1433,12 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                 begin_list.append(command)
                 # Create and append the new state
                 self.api_states.append(
-                    self.ApiState(state=cur_state,
-                                  type=state_type,
-                                  variable=state_variable,
-                                  begin_commands=begin_list,
-                                  end_commands=end_list,
-                                  check_commands=check_list))
+                    ApiState(state=cur_state,
+                             type=state_type,
+                             variable=state_variable,
+                             begin_commands=begin_list,
+                             end_commands=end_list,
+                             check_commands=check_list))
             else:
                 # Found, so just add a new begin command
                 found_state.begin_commands.append(command)
@@ -1327,12 +1469,12 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                 end_list.append(command)
                 # Create and append the new state
                 self.api_states.append(
-                    self.ApiState(state=cur_state,
-                                  type=state_type,
-                                  variable=state_variable,
-                                  begin_commands=begin_list,
-                                  end_commands=end_list,
-                                  check_commands=check_list))
+                    ApiState(state=cur_state,
+                             type=state_type,
+                             variable=state_variable,
+                             begin_commands=begin_list,
+                             end_commands=end_list,
+                             check_commands=check_list))
             else:
                 # Found, so just add a new end command
                 found_state.end_commands.append(command)
@@ -1363,12 +1505,12 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                 check_list.append(command)
                 # Create and append the new state
                 self.api_states.append(
-                    self.ApiState(state=cur_state,
-                                  type=state_type,
-                                  variable=state_variable,
-                                  begin_commands=begin_list,
-                                  end_commands=end_list,
-                                  check_commands=check_list))
+                    ApiState(state=cur_state,
+                             type=state_type,
+                             variable=state_variable,
+                             begin_commands=begin_list,
+                             end_commands=end_list,
+                             check_commands=check_list))
             else:
                 # Found, so just add a new check command
                 found_state.check_commands.append(command)
@@ -1376,7 +1518,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     # Check if the parameter passed in is a static array
     #   self            the AutomaticSourceOutputGenerator object
     #   param           the XML information for the param
-    def paramIsStaticArray(self, param):
+    def paramIsStaticArray(self, param) -> int:
         is_static_array = 0
         param_name = param.find('name')
         if param_name.tail and ('[' in param_name.tail):

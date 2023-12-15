@@ -1,4 +1,4 @@
-# Copyright 2022, Collabora, Ltd.
+# Copyright 2022-2023, Collabora, Ltd.
 # SPDX-License-Identifier: CC0-1.0
 
 name: Validate Gradle Wrapper
@@ -16,4 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          lfs: true
       - uses: gradle/wrapper-validation-action@v1

@@ -8,10 +8,10 @@ If you want to preview the changelog or perform a release, you can run a command
 like the following to install it locally:
 
 ```sh
-pip3 install proclamation
+pipx install proclamation
 ```
 
-See <https://gitlab.com/ryanpavlik/proclamation> for more details on *proclamation*.
+See <https://gitlab.com/proclamation/proclamation> for more details on *proclamation*.
 
 ## Fragments
 

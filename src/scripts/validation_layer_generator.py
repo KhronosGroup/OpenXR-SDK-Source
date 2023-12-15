@@ -24,7 +24,7 @@
 import re
 
 from automatic_source_generator import (AutomaticSourceOutputGenerator,
-                                        undecorate)
+                                        undecorate, MemberOrParam)
 from generator import write
 
 # The following commands have a manually defined component to them.
@@ -1387,7 +1387,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         inline_validate_handle += '}\n'
         return inline_validate_handle
 
-    def outputParamMemberContents(self, is_command, struct_command_name, param_member, param_member_prefix, instance_info_variable,
+    def outputParamMemberContents(self, is_command, struct_command_name, param_member: MemberOrParam, param_member_prefix, instance_info_variable,
                                   command_name_variable, is_first_param, primary_handle, primary_handle_desc_name, primary_handle_tuple,
                                   wrote_handle_proto, indent):
         param_member_contents = ''
