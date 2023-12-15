@@ -112,8 +112,6 @@ target_include_directories(
         "${CMAKE_CURRENT_BINARY_DIR}"
 )
 
-target_link_libraries(hello_xr PRIVATE OpenXR::openxr_loader)
-
 if(GLSLANG_VALIDATOR AND NOT GLSLC_COMMAND)
     target_compile_definitions(hello_xr PRIVATE USE_GLSLANGVALIDATOR)
 endif()
@@ -123,7 +121,7 @@ if(XR_USE_GRAPHICS_API_VULKAN)
     target_link_libraries(hello_xr PRIVATE ${Vulkan_LIBRARY})
 endif()
 
-option(ENABLE_META_OPENXR_SDK "Enable Meta OpenXR SDK" ON)
+option(ENABLE_META_OPENXR_SDK "Enable Meta OpenXR SDK" OFF)
 
 if(ENABLE_META_OPENXR_SDK)
     
@@ -144,7 +142,7 @@ else()
 
 endif()
 
-target_link_libraries(hello_xr OpenXR::openxr_loader)
+#target_link_libraries(hello_xr OpenXR::openxr_loader)
 
 
 if(TARGET openxr-gfxwrapper)
