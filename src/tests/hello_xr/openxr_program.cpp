@@ -264,8 +264,8 @@ bool supports_face_tracking_ = false;
 bool supports_fb_body_tracking_ = false;
 #endif
 
-#if ENABLE_OPENXR_META_INSIDE_OUT_BODY_TRACKING
-bool supports_meta_inside_out_body_tracking_ = false;
+#if ENABLE_OPENXR_META_BODY_TRACKING_FIDELITY
+bool supports_meta_body_tracking_fidelity_ = false;
 #endif
 
 #if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
@@ -639,6 +639,14 @@ struct OpenXrProgram : IOpenXrProgram
 				}
 #endif
 
+#if ENABLE_OPENXR_META_BODY_TRACKING_FIDELITY
+				if(!strcmp(extension.extensionName, XR_META_BODY_TRACKING_FIDELITY_EXTENSION_NAME))
+				{
+					Log::Write(Log::Level::Info, "FB OPENXR XR_META_body_tracking_fidelity - DETECTED");
+					supports_meta_body_tracking_fidelity_ = true;
+				}
+#endif
+
 #if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
 				if(!strcmp(extension.extensionName, XR_METAX1_SIMULTANEOUS_HANDS_CONTROLLERS_MANAGEMENT_EXTENSION_NAME))
 				{
@@ -805,6 +813,18 @@ struct OpenXrProgram : IOpenXrProgram
 		else
 		{
 			Log::Write(Log::Level::Info, "FB Meta Body Tracking is NOT supported");
+		}
+#endif
+
+#if ENABLE_OPENXR_META_BODY_TRACKING_FIDELITY
+		if(supports_meta_body_tracking_fidelity_)
+		{
+			Log::Write(Log::Level::Info, "XR_META_body_tracking_fidelity is supported");
+			extensions.push_back(XR_META_BODY_TRACKING_FIDELITY_EXTENSION_NAME);
+		}
+		else
+		{
+			Log::Write(Log::Level::Info, "XR_META_body_tracking_fidelity is NOT supported");
 		}
 #endif
 
@@ -2122,7 +2142,7 @@ struct OpenXrProgram : IOpenXrProgram
 	}
 #endif
 
-#if ENABLE_OPENXR_META_INSIDE_OUT_BODY_TRACKING
+#if ENABLE_OPENXR_META_BODY_TRACKING_FIDELITY
     void CreateMetaBodyTracker()
     {
 
@@ -2141,7 +2161,7 @@ struct OpenXrProgram : IOpenXrProgram
         CreateFBBodyTracker();
 #endif
 
-#if ENABLE_OPENXR_META_INSIDE_OUT_BODY_TRACKING
+#if ENABLE_OPENXR_META_BODY_TRACKING_FIDELITY
         CreateMetaBodyTracker();
 #endif
     }
@@ -2152,7 +2172,7 @@ struct OpenXrProgram : IOpenXrProgram
 		DestroyFBBodyTracker();
 #endif
 
-#if ENABLE_OPENXR_META_INSIDE_OUT_BODY_TRACKING
+#if ENABLE_OPENXR_META_BODY_TRACKING_FIDELITY
         DestroyMetaBodyTracker();
 #endif
 	}
