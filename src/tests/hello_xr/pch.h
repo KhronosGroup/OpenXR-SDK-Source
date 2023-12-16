@@ -194,9 +194,14 @@
 // Face tracking (not implemented yet)
 #define ENABLE_OPENXR_FB_FACE_TRACKING 0
 
+// New inside-out body tracking
+#define ENABLE_OPENXR_META_INSIDE_OUT_BODY_TRACKING 1
+
 #define ENABLE_OPENXR_HAND_TRACKING 0
-#define ENABLE_OPENXR_FB_BODY_TRACKING 1 // Hand tracking is redundant if you have body tracking, which includes all the same finger joints
+#define ENABLE_OPENXR_FB_BODY_TRACKING (!ENABLE_OPENXR_META_INSIDE_OUT_BODY_TRACKING && 1) // Hand tracking is redundant if you have body tracking, which includes all the same finger joints
 #define ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS ((ENABLE_OPENXR_FB_BODY_TRACKING || ENABLE_OPENXR_HAND_TRACKING) && 1)
+
+#define ENABLE_BODY_TRACKING (ENABLE_OPENXR_META_INSIDE_OUT_BODY_TRACKING || ENABLE_OPENXR_FB_BODY_TRACKING)
 
 #define ENABLE_QUAD_LAYER 0
 

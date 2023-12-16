@@ -261,7 +261,11 @@ bool supports_face_tracking_ = false;
 #endif
 
 #if ENABLE_OPENXR_FB_BODY_TRACKING
-bool supports_body_tracking_ = false;
+bool supports_fb_body_tracking_ = false;
+#endif
+
+#if ENABLE_OPENXR_META_INSIDE_OUT_BODY_TRACKING
+bool supports_meta_inside_out_body_tracking_ = false;
 #endif
 
 #if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
@@ -469,7 +473,7 @@ struct OpenXrProgram : IOpenXrProgram
         ShutdownSDLJoySticks();
 #endif
 
-#if ENABLE_OPENXR_FB_BODY_TRACKING
+#if ENABLE_BODY_TRACKING
 		DestroyBodyTracker();
 #endif
 
@@ -631,7 +635,7 @@ struct OpenXrProgram : IOpenXrProgram
 				if(!strcmp(extension.extensionName, XR_FB_BODY_TRACKING_EXTENSION_NAME))
 				{
 					Log::Write(Log::Level::Info, "FB OPENXR XR_FB_body_tracking - DETECTED");
-					supports_body_tracking_ = true;
+					supports_fb_body_tracking_ = true;
 				}
 #endif
 
@@ -793,7 +797,7 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if ENABLE_OPENXR_FB_BODY_TRACKING
-		if (supports_body_tracking_)
+		if (supports_fb_body_tracking_)
 		{
 			Log::Write(Log::Level::Info, "FB Meta Body Tracking is supported");
 			extensions.push_back(XR_FB_BODY_TRACKING_EXTENSION_NAME);
@@ -2013,9 +2017,9 @@ struct OpenXrProgram : IOpenXrProgram
     uint32_t skeleton_change_count_ = 0;
 #endif
 
-    void CreateBodyTracker()
+    void CreateFBBodyTracker()
     {
-        if (!supports_body_tracking_ || !m_instance || !m_session || body_tracker_)
+        if (!supports_fb_body_tracking_ || !m_instance || !m_session || body_tracker_)
         {
             return;
         }
@@ -2042,9 +2046,9 @@ struct OpenXrProgram : IOpenXrProgram
 		}
     }
 
-	void DestroyBodyTracker()
+	void DestroyFBBodyTracker()
 	{
-		if (!supports_body_tracking_ || !body_tracker_)
+		if (!supports_fb_body_tracking_ || !body_tracker_)
 		{
 			return;
 		}
@@ -2066,7 +2070,7 @@ struct OpenXrProgram : IOpenXrProgram
 		Log::Write(Log::Level::Info, "OPENXR - Body tracker destroyed...");
 	}
 
-	void UpdateBodyTrackerLocations(const XrTime& predicted_display_time)
+	void UpdateFBBodyTrackerLocations(const XrTime& predicted_display_time)
 	{
         if (body_tracker_ && body_tracking_enabled_)
         {
@@ -2116,6 +2120,43 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 		}
 	}
+#endif
+
+#if ENABLE_OPENXR_META_INSIDE_OUT_BODY_TRACKING
+    void CreateMetaBodyTracker()
+    {
+
+    }
+
+    void DestroyMetaBodyTracker()
+    {
+
+    }
+#endif
+
+#if ENABLE_BODY_TRACKING
+    void CreateBodyTracker()
+    {
+#if ENABLE_OPENXR_FB_BODY_TRACKING
+        CreateFBBodyTracker();
+#endif
+
+#if ENABLE_OPENXR_META_INSIDE_OUT_BODY_TRACKING
+        CreateMetaBodyTracker();
+#endif
+    }
+
+	void DestroyBodyTracker()
+	{
+#if ENABLE_OPENXR_FB_BODY_TRACKING
+		DestroyFBBodyTracker();
+#endif
+
+#if ENABLE_OPENXR_META_INSIDE_OUT_BODY_TRACKING
+        DestroyMetaBodyTracker();
+#endif
+	}
+
 #endif
 
 #if USE_SDL_JOYSTICKS
