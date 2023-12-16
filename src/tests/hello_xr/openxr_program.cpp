@@ -268,6 +268,10 @@ bool supports_fb_body_tracking_ = false;
 bool supports_meta_body_tracking_fidelity_ = false;
 #endif
 
+#if ENABLE_OPENXR_META_FULL_BODY_TRACKING
+bool supports_meta_full_body_tracking_ = false;
+#endif
+
 #if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
 bool supports_simultaneous_hands_and_controllers_ = false;
 #endif
@@ -647,6 +651,14 @@ struct OpenXrProgram : IOpenXrProgram
 				}
 #endif
 
+#if ENABLE_OPENXR_META_FULL_BODY_TRACKING
+				if(!strcmp(extension.extensionName, XR_META_BODY_TRACKING_FULL_BODY_EXTENSION_NAME))
+				{
+					Log::Write(Log::Level::Info, "FB OPENXR XR_META_body_tracking_full_body - DETECTED");
+                    supports_meta_full_body_tracking_ = true;
+				}
+#endif
+
 #if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
 				if(!strcmp(extension.extensionName, XR_METAX1_SIMULTANEOUS_HANDS_CONTROLLERS_MANAGEMENT_EXTENSION_NAME))
 				{
@@ -825,6 +837,18 @@ struct OpenXrProgram : IOpenXrProgram
 		else
 		{
 			Log::Write(Log::Level::Info, "XR_META_body_tracking_fidelity is NOT supported");
+		}
+#endif
+
+#if ENABLE_OPENXR_META_FULL_BODY_TRACKING
+		if(supports_meta_full_body_tracking_)
+		{
+			Log::Write(Log::Level::Info, "XR_META_body_tracking_full_body is supported");
+			extensions.push_back(XR_META_BODY_TRACKING_FULL_BODY_EXTENSION_NAME);
+		}
+		else
+		{
+			Log::Write(Log::Level::Info, "XR_META_body_tracking_full_body is NOT supported");
 		}
 #endif
 
@@ -2143,14 +2167,39 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if ENABLE_OPENXR_META_BODY_TRACKING_FIDELITY
-    void CreateMetaBodyTracker()
+    PFN_xrRequestBodyTrackingFidelityMETA xrRequestBodyTrackingFidelityMETA = nullptr;
+
+    XrBodyTrackingFidelityMETA current_fidelity_ = XR_BODY_TRACKING_FIDELITY_LOW_META;
+
+    XrBodyTrackingFidelityStatusMETA body_tracker_fidelity_status_{ XR_TYPE_BODY_TRACKING_FIDELITY_STATUS_META };
+    XrSystemPropertiesBodyTrackingFidelityMETA body_tracker_fidelity_properties_{ XR_TYPE_SYSTEM_PROPERTIES_BODY_TRACKING_FIDELITY_META };
+
+    void RequestMetaFidelityBodyTracker(bool high_fidelity)
     {
+        XrBodyTrackingFidelityMETA new_fidelity = high_fidelity ? XR_BODY_TRACKING_FIDELITY_HIGH_META : XR_BODY_TRACKING_FIDELITY_LOW_META;
 
-    }
+        if(!supports_meta_body_tracking_fidelity_ || !body_tracker_ || (current_fidelity_ == new_fidelity))
+        {
+            return;
+        }
 
-    void DestroyMetaBodyTracker()
-    {
+        if(xrRequestBodyTrackingFidelityMETA == nullptr)
+        {
+            XR_LOAD(m_instance, xrRequestBodyTrackingFidelityMETA);
+        }
 
+        if(xrRequestBodyTrackingFidelityMETA == nullptr)
+        {
+            return;
+        }
+
+		XrResult result = xrRequestBodyTrackingFidelityMETA(body_tracker_, new_fidelity);
+
+		if(result == XR_SUCCESS)
+		{
+			Log::Write(Log::Level::Info, Fmt("OPENXR - Meta Body tracking FIDELITY changed to %s", high_fidelity ? "XR_BODY_TRACKING_FIDELITY_HIGH_META": "XR_BODY_TRACKING_FIDELITY_LOW_META"));
+            current_fidelity_ = new_fidelity;
+		}
     }
 #endif
 
@@ -2162,21 +2211,20 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if ENABLE_OPENXR_META_BODY_TRACKING_FIDELITY
-        CreateMetaBodyTracker();
+        RequestMetaFidelityBodyTracker(true);
 #endif
     }
 
 	void DestroyBodyTracker()
 	{
+#if ENABLE_OPENXR_META_BODY_TRACKING_FIDELITY
+		RequestMetaFidelityBodyTracker(false);
+#endif
+
 #if ENABLE_OPENXR_FB_BODY_TRACKING
 		DestroyFBBodyTracker();
 #endif
-
-#if ENABLE_OPENXR_META_BODY_TRACKING_FIDELITY
-        DestroyMetaBodyTracker();
-#endif
 	}
-
 #endif
 
 #if USE_SDL_JOYSTICKS
@@ -2963,7 +3011,7 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_OPENXR_FB_BODY_TRACKING
         if (body_tracking_enabled_)
         {
-            UpdateBodyTrackerLocations(predictedDisplayTime);
+            UpdateFBBodyTrackerLocations(predictedDisplayTime);
 
 			if (body_joint_locations_.isActive) 
             {
