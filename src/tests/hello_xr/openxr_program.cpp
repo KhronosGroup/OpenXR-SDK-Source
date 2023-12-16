@@ -1355,6 +1355,8 @@ struct OpenXrProgram : IOpenXrProgram
             CHECK_XRCMD(xrCreateReferenceSpace(m_session, &referenceSpaceCreateInfo, &m_appSpace));
         }
 
+        GetSystemProperties();
+
 #if ENABLE_OPENXR_FB_REFRESH_RATE
         GetMaxRefreshRate();
 		SetRefreshRate(DESIRED_REFRESH_RATE);
@@ -1380,49 +1382,76 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
     }
 
-    void CreateSwapchains() override 
+	XrSystemProperties xr_system_properties_{ XR_TYPE_SYSTEM_PROPERTIES };
+	bool system_properties_initialized_ = false;
+
+    void GetSystemProperties()
     {
         CHECK(m_session != XR_NULL_HANDLE);
-        CHECK(m_swapchains.empty());
-        CHECK(m_configViews.empty());
 
-        // Read graphics properties for preferred swapchain length and logging.
-        XrSystemProperties systemProperties{XR_TYPE_SYSTEM_PROPERTIES};
+        if (system_properties_initialized_)
+        {
+            return;
+        }
+
+#if ENABLE_OPENXR_META_FULL_BODY_TRACKING
+		XrSystemPropertiesBodyTrackingFullBodyMETA meta_full_body_tracking_properties{ XR_TYPE_SYSTEM_PROPERTIES_BODY_TRACKING_FULL_BODY_META };
+
+		if(supports_meta_full_body_tracking_)
+		{
+			meta_full_body_tracking_properties.next = xr_system_properties_.next;
+            xr_system_properties_.next = &meta_full_body_tracking_properties;
+		}
+#endif
 
 #if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
 		XrSystemSimultaneousHandsControllersPropertiesMETAX1 simultaneous_properties = { XR_TYPE_SYSTEM_SIMULTANEOUS_HANDS_CONTROLLERS_PROPERTIES_METAX1 };
 
 		if(supports_simultaneous_hands_and_controllers_)
 		{
-			simultaneous_properties.next = systemProperties.next; // for when I add eye tracking ext to this sample, it's chained to pnext here
-			systemProperties.next = &simultaneous_properties;
+			simultaneous_properties.next = xr_system_properties_.next;
+            xr_system_properties_.next = &simultaneous_properties;
 		}
 #endif
 
-        CHECK_XRCMD(xrGetSystemProperties(m_instance, m_systemId, &systemProperties));
+		CHECK_XRCMD(xrGetSystemProperties(m_instance, m_systemId, &xr_system_properties_));
 
 #if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
-        supports_simultaneous_hands_and_controllers_ = simultaneous_properties.supportsSimultaneousHandsAndControllers;
+		supports_meta_full_body_tracking_ = meta_full_body_tracking_properties.supportsFullBodyTracking;
 #endif
 
-        // Log system properties.
-        Log::Write(Log::Level::Info,
-                   Fmt("System Properties: Name=%s VendorId=%d", systemProperties.systemName, systemProperties.vendorId));
+#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+		supports_simultaneous_hands_and_controllers_ = simultaneous_properties.supportsSimultaneousHandsAndControllers;
+#endif
 
-        Log::Write(Log::Level::Info, Fmt("System Graphics Properties: MaxWidth=%d MaxHeight=%d MaxLayers=%d",
-                                         systemProperties.graphicsProperties.maxSwapchainImageWidth,
-                                         systemProperties.graphicsProperties.maxSwapchainImageHeight,
-                                         systemProperties.graphicsProperties.maxLayerCount));
+		// Log system properties.
+		Log::Write(Log::Level::Info,
+			Fmt("System Properties: Name=%s VendorId=%d", xr_system_properties_.systemName, xr_system_properties_.vendorId));
 
-        Log::Write(Log::Level::Info, Fmt("System Tracking Properties: OrientationTracking=%s PositionTracking=%s",
-                                         systemProperties.trackingProperties.orientationTracking == XR_TRUE ? "True" : "False",
-                                         systemProperties.trackingProperties.positionTracking == XR_TRUE ? "True" : "False"));
+		Log::Write(Log::Level::Info, Fmt("System Graphics Properties: MaxWidth=%d MaxHeight=%d MaxLayers=%d",
+            xr_system_properties_.graphicsProperties.maxSwapchainImageWidth,
+            xr_system_properties_.graphicsProperties.maxSwapchainImageHeight,
+            xr_system_properties_.graphicsProperties.maxLayerCount));
 
-        // Note: No other view configurations exist at the time this code was written. If this
-        // condition is not met, the project will need to be audited to see how support should be
-        // added.
-        CHECK_MSG(m_options->Parsed.ViewConfigType == XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
-                  "Unsupported view configuration type");
+		Log::Write(Log::Level::Info, Fmt("System Tracking Properties: OrientationTracking=%s PositionTracking=%s",
+            xr_system_properties_.trackingProperties.orientationTracking == XR_TRUE ? "True" : "False",
+            xr_system_properties_.trackingProperties.positionTracking == XR_TRUE ? "True" : "False"));
+
+		// Note: No other view configurations exist at the time this code was written. If this
+		// condition is not met, the project will need to be audited to see how support should be
+		// added.
+		CHECK_MSG(m_options->Parsed.ViewConfigType == XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
+			"Unsupported view configuration type");
+
+        system_properties_initialized_ = true;
+    }
+
+    void CreateSwapchains() override 
+    {
+        CHECK(m_session != XR_NULL_HANDLE);
+        CHECK(m_swapchains.empty());
+        CHECK(m_configViews.empty());
+        CHECK(system_properties_initialized_);
 
         // Query and cache view configuration views.
         uint32_t viewCount = 0;
@@ -2079,7 +2108,12 @@ struct OpenXrProgram : IOpenXrProgram
 		}
 
 		XrBodyTrackerCreateInfoFB create_info{ XR_TYPE_BODY_TRACKER_CREATE_INFO_FB };
+
+#if ENABLE_OPENXR_META_FULL_BODY_TRACKING
+        create_info.bodyJointSet = supports_meta_full_body_tracking_ ? XR_BODY_JOINT_SET_FULL_BODY_META : XR_BODY_JOINT_SET_DEFAULT_FB;
+#else
         create_info.bodyJointSet = XR_BODY_JOINT_SET_DEFAULT_FB;
+#endif
 
 		XrResult result = xrCreateBodyTrackerFB(m_session, &create_info, &body_tracker_);
 
@@ -2145,8 +2179,14 @@ struct OpenXrProgram : IOpenXrProgram
             locate_info.time = predicted_display_time;
 
             body_joint_locations_.next = nullptr;
+
+#if ENABLE_OPENXR_META_FULL_BODY_TRACKING
+			body_joint_locations_.jointCount = supports_meta_full_body_tracking_ ? XR_FULL_BODY_JOINT_COUNT_META : XR_BODY_JOINT_COUNT_FB;
+            body_joint_locations_.jointLocations = supports_meta_full_body_tracking_ ? full_body_joints_ : body_joints_;
+#else
             body_joint_locations_.jointCount = XR_BODY_JOINT_COUNT_FB;
             body_joint_locations_.jointLocations = body_joints_;
+#endif
 
 #if LOG_BODY_TRACKING_DATA
             XrResult result = xrLocateBodyJointsFB(body_tracker_, &locate_info, &body_joint_locations_);
@@ -2201,6 +2241,10 @@ struct OpenXrProgram : IOpenXrProgram
             current_fidelity_ = new_fidelity;
 		}
     }
+#endif
+
+#if ENABLE_OPENXR_META_FULL_BODY_TRACKING
+	XrBodyJointLocationFB full_body_joints_[XR_FULL_BODY_JOINT_COUNT_META] = {};
 #endif
 
 #if ENABLE_BODY_TRACKING
@@ -3019,12 +3063,33 @@ struct OpenXrProgram : IOpenXrProgram
                 bool found_waist = false;
 #endif
 
-				for (int i = 0; i < XR_BODY_JOINT_COUNT_FB; ++i) 
+
+#if ENABLE_OPENXR_META_FULL_BODY_TRACKING
+                const int num_joints = supports_meta_full_body_tracking_ ? XR_FULL_BODY_JOINT_COUNT_META : XR_BODY_JOINT_COUNT_FB;
+#else
+                const int num_joints = XR_BODY_JOINT_COUNT_FB;
+#endif
+
+				for (int joint_id = 0; joint_id < num_joints; ++joint_id)
                 {
-					if ((body_joints_[i].locationFlags & (XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT))) 
+
+#if ENABLE_OPENXR_META_FULL_BODY_TRACKING
+                    const bool is_joint_valid = supports_meta_full_body_tracking_ ? 
+                    (full_body_joints_[joint_id].locationFlags & (XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT)) :
+                    (body_joints_[joint_id].locationFlags & (XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT));
+#else
+                    const bool is_joint_valid = (body_joints_[joint_id].locationFlags & (XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT));
+#endif
+					if (is_joint_valid)
                     {
 						XrVector3f body_joint_scale{ BODY_CUBE_SIZE, BODY_CUBE_SIZE, BODY_CUBE_SIZE };
-                        const XrPosef& local_body_joint_pose = body_joints_[i].pose;
+
+#if ENABLE_OPENXR_META_FULL_BODY_TRACKING
+                        const XrPosef& local_body_joint_pose = supports_meta_full_body_tracking_ ? full_body_joints_[joint_id].pose : body_joints_[joint_id].pose;
+#else
+                        const XrPosef& local_body_joint_pose = body_joints_[joint_id].pose;
+#endif
+                        
 
 #if DRAW_LOCAL_BODY_JOINTS
 						cubes.push_back(Cube{ local_body_joint_pose, body_joint_scale });
@@ -3043,7 +3108,14 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
-                        if (i == XR_BODY_JOINT_HIPS_FB)
+
+#if ENABLE_OPENXR_META_FULL_BODY_TRACKING
+                        const int hips_joint_id = supports_meta_full_body_tracking_ ? XR_FULL_BODY_JOINT_HIPS_META : XR_BODY_JOINT_HIPS_FB;
+#else
+                        const int hips_joint_id = XR_BODY_JOINT_HIPS_FB;
+#endif
+
+                        if (joint_id == hips_joint_id)
                         {
                             local_waist_pose = BVR::convert_to_glm(local_body_joint_pose);
 
