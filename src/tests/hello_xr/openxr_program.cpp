@@ -272,7 +272,7 @@ bool supports_meta_body_tracking_fidelity_ = false;
 bool supports_meta_full_body_tracking_ = false;
 #endif
 
-#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+#if ENABLE_OPENXR_FB_SIMULTANEOUS_HANDS_AND_CONTROLLERS
 bool supports_simultaneous_hands_and_controllers_ = false;
 #endif
 
@@ -659,7 +659,7 @@ struct OpenXrProgram : IOpenXrProgram
 				}
 #endif
 
-#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+#if ENABLE_OPENXR_FB_SIMULTANEOUS_HANDS_AND_CONTROLLERS
 				if(!strcmp(extension.extensionName, XR_METAX1_SIMULTANEOUS_HANDS_CONTROLLERS_MANAGEMENT_EXTENSION_NAME))
 				{
 					Log::Write(Log::Level::Info, "FB OPENXR XR_METAX1_simultaneous_hands_controllers_management - DETECTED");
@@ -852,7 +852,7 @@ struct OpenXrProgram : IOpenXrProgram
 		}
 #endif
 
-#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+#if ENABLE_OPENXR_FB_SIMULTANEOUS_HANDS_AND_CONTROLLERS
 		if(supports_simultaneous_hands_and_controllers_)
 		{
 			Log::Write(Log::Level::Info, "Simultaneous hands and controllers are supported");
@@ -1374,7 +1374,7 @@ struct OpenXrProgram : IOpenXrProgram
 		CreateBodyTracker();
 #endif
 
-#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+#if ENABLE_OPENXR_FB_SIMULTANEOUS_HANDS_AND_CONTROLLERS
         if(AreSimultaneousHandsAndControllersSupported())
         {
             SetSimultaneousHandsAndControllersEnabled(true);
@@ -1404,7 +1404,7 @@ struct OpenXrProgram : IOpenXrProgram
 		}
 #endif
 
-#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+#if ENABLE_OPENXR_FB_SIMULTANEOUS_HANDS_AND_CONTROLLERS
 		XrSystemSimultaneousHandsControllersPropertiesMETAX1 simultaneous_properties = { XR_TYPE_SYSTEM_SIMULTANEOUS_HANDS_CONTROLLERS_PROPERTIES_METAX1 };
 
 		if(supports_simultaneous_hands_and_controllers_)
@@ -1420,7 +1420,7 @@ struct OpenXrProgram : IOpenXrProgram
 		supports_meta_full_body_tracking_ = meta_full_body_tracking_properties.supportsFullBodyTracking;
 #endif
 
-#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+#if ENABLE_OPENXR_FB_SIMULTANEOUS_HANDS_AND_CONTROLLERS
 		supports_simultaneous_hands_and_controllers_ = simultaneous_properties.supportsSimultaneousHandsAndControllers;
 #endif
 
@@ -2288,7 +2288,7 @@ struct OpenXrProgram : IOpenXrProgram
     }
 #endif
 
-#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+#if ENABLE_OPENXR_FB_SIMULTANEOUS_HANDS_AND_CONTROLLERS
 	PFN_xrResumeSimultaneousHandsControllersTrackingMETAX1 xrResumeSimultaneousHandsControllersTrackingMETAX1 = nullptr;
 	PFN_xrPauseSimultaneousHandsControllersTrackingMETAX1 xrPauseSimultaneousHandsControllersTrackingMETAX1 = nullptr;
 

@@ -82,7 +82,7 @@ struct IOpenXrProgram
     virtual void UpdateEyeTrackers(XrTime predicted_display_time) = 0;
 #endif
 
-#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+#if ENABLE_OPENXR_FB_SIMULTANEOUS_HANDS_AND_CONTROLLERS
     virtual bool AreSimultaneousHandsAndControllersSupported() const = 0;
     virtual bool AreSimultaneousHandsAndControllersEnabled() const = 0;
     virtual void SetSimultaneousHandsAndControllersEnabled(const bool enabled) = 0;
