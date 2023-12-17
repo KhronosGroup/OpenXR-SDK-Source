@@ -1416,7 +1416,7 @@ struct OpenXrProgram : IOpenXrProgram
 
 		CHECK_XRCMD(xrGetSystemProperties(m_instance, m_systemId, &xr_system_properties_));
 
-#if ENABLE_OPENXR_FB_SIMULTEANEOUS_HANDS_AND_CONTROLLERS
+#if ENABLE_OPENXR_META_FULL_BODY_TRACKING
 		supports_meta_full_body_tracking_ = meta_full_body_tracking_properties.supportsFullBodyTracking;
 #endif
 
