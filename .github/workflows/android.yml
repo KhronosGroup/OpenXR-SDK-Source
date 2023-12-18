@@ -43,14 +43,14 @@ jobs:
         run: ./maintainer-scripts/build-aar.sh
 
       - name: Upload bare AAR
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: AAR and POM
           path: openxr_loader_for_android*
 
       - name: Upload Maven repo
         if: inputs.release || inputs.snapshot
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: repo
           path: maintainer-scripts/publish-aar/build/repo/
@@ -78,7 +78,7 @@ jobs:
 
       - name: Upload HelloXR OpenGLES (debug) for Android
         if: ${{ !inputs.release }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: HelloXR OpenGLES Android
           path: src/tests/hello_xr/build/outputs/apk/OpenGLES/debug/*.apk
