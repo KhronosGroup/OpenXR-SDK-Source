@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 #
 # Copyright (c) 2019 Collabora, Ltd.
-# Copyright (c) 2018-2023, The Khronos Group Inc.
+# Copyright (c) 2018-2024, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Author(s):    Ryan Pavlik <ryan.pavlik@collabora.com>
+# Author(s):    Rylie Pavlik <rylie.pavlik@collabora.com>
 #
 # Purpose:      This script checks some "business logic" in the XML registry.
 
@@ -181,6 +181,23 @@ class Checker(XMLChecker):
 
         # Keys are entity names, values are tuples or lists of message text to suppress.
         suppressions: Dict[str, Union[Tuple[str, ...], List[str]]] = {
+            # xrCreateApiLayerInstance has a very constrained list of code specified in the spec
+            "xrCreateApiLayerInstance": (
+                "Missing expected return code(s) XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY implied because of the name of this command",
+                "Missing expected return code(s) XR_ERROR_OUT_OF_MEMORY,XR_ERROR_LIMIT_REACHED implied because of the name of this command",
+                "Missing expected return code(s) XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST implied because of input of type XrInstance",
+                "Missing expected return code(s) XR_ERROR_INSTANCE_LOST,XR_ERROR_HANDLE_INVALID implied because of input of type XrInstance",
+            ),
+            # XrLoaderInterfaceStructs doesn't match the OpenXR pattern :(
+            "XrLoaderInterfaceStructs": (
+                "Got an enum value whose name does not match the pattern: got XR_LOADER_INTERFACE_STRUCT_API_LAYER_CREATE_INFO but expected something that started with XR_LOADER_INTERFACE_STRUCTS_ due to typename being XrLoaderInterfaceStructs",
+                "Got an enum value whose name does not match the pattern: got XR_LOADER_INTERFACE_STRUCT_UNINTIALIZED but expected something that started with XR_LOADER_INTERFACE_STRUCTS_ due to typename being XrLoaderInterfaceStructs",
+                "Got an enum value whose name does not match the pattern: got XR_LOADER_INTERFACE_STRUCT_RUNTIME_REQUEST but expected something that started with XR_LOADER_INTERFACE_STRUCTS_ due to typename being XrLoaderInterfaceStructs",
+                "Got an enum whose name does not match the pattern: the type is XrLoaderInterfaceStructs which would cause values to start with XR_LOADER_INTERFACE_STRUCTS_ but got a different longest common prefix XR_LOADER_INTERFACE_STRUCT_",
+                "Got an enum value whose name does not match the pattern: got XR_LOADER_INTERFACE_STRUCT_LOADER_INFO but expected something that started with XR_LOADER_INTERFACE_STRUCTS_ due to typename being XrLoaderInterfaceStructs",
+                "Got an enum value whose name does not match the pattern: got XR_LOADER_INTERFACE_STRUCT_API_LAYER_NEXT_INFO but expected something that started with XR_LOADER_INTERFACE_STRUCTS_ due to typename being XrLoaderInterfaceStructs",
+                "Got an enum value whose name does not match the pattern: got XR_LOADER_INTERFACE_STRUCT_API_LAYER_REQUEST but expected something that started with XR_LOADER_INTERFACE_STRUCTS_ due to typename being XrLoaderInterfaceStructs",
+            ),
             # path to string can take any path
             "xrPathToString": ("Missing expected return code(s) XR_ERROR_PATH_UNSUPPORTED implied because of input of type XrPath",),
             # Just a case error, vendor declined to modify

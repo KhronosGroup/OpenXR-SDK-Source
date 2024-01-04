@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2023, The Khronos Group Inc.
+// Copyright (c) 2017-2024, The Khronos Group Inc.
 // Copyright (c) 2017 Valve Corporation
 // Copyright (c) 2017 LunarG, Inc.
 //
@@ -24,8 +24,7 @@
 
 #include "xr_dependencies.h"
 #include <openxr/openxr.h>
-
-#include "loader_interfaces.h"
+#include <openxr/openxr_loader_negotiation.h>
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #define RUNTIME_EXPORT __attribute__((visibility("default")))

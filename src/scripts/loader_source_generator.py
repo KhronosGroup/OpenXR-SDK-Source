@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2017-2023, The Khronos Group Inc.
+# Copyright (c) 2017-2024, The Khronos Group Inc.
 # Copyright (c) 2017-2019 Valve Corporation
 # Copyright (c) 2017-2019 LunarG, Inc.
 #
@@ -24,6 +24,10 @@ from generator import write
 
 # The following commands are manually implemented in the loader.
 MANUAL_LOADER_FUNCS = set((
+    'xrNegotiateLoaderRuntimeInterface',
+    'xrNegotiateLoaderApiLayerInterface',
+    'xrCreateApiLayerInstance',
+
     'xrGetInstanceProcAddr',
     'xrEnumerateApiLayerProperties',
     'xrEnumerateInstanceExtensionProperties',
@@ -85,7 +89,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
     def outputGeneratedHeaderWarning(self):
         # REUSE-IgnoreStart
         generated_warning = ''
-        generated_warning += '// Copyright (c) 2017-2023, The Khronos Group Inc.\n'
+        generated_warning += '// Copyright (c) 2017-2024, The Khronos Group Inc.\n'
         generated_warning += '// Copyright (c) 2017-2019 Valve Corporation\n'
         generated_warning += '// Copyright (c) 2017-2019 LunarG, Inc.\n'
         # Broken string is to avoid confusing the REUSE tool here.
@@ -111,8 +115,8 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
             preamble += '#include <mutex>\n\n'
             preamble += '#include "xr_dependencies.h"\n'
             preamble += '#include "openxr/openxr.h"\n'
+            preamble += '#include "openxr/openxr_loader_negotiation.h"\n'
             preamble += '#include "openxr/openxr_platform.h"\n\n'
-            preamble += '#include "loader_interfaces.h"\n\n'
             preamble += '#include "loader_instance.hpp"\n\n'
             preamble += '#include "loader_platform.hpp"\n\n'
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright (c) 2019-2023, The Khronos Group Inc.
+# Copyright (c) 2019-2024, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -44,6 +44,18 @@ makeSubset "$TARNAME" $(getSDKFilenames)
     fi
 
     cd github
+
+    # Add the shared public .mailmap used in all GitHub projects derived from the internal openxr repo
+    add_to_tar "$TARNAME" .mailmap
+    if [ -f .mailmap ]; then
+        # It's in the github folder.
+        add_to_tar "$TARNAME" .mailmap
+    elif [ -f ../.mailmap ]; then
+        # It's in the root.
+        cd ..
+        add_to_tar "$TARNAME" .mailmap
+        cd github
+    fi
 
     if [ -f COPYING.adoc ] && ! [ -f ../COPYING.adoc ]; then
         # If we didn't get it before, maybe we got it now.

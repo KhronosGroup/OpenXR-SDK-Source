@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright 2013-2023 The Khronos Group Inc.
+# Copyright 2013-2024, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -282,7 +282,7 @@ class ConventionsBase(abc.ABC):
         May override."""
         return self.api_prefix + 'EXT_'
 
-    def writeFeature(self, featureExtraProtect, filename):
+    def writeFeature(self, featureName, featureExtraProtect, filename):
         """Return True if OutputGenerator.endFeature should write this feature.
 
         Defaults to always True.

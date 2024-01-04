@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2023, The Khronos Group Inc.
+// Copyright (c) 2018-2024, The Khronos Group Inc.
 // Copyright (c) 2018-2019 Valve Corporation
 // Copyright (c) 2018-2019 LunarG, Inc.
 // Copyright (c) 2019, Collabora, Ltd.
@@ -17,7 +17,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 //
-// Author: Ryan Pavlik <ryan.pavlik@collabora.com>
+// Author: Rylie Pavlik <rylie.pavlik@collabora.com>
 //         Mark Young <marky@lunarg.com>
 //
 

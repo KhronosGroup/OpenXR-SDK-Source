@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2017-2023, The Khronos Group Inc.
+# Copyright (c) 2017-2024, The Khronos Group Inc.
 # Copyright (c) 2017 Valve Corporation
 # Copyright (c) 2017 LunarG, Inc.
 #
@@ -41,6 +41,18 @@ VALID_USAGE_MANUALLY_DEFINED = set((
     'xrSessionEndDebugUtilsLabelRegionEXT',
     'xrSessionInsertDebugUtilsLabelEXT',
 ))
+
+LOADER_STRUCTS = [
+    'XrApiLayerNextInfo',
+    'XrApiLayerCreateInfo',
+    'XrNegotiateLoaderInfo',
+    'XrNegotiateRuntimeRequest',
+    'XrNegotiateApiLayerRequest',
+]
+
+LOADER_ENUMS = [
+    'XrLoaderInterfaceStructs',
+]
 
 _CHAR_RE = re.compile(r"\bchar\b")
 
@@ -261,6 +273,9 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
     def outputValidationSourceEnumValues(self):
         enum_value_validate = ''
         for enum_tuple in self.api_enums:
+            if enum_tuple.name in LOADER_ENUMS:
+                continue
+
             if enum_tuple.protect_value:
                 enum_value_validate += '#if %s\n' % enum_tuple.protect_string
             enum_value_validate += '// Function to validate %s enum\n' % enum_tuple.name
@@ -415,6 +430,9 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         validation_internal_protos += 'bool ExtensionEnabled(const std::vector<std::string> &extensions, const char* const check_extension_name);\n'
         validation_internal_protos += '\n// Functions to validate structures\n'
         for xr_struct in self.api_structures:
+            if xr_struct.name in LOADER_STRUCTS:
+                continue
+
             if xr_struct.protect_value:
                 validation_internal_protos += '#if %s\n' % xr_struct.protect_string
             validation_internal_protos += 'XrResult ValidateXrStruct(GenValidUsageXrInstanceInfo *instance_info, const std::string &command_name,\n'
@@ -1870,6 +1888,9 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         struct_check = ''
         # Now write out the actual functions
         for xr_struct in self.api_structures:
+            if xr_struct.name in LOADER_STRUCTS:
+                continue
+
             if xr_struct.name in self.structs_with_no_type:
                 continue
 

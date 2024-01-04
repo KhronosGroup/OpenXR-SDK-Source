@@ -1,4 +1,4 @@
-// Copyright (c) 2017-2023, The Khronos Group Inc.
+// Copyright (c) 2017-2024, The Khronos Group Inc.
 // Copyright (c) 2017-2019 Valve Corporation
 // Copyright (c) 2017-2019 LunarG, Inc.
 //
@@ -21,12 +21,12 @@
 //
 
 #include "hex_and_handles.h"
-#include "loader_interfaces.h"
 #include "platform_utils.hpp"
 #include "xr_generated_api_dump.hpp"
 #include "xr_generated_dispatch_table.h"
 
 #include <openxr/openxr.h>
+#include <openxr/openxr_loader_negotiation.h>
 
 #include <algorithm>
 #include <cctype>

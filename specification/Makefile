@@ -1,4 +1,4 @@
-# Copyright 2013-2023 The Khronos Group Inc.
+# Copyright 2013-2024, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -32,7 +32,7 @@ ifneq (,$(strip $(VERY_STRICT)))
 ASCIIDOC := $(ASCIIDOC) --failure-level WARN
 endif
 
-SPECREVISION = 1.0.32
+SPECREVISION = 1.0.33
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -133,10 +133,11 @@ config_stamp:
 HEADER_DIR    := $(OUTDIR)/openxr
 HEADER	      := $(HEADER_DIR)/openxr.h
 PLATHEAD      := $(HEADER_DIR)/openxr_platform.h
+LOADERHEAD    := $(HEADER_DIR)/openxr_loader_negotiation.h
 REFLECTHEADERS:= $(HEADER_DIR)/openxr_reflection.h \
                  $(HEADER_DIR)/openxr_reflection_structs.h \
                  $(HEADER_DIR)/openxr_reflection_parent_structs.h
-GENHEADERS    := $(HEADER) $(PLATHEAD) $(REFLECTHEADERS)
+GENHEADERS    := $(HEADER) $(PLATHEAD) $(LOADERHEAD) $(REFLECTHEADERS)
 DEFINESHEAD   := $(HEADER_DIR)/openxr_platform_defines.h
 
 # Platform header (just copy)
@@ -535,7 +536,7 @@ CHECK_MARKUP_SCRIPT = $(CURDIR)/checkMarkup
 # Edit the following line's "ignore_count" when the number of checkSpecLinks errors changes,
 # either by reducing (ensuring we keep the improvement)
 # or by increasing (if there's an error we can't resolve right now and don't want to break CI)
-CHECK_SPEC_LINKS_SCRIPT = $(CURDIR)/scripts/check_spec_links.py --ignore_count=0 -Wall --include_warn
+CHECK_SPEC_LINKS_SCRIPT = $(CURDIR)/scripts/check_spec_links.py --ignore_count=0 -Wall --include_warn -Werror
 # -Werror disabled for now because there are ~14 -Wrefpage_missing messages.
 # Would like those in the logs, but not in the count for build-breaking.
 
@@ -631,7 +632,7 @@ clean_generated:
 
 # Clean generated targets as well as intermediates.
 clean clobber: clean_dirt clean_generated
-	$(RM) $(HEADER) $(PLATHEAD) $(REFLECTHEADERS) $(DEFINESHEAD) $(HTMLSPEC) $(PDFSPEC) $(PDFA4SPEC) $(STYLEGUIDE) $(LOADERGUIDE) $(CONFIG_STAMP_FN)
+	$(RM) $(HEADER) $(PLATHEAD) $(LOADERHEAD) $(REFLECTHEADERS) $(DEFINESHEAD) $(HTMLSPEC) $(PDFSPEC) $(PDFA4SPEC) $(STYLEGUIDE) $(LOADERGUIDE) $(CONFIG_STAMP_FN)
 	# Clean up extracted code
 	if [ -f $(EXAMPLES_MAKEFILE) ]; then $(MAKE) -f $(EXAMPLES_MAKEFILE) clean-examples; fi
 	$(RM) $(EXAMPLES_MAKEFILE)

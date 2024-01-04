@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2013-2023, The Khronos Group Inc.
+# Copyright (c) 2013-2024, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -144,7 +144,7 @@ class OpenXRConventions(ConventionsBase):
         """Return whether refpage include should be written to extension appendices"""
         return True
 
-    def writeFeature(self, featureExtraProtect, filename):
+    def writeFeature(self, featureName, featureExtraProtect, filename):
         """Returns True if OutputGenerator.endFeature should write this feature.
 
         Used in COutputGenerator.
@@ -155,8 +155,16 @@ class OpenXRConventions(ConventionsBase):
         if filename == 'openxr_reflection.h':
             # Write all features to the reflection header
             return True
+        is_loader = featureName == 'XR_LOADER_VERSION_1_0'
         is_protected = featureExtraProtect is not None
         is_platform_header = (filename == 'openxr_platform.h')
+
+        # Only write loader spec to loader file.
+        if is_loader:
+            return filename == 'openxr_loader_negotiation.h'
+
+        if filename == 'openxr_loader_negotiation.h':
+            return False
 
         # non-protected goes in non-platform header,
         # protected goes in platform header.
