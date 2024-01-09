@@ -1,9 +1,9 @@
-// Copyright (c) 2017-2023, The Khronos Group Inc.
+// Copyright (c) 2017-2024, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
 [[loader-debugging]]
-== Loader Debugging ==
+== Loader Debugging
 
 There may be times that a developer wishes to debug the loader.
 The following sections define useful tips in debugging the OpenXR loader.

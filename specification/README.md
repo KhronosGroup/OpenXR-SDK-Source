@@ -1,7 +1,7 @@
 # Building the OpenXR Specification
 
 <!--
-Copyright 2014-2023 The Khronos Group Inc.
+Copyright 2014-2024, The Khronos Group Inc.
 
 SPDX-License-Identifier: CC-BY-4.0
 -->

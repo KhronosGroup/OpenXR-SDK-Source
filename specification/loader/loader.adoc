@@ -1,10 +1,10 @@
-// Copyright (c) 2017-2023, The Khronos Group Inc.
+// Copyright (c) 2017-2024, The Khronos Group Inc.
 // Copyright notice at https://registry.khronos.org/speccopyright.html
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
 = OpenXR(TM)  Loader - Design and Operation
-Copyright (c) 2017-2023, The Khronos Group Inc.
+Copyright (c) 2017-2024, The Khronos Group Inc.
 :data-uri:
 :icons: font
 :toc2:
@@ -14,7 +14,7 @@ Copyright (c) 2017-2023, The Khronos Group Inc.
 :imagewidth: 800
 :fullimagewidth: width="800"
 
-Copyright (c) 2017-2023, The Khronos Group Inc.
+Copyright (c) 2017-2024, The Khronos Group Inc.
 All Rights reserved.
 
 toc::[]
@@ -43,7 +43,7 @@ All other product names, trademarks, and/or company names are used solely
 for identification and belong to their respective owners.
 
 [[introduction-terminology]]
-== Terminology ==
+== Terminology
 
 The key words *must*, *may*, *can*, *cannot*, *should*, *required*,
 *recommend*, and *optional* in this document are to be interpreted as
@@ -63,6 +63,6 @@ include::design.adoc[]
 
 include::debug.adoc[]
 
-include::appendicies.adoc[]
+include::appendices.adoc[]
 
 

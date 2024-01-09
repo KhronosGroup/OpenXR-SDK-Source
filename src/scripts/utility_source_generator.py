@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2017-2023, The Khronos Group Inc.
+# Copyright (c) 2017-2024, The Khronos Group Inc.
 # Copyright (c) 2017-2019 Valve Corporation
 # Copyright (c) 2017-2019 LunarG, Inc.
 #
@@ -31,7 +31,7 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
     def outputGeneratedHeaderWarning(self):
         # REUSE-IgnoreStart
         generated_warning = ''
-        generated_warning += '// Copyright (c) 2017-2023, The Khronos Group Inc.\n'
+        generated_warning += '// Copyright (c) 2017-2024, The Khronos Group Inc.\n'
         generated_warning += '// Copyright (c) 2017-2019, Valve Corporation\n'
         generated_warning += '// Copyright (c) 2017-2019, LunarG, Inc.\n\n'
         # Broken string is to avoid confusing the REUSE tool here.
@@ -131,6 +131,12 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
         table += '// Generated dispatch table\n'
         table += 'struct XrGeneratedDispatchTable {\n'
 
+        # functions implemented for the loader are different
+        LOADER_FUNCTIONS = [
+            'xrCreateApiLayerInstance',
+            'xrNegotiateLoaderRuntimeInterface',
+            'xrNegotiateLoaderApiLayerInterface',
+        ]
         # Loop through both core commands, and extension commands
         # Outputting the core commands first, and then the extension commands.
         for x in range(0, 2):
@@ -149,6 +155,10 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
                     else:
                         # Skip anything that is not core or XR_EXT_debug_utils in the loader dispatch table
                         continue
+
+                # Skip loader-use-only functions in dispatch tables.
+                if cur_cmd.name in LOADER_FUNCTIONS:
+                    continue
 
                 # If we've switched to a new "feature" print out a comment on what it is.  Usually,
                 # this is a group of core commands or a group of commands in an extension.

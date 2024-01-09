@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2017-2023, The Khronos Group Inc.
+# Copyright (c) 2017-2024, The Khronos Group Inc.
 # Copyright (c) 2017-2019 Valve Corporation
 # Copyright (c) 2017-2019 LunarG, Inc.
 #
@@ -498,6 +498,9 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         self.no_trampoline_or_terminator = [
             'xrEnumerateApiLayerProperties',
             'xrEnumerateInstanceExtensionProperties',
+            'xrNegotiateLoaderRuntimeInterface',
+            'xrCreateApiLayerInstance',
+            'xrNegotiateLoaderApiLayerInterface',
             'xrInitializeLoaderKHR'
         ]
 
@@ -580,7 +583,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     # overridden by a derived class.
     #   self            the AutomaticSourceOutputGenerator object
     def outputCopywriteHeader(self):
-        notice = '// Copyright (c) 2017-2023, The Khronos Group Inc.\n'
+        notice = '// Copyright (c) 2017-2024, The Khronos Group Inc.\n'
         notice += '// Copyright (c) 2017-2019 Valve Corporation\n'
         notice += '// Copyright (c) 2017-2019 LunarG, Inc.\n'
         notice += '//\n'
@@ -1599,6 +1602,8 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   ext_name        the name of the "extension" to determine if it really is core
     def isCoreExtensionName(self, ext_name):
         if "XR_VERSION_" in ext_name:
+            return True
+        if "XR_LOADER_VERSION_" in ext_name:
             return True
         return False
 

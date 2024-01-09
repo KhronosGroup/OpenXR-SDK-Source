@@ -1,4 +1,4 @@
-// Copyright (c) 2018-2023, The Khronos Group Inc.
+// Copyright (c) 2018-2024, The Khronos Group Inc.
 // Copyright (c) 2018-2019 Valve Corporation
 // Copyright (c) 2018-2019 LunarG, Inc.
 //

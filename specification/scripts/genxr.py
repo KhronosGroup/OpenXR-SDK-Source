@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 #
-# Copyright 2013-2023 The Khronos Group Inc.
+# Copyright 2013-2024, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 
@@ -109,7 +109,7 @@ def makeGenOpts(args):
     # Copyright text prefixing all headers (list of strings).
     prefixStrings = [
         '/*',
-        '** Copyright 2017-2023 The Khronos Group Inc.',
+        '** Copyright 2017-2024, The Khronos Group Inc.',
         '**',
         # The following split string is to avoid confusing the "REUSE" tool
         '** SPDX-License-Identifier' + ': Apache-2.0 OR MIT',
@@ -229,6 +229,37 @@ def makeGenOpts(args):
           CGeneratorOptions(
             conventions       = conventions,
             filename          = 'openxr_platform.h',
+            directory         = directory,
+            apiname           = 'openxr',
+            profile           = None,
+            versions          = featuresPat,
+            emitversions      = featuresPat,
+            defaultExtensions = 'openxr',
+            addExtensions     = None,
+            removeExtensions  = None,
+            emitExtensions    = emitExtensionsPat,
+            prefixText        = prefixStrings + xrPrefixStrings + platformPrefixStrings,
+            genFuncPointers   = True,
+            protectFile       = protectFile,
+            protectFeature    = False,
+            protectProto      = '#ifndef',
+            protectProtoStr   = 'XR_NO_PROTOTYPES',
+            protectExtensionProto      = '#ifdef',
+            protectExtensionProtoStr   = 'XR_EXTENSION_PROTOTYPES',
+            apicall           = 'XRAPI_ATTR ',
+            apientry          = 'XRAPI_CALL ',
+            apientryp         = 'XRAPI_PTR *',
+            alignFuncParam    = 48,
+            genAliasMacro     = True,
+            genStructExtendsComment = True,
+            aliasMacro        = 'XR_MAY_ALIAS')
+    ]
+
+    genOpts['openxr_loader_negotiation.h'] = [
+          COutputGenerator,
+          CGeneratorOptions(
+            conventions       = conventions,
+            filename          = 'openxr_loader_negotiation.h',
             directory         = directory,
             apiname           = 'openxr',
             profile           = None,

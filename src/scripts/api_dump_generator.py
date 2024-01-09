@@ -1,6 +1,6 @@
 #!/usr/bin/python3 -i
 #
-# Copyright (c) 2017-2023, The Khronos Group Inc.
+# Copyright (c) 2017-2024, The Khronos Group Inc.
 # Copyright (c) 2017-2019 Valve Corporation
 # Copyright (c) 2017-2019 LunarG, Inc.
 #
@@ -32,9 +32,21 @@ from generator import write
 
 # The following commands should not be generated for the layer
 MANUALLY_DEFINED_IN_LAYER = set((
+    'xrNegotiateLoaderRuntimeInterface',
+    'xrNegotiateLoaderApiLayerInterface',
+    'xrCreateApiLayerInstance',
+
     'xrCreateInstance',
     'xrDestroyInstance',
 ))
+
+LOADER_STRUCTS = [
+    'XrApiLayerNextInfo',
+    'XrApiLayerCreateInfo',
+    'XrNegotiateLoaderInfo',
+    'XrNegotiateRuntimeRequest',
+    'XrNegotiateApiLayerRequest',
+]
 
 # ApiDumpOutputGenerator - subclass of AutomaticSourceOutputGenerator.
 
@@ -143,6 +155,9 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             if xr_union.protect_value:
                 generated_prototypes += '#endif // %s\n' % xr_union.protect_string
         for xr_struct in self.api_structures:
+            if xr_struct.name in LOADER_STRUCTS:
+                continue
+
             if xr_struct.protect_value:
                 generated_prototypes += '#if %s\n' % xr_struct.protect_string
             generated_prototypes += 'bool ApiDumpOutputXrStruct(XrGeneratedDispatchTable* gen_dispatch_table, const %s* value,\n' % xr_struct.name
@@ -888,6 +903,9 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             if xr_union.protect_value:
                 struct_union_check += '#endif // %s\n' % xr_union.protect_string
         for xr_struct in self.api_structures:
+            if xr_struct.name in LOADER_STRUCTS:
+                continue
+
             if xr_struct.protect_value:
                 struct_union_check += '#if %s\n' % xr_struct.protect_string
             struct_union_check += 'bool ApiDumpOutputXrStruct(XrGeneratedDispatchTable* gen_dispatch_table, const %s* value,\n' % xr_struct.name
@@ -1037,8 +1055,17 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 if cur_cmd.name == 'xrGetInstanceProcAddr':
                     continue
 
-                # xrInitializeLoaderKHR is special
-                if cur_cmd.name == 'xrInitializeLoaderKHR':
+                if cur_cmd.name == 'xrCreateApiLayerInstance':
+                    continue
+
+                LOADER_FUNCTIONS = [
+                    'xrInitializeLoaderKHR',
+                    'xrNegotiateLoaderRuntimeInterface',
+                    'xrNegotiateLoaderApiLayerInterface',
+                ]
+
+                # functions implemented by or for the loader are different
+                if cur_cmd.name in LOADER_FUNCTIONS:
                     continue
 
                 is_create = False

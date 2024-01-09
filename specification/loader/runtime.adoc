@@ -1,11 +1,11 @@
-// Copyright (c) 2017-2023, The Khronos Group Inc.
+// Copyright (c) 2017-2024, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
 :uri-xdg-basedir: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 
 [[runtime-interaction]]
-== Runtime Interaction ==
+== Runtime Interaction
 
 This section discusses the various requirements for the loader and an OpenXR
 runtime to properly interact.
@@ -708,77 +708,13 @@ interfaces.
 In order to negotiate the loader/runtime interface version, the runtime must
 implement the fname:xrNegotiateLoaderRuntimeInterface` function (or a
 renamed version of this function identified in the manifest file).
+fname:xrNegotiateLoaderRuntimeInterface` is defined in `openxr.h`.
 
-[[xrNegotiateLoaderRuntimeInterface,xrNegotiateLoaderRuntimeInterface]]
-[source,c++]
-----
-XrResult xrNegotiateLoaderRuntimeInterface(
-            const XrNegotiateLoaderInfo *loaderInfo,
-            XrNegotiateRuntimeRequest *runtimeRequest);
-----
-  * pname:loaderInfo must: be a valid pointer to a constant
-    sname:XrNegotiateLoaderInfo structure.
-  * pname:runtimeRequest must be a valid pointer to a
-    sname:XrNegotiateRuntimeRequest structure.
-
-This function should be directly exported by a runtime so that using
-"GetProcAddress" on Windows or "dlsym" on Linux, should return a valid
-function pointer to it (see <<runtime-exporting-of-commands, Runtime
-Exporting of Commands>> for more information).
-
-If the function succeeds, the runtime should return `XR_SUCCESS`.
-If the function fails, the runtime should return
-`XR_ERROR_INITIALIZATION_FAILED`.
-The entire <<loader-runtime-negotiation-process, negotiation process>> is
-defined in more detail below.
-
-The sname:XrNegotiateLoaderInfo struct is defined in the
-`src/common/loader_interfaces.h` header.
-It is used to pass information about the loader to a runtime during the
-negotiation process.
-See the definition of sname:XrNegotiateLoaderInfo under the
-<<loader-api-layer-interface-negotiation,layer negotiation>> section for
-more information.
-
-The sname:XrNegotiateRuntimeRequest can also be found in the
-`src/common/loader_interfaces.h` header.
-It is used to pass information about the runtime back to the loader during
-the negotiation process.
-
-[[XrNegotiateRuntimeRequest,XrNegotiateRuntimeRequest]]
-[source,c++]
-----
-struct XrNegotiateRuntimeRequest {
-    XrLoaderInterfaceStructs structType;
-    uint32_t structVersion;
-    size_t structSize;
-    uint32_t runtimeInterfaceVersion;
-    uint32_t runtimeApiVersion;
-    PFN_xrGetInstanceProcAddr getInstanceProcAddr;
-};
-----
-  * pname:structType must: be a valid value of
-    `<<XrLoaderInterfaceStructs>>`.
-    In this case, it must specifically be
-    `XR_LOADER_INTERFACE_STRUCT_RUNTIME_REQUEST`.
-  * pname:structVersion must: be a valid version of the structure.
-    The `loader_interfaces.h` header uses the value
-    `XR_RUNTIME_INFO_STRUCT_VERSION` to describe the current latest version
-    of this structure.
-  * pname:structSize must: be the size in bytes of the current version of
-    the structure (i.e. sizeof(XrNegotiateRuntimeRequest))
-  * pname:runtimeInterfaceVersion is the version of the
-    <<runtime-interface-versions,loader/runtime interface version>> being
-    requested by the runtime.
-    Should not be outside of the bounds of the
-    sname:XrNegotiateLoaderInfo::`minInterfaceVersion` and
-    sname:XrNegotiateLoaderInfo::`maxInterfaceVersion` values (inclusive).
-  * pname:runtimeApiVersion is the version of the OpenXR API supported by
-    this runtime as formatted by `XR_MAKE_VERSION` defined in `openxr.h`.
-    Patch is ignored.
-  * pname:getInstanceProcAddr is a pointer to the runtime's
-    `xrGetInstanceProcAddr` call that will be used by the loader to complete
-    a dispatch table to all valid OpenXR commands supported by the runtime.
+fname:xrNegotiateLoaderRuntimeInterface` function should be directly
+exported by a runtime so that using "GetProcAddress" on Windows or "dlsym"
+on Linux, should return a valid function pointer to it (see
+<<runtime-exporting-of-commands, Runtime Exporting of Commands>> for more
+information).
 
 [NOTE]
 .Important
@@ -793,66 +729,6 @@ The runtime must: also determine when to release control of this file.
 This may be due to the last instance an application created is destroyed,
 the application is exiting, or some period of inactivity occurs.
 ====
-
-
-[[loader-runtime-negotiation-process]]
-==== Loader/Runtime Negotiation Process
-
-Once the loader has obtained a valid address to the runtime's
-fname:xrNegotiateLoaderRuntimeInterface function, the loader will create a
-variable of type sname:XrNegotiateLoaderInfo and initialize it in the
-following ways:
-
-1. Set the structure "structType" to
-   `XR_LOADER_INTERFACE_STRUCT_LOADER_INFO`
-2. Set the structure "structVersion" to the current version,
-   `XR_LOADER_INFO_STRUCT_VERSION`
-3. Set the structure "structSize" to the current size of the
-   `XrNegotiateLoaderInfo` structure
-4. Set "minInterfaceVersion" to the minimum
-   <<runtime-interface-versions,loader/runtime interface version>> that the
-   loader supports
-5. Set "maxInterfaceVersion" to the current version of the
-   <<runtime-interface-versions,loader/runtime interface>> at the time of
-   loader compilation
-6. Set "minApiVersion" to the minimum version of OpenXR supported by the
-   loader
-7. Set "maxApiVersion" to the maximum version of OpenXR supported by the
-   loader (the current version at the time of loader compilation).
-
-The loader will also create an initialize a variable of type
-sname:XrNegotiateRuntimeRequest to allow the runtime to properly respond to
-the request.
-The structure will be initialized by the loader in the following way:
-
-1. Set the structure "structType" to
-   `XR_LOADER_INTERFACE_STRUCT_RUNTIME_REQUEST`
-2. Set the structure "structVersion" to the current version,
-   `XR_RUNTIME_INFO_STRUCT_VERSION`
-3. Set the structure "structSize" to the current size of the
-   `XrNegotiateRuntimeRequest` structure
-
-The loader will leave the remaining fields uninitialized to allow each
-runtime to fill in the appropriate information for itself.
-The loader will then individually call each runtime's
-fname:xrNegotiateLoaderRuntimeInterface function and each runtime then must:
-
-* Determine if it can support the loader's request:
-** Does the runtime support any <<runtime-interface-versions, loader/runtime
-   interface version>> between pname:loaderInfo->pname:minInterfaceVersion
-   and pname:loaderInfo->pname:maxInterfaceVersion:
-** *AND* does the runtime support any OpenXR API version between
-   pname:loaderInfo->pname:minApiVersion and
-   pname:loaderInfo->pname:maxApiVersion:
-* If it is able to support the request, it must: return `XR_SUCCESS` and:
-** Fill in pname:runtimeRequest->pname:runtimeInterfaceVersion with the
-   runtime interface version it desires to support
-** Fill in pname:runtimeRequest->pname:runtimeApiVersion with the API
-   version of OpenXR it will execute under.
-** Fill in pname:runtimeRequest->pname:getInstanceProcAddr with a valid
-   function pointer so that the loader can query function pointers to the
-   remaining OpenXR commands supported by the runtime.
-* Otherwise, it must: return `XR_ERROR_INITIALIZATION_FAILED`
 
 
 [[runtime-exporting-of-commands]]

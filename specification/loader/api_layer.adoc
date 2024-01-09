@@ -1,9 +1,9 @@
-// Copyright (c) 2017-2023, The Khronos Group Inc.
+// Copyright (c) 2017-2024, The Khronos Group Inc.
 //
 // SPDX-License-Identifier: CC-BY-4.0
 
 [[api-layer-interaction]]
-== API Layer Interaction ==
+== API Layer Interaction
 
 This section details how the loader interacts with API layers.
 
@@ -442,7 +442,7 @@ The only requirement is that the filename extension is ".json".
    "file_format_version" : "1.0.0",
    "api_layer": {
        "name": "XR_APILAYER_LUNARG_test",
-       "library_path": "xrTestLayer.dll"
+       "library_path": "xrTestLayer.dll",
        "api_version" : "1.0",
        "implementation_version" : "2",
        "description" : "LunarG test API layer"
@@ -458,7 +458,7 @@ The only requirement is that the filename extension is ".json".
    "file_format_version" : "1.0.0",
    "api_layer": {
        "name": "XR_APILAYER_LUNARG_test",
-       "library_path": "xrTestLayer.dll"
+       "library_path": "xrTestLayer.dll",
        "api_version" : "1.0",
        "implementation_version" : "2",
        "description" : "LunarG test API layer",
@@ -613,216 +613,8 @@ attempt to negotiate the version of the loader to API layer interface.
 In order to negotiate the loader/API layer interface version, the API layer
 must implement the fname:xrNegotiateLoaderApiLayerInterface function (or a
 renamed version of this function identified in the manifest file).
-
-[[xrNegotiateLoaderApiLayerInterface,xrNegotiateLoaderApiLayerInterface]]
-[source,c++]
-----
-XrResult xrNegotiateLoaderApiLayerInterface(
-            const XrNegotiateLoaderInfo *loaderInfo,
-            const char *layerName,
-            XrNegotiateApiLayerRequest *apiLayerRequest);
-----
-  * pname:loaderInfo must: be a valid pointer to a constant
-    sname:XrNegotiateLoaderInfo structure.
-  * pname:layerName must: be NULL or a valid C-style NULL-terminated string
-    listing the name of an API layer which the loader is attempting to
-    negotiate with.
-  * pname:layerRequest must be a valid pointer to a
-    sname:XrNegotiateApiLayerRequest structure.
-
-This function should be directly exported by an API layer so that using
-"GetProcAddress" on Windows or "dlsym" on Linux, should return a valid
-function pointer to it.
-If the function succeeds, the API layer must: return `XR_SUCCESS`.
-If the function fails, the API layer must: return
-`XR_ERROR_INITIALIZATION_FAILED`.
-The entire <<loader-api-layer-negotiation-process, negotiation process>> is
-defined in more detail below.
-
-The sname:XrNegotiateLoaderInfo struct is defined in the
-`src/common/loader_interfaces.h` header.
-It is used to pass information about the loader to an API layer during the
-negotiation process.
-
-[[XrNegotiateLoaderInfo,XrNegotiateLoaderInfo]]
-[source,c++]
-----
-struct XrNegotiateLoaderInfo {
-    XrLoaderInterfaceStructs structType;
-    uint32_t structVersion;
-    size_t structSize;
-    uint32_t minInterfaceVersion;
-    uint32_t maxInterfaceVersion;
-    XrVersion minApiVersion;
-    XrVersion maxApiVersion;
-};
-----
-  * pname:structType must: be a valid value of
-    `<<XrLoaderInterfaceStructs>>`.
-    In this case, it must: specifically be
-    `XR_LOADER_INTERFACE_STRUCT_LOADER_INFO`.
-  * pname:structVersion must: be a valid version of the structure.
-    The `loader_interfaces.h` header uses the value
-    `XR_LOADER_INFO_STRUCT_VERSION` to describe the current latest version
-    of this structure.
-  * pname:structSize must: be the size in bytes of the current version of
-    the structure (i.e. sizeof(XrNegotiateLoaderInfo)).
-  * pname:minInterfaceVersion is the minimum
-    <<api-layer-interface-versions,loader/API layer interface version>>
-    supported by the loader.
-  * pname:maxInterfaceVersion is the maximum valid version of the
-    <<api-layer-interface-versions,loader/API layer interface version>>
-    supported by the loader, currently defined using
-    `XR_CURRENT_LOADER_API_LAYER_VERSION`.
-  * pname:minApiVersion is the minimum supported version of the OpenXR API
-    by this loader as formatted by `XR_MAKE_VERSION` defined in `openxr.h`.
-    Patch is ignored.
-  * pname:maxApiVersion is the maximum supported version of the OpenXR API
-    by this loader as formatted by `XR_MAKE_VERSION` defined in `openxr.h`.
-    Patch is ignored.
-
-You'll notice the structures are similar to other OpenXR structures.
-The "structType" field, in this case takes a new enum defined just for
-internal loader interfacing use.
-
-The ename:XrLoaderInterfaceStructs enumeration is also defined in the
-`src/common/loader_interfaces.h` header and currently looks like:
-
-[[XrLoaderInterfaceStructs,XrLoaderInterfaceStructs]]
-[source,c++]
-----
-enum XrLoaderInterfaceStructs {
-    XR_LOADER_INTERFACE_STRUCT_UNINTIALIZED = 0,
-    XR_LOADER_INTERFACE_STRUCT_LOADER_INFO,
-    XR_LOADER_INTERFACE_STRUCT_API_LAYER_REQUEST,
-    XR_LOADER_INTERFACE_STRUCT_RUNTIME_REQUEST,
-    XR_LOADER_INTERFACE_STRUCT_API_LAYER_CREATE_INFO,
-    XR_LOADER_INTERFACE_STRUCT_API_LAYER_NEXT_INFO,
-};
-----
-
-Just like standard OpenXR structs, the ename:XrLoaderInterfaceStructs enum
-defines the set of valid structures and can grow in the future.
-
-The sname:XrNegotiateApiLayerRequest can also be found in the
-`src/common/loader_interfaces.h` header.
-It is used to pass information about the API layer back to the loader during
-the negotiation process.
-
-[[XrNegotiateApiLayerRequest,XrNegotiateApiLayerRequest]]
-[source,c++]
-----
-struct XrNegotiateApiLayerRequest {
-    XrLoaderInterfaceStructs structType;
-    uint32_t structVersion;
-    size_t structSize;
-    uint32_t layerInterfaceVersion;
-    XrVersion layerApiVersion;
-    PFN_xrGetInstanceProcAddr getInstanceProcAddr;
-    PFN_xrCreateApiLayerInstance createApiLayerInstance;
-};
-----
-  * pname:structType must: be a valid value of
-    `<<XrLoaderInterfaceStructs>>`.
-    In this case, it must: specifically be
-    `XR_LOADER_INTERFACE_STRUCT_API_LAYER_REQUEST`.
-  * pname:structVersion must: be a valid version of the structure.
-    The `loader_interfaces.h` header uses the value
-    `XR_API_LAYER_INFO_STRUCT_VERSION` to describe the current latest
-    version of this structure.
-  * pname:structSize must: be the size in bytes of the current version of
-    the structure (i.e. sizeof(XrNegotiateApiLayerRequest)).
-  * pname:layerInterfaceVersion is the version of the
-    <<api-layer-interface-versions,loader/API layer interface version>>
-    being requested by the API layer.
-    Should not be outside of the bounds of the
-    sname:XrNegotiateLoaderInfo::`minInterfaceVersion` and
-    sname:XrNegotiateLoaderInfo::`maxInterfaceVersion` values (inclusive).
-  * pname:layerApiVersion is the version of the OpenXR API supported by this
-    API layer as formatted by `XR_MAKE_VERSION` defined in `openxr.h`.
-    Patch is ignored.
-  * pname:getInstanceProcAddr is a pointer to the API layer's
-    `xrGetInstanceProcAddr` command that will be used by the loader to
-    complete a dispatch table to all valid OpenXR commands supported by the
-    API layer.
-  * pname:createLayerInstance is a pointer to the API layer's
-    `xrCreateApiLayerInstance` command that will be used by the loader when
-    a `xrCreateInstance` command is triggered and an API layer exists.
-    This is used because API layers need additional information at
-    `xrCreateInstance` time.
-
-[[loader-api-layer-negotiation-process]]
-==== Loader/API Layer Negotiation Process
-
-Once the loader has obtained a valid address to the API layer's
-fname:xrNegotiateLoaderApiLayerInterface function, the loader will create a
-variable of type sname:XrNegotiateLoaderInfo and initialize it in the
-following ways:
-
-1. Set the structure "structType" to
-   `XR_LOADER_INTERFACE_STRUCT_LOADER_INFO`
-2. Set the structure "structVersion" to the current version,
-   `XR_LOADER_INFO_STRUCT_VERSION`
-3. Set the structure "structSize" to the current size of the
-   `XrNegotiateLoaderInfo` structure
-4. Set "minInterfaceVersion" to the minimum
-   <<api-layer-interface-versions,loader/API layer interface version>> that
-   the loader supports
-5. Set "maxInterfaceVersion" to the current version of the
-   <<api-layer-interface-versions,loader/API layer interface version>> at
-   the time of loader compilation
-6. Set "minApiVersion" to the minimum version of OpenXR supported by the
-   loader
-7. Set "maxApiVersion" to the maximum version of OpenXR supported by the
-   loader (the current version at the time of loader compilation).
-
-The loader also creates and initializes a variable of type
-sname:XrNegotiateApiLayerRequest to allow the API layer to properly respond
-to the request.
-The structure will be initialized by the loader in the following way:
-
-1. Set the structure "structType" to
-   `XR_LOADER_INTERFACE_STRUCT_API_LAYER_REQUEST`
-2. Set the structure "structVersion" to the current version,
-   `XR_API_LAYER_INFO_STRUCT_VERSION`
-3. Set the structure "structSize" to the current size of the
-   `XrNegotiateApiLayerRequest` structure
-
-The loader will leave the remaining fields uninitialized to allow each API
-layer to fill in the appropriate information for itself.
-The loader will then individually call each API layer's
-fname:xrNegotiateLoaderApiLayerInterface function and each API layer then
-must: :
-
-* Determine if it can support the loader's request:
-** Does the API layer support any <<api-layer-interface-versions, loader/API
-  layer interface version>> between
-  pname:loaderInfo->pname:minInterfaceVersion and
-  pname:loaderInfo->pname:maxInterfaceVersion:
-** *AND* does the API layer support any OpenXR API version between
-  pname:loaderInfo->pname:minApiVersion and
-  pname:loaderInfo->pname:maxApiVersion:
-* If it is able to support the request, it must: return `XR_SUCCESS` and:
-** Fill in pname:layerRequest->pname:layerInterfaceVersion with the API
-   layer interface version it desires to support.
-** Fill in pname:layerRequest->pname:layerApiVersion with the API version of
-   OpenXR it will execute under.
-** Fill in pname:layerRequest->pname:getInstanceProcAddr with a valid
-   function pointer so that the loader can query function pointers to the
-   remaining OpenXR commands supported by the API layer.
-** Fill in pname:layerRequest->pname:createLayerInstance with a valid
-   function pointer so that the loader can create the instance through the
-   API layer call chain.
-* Otherwise, it must: return `XR_ERROR_INITIALIZATION_FAILED`
-
-[NOTE]
-.Note
-====
-The API layer must: not call to another API layer while inside of the
-`xrNegotiateLoaderApiLayerInterface` function.
-The loader will handle all API layer negotiations with each API layer
-individually.
-====
+See the declaration of fname:xrNegotiateLoaderApiLayerInterface in
+`openxr_loader_negotiation.h`.
 
 
 [[api-layer-interface-versions]]
@@ -918,94 +710,9 @@ The API layer is only involved if it is in the enabled API layer list (this
 includes implicit, environment variable enabled, and application enabled API
 layers).
 An API layer needs additional information during `xrCreateInstance` calls,
-so each API layer must implement the fname:xrCreateApiLayerInstance command,
-which is a special API layer command.
-
-[[xrCreateApiLayerInstance,xrCreateApiLayerInstance]]
-[source,c++]
-----
-XrResult xrCreateApiLayerInstance(
-    const XrInstanceCreateInfo *info,
-    const struct XrApiLayerCreateInfo *layerInfo,
-    XrInstance *instance);
-----
-  * pname:info is a pointer to the sname:XrInstanceCreateInfo information
-    passed into the standard fname:xrCreateInstance command.
-  * pname:layerInfo is a pointer to an sname:XrApiLayerCreateInfo structure
-    that contains special information required by a API layer during its
-    create instance process.
-    This is generated by the loader.
-  * pname:instance is a pointer to store the returned instance in, just as
-    in the standard fname:xrCreateInstance command.
-
-The sname:XrApiLayerCreateInfo structure is defined in
-`src/common/loader_interfaces.h` and looks like:
-
-[[XrApiLayerCreateInfo,XrApiLayerCreateInfo]]
-[source,c++]
-----
-struct XrApiLayerCreateInfo {
-    XrLoaderInterfaceStructs structType;
-    uint32_t structVersion;
-    size_t structSize;
-    XrInstance loaderInstance;
-    char settings_file_location[XR_API_LAYER_MAX_SETTINGS_PATH_SIZE];
-    XrApiLayerNextInfo *nextInfo;
-};
-----
-  * pname:structType is the type of structure, or
-    XR_LOADER_INTERFACE_STRUCT_API_LAYER_CREATE_INFO in this case.
-  * pname:structVersion is the version of the structure being supplied by
-    the loader.
-  * pname:structSize is the size of the structure supplied by the loader.
-  * pname:loaderInstance is deprecated and must be ignored.
-  * pname:settings_file_location is the location of any API layer settings
-    file that can be used.
-    This is currently unused.
-  * pname:nextInfo is a pointer to the sname:XrApiLayerNextInfo structure
-    which contains information to work with the next API layer in the chain.
-
-The sname:XrApiLayerNextInfo structure is also defined in
-`src/common/loader_interfaces.h` and looks like:
-
-[[XrApiLayerNextInfo,XrApiLayerNextInfo]]
-[source,c++]
-----
-struct XrApiLayerNextInfo {
-    XrLoaderInterfaceStructs structType;
-    uint32_t structVersion;
-    size_t structSize;
-    char layerName[XR_MAX_API_LAYER_NAME_SIZE];
-    PFN_xrGetInstanceProcAddr nextGetInstanceProcAddr;
-    PFN_xrCreateApiLayerInstance nextCreateApiLayerInstance;
-    XrApiLayerNextInfo *next;
-};
-----
-  * pname:structType is the type of structure, or
-    XR_LOADER_INTERFACE_STRUCT_API_LAYER_NEXT_INFO in this case.
-  * pname:structVersion is the version of the structure being supplied by
-    the loader.
-  * pname:structSize is the size of the structure supplied by the loader.
-  * pname:layerName is the name of the API layer which should be receiving
-    this information.
-    The intent is to make sure the API layer chain information is behaving
-    properly.
-  * pname:nextGetInstanceProcAddr is a pointer to the next API layer's
-    `xrGetInstanceProcAddr`.
-    This can be used to generate a dispatch table to the next commands in
-    the chain.
-  * pname:nextCreateLayerInstance is a pointer to the next API layer's
-    `xrCreateApiLayerInstance` command.
-    This is to be called after the API layer has done any localized
-    creation, but before the API layer records any command addresses from
-    the next API layer using `xrGetInstanceProcAddr`.
-  * pname:next is a pointer to the sname:XrApiLayerNextInfo for the next API
-    layer.
-    If no API layer is after this, it will be NULL.
-    However, the loader implements a `xrTerminatorCreateLayerInstance`
-    command to re-direct the call-chain back to the runtime's
-    `xrCreateInstance` command, so this should be the last command to
-    receive this information.
+so each API layer must implement the fname:xrCreateApiLayerInstance
+function, which is a special API layer function (declared in
+`openxr_loader_negotiation.h`).
 
 During the `xrCreateInstance` call, the following happens:
 

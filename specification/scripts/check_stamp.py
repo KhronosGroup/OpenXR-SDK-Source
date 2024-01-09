@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-# Copyright (c) 2019-2023, The Khronos Group Inc.
+# Copyright (c) 2019-2024, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Author: Ryan Pavlik <ryan.pavlik@collabora.com>
+# Author: Rylie Pavlik <rylie.pavlik@collabora.com>
 """Pass a filename and any arguments. Will use those arguments to create a stamp file to monitor for changes."""
 import sys
 from pathlib import Path

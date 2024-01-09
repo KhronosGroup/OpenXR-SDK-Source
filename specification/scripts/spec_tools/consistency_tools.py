@@ -1,11 +1,11 @@
 #!/usr/bin/python3 -i
 #
 # Copyright (c) 2019 Collabora, Ltd.
-# Copyright (c) 2018-2023, The Khronos Group Inc.
+# Copyright (c) 2018-2024, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
-# Author(s):    Ryan Pavlik <ryan.pavlik@collabora.com>
+# Author(s):    Rylie Pavlik <rylie.pavlik@collabora.com>
 """Provides utilities to write a script to verify XML registry consistency."""
 
 import re
