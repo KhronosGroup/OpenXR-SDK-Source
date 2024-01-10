@@ -30,6 +30,25 @@ void StreamLineCallback(sl::LogType type, const char* msg)
     Log::Write(Log::Level::Info, message);
 }
 
+//void SetDLSSOptions(const sl::DLSSOptions consts);
+//void QueryDLSSOptimalSettings(DLSSSettings& settings);
+//void EvaluateDLSS(nvrhi::ICommandList* commandList);
+//void CleanupDLSS();
+
+//void set_dlss_textures(VkCommandBuffer command_buffer, const int eye);
+//void set_dlss_options(const int eye);
+//void shutdown_dlss();
+
+#if ENABLE_STREAMLINE_WRAPPER
+
+static const sl::Feature SL_FEATURES[] = {
+	sl::kFeatureReflex,  // Reflex is required for DLSS Frame Generation
+	sl::kFeatureDLSS,    // DLSS Super Resolution
+	sl::kFeatureDLSS_G,  // DLSS Frame Generation
+};
+
+#else
+
 const std::wstring s_interposer_dll_filename_ = L"sl.interposer.dll";
 HMODULE s_interposer_ = {};
 const bool check_signature_ = false;
@@ -41,19 +60,33 @@ bool is_dlss_supported_ = false;
 sl::DLSSOptimalSettings dlss_settings_{};
 sl::DLSSOptions dlss_options_{};
 
-//void SetDLSSOptions(const sl::DLSSOptions consts);
-//void QueryDLSSOptimalSettings(DLSSSettings& settings);
-//void EvaluateDLSS(nvrhi::ICommandList* commandList);
-//void CleanupDLSS();
-
-//void set_dlss_textures(VkCommandBuffer command_buffer, const int eye);
-//void set_dlss_options(const int eye);
-//void shutdown_dlss();
-
 bool streamline_initialized_ = false;
+#endif
 
 bool InitStreamLine()
 {
+#if ENABLE_STREAMLINE_WRAPPER
+	// Initialize Streamline (this must happen before any Vulkan calls are made)
+	sl::Preferences pref;
+	pref.showConsole = true;
+	pref.logLevel = sl::LogLevel::eVerbose;
+#if SL_MANUAL_HOOKING
+	pref.flags |= sl::PreferenceFlags::eUseManualHooking;
+#endif
+	pref.featuresToLoad = SL_FEATURES;
+	pref.numFeaturesToLoad = static_cast<uint32_t>(std::size(SL_FEATURES));
+	pref.applicationId = 231313132;
+	pref.engine = sl::EngineType::eCustom;
+	pref.engineVersion = 0;
+	pref.renderAPI = sl::RenderAPI::eVulkan;
+
+	const sl::Result init_result = slInit(pref, SDK_VERSION);
+
+	if(init_result != sl::Result::eOk)
+	{
+		return false;
+	}
+#else
 	if(streamline_initialized_)
 	{
 		return true;
@@ -112,6 +145,7 @@ bool InitStreamLine()
 	}
 
 	streamline_initialized_ = true;
+#endif
 	return true;
 }
 
