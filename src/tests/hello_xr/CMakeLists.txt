@@ -40,6 +40,7 @@ set(LOCAL_SOURCE
     logger.cpp
     main.cpp
     openxr_program.cpp
+    utils.cpp
     pch.cpp
     platformplugin_android.cpp
     platformplugin_factory.cpp
@@ -165,3 +166,7 @@ if(NOT ANDROID)
         )
     endif()
 endif()
+
+target_include_directories(hello_xr PUBLIC $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Include)
+target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/glm)
+target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/SDL/include)

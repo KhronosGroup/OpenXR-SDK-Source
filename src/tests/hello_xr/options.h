@@ -68,7 +68,11 @@ struct Options {
 
         XrViewConfigurationType ViewConfigType{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
 
+#if USE_DUAL_LAYERS && 0
+        XrEnvironmentBlendMode EnvironmentBlendMode{ XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND };
+#else
         XrEnvironmentBlendMode EnvironmentBlendMode{XR_ENVIRONMENT_BLEND_MODE_OPAQUE};
+#endif
     } Parsed;
 
     void ParseStrings() {
@@ -78,15 +82,15 @@ struct Options {
     }
 
     std::array<float, 4> GetBackgroundClearColor() const {
-        static const std::array<float, 4> SlateGrey{0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
-        static const std::array<float, 4> TransparentBlack{0.0f, 0.0f, 0.0f, 0.0f};
-        static const std::array<float, 4> Black{0.0f, 0.0f, 0.0f, 1.0f};
+		static const std::array<float, 4> SlateGrey{ 0.184313729f, 0.309803933f, 0.309803933f, 1.0f };
+		static const std::array<float, 4> TransparentBlack{ 0.0f, 0.0f, 0.0f, 0.0f };
+		static const std::array<float, 4> Black{ 0.0f, 0.0f, 0.0f, 1.0f };
 
         switch (Parsed.EnvironmentBlendMode) {
             case XR_ENVIRONMENT_BLEND_MODE_OPAQUE:
-                return SlateGrey;
+                return Black;//Black;// SlateGrey;
             case XR_ENVIRONMENT_BLEND_MODE_ADDITIVE:
-                return Black;
+                return TransparentBlack;//Black;
             case XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND:
                 return TransparentBlack;
             default:

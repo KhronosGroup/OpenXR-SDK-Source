@@ -154,6 +154,33 @@ struct D3D11GraphicsPlugin : public IGraphicsPlugin {
         return swapchainImageBase;
     }
 
+#if ENABLE_QUAD_LAYER
+	std::vector<XrSwapchainImageBaseHeader*> AllocateSwapchainQuadLayerImageStructs(
+		uint32_t capacity, const XrSwapchainCreateInfo& /*swapchainCreateInfo*/) override {
+		// Allocate and initialize the buffer of image structs (must be sequential in memory for xrEnumerateSwapchainImages).
+		// Return back an array of pointers to each swapchain image struct so the consumer doesn't need to know the type/size.
+		std::vector<XrSwapchainImageD3D11KHR> swapchainImageBuffer(capacity, { XR_TYPE_SWAPCHAIN_IMAGE_D3D11_KHR });
+		std::vector<XrSwapchainImageBaseHeader*> swapchainImageBase;
+		for(XrSwapchainImageD3D11KHR& image : swapchainImageBuffer) {
+			swapchainImageBase.push_back(reinterpret_cast<XrSwapchainImageBaseHeader*>(&image));
+		}
+
+		// Keep the buffer alive by moving it into the list of buffers.
+        m_swapchainQuadLayerImageBuffers.push_back(std::move(swapchainImageBuffer));
+
+		return swapchainImageBase;
+	}
+
+	void RenderQuadLayer(const XrCompositionLayerQuad& layer, const XrSwapchainImageBaseHeader* swapchainImage,
+		int64_t swapchainFormat, const std::vector<Cube>& cubes) override
+	{
+        (void)layer;
+        (void)swapchainImage;
+        (void)swapchainFormat;
+        (void)cubes;
+	}
+#endif
+
     ComPtr<ID3D11DepthStencilView> GetDepthStencilView(ID3D11Texture2D* colorTexture) {
         // If a depth-stencil view has already been created for this back-buffer, use it.
         auto depthBufferIt = m_colorToDepthMap.find(colorTexture);
@@ -250,6 +277,7 @@ struct D3D11GraphicsPlugin : public IGraphicsPlugin {
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return 1; }
 
     void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
+    void SaveScreenShot(const std::string& filename) override { (void)filename; }
 
    private:
     ComPtr<ID3D11Device> m_device;
@@ -267,6 +295,10 @@ struct D3D11GraphicsPlugin : public IGraphicsPlugin {
     // Map color buffer to associated depth buffer. This map is populated on demand.
     std::map<ID3D11Texture2D*, ComPtr<ID3D11DepthStencilView>> m_colorToDepthMap;
     std::array<float, 4> m_clearColor;
+
+#if ENABLE_QUAD_LAYER
+    std::list<std::vector<XrSwapchainImageD3D11KHR>> m_swapchainQuadLayerImageBuffers;
+#endif
 };
 }  // namespace
 

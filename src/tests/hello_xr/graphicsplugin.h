@@ -7,6 +7,7 @@
 struct Cube {
     XrPosef Pose;
     XrVector3f Scale;
+    XrVector4f Colour;
 };
 
 // Wraps a graphics API so the main openxr program can be graphics API-independent.
@@ -34,6 +35,14 @@ struct IGraphicsPlugin {
     virtual void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
                             int64_t swapchainFormat, const std::vector<Cube>& cubes) = 0;
 
+#if ENABLE_QUAD_LAYER
+	virtual std::vector<XrSwapchainImageBaseHeader*> AllocateSwapchainQuadLayerImageStructs(
+		uint32_t capacity, const XrSwapchainCreateInfo& /*swapchainCreateInfo*/) = 0;
+
+	virtual void RenderQuadLayer(const XrCompositionLayerQuad& layer, const XrSwapchainImageBaseHeader* swapchainImage,
+		int64_t swapchainFormat, const std::vector<Cube>& cubes) = 0;
+#endif
+
     // Get recommended number of sub-data element samples in view (recommendedSwapchainSampleCount)
     // if supported by the graphics plugin. A supported value otherwise.
     virtual uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView& view) {
@@ -42,6 +51,7 @@ struct IGraphicsPlugin {
 
     // Perform required steps after updating Options
     virtual void UpdateOptions(const std::shared_ptr<struct Options>& options) = 0;
+    virtual void SaveScreenShot(const std::string& filename) = 0;
 };
 
 // Create a graphics plugin for the graphics API specified in the options.

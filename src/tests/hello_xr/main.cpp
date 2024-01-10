@@ -33,6 +33,8 @@ void ShowHelp() {
 bool UpdateOptionsFromSystemProperties(Options& options) {
 #if defined(DEFAULT_GRAPHICS_PLUGIN_OPENGLES)
     options.GraphicsPlugin = "OpenGLES";
+#elif defined(DEFAULT_GRAPHICS_PLUGIN_OPENGL)
+	options.GraphicsPlugin = "OpenGL";
 #elif defined(DEFAULT_GRAPHICS_PLUGIN_VULKAN)
     options.GraphicsPlugin = "Vulkan";
 #endif
@@ -76,6 +78,11 @@ void ShowHelp() {
     Log::Write(Log::Level::Info, "Spaces:                   View, Local, Stage");
 }
 
+#if (defined(WIN32) && !defined(DEFAULT_GRAPHICS_PLUGIN_VULKAN))
+#define DEFAULT_GRAPHICS_PLUGIN_OPENGL 1
+//#define DEFAULT_GRAPHICS_PLUGIN_VULKAN 1
+#endif
+
 bool UpdateOptionsFromCommandLine(Options& options, int argc, char* argv[]) {
     int i = 1;  // Index 0 is the program name and is skipped.
 
@@ -86,6 +93,12 @@ bool UpdateOptionsFromCommandLine(Options& options, int argc, char* argv[]) {
 
         return std::string(argv[i++]);
     };
+
+#if defined(DEFAULT_GRAPHICS_PLUGIN_OPENGL)
+    options.GraphicsPlugin = "OpenGL";
+#elif defined(DEFAULT_GRAPHICS_PLUGIN_VULKAN)
+    options.GraphicsPlugin = "Vulkan";
+#endif
 
     while (i < argc) {
         const std::string arg = getNextArg();
@@ -223,6 +236,11 @@ void android_main(struct android_app* app) {
         // Initialize the OpenXR program.
         std::shared_ptr<IOpenXrProgram> program = CreateOpenXrProgram(options, platformPlugin, graphicsPlugin);
 
+#if USE_SDL_JOYSTICKS
+		program->InitSDLJoysticks();
+		program->UpdateSDLJoysticks();
+#endif
+
         // Initialize the loader for this platform
         PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
         if (XR_SUCCEEDED(
@@ -276,6 +294,10 @@ void android_main(struct android_app* app) {
                 continue;
             }
 
+#if USE_SDL_JOYSTICKS
+			program->UpdateSDLJoysticks();
+#endif
+
             program->PollActions();
             program->RenderFrame();
         }
@@ -288,6 +310,11 @@ void android_main(struct android_app* app) {
     }
 }
 #else
+
+#if ENABLE_STREAMLINE
+extern bool InitStreamLine();
+#endif
+
 int main(int argc, char* argv[]) {
     try {
         // Parse command-line arguments into Options.
@@ -300,15 +327,26 @@ int main(int argc, char* argv[]) {
 
         // Spawn a thread to wait for a keypress
         static bool quitKeyPressed = false;
+        static bool takeScreenShot = false;
         auto exitPollingThread = std::thread{[] {
-            Log::Write(Log::Level::Info, "Press any key to shutdown...");
-            (void)getchar();
-            quitKeyPressed = true;
+            Log::Write(Log::Level::Info, "Press q to shutdown");
+            int c = getchar();
+
+            if (c == 'q')
+            {
+                quitKeyPressed = true;
+            }
+            
         }};
         exitPollingThread.detach();
 
         bool requestRestart = false;
         do {
+
+#if ENABLE_STREAMLINE
+			InitStreamLine();
+#endif
+
             // Create platform-specific implementation.
             std::shared_ptr<IPlatformPlugin> platformPlugin = CreatePlatformPlugin(options, data);
 
@@ -317,6 +355,11 @@ int main(int argc, char* argv[]) {
 
             // Initialize the OpenXR program.
             std::shared_ptr<IOpenXrProgram> program = CreateOpenXrProgram(options, platformPlugin, graphicsPlugin);
+
+#if USE_SDL_JOYSTICKS
+			program->InitSDLJoysticks();
+			program->UpdateSDLJoysticks();
+#endif
 
             program->CreateInstance();
             program->InitializeSystem();
@@ -338,8 +381,13 @@ int main(int argc, char* argv[]) {
                 }
 
                 if (program->IsSessionRunning()) {
+
+#if USE_SDL_JOYSTICKS
+					program->UpdateSDLJoysticks();
+#endif
                     program->PollActions();
                     program->RenderFrame();
+
                 } else {
                     // Throttle loop since xrWaitFrame won't be called.
                     std::this_thread::sleep_for(std::chrono::milliseconds(250));

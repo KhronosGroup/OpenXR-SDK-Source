@@ -325,6 +325,35 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         return bases;
     }
 
+#if ENABLE_QUAD_LAYER
+	std::vector<XrSwapchainImageBaseHeader*> AllocateSwapchainQuadLayerImageStructs(
+		uint32_t capacity, const XrSwapchainCreateInfo& /*swapchainCreateInfo*/) override {
+		// Allocate and initialize the buffer of image structs (must be sequential in memory for xrEnumerateSwapchainImages).
+		// Return back an array of pointers to each swapchain image struct so the consumer doesn't need to know the type/size.
+
+		m_swapchainQuadLayerImageContexts.emplace_back();
+		SwapchainImageContext& swapchainImageContext = m_swapchainQuadLayerImageContexts.back();
+
+		std::vector<XrSwapchainImageBaseHeader*> bases = swapchainImageContext.Create(m_device.Get(), capacity);
+
+		// Map every swapchainImage base pointer to this context
+		for(auto& base : bases) {
+			m_swapchainQuadLayerImageContextMap[base] = &swapchainImageContext;
+		}
+
+		return bases;
+	}
+
+	void RenderQuadLayer(const XrCompositionLayerQuad& layer, const XrSwapchainImageBaseHeader* swapchainImage,
+		int64_t swapchainFormat, const std::vector<Cube>& cubes) override
+	{
+		(void)layer;
+		(void)swapchainImage;
+		(void)swapchainFormat;
+		(void)cubes;
+	}
+#endif
+
     ID3D12PipelineState* GetOrCreatePipelineState(DXGI_FORMAT swapchainFormat) {
         auto iter = m_pipelineStates.find(swapchainFormat);
         if (iter != m_pipelineStates.end()) {
@@ -578,6 +607,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
     }
 
     void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
+    void SaveScreenShot(const std::string& filename) override { (void)filename; }
 
    private:
     const ComPtr<ID3DBlob> m_vertexShaderBytes;
@@ -597,6 +627,12 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
     ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
     ComPtr<ID3D12DescriptorHeap> m_dsvHeap;
     std::array<float, 4> m_clearColor;
+
+#if ENABLE_QUAD_LAYER
+	std::list<SwapchainImageContext> m_swapchainQuadLayerImageContexts;
+	std::map<const XrSwapchainImageBaseHeader*, SwapchainImageContext*> m_swapchainQuadLayerImageContextMap;
+#endif
+
 };
 }  // namespace
 

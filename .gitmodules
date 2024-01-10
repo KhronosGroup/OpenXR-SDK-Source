@@ -1,0 +1,9 @@
+[submodule "src/external/glm"]
+	path = src/external/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "src/external/SDL"]
+	path = src/external/SDL
+	url = https://github.com/libsdl-org/SDL.git
+[submodule "src/external/Streamline"]
+	path = src/external/Streamline
+	url = https://github.com/BattleAxeVR/Streamline.git

@@ -13,7 +13,62 @@
 #include "common/gfxwrapper_opengl.h"
 #include <common/xr_linear.h>
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include "stb_image_write.h"
+#include "stb_image_write.c"
+
+#define EGL_EGLEXT_PROTOTYPES
+#include "EGL/egl.h"
+#include "EGL/eglext.h"
+#include "GLES/gl.h"
+#define GL_GLEXT_PROTOTYPES
+#include "GLES/glext.h"
+
+#include <jni.h>
+#include <cassert>
+#include <cstdint>
+#include <dlfcn.h>
+#include <android/log.h>
+#include <sys/time.h>
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <GLES/gl.h>
+#include <GLES/glext.h>
+#include <GLES2/gl2.h>
+#include <GLES3/gl3.h>
+#include <map>
+
+#define HARDCODE_VIEW_MATRIX 0
+#define HARDCODE_PROJECTION_MATRIX 0
+#define HARDCODE_FOV 0
+
+extern int current_eye;
+extern float IPD;
+
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+extern BVR::GLMPose player_pose;
+extern BVR::GLMPose local_hmd_pose;
+#endif
+
 namespace {
+
+
+bool check_gl_errors()
+{
+    bool no_error_occurred = true;
+    int error =  eglGetError();
+
+    while (error != EGL_SUCCESS)
+    {
+        //const char* error_string = EglErrorString(error);
+        Log::Write(Log::Level::Info, "check_gl_errors - " + std::to_string(error));
+
+        error = eglGetError();
+        no_error_occurred = false;
+    }
+
+    return no_error_occurred;
+}
 
 // The version statement has come on first line.
 static const char* VertexShaderGlsl = R"_(#version 320 es
@@ -244,6 +299,30 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         return swapchainImageBase;
     }
 
+#if ENABLE_QUAD_LAYER
+	std::vector<XrSwapchainImageBaseHeader*> AllocateSwapchainQuadLayerImageStructs(
+		uint32_t capacity, const XrSwapchainCreateInfo& /*swapchainCreateInfo*/) override {
+
+		// Allocate and initialize the buffer of image structs (must be sequential in memory for xrEnumerateSwapchainImages).
+		// Return back an array of pointers to each swapchain image struct so the consumer doesn't need to know the type/size.
+		std::vector<XrSwapchainImageOpenGLESKHR> swapchainImageBuffer(capacity, { XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR });
+		std::vector<XrSwapchainImageBaseHeader*> swapchainImageBase;
+		for(XrSwapchainImageOpenGLESKHR& image : swapchainImageBuffer) {
+			swapchainImageBase.push_back(reinterpret_cast<XrSwapchainImageBaseHeader*>(&image));
+		}
+
+		// Keep the buffer alive by moving it into the list of buffers.
+        m_swapchainQuadLayerImageBuffers.push_back(std::move(swapchainImageBuffer));
+
+		return swapchainImageBase;
+	}
+
+	void RenderQuadLayer(const XrCompositionLayerQuad& layer, const XrSwapchainImageBaseHeader* swapchainImage,
+		int64_t swapchainFormat, const std::vector<Cube>& cubes) override
+	{
+	}
+#endif
+
     uint32_t GetDepthTexture(uint32_t colorTexture) {
         // If a depth-stencil view has already been created for this back-buffer, use it.
         auto depthBufferIt = m_colorToDepthMap.find(colorTexture);
@@ -308,11 +387,61 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         const auto& pose = layerView.pose;
         XrMatrix4x4f proj;
         XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_OPENGL_ES, layerView.fov, 0.05f, 100.0f);
+
+#if HARDCODE_PROJECTION_MATRIX
+#endif
+        
         XrMatrix4x4f toView;
         XrVector3f scale{1.f, 1.f, 1.f};
         XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose.position, &pose.orientation, &scale);
+        
         XrMatrix4x4f view;
         XrMatrix4x4f_InvertRigidBody(&view, &toView);
+
+#if HARDCODE_VIEW_MATRIX
+        {
+            static int eye = 1;
+            const float ipd = 0.0680999979f;
+            const float half_ipd = ipd / 2.0f;
+
+            XrPosef hardcoded_pose;
+            hardcoded_pose.position.x = half_ipd * ((eye == 0) ? -1.0f : 1.0f);
+            hardcoded_pose.position.y = 1.0f;
+            hardcoded_pose.position.z = 0.0f;
+
+            hardcoded_pose.orientation.x = 0.0f;
+            hardcoded_pose.orientation.y = 0.0f;
+            hardcoded_pose.orientation.z = 0.0f;
+            hardcoded_pose.orientation.w = 1.0f;
+
+            XrMatrix4x4f_CreateTranslationRotationScale(&view, &hardcoded_pose.position, &hardcoded_pose.orientation, &scale);
+            eye = 1 - eye;
+        }
+#endif
+
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+		const XrPosef xr_local_eye_pose = layerView.pose;
+		const BVR::GLMPose local_eye_pose = BVR::convert_to_glm(xr_local_eye_pose);
+
+		const glm::vec3 local_hmd_to_eye = local_eye_pose.translation_ - local_hmd_pose.translation_;
+		const glm::vec3 world_hmd_to_eye = player_pose.rotation_ * local_hmd_to_eye;
+
+		const glm::vec3 world_hmd_offset = player_pose.rotation_ * local_hmd_pose.translation_;
+		const glm::vec3 world_hmd_position = player_pose.translation_ + world_hmd_offset;
+
+		const glm::vec3 world_eye_position = world_hmd_position + world_hmd_to_eye;
+		const glm::fquat world_orientation = glm::normalize(player_pose.rotation_ * local_hmd_pose.rotation_);
+
+		BVR::GLMPose world_eye_pose;
+		world_eye_pose.translation_ = world_eye_position;
+		world_eye_pose.rotation_ = world_orientation;
+
+		const glm::mat4 inverse_view_glm = world_eye_pose.to_matrix();
+		const glm::mat4 view_glm = glm::inverse(inverse_view_glm);
+
+		view = BVR::convert_to_xr(view_glm);
+#endif
+
         XrMatrix4x4f vp;
         XrMatrix4x4f_Multiply(&vp, &proj, &view);
 
@@ -341,6 +470,40 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
 
     void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
 
+    void SaveScreenShot(const std::string& filename) override 
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, m_swapchainFramebuffer);
+
+        GLint viewport[4] = {};
+        glGetIntegerv(GL_VIEWPORT, viewport);
+
+        int x = viewport[0];
+        int y = viewport[1];
+
+        int width = viewport[2];
+        int height = viewport[3];
+
+        int num_components = 4;  // 3 = RGB or 4 = RGBA
+        char* data = (char*)malloc((size_t)(width * height * num_components));
+
+        if (!data) 
+        {
+            return;
+        }
+
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glReadPixels(x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+
+        int write_status = stbi_write_png(filename.c_str(), width, height, num_components, data, 0);
+        Log::Write(Log::Level::Info, Fmt("SaveScreenShot %s status = %d", filename.c_str(), write_status));
+
+        free(data);
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+        check_gl_errors();
+    }
+
    private:
 #ifdef XR_USE_PLATFORM_ANDROID
     XrGraphicsBindingOpenGLESAndroidKHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_OPENGL_ES_ANDROID_KHR};
@@ -360,6 +523,11 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
     // Map color buffer to associated depth buffer. This map is populated on demand.
     std::map<uint32_t, uint32_t> m_colorToDepthMap;
     std::array<float, 4> m_clearColor;
+
+#if ENABLE_QUAD_LAYER
+	std::list<std::vector<XrSwapchainImageOpenGLESKHR>> m_swapchainQuadLayerImageBuffers;
+	GLuint m_swapchainQuadLayerFramebuffer{ 0 };
+#endif
 };
 }  // namespace
 

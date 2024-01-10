@@ -18,7 +18,7 @@
 
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
 // Define USE_MIRROR_WINDOW to open a otherwise-unused window for e.g. RenderDoc
-#define USE_MIRROR_WINDOW
+//#define USE_MIRROR_WINDOW
 #endif
 
 // glslangValidator doesn't wrap its output in brackets if you don't have it define the whole array.
@@ -28,6 +28,14 @@
 #else
 #define SPV_PREFIX
 #define SPV_SUFFIX
+#endif
+
+extern int current_eye;
+extern float IPD;
+
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+extern BVR::GLMPose player_pose;
+extern BVR::GLMPose local_hmd_pose;
 #endif
 
 namespace {
@@ -1592,6 +1600,99 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         return bases;
     }
 
+#if ENABLE_QUAD_LAYER
+	std::vector<XrSwapchainImageBaseHeader*> AllocateSwapchainQuadLayerImageStructs(
+		uint32_t capacity, const XrSwapchainCreateInfo& swapchainCreateInfo) override {
+		// Allocate and initialize the buffer of image structs (must be sequential in memory for xrEnumerateSwapchainImages).
+		// Return back an array of pointers to each swapchain image struct so the consumer doesn't need to know the type/size.
+		// Keep the buffer alive by adding it into the list of buffers.
+		m_swapchainQuadLayerImageContexts.emplace_back(GetSwapchainImageType());
+		SwapchainImageContext& swapchainImageContext = m_swapchainQuadLayerImageContexts.back();
+
+		std::vector<XrSwapchainImageBaseHeader*> bases = swapchainImageContext.Create(
+			m_namer, m_vkDevice, &m_memAllocator, capacity, swapchainCreateInfo, m_pipelineLayout, m_shaderProgram, m_drawBuffer);
+
+		// Map every swapchainImage base pointer to this context
+		for(auto& base : bases) {
+			m_swapchainQuadLayerImageContextMap[base] = &swapchainImageContext;
+		}
+
+		return bases;
+	}
+
+    void RenderQuadLayer(const XrCompositionLayerQuad& layer, const XrSwapchainImageBaseHeader* swapchainImage,
+        int64_t /*swapchainFormat*/, const std::vector<Cube>& cubes) override
+    {
+		CHECK(layer.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
+
+		auto swapchainContext = m_swapchainQuadLayerImageContextMap[swapchainImage];
+		uint32_t imageIndex = swapchainContext->ImageIndex(swapchainImage);
+
+		// XXX Should double-buffer the command buffers, for now just flush
+		m_cmdBuffer.Wait();
+		m_cmdBuffer.Reset();
+		m_cmdBuffer.Begin();
+
+		// Ensure depth is in the right layout
+		swapchainContext->depthBuffer.TransitionLayout(&m_cmdBuffer, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+		// Bind and clear eye render target
+		static std::array<VkClearValue, 2> clearValues;
+		clearValues[0].color.float32[0] = m_clearColor[0];
+		clearValues[0].color.float32[1] = m_clearColor[1];
+		clearValues[0].color.float32[2] = m_clearColor[2];
+		clearValues[0].color.float32[3] = m_clearColor[3];
+		clearValues[1].depthStencil.depth = 1.0f;
+		clearValues[1].depthStencil.stencil = 0;
+
+		VkRenderPassBeginInfo renderPassBeginInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO };
+		renderPassBeginInfo.clearValueCount = (uint32_t)clearValues.size();
+		renderPassBeginInfo.pClearValues = clearValues.data();
+
+		swapchainContext->BindRenderTarget(imageIndex, &renderPassBeginInfo);
+
+		vkCmdBeginRenderPass(m_cmdBuffer.buf, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		vkCmdBindPipeline(m_cmdBuffer.buf, VK_PIPELINE_BIND_POINT_GRAPHICS, swapchainContext->pipe.pipe);
+
+		// Bind index and vertex buffers
+		vkCmdBindIndexBuffer(m_cmdBuffer.buf, m_drawBuffer.idxBuf, 0, VK_INDEX_TYPE_UINT16);
+		VkDeviceSize offset = 0;
+		vkCmdBindVertexBuffers(m_cmdBuffer.buf, 0, 1, &m_drawBuffer.vtxBuf, &offset);
+
+		const XrPosef& pose = layer.pose;
+
+		XrMatrix4x4f toView;
+		XrVector3f scale{ 1.f, 1.f, 1.f };
+		XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose.position, &pose.orientation, &scale);
+
+		XrMatrix4x4f view;
+		XrMatrix4x4f_InvertRigidBody(&view, &toView);
+
+		XrMatrix4x4f vp = view;
+
+		// Render each cube
+		for(const Cube& cube : cubes)
+		{
+			// Compute the model-view-projection transform and push it.
+			XrMatrix4x4f model;
+			XrMatrix4x4f_CreateTranslationRotationScale(&model, &cube.Pose.position, &cube.Pose.orientation, &cube.Scale);
+			XrMatrix4x4f mvp;
+			XrMatrix4x4f_Multiply(&mvp, &vp, &model);
+			vkCmdPushConstants(m_cmdBuffer.buf, m_pipelineLayout.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp.m), &mvp.m[0]);
+
+			// Draw the cube.
+			vkCmdDrawIndexed(m_cmdBuffer.buf, m_drawBuffer.count.idx, 1, 0, 0, 0);
+		}
+
+		vkCmdEndRenderPass(m_cmdBuffer.buf);
+
+		m_cmdBuffer.End();
+		m_cmdBuffer.Exec(m_vkQueue);
+    }
+#endif
+
+
     void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
                     int64_t /*swapchainFormat*/, const std::vector<Cube>& cubes) override {
         CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
@@ -1615,6 +1716,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         clearValues[0].color.float32[3] = m_clearColor[3];
         clearValues[1].depthStencil.depth = 1.0f;
         clearValues[1].depthStencil.stencil = 0;
+
         VkRenderPassBeginInfo renderPassBeginInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
         renderPassBeginInfo.clearValueCount = (uint32_t)clearValues.size();
         renderPassBeginInfo.pClearValues = clearValues.data();
@@ -1631,20 +1733,49 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         vkCmdBindVertexBuffers(m_cmdBuffer.buf, 0, 1, &m_drawBuffer.vtxBuf, &offset);
 
         // Compute the view-projection transform.
-        // Note all matrixes (including OpenXR's) are column-major, right-handed.
-        const auto& pose = layerView.pose;
+        // Note all matrices (including OpenXR's) are column-major, right-handed.
+        const XrPosef& pose = layerView.pose;
+
         XrMatrix4x4f proj;
         XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_VULKAN, layerView.fov, 0.05f, 100.0f);
+        
         XrMatrix4x4f toView;
         XrVector3f scale{1.f, 1.f, 1.f};
+
         XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose.position, &pose.orientation, &scale);
+
         XrMatrix4x4f view;
         XrMatrix4x4f_InvertRigidBody(&view, &toView);
+        
+#if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
+        const XrPosef xr_local_eye_pose = layerView.pose;
+		const BVR::GLMPose local_eye_pose = BVR::convert_to_glm(xr_local_eye_pose);
+
+		const glm::vec3 local_hmd_to_eye = local_eye_pose.translation_ - local_hmd_pose.translation_;
+		const glm::vec3 world_hmd_to_eye = player_pose.rotation_ * local_hmd_to_eye;
+
+		const glm::vec3 world_hmd_offset = player_pose.rotation_ * local_hmd_pose.translation_;
+		const glm::vec3 world_hmd_position = player_pose.translation_ + world_hmd_offset;
+
+		const glm::vec3 world_eye_position = world_hmd_position + world_hmd_to_eye;
+		const glm::fquat world_orientation = glm::normalize(player_pose.rotation_ * local_hmd_pose.rotation_);
+
+        BVR::GLMPose world_eye_pose;
+		world_eye_pose.translation_ = world_eye_position;
+		world_eye_pose.rotation_ = world_orientation;
+
+		const glm::mat4 inverse_view_glm = world_eye_pose.to_matrix();
+		const glm::mat4 view_glm = glm::inverse(inverse_view_glm);
+
+        view = BVR::convert_to_xr(view_glm);
+#endif
+
         XrMatrix4x4f vp;
         XrMatrix4x4f_Multiply(&vp, &proj, &view);
 
         // Render each cube
-        for (const Cube& cube : cubes) {
+        for (const Cube& cube : cubes) 
+        {
             // Compute the model-view-projection transform and push it.
             XrMatrix4x4f model;
             XrMatrix4x4f_CreateTranslationRotationScale(&model, &cube.Pose.position, &cube.Pose.orientation, &cube.Scale);
@@ -1673,11 +1804,17 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return VK_SAMPLE_COUNT_1_BIT; }
 
     void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
+    void SaveScreenShot(const std::string& filename) override { (void)filename; }
 
    protected:
     XrGraphicsBindingVulkan2KHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
     std::list<SwapchainImageContext> m_swapchainImageContexts;
     std::map<const XrSwapchainImageBaseHeader*, SwapchainImageContext*> m_swapchainImageContextMap;
+
+#if ENABLE_QUAD_LAYER
+	std::list<SwapchainImageContext> m_swapchainQuadLayerImageContexts;
+	std::map<const XrSwapchainImageBaseHeader*, SwapchainImageContext*> m_swapchainQuadLayerImageContextMap;
+#endif
 
     VkInstance m_vkInstance{VK_NULL_HANDLE};
     VkPhysicalDevice m_vkPhysicalDevice{VK_NULL_HANDLE};
@@ -1867,8 +2004,17 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
         CHECK_XRCMD(pfnGetVulkanInstanceExtensionsKHR(instance, createInfo->systemId, extensionNamesSize, &extensionNamesSize,
                                                       &extensionNames[0]));
         {
+
+#if ENABLE_STREAMLINE
+            std::vector<const char*> extensions;
+            extensions.push_back("VK_EXT_debug_utils");
+            extensions.push_back("VK_KHR_get_physical_device_properties2");
+            extensions.push_back("VK_KHR_win32_surface");
+            extensions.push_back("VK_KHR_surface");
+#else
             // Note: This cannot outlive the extensionNames above, since it's just a collection of views into that string!
             std::vector<const char*> extensions = ParseExtensionString(&extensionNames[0]);
+#endif
 
             // Merge the runtime's request with the applications requests
             for (uint32_t i = 0; i < createInfo->vulkanCreateInfo->enabledExtensionCount; ++i) {
@@ -1880,8 +2026,12 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
             instInfo.enabledExtensionCount = (uint32_t)extensions.size();
             instInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data();
 
-            auto pfnCreateInstance = (PFN_vkCreateInstance)createInfo->pfnGetInstanceProcAddr(nullptr, "vkCreateInstance");
-            *vulkanResult = pfnCreateInstance(&instInfo, createInfo->vulkanAllocator, vulkanInstance);
+#if ENABLE_STREAMLINE
+            *vulkanResult = vkCreateInstance(&instInfo, createInfo->vulkanAllocator, vulkanInstance);
+#else
+			auto pfnCreateInstance = (PFN_vkCreateInstance)createInfo->pfnGetInstanceProcAddr(nullptr, "vkCreateInstance");
+			*vulkanResult = pfnCreateInstance(&instInfo, createInfo->vulkanAllocator, vulkanInstance);
+#endif
         }
 
         return XR_SUCCESS;
@@ -1904,9 +2054,56 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
             // Note: This cannot outlive the extensionNames above, since it's just a collection of views into that string!
             std::vector<const char*> extensions;
 
+#if ENABLE_STREAMLINE
+
+#if 1
+            extensions.push_back("VK_KHR_swapchain");
+            extensions.push_back("VK_EXT_descriptor_indexing");
+			extensions.push_back("VK_KHR_fragment_shading_rate");
+			extensions.push_back("VK_KHR_maintenance1");
+			extensions.push_back("VK_KHR_buffer_device_address");
+            extensions.push_back("VK_NV_mesh_shader");
+
+#elif 0
+			extensions.push_back("VK_KHR_swapchain");
+			extensions.push_back("VK_EXT_descriptor_indexing");
+			extensions.push_back("VK_EXT_scalar_block_layout");
+			extensions.push_back("VK_KHR_maintenance3");
+			extensions.push_back("VK_KHR_get_memory_requirements2");
+			extensions.push_back("VK_KHR_dedicated_allocation");
+			extensions.push_back("VK_KHR_acceleration_structure");
+			extensions.push_back("VK_KHR_ray_tracing_pipeline");
+			extensions.push_back("VK_KHR_ray_query");
+			extensions.push_back("VK_NV_ray_tracing_motion_blur");
+			extensions.push_back("VK_KHR_spirv_1_4");
+			extensions.push_back("VK_KHR_shader_float_controls");
+			extensions.push_back("VK_KHR_pipeline_library");
+			extensions.push_back("VK_KHR_deferred_host_operations");
+			extensions.push_back("VK_EXT_host_query_reset");
+			extensions.push_back("VK_KHR_shader_clock");
+			extensions.push_back("VK_KHR_push_descriptor");
+			extensions.push_back("VK_KHR_dynamic_rendering");
+			extensions.push_back("VK_KHR_timeline_semaphore");
+			extensions.push_back("VK_EXT_shader_demote_to_helper_invocation");
+			extensions.push_back("VK_NVX_binary_import");
+			extensions.push_back("VK_NVX_image_view_handle");
+#else
+            extensions.push_back("VK_KHR_swapchain");
+            //extensions.push_back("VK_KHR_external_memory");
+            //extensions.push_back("VK_KHR_external_memory_win32");
+            //extensions.push_back("VK_KHR_external_fence");
+            //extensions.push_back("VK_KHR_external_fence_win32");
+            //extensions.push_back("VK_KHR_external_semaphore");
+            //extensions.push_back("VK_KHR_external_semaphore_win32");
+            extensions.push_back("VK_KHR_get_memory_requirements2");
+            //extensions.push_back("VK_KHR_dedicated_allocation");
+#endif
+
+#else
             if (deviceExtensionNamesSize > 0) {
                 extensions = ParseExtensionString(&deviceExtensionNames[0]);
             }
+#endif
 
             // Merge the runtime's request with the applications requests
             for (uint32_t i = 0; i < createInfo->vulkanCreateInfo->enabledExtensionCount; ++i) {
@@ -1931,8 +2128,18 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
             deviceInfo.enabledExtensionCount = (uint32_t)extensions.size();
             deviceInfo.ppEnabledExtensionNames = extensions.empty() ? nullptr : extensions.data();
 
+#if ENABLE_STREAMLINE
+            deviceInfo.pEnabledFeatures = nullptr;
+            //deviceInfo.pNext = get_enabled_features_pnext();
+
+            VkDevice           vk_logical_device_{ VK_NULL_HANDLE };
+            VkResult res = vkCreateDevice(m_vkPhysicalDevice, &deviceInfo, nullptr, &vk_logical_device_);
+            *vulkanResult = res;
+            vulkanDevice = &vk_logical_device_;
+#else
             auto pfnCreateDevice = (PFN_vkCreateDevice)createInfo->pfnGetInstanceProcAddr(m_vkInstance, "vkCreateDevice");
             *vulkanResult = pfnCreateDevice(m_vkPhysicalDevice, &deviceInfo, createInfo->vulkanAllocator, vulkanDevice);
+#endif
         }
 
         return XR_SUCCESS;
