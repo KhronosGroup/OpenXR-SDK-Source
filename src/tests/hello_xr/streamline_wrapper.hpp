@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+#if ENABLE_STREAMLINE
+
 #include <sl.h>
 #include <sl_dlss.h>
 #include <sl_dlss_g.h>
@@ -182,5 +184,7 @@ extern VkResult VKAPI_CALL vkQueuePresentKHR(VkQueue queue, const VkPresentInfoK
 {
   return StreamlineWrapper::get().vk.QueuePresentKHR(queue, pPresentInfo);
 }
+
+#endif
 
 #endif
