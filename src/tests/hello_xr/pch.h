@@ -166,7 +166,11 @@
 #define PLATFORM_PC 1
 #endif
 
-#define ENABLE_STREAMLINE (PLATFORM_PC && 0)
+#ifndef ENABLE_STREAMLINE
+#define ENABLE_STREAMLINE (PLATFORM_PC && 1)
+#endif
+
+#define SL_MANUAL_HOOKING (ENABLE_STREAMLINE && 1)
 
 #define ENABLE_OPENXR_FB_REFRESH_RATE 1
 #define DEFAULT_REFRESH_RATE 90.0f
@@ -238,4 +242,5 @@
 #define LOG_MATRICES 0
 
 #include "utils.h"
+
 #endif

@@ -15,15 +15,8 @@
 #include <set>
 
 #if ENABLE_STREAMLINE
-#include <sl.h>
-#include <sl_dlss.h>
-#include <sl_consts.h>
-#include <sl_hooks.h>
 
-#include <sl_helpers.h>
-#include <sl_helpers_vk.h>
-#include <sl_nrd.h>
-#include <sl_security.h>
+#include "streamline_wrapper.hpp"
 
 static constexpr int STREAMLINE_APP_ID = 231313132;
 static constexpr uint64_t SDK_VERSION = sl::kSDKVersion;
@@ -122,7 +115,6 @@ bool InitStreamLine()
 	return true;
 }
 
-#pragma comment(lib, "sl.interposer.lib")
 #elif XR_USE_PLATFORM_WIN32
 #pragma comment(lib, "vulkan-1.lib")
 #endif

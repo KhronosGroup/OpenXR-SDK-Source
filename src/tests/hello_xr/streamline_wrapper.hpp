@@ -14,18 +14,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef _STREAMLINE_WRAPPER_H_
+#define _STREAMLINE_WRAPPER_H_
 
 #if ENABLE_STREAMLINE
 
 #include <sl.h>
 #include <sl_dlss.h>
-#include <sl_dlss_g.h>
+//#include <sl_dlss_g.h>
 #include <sl_reflex.h>
+#include <sl_consts.h>
+#include <sl_hooks.h>
+
+#include <sl_helpers.h>
 #include <sl_helpers_vk.h>
+//#include <sl_nrd.h>
+#include <sl_security.h>
 
 #if SL_MANUAL_HOOKING
-
-#include <sl_security.h>
 
 class StreamlineWrapper
 {
@@ -91,7 +97,7 @@ private:
   {
     // Get absolute path to interposer DLL
     std::wstring interposerModulePath(MAX_PATH, L'\0');
-    interposerModulePath.resize(GetModuleFileNameW(nullptr, interposerModulePath.data(), static_cast<DWORD>(interposerModulePath.size())));
+    interposerModulePath.resize(GetModuleFileNameW(nullptr, (LPWSTR)interposerModulePath.data(), static_cast<DWORD>(interposerModulePath.size())));
     interposerModulePath.erase(interposerModulePath.rfind('\\'));
     interposerModulePath.append(L"\\sl.interposer.dll");
 
@@ -102,6 +108,7 @@ private:
 #endif
 
     m_interposerModule = LoadLibraryW(interposerModulePath.c_str());
+
     if (isLoaded())
       initFunctions();
   }
@@ -184,6 +191,10 @@ extern VkResult VKAPI_CALL vkQueuePresentKHR(VkQueue queue, const VkPresentInfoK
 {
   return StreamlineWrapper::get().vk.QueuePresentKHR(queue, pPresentInfo);
 }
+
+#else
+#pragma comment(lib, "sl.interposer.lib")
+#endif
 
 #endif
 

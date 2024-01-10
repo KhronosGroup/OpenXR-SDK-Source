@@ -10,9 +10,6 @@
 #include "graphicsplugin.h"
 #include "openxr_program.h"
 
-#if USE_STREAMLINE
-#endif
-
 #if defined(_WIN32)
 // Favor the high performance NVIDIA or AMD GPUs
 extern "C" {
