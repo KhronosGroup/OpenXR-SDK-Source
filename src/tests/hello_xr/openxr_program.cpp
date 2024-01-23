@@ -3171,6 +3171,12 @@ struct OpenXrProgram : IOpenXrProgram
 		local_hmd_pose.translation_ = (local_left_eye_pose.translation_ + local_right_eye_pose.translation_) * 0.5f; // Average
 #endif
 
+#if ENABLE_ALTERNATE_EYE_RENDERING
+        static int frame_index = 0;
+        int eye_to_skip = (frame_index % 2);
+        frame_index++;
+#endif
+
         // Render view to the appropriate part of the swapchain image.
         for (uint32_t i = 0; i < viewCountOutput; i++) 
         {
@@ -3226,7 +3232,17 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
             const XrSwapchainImageBaseHeader* const swapchainImage = m_swapchainImages[viewSwapchain.handle][swapchainImageIndex];
-            m_graphicsPlugin->RenderView(projectionLayerViews[i], swapchainImage, m_colorSwapchainFormat, cubes);
+
+#if ENABLE_ALTERNATE_EYE_RENDERING
+            if (current_eye == eye_to_skip)
+            {
+                m_graphicsPlugin->RenderView(projectionLayerViews[i], swapchainImage, m_colorSwapchainFormat, {});
+            }
+            else
+#endif
+            {
+                m_graphicsPlugin->RenderView(projectionLayerViews[i], swapchainImage, m_colorSwapchainFormat, cubes);
+            }
 
 #if SUPPORT_SCREENSHOTS
             if (i == Side::LEFT) 

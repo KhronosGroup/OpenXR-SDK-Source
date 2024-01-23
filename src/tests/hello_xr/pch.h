@@ -242,6 +242,8 @@
 #define LOG_FOV 0
 #define LOG_MATRICES 0
 
+#define ENABLE_ALTERNATE_EYE_RENDERING 1
+
 #include "utils.h"
 
 #endif
