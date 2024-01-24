@@ -3175,6 +3175,15 @@ struct OpenXrProgram : IOpenXrProgram
         static int frame_index = 0;
         int eye_to_skip = (frame_index % 2);
         frame_index++;
+        
+#if DEBUG_ALTERNATE_EYE_RENDERING
+        const int num_frames = 120 * 10;
+        if ((frame_index % num_frames) >= (num_frames / 2 )) 
+        {
+            eye_to_skip = -1;
+        }
+#endif
+        
 #endif
 
         // Render view to the appropriate part of the swapchain image.
