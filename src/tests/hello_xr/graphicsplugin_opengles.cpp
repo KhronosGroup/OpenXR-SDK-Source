@@ -262,7 +262,12 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
 
     int64_t SelectColorSwapchainFormat(const std::vector<int64_t>& runtimeFormats) const override {
         // List of supported color swapchain formats.
+        
+#if ENABLE_HDR_SWAPCHAIN
+        std::vector<int64_t> supportedColorSwapchainFormats{GL_RGBA16F};
+#else
         std::vector<int64_t> supportedColorSwapchainFormats{GL_RGBA8, GL_RGBA8_SNORM};
+#endif
 
         // In OpenGLES 3.0+, the R, G, and B values after blending are converted into the non-linear
         // sRGB automatically.

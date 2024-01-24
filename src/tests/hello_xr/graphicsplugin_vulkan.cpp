@@ -1178,7 +1178,8 @@ void Swapchain::Create(VkInstance instance, VkPhysicalDevice physDevice, VkDevic
     CHECK_VKCMD(vkGetPhysicalDeviceSurfaceFormatsKHR(m_vkPhysicalDevice, surface, &surfFmtCount, &surfFmts[0]));
     uint32_t foundFmt;
     for (foundFmt = 0; foundFmt < surfFmtCount; ++foundFmt) {
-        if (surfFmts[foundFmt].format == format) break;
+        if (surfFmts[foundFmt].format == format) 
+            break;
     }
 
     CHECK(foundFmt < surfFmtCount);
@@ -1564,8 +1565,13 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 
     int64_t SelectColorSwapchainFormat(const std::vector<int64_t>& runtimeFormats) const override {
         // List of supported color swapchain formats.
+        
+#if ENABLE_HDR_SWAPCHAIN
+        constexpr int64_t SupportedColorSwapchainFormats[] = {VK_FORMAT_R16G16B16A16_SFLOAT};
+#else
         constexpr int64_t SupportedColorSwapchainFormats[] = {VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_R8G8B8A8_SRGB,
                                                               VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM};
+#endif
 
         auto swapchainFormatIt =
             std::find_first_of(runtimeFormats.begin(), runtimeFormats.end(), std::begin(SupportedColorSwapchainFormats),

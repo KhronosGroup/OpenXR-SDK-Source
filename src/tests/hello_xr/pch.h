@@ -243,6 +243,7 @@
 #define LOG_MATRICES 0
 
 #define ENABLE_ALTERNATE_EYE_RENDERING 0
+#define ENABLE_HDR_SWAPCHAIN 1
 
 #include "utils.h"
 
