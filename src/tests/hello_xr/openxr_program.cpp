@@ -3251,6 +3251,7 @@ struct OpenXrProgram : IOpenXrProgram
             {
 #if 1
                 m_graphicsPlugin->RenderView(projectionLayerViews[i], swapchainImage, m_colorSwapchainFormat, {});
+                std::this_thread::sleep_for(std::chrono::milliseconds(2));
 #else
                 m_graphicsPlugin->RenderView(projectionLayerViews[i], swapchainImage, m_colorSwapchainFormat, cubes);
                 m_graphicsPlugin->ClearView(projectionLayerViews[i], swapchainImage);
