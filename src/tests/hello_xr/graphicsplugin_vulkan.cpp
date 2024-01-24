@@ -1807,6 +1807,12 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 #endif
     }
 
+    void ClearView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage) override
+    {
+        (void)layerView;
+        (void)swapchainImage;
+    }   
+
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return VK_SAMPLE_COUNT_1_BIT; }
 
     void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }

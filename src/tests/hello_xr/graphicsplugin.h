@@ -35,6 +35,8 @@ struct IGraphicsPlugin {
     virtual void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
                             int64_t swapchainFormat, const std::vector<Cube>& cubes) = 0;
 
+    virtual void ClearView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage) = 0;
+
 #if ENABLE_QUAD_LAYER
 	virtual std::vector<XrSwapchainImageBaseHeader*> AllocateSwapchainQuadLayerImageStructs(
 		uint32_t capacity, const XrSwapchainCreateInfo& /*swapchainCreateInfo*/) = 0;
@@ -52,6 +54,7 @@ struct IGraphicsPlugin {
     // Perform required steps after updating Options
     virtual void UpdateOptions(const std::shared_ptr<struct Options>& options) = 0;
     virtual void SaveScreenShot(const std::string& filename) = 0;
+
 };
 
 // Create a graphics plugin for the graphics API specified in the options.
