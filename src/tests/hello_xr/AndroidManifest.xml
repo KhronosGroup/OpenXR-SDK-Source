@@ -110,7 +110,9 @@
             android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
             tools:ignore="NonResizeableActivity"
             android:largeHeap="true"
-            android:hardwareAccelerated="true">
+            android:colorMode="wideColorGamut"
+            android:hardwareAccelerated="true"
+            tools:targetApi="o">
 
             <!-- Tell NativeActivity the name of the .so -->
             <meta-data android:name="android.app.lib_name" android:value="hello_xr" />
