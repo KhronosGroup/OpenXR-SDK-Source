@@ -3184,6 +3184,10 @@ struct OpenXrProgram : IOpenXrProgram
         }
 #endif
         
+#if DEBUG_ALTERNATE_EYE_RENDERING_ALT
+        eye_to_skip = ((frame_index % 2) == 0) ?  1 : -1;
+#endif
+        
 #endif
 
         // Render view to the appropriate part of the swapchain image.
