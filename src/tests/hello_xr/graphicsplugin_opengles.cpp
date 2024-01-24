@@ -52,6 +52,22 @@ extern BVR::GLMPose local_hmd_pose;
 
 namespace {
 
+bool has_GL_extension(const char *extension) 
+{
+    GLint numExtensions = 0;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &numExtensions);
+    
+    for (int i = 0; i < numExtensions; i++) 
+    {
+        const GLubyte *string = glGetStringi(GL_EXTENSIONS, i);
+        
+        if (strcmp((const char *)string, extension) == 0) 
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
 bool check_gl_errors()
 {
@@ -94,6 +110,7 @@ static const char* FragmentShaderGlsl = R"_(#version 320 es
 
     void main() {
        FragColor = vec4(PSVertexColor, 1);
+       FragColor.r *= 100.0;
     }
     )_";
 
@@ -144,6 +161,10 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         Log::Write(Log::Level::Info, "GLES Debug: " + std::string(message, 0, length));
     }
 
+#if ENABLE_HDR_SWAPCHAIN
+        bool supports_hdr_ = false;
+#endif
+
     void InitializeDevice(XrInstance instance, XrSystemId systemId) override {
         // Extension function must be loaded by name
         PFN_xrGetOpenGLESGraphicsRequirementsKHR pfnGetOpenGLESGraphicsRequirementsKHR = nullptr;
@@ -179,6 +200,18 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         m_graphicsBinding.display = window.display;
         m_graphicsBinding.config = (EGLConfig)0;
         m_graphicsBinding.context = window.context.context;
+
+#if ENABLE_HDR_SWAPCHAIN
+        // https://developer.qualcomm.com/sites/default/files/docs/adreno-gpu/snapdragon-game-toolkit/gdg/tutorials/android/hdr10.html
+        
+        // Check extensions for HDR
+        const bool supports_dci_p3_gamut = has_GL_extension("EGL_EXT_gl_colorspace_display_p3");
+        const bool supports_bt2020_gamut = has_GL_extension("EGL_EXT_gl_colorspace_bt2020_pq");
+        const bool supports_smpte_2086 = has_GL_extension("EGL_EXT_surface_SMPTE2086_metadata");
+
+        supports_hdr_ = supports_dci_p3_gamut && supports_bt2020_gamut && supports_smpte_2086;
+#endif
+        
 #endif
 
         glEnable(GL_DEBUG_OUTPUT);
