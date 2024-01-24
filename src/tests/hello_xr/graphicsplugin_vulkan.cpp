@@ -1815,6 +1815,43 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
     {
         (void)layerView;
         (void)swapchainImage;
+
+        CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
+
+        auto swapchainContext = m_swapchainImageContextMap[swapchainImage];
+        uint32_t imageIndex = swapchainContext->ImageIndex(swapchainImage);
+
+        // XXX Should double-buffer the command buffers, for now just flush
+        m_cmdBuffer.Wait();
+        m_cmdBuffer.Reset();
+        m_cmdBuffer.Begin();
+
+        // Ensure depth is in the right layout
+        swapchainContext->depthBuffer.TransitionLayout(&m_cmdBuffer, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+        // Bind and clear eye render target
+        static std::array<VkClearValue, 2> clearValues;
+        clearValues[0].color.float32[0] = m_clearColor[0];
+        clearValues[0].color.float32[1] = m_clearColor[1];
+        clearValues[0].color.float32[2] = m_clearColor[2];
+        clearValues[0].color.float32[3] = m_clearColor[3];
+        clearValues[1].depthStencil.depth = 1.0f;
+        clearValues[1].depthStencil.stencil = 0;
+
+        VkRenderPassBeginInfo renderPassBeginInfo{VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO};
+        renderPassBeginInfo.clearValueCount = (uint32_t)clearValues.size();
+        renderPassBeginInfo.pClearValues = clearValues.data();
+
+        swapchainContext->BindRenderTarget(imageIndex, &renderPassBeginInfo);
+
+        vkCmdBeginRenderPass(m_cmdBuffer.buf, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        
+        // Do nothing...
+
+        vkCmdEndRenderPass(m_cmdBuffer.buf);
+
+        m_cmdBuffer.End();
+        m_cmdBuffer.Exec(m_vkQueue);
     }   
 
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return VK_SAMPLE_COUNT_1_BIT; }
