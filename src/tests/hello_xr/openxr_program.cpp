@@ -3249,7 +3249,12 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_ALTERNATE_EYE_RENDERING
             if (current_eye == eye_to_skip)
             {
+#if 1
                 m_graphicsPlugin->RenderView(projectionLayerViews[i], swapchainImage, m_colorSwapchainFormat, {});
+#else
+                m_graphicsPlugin->RenderView(projectionLayerViews[i], swapchainImage, m_colorSwapchainFormat, cubes);
+                m_graphicsPlugin->ClearView(projectionLayerViews[i], swapchainImage);
+#endif
             }
             else
 #endif
