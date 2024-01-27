@@ -1,0 +1,20 @@
+{
+  "version": 3,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "org.khronos.openxr.hello_xr.vulkan",
+  "variantName": "VulkanRelease",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "attributes": [],
+      "versionCode": 14,
+      "versionName": "1.0.33",
+      "outputFile": "hello_xr-Vulkan-release.apk"
+    }
+  ],
+  "elementType": "File"
+}

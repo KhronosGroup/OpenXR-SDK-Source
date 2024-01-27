@@ -110,7 +110,6 @@ static const char* FragmentShaderGlsl = R"_(#version 320 es
 
     void main() {
        FragColor = vec4(PSVertexColor, 1);
-       FragColor.r *= 100.0;
     }
     )_";
 
