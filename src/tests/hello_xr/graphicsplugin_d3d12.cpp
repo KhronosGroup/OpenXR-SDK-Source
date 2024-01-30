@@ -438,6 +438,12 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         return pipelineStateRaw;
     }
 
+	void ClearView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage) override
+	{
+		(void)layerView;
+		(void)swapchainImage;
+	}
+
     void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
                     int64_t swapchainFormat, const std::vector<Cube>& cubes) override {
         CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.

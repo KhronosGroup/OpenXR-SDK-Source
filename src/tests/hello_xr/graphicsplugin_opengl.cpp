@@ -515,7 +515,8 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
     
     void ClearView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage) override
     {
-        
+        (void)layerView;
+        (void)swapchainImage;
     }
 
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return 1; }
