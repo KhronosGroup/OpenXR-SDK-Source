@@ -1315,6 +1315,24 @@ struct OpenXrProgram : IOpenXrProgram
             suggestedBindings.countSuggestedBindings = (uint32_t)bindings.size();
             CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &suggestedBindings));
         }
+
+#if ENABLE_VIVE_TRACKERS
+		{
+			XrPath viveTrackerInteractionProfilePath;
+			CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/htc/vive_tracker_htcx", &viveTrackerInteractionProfilePath));
+
+			std::vector<XrActionSuggestedBinding> bindings{ {m_input.poseAction, posePath[Side::LEFT]},
+                                                             {m_input.poseAction, posePath[Side::RIGHT]},
+															};
+
+			XrInteractionProfileSuggestedBinding suggestedBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
+			suggestedBindings.interactionProfile = viveTrackerInteractionProfilePath;
+			suggestedBindings.suggestedBindings = bindings.data();
+			suggestedBindings.countSuggestedBindings = (uint32_t)bindings.size();
+			CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &suggestedBindings));
+		}
+#endif
+
         XrActionSpaceCreateInfo actionSpaceInfo{XR_TYPE_ACTION_SPACE_CREATE_INFO};
         actionSpaceInfo.action = m_input.poseAction;
         actionSpaceInfo.poseInActionSpace.orientation.w = 1.f;
