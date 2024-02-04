@@ -1367,35 +1367,13 @@ struct OpenXrProgram : IOpenXrProgram
         }
 
 #if ENABLE_VIVE_TRACKERS
-
 		if(supports_HTCX_vive_tracker_interaction_)
 		{
 			XrPath viveTrackerInteractionProfilePath;
 
 			CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/htc/vive_tracker_htcx",
 				&viveTrackerInteractionProfilePath));
-#if 0
 
-#if 0
-            std::vector<XrActionSuggestedBinding> bindings{ {m_input.waistPoseAction, waistPosePath } };
-
-#else
-			std::vector<XrActionSuggestedBinding> bindings{ {{m_input.grabAction, triggerValuePath[Side::LEFT]},
-															{m_input.grabAction, triggerValuePath[Side::RIGHT]},
-															{m_input.poseAction, posePath[Side::LEFT]},
-															{m_input.poseAction, posePath[Side::RIGHT]},
-															{m_input.quitAction, menuClickPath[Side::LEFT]},
-															{m_input.quitAction, menuClickPath[Side::RIGHT]},
-															{m_input.vibrateAction, hapticPath[Side::LEFT]},
-															{m_input.vibrateAction, hapticPath[Side::RIGHT]}} };
-#endif
-
-			XrInteractionProfileSuggestedBinding suggestedBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
-			suggestedBindings.interactionProfile = viveTrackerInteractionProfilePath;
-			suggestedBindings.suggestedBindings = bindings.data();
-			suggestedBindings.countSuggestedBindings = (uint32_t)bindings.size();
-			CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &suggestedBindings));
-#else
             // From https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#XR_HTCX_vive_tracker_interaction
 
 			// Create the action with subaction path
@@ -1433,7 +1411,6 @@ struct OpenXrProgram : IOpenXrProgram
 			actionSpaceInfo.action = m_input.waistPoseAction;
 			actionSpaceInfo.subactionPath = m_input.waistTrackerRolePath;
             CHECK_XRCMD(xrCreateActionSpace(m_session, &actionSpaceInfo, &m_input.waistPoseSpace));
-#endif
 		}
 #endif
 
@@ -3023,16 +3000,16 @@ struct OpenXrProgram : IOpenXrProgram
 
 #if DRAW_WAIST_TRACKER_POSE
 					float scale = 0.1f;
-					cubes.push_back(Cube{ waistSpaceLocation.pose, {0.2f * scale, 0.5f * scale, scale} });
+					cubes.push_back(Cube{ waistSpaceLocation.pose, {1.0f * scale, 2.0f * scale, 3.0f * scale} });
 #endif
 
 #if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
 					local_waist_pose_from_VUT = BVR::convert_to_glm(waistSpaceLocation.pose);
 
 					// Change coordinate system to GLM
-					const glm::vec3 euler_angles_radians(deg2rad(90.0f), deg2rad(-90.0f), deg2rad(0.0f));
-					const glm::fquat rotation = glm::fquat(euler_angles_radians);
-					local_waist_pose_from_VUT.rotation_ = glm::normalize(local_waist_pose_from_VUT.rotation_ * rotation);
+					//const glm::vec3 euler_angles_radians(deg2rad(90.0f), deg2rad(-90.0f), deg2rad(0.0f));
+					//const glm::fquat rotation = glm::fquat(euler_angles_radians);
+					//local_waist_pose_from_VUT.rotation_ = glm::normalize(local_waist_pose_from_VUT.rotation_ * rotation);
                     local_waist_pose_from_VUT.is_valid_ = true;
 #endif
 				}
