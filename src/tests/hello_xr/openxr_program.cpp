@@ -303,6 +303,7 @@ bool supports_simultaneous_hands_and_controllers_ = false;
 #endif
 
 #if ENABLE_VIVE_TRACKERS
+bool supports_HTCX_vive_tracker_interaction_ = false;
 BVR::GLMPose local_waist_pose_from_VUT;
 #endif
 
@@ -696,6 +697,14 @@ struct OpenXrProgram : IOpenXrProgram
 					supports_simultaneous_hands_and_controllers_ = true;
 				}
 #endif
+
+#if ENABLE_VIVE_TRACKERS
+				if(!strcmp(extension.extensionName, XR_HTCX_VIVE_TRACKER_INTERACTION_EXTENSION_NAME))
+				{
+					Log::Write(Log::Level::Info, "XR_HTCX_vive_tracker_interaction - DETECTED");
+                    supports_HTCX_vive_tracker_interaction_ = true;
+				}
+#endif
             }
 
             return;
@@ -891,6 +900,18 @@ struct OpenXrProgram : IOpenXrProgram
 		else
 		{
 			Log::Write(Log::Level::Info, "Simultaneous hands and controllers are NOT supported");
+		}
+#endif
+
+#if ENABLE_VIVE_TRACKERS
+		if(supports_HTCX_vive_tracker_interaction_)
+		{
+			Log::Write(Log::Level::Info, "Vive trackers are supported");
+			extensions.push_back(XR_HTCX_VIVE_TRACKER_INTERACTION_EXTENSION_NAME);
+		}
+		else
+		{
+			Log::Write(Log::Level::Info, "Vive trackers are NOT supported");
 		}
 #endif
 
@@ -1141,13 +1162,16 @@ struct OpenXrProgram : IOpenXrProgram
 			CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionInfo, &m_input.thumbstickYAction));
 #endif
 
-#if ENABLE_VIVE_TRACKERS
-			actionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
-			strcpy_s(actionInfo.actionName, "waist_pose");
-			strcpy_s(actionInfo.localizedActionName, "Waist Pose");
-			actionInfo.countSubactionPaths = 0;
-			actionInfo.subactionPaths = nullptr;
-			CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionInfo, &m_input.waistPoseAction));
+#if ENABLE_VIVE_TRACKERS && 0
+            if(supports_HTCX_vive_tracker_interaction_)
+            {
+				actionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+				strcpy_s(actionInfo.actionName, "waist_pose");
+				strcpy_s(actionInfo.localizedActionName, "Waist Pose");
+				actionInfo.countSubactionPaths = 0;
+				actionInfo.subactionPaths = nullptr;
+				CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionInfo, &m_input.waistPoseAction));
+            }
 #endif
 
             // Create output actions for vibrating the left and right controller.
@@ -1343,14 +1367,16 @@ struct OpenXrProgram : IOpenXrProgram
         }
 
 #if ENABLE_VIVE_TRACKERS
+
+		if(supports_HTCX_vive_tracker_interaction_)
 		{
-#if 1
 			XrPath viveTrackerInteractionProfilePath;
 
 			CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/htc/vive_tracker_htcx",
 				&viveTrackerInteractionProfilePath));
+#if 0
 
-#if 1
+#if 0
             std::vector<XrActionSuggestedBinding> bindings{ {m_input.waistPoseAction, waistPosePath } };
 
 #else
@@ -1378,6 +1404,8 @@ struct OpenXrProgram : IOpenXrProgram
 
 			XrActionCreateInfo actionInfo{ XR_TYPE_ACTION_CREATE_INFO };
 			actionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+			strcpy_s(actionInfo.actionName, "waist_pose");
+			strcpy_s(actionInfo.localizedActionName, "Waist Pose");
 			actionInfo.countSubactionPaths = 1;
 			actionInfo.subactionPaths = &m_input.waistTrackerRolePath;
             CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionInfo, &m_input.waistPoseAction));
@@ -1391,9 +1419,6 @@ struct OpenXrProgram : IOpenXrProgram
 			actionSuggBinding.action = m_input.waistPoseAction;
 			actionSuggBinding.binding = suggestedBindingPath;
 			actionSuggBindings.push_back(actionSuggBinding);
-
-			// Suggest that binding for the VIVE tracker interaction profile
-
 
 			XrInteractionProfileSuggestedBinding profileSuggBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
 
@@ -2980,6 +3005,7 @@ struct OpenXrProgram : IOpenXrProgram
         }
 
 #if ENABLE_VIVE_TRACKERS
+        if (supports_HTCX_vive_tracker_interaction_)
 		{
 			XrSpaceLocation waistSpaceLocation{ XR_TYPE_SPACE_LOCATION };
 			res = xrLocateSpace(m_input.waistPoseSpace, m_appSpace, predictedDisplayTime, &waistSpaceLocation);
@@ -3009,7 +3035,6 @@ struct OpenXrProgram : IOpenXrProgram
 					local_waist_pose_from_VUT.rotation_ = glm::normalize(local_waist_pose_from_VUT.rotation_ * rotation);
                     local_waist_pose_from_VUT.is_valid_ = true;
 #endif
-
 				}
 			}
 		}
@@ -3299,7 +3324,7 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if (ENABLE_VIVE_TRACKERS && USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION)
-        if (local_waist_pose_from_VUT.is_valid_)
+		if(supports_HTCX_vive_tracker_interaction_ && local_waist_pose_from_VUT.is_valid_)
 		{
             // Override IOBT / FBE waist pose with VUT-based waist pose, which should be more accurate & responsive
             local_waist_pose = local_waist_pose_from_VUT;
