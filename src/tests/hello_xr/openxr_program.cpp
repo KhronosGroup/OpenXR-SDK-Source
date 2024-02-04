@@ -1074,6 +1074,12 @@ struct OpenXrProgram : IOpenXrProgram
 		XrSpace gazeActionSpace;
 		XrBool32 gazeActive;
 #endif
+
+#if ENABLE_VIVE_TRACKERS
+        XrPath waistTrackerRolePath;
+		XrSpace waistPoseSpace{ XR_NULL_HANDLE };
+        XrAction waistPoseAction{ XR_NULL_HANDLE };
+#endif
     };
 
     void InitializeActions() 
@@ -1318,18 +1324,47 @@ struct OpenXrProgram : IOpenXrProgram
 
 #if ENABLE_VIVE_TRACKERS
 		{
-			XrPath viveTrackerInteractionProfilePath;
-			CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/htc/vive_tracker_htcx", &viveTrackerInteractionProfilePath));
+            // From https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#XR_HTCX_vive_tracker_interaction
 
-			std::vector<XrActionSuggestedBinding> bindings{ {m_input.poseAction, posePath[Side::LEFT]},
-                                                             {m_input.poseAction, posePath[Side::RIGHT]},
-															};
+			// Create the action with subaction path
+            CHECK_XRCMD(xrStringToPath(m_instance, "/user/vive_tracker_htcx/role/waist",
+				&m_input.waistTrackerRolePath));
 
-			XrInteractionProfileSuggestedBinding suggestedBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
-			suggestedBindings.interactionProfile = viveTrackerInteractionProfilePath;
-			suggestedBindings.suggestedBindings = bindings.data();
-			suggestedBindings.countSuggestedBindings = (uint32_t)bindings.size();
-			CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &suggestedBindings));
+			XrActionCreateInfo actionInfo{ XR_TYPE_ACTION_CREATE_INFO };
+			actionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+			actionInfo.countSubactionPaths = 1;
+			actionInfo.subactionPaths = &m_input.waistTrackerRolePath;
+            CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionInfo, &m_input.waistPoseAction));
+
+			// Describe a suggested binding for that action and subaction path.
+			XrPath suggestedBindingPath;
+            CHECK_XRCMD(xrStringToPath(m_instance,"/user/vive_tracker_htcx/role/waist/input/grip/pose", &suggestedBindingPath));
+
+			std::vector<XrActionSuggestedBinding> actionSuggBindings;
+			XrActionSuggestedBinding actionSuggBinding;
+			actionSuggBinding.action = m_input.waistPoseAction;
+			actionSuggBinding.binding = suggestedBindingPath;
+			actionSuggBindings.push_back(actionSuggBinding);
+
+			// Suggest that binding for the VIVE tracker interaction profile
+			XrPath viveTrackerInteractionProfilePath; 
+            
+            CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/htc/vive_tracker_htcx",
+				&viveTrackerInteractionProfilePath));
+
+			XrInteractionProfileSuggestedBinding profileSuggBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
+
+			profileSuggBindings.interactionProfile = viveTrackerInteractionProfilePath;
+			profileSuggBindings.suggestedBindings = actionSuggBindings.data();
+			profileSuggBindings.countSuggestedBindings = (uint32_t)actionSuggBindings.size();
+
+            CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &profileSuggBindings));
+
+			// Create action space for locating tracker
+			XrActionSpaceCreateInfo actionSpaceInfo{ XR_TYPE_ACTION_SPACE_CREATE_INFO };
+			actionSpaceInfo.action = m_input.waistPoseAction;
+			actionSpaceInfo.subactionPath = m_input.waistTrackerRolePath;
+            CHECK_XRCMD(xrCreateActionSpace(m_session, &actionSpaceInfo, &m_input.waistPoseSpace));
 		}
 #endif
 
