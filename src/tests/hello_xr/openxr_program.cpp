@@ -2932,7 +2932,30 @@ struct OpenXrProgram : IOpenXrProgram
                 } 
             }
 #endif
+
         }
+
+#if ENABLE_VIVE_TRACKERS
+		{
+			XrSpaceLocation waistSpaceLocation{ XR_TYPE_SPACE_LOCATION };
+			res = xrLocateSpace(m_input.waistPoseSpace, m_appSpace, predictedDisplayTime, &waistSpaceLocation);
+			CHECK_XRRESULT(res, "xrLocateSpace");
+
+			if(XR_UNQUALIFIED_SUCCESS(res))
+			{
+				if((waistSpaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
+					(waistSpaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0)
+				{
+
+#if DRAW_WAIST_TRACKER_POSE
+					float scale = 0.1f;
+					cubes.push_back(Cube{ waistSpaceLocation.pose, {0.2f * scale, 0.5f * scale, scale} });
+#endif
+				}
+			}
+		}
+#endif
+
 #endif
         
 #if ADD_GROUND
