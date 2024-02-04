@@ -1141,6 +1141,15 @@ struct OpenXrProgram : IOpenXrProgram
 			CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionInfo, &m_input.thumbstickYAction));
 #endif
 
+#if ENABLE_VIVE_TRACKERS
+			actionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+			strcpy_s(actionInfo.actionName, "waist_pose");
+			strcpy_s(actionInfo.localizedActionName, "Waist Pose");
+			actionInfo.countSubactionPaths = 0;
+			actionInfo.subactionPaths = nullptr;
+			CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionInfo, &m_input.waistPoseAction));
+#endif
+
             // Create output actions for vibrating the left and right controller.
             actionInfo.actionType = XR_ACTION_TYPE_VIBRATION_OUTPUT;
             strcpy_s(actionInfo.actionName, "vibrate_hand");
@@ -1176,6 +1185,9 @@ struct OpenXrProgram : IOpenXrProgram
 		std::array<XrPath, Side::COUNT> stickXPath;
         std::array<XrPath, Side::COUNT> stickYPath;
 #endif
+#if ENABLE_VIVE_TRACKERS
+        XrPath waistPosePath;
+#endif
         std::array<XrPath, Side::COUNT> hapticPath;
         std::array<XrPath, Side::COUNT> menuClickPath;
         std::array<XrPath, Side::COUNT> bClickPath;
@@ -1209,6 +1221,10 @@ struct OpenXrProgram : IOpenXrProgram
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/b/click", &bClickPath[Side::RIGHT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/input/trigger/value", &triggerValuePath[Side::LEFT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/trigger/value", &triggerValuePath[Side::RIGHT]));
+
+#if 1
+        CHECK_XRCMD(xrStringToPath(m_instance, "/user/vive_tracker_htcx/role/waist/input/grip/pose", &waistPosePath));
+#endif
         // Suggest bindings for KHR Simple.
         {
             XrPath khrSimpleInteractionProfilePath;
@@ -1328,6 +1344,32 @@ struct OpenXrProgram : IOpenXrProgram
 
 #if ENABLE_VIVE_TRACKERS
 		{
+#if 1
+			XrPath viveTrackerInteractionProfilePath;
+
+			CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/htc/vive_tracker_htcx",
+				&viveTrackerInteractionProfilePath));
+
+#if 1
+            std::vector<XrActionSuggestedBinding> bindings{ {m_input.waistPoseAction, waistPosePath } };
+
+#else
+			std::vector<XrActionSuggestedBinding> bindings{ {{m_input.grabAction, triggerValuePath[Side::LEFT]},
+															{m_input.grabAction, triggerValuePath[Side::RIGHT]},
+															{m_input.poseAction, posePath[Side::LEFT]},
+															{m_input.poseAction, posePath[Side::RIGHT]},
+															{m_input.quitAction, menuClickPath[Side::LEFT]},
+															{m_input.quitAction, menuClickPath[Side::RIGHT]},
+															{m_input.vibrateAction, hapticPath[Side::LEFT]},
+															{m_input.vibrateAction, hapticPath[Side::RIGHT]}} };
+#endif
+
+			XrInteractionProfileSuggestedBinding suggestedBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
+			suggestedBindings.interactionProfile = viveTrackerInteractionProfilePath;
+			suggestedBindings.suggestedBindings = bindings.data();
+			suggestedBindings.countSuggestedBindings = (uint32_t)bindings.size();
+			CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &suggestedBindings));
+#else
             // From https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#XR_HTCX_vive_tracker_interaction
 
 			// Create the action with subaction path
@@ -1351,10 +1393,7 @@ struct OpenXrProgram : IOpenXrProgram
 			actionSuggBindings.push_back(actionSuggBinding);
 
 			// Suggest that binding for the VIVE tracker interaction profile
-			XrPath viveTrackerInteractionProfilePath; 
-            
-            CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/htc/vive_tracker_htcx",
-				&viveTrackerInteractionProfilePath));
+
 
 			XrInteractionProfileSuggestedBinding profileSuggBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
 
@@ -1369,6 +1408,7 @@ struct OpenXrProgram : IOpenXrProgram
 			actionSpaceInfo.action = m_input.waistPoseAction;
 			actionSpaceInfo.subactionPath = m_input.waistTrackerRolePath;
             CHECK_XRCMD(xrCreateActionSpace(m_session, &actionSpaceInfo, &m_input.waistPoseSpace));
+#endif
 		}
 #endif
 
