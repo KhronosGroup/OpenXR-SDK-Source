@@ -302,6 +302,10 @@ bool supports_meta_full_body_tracking_ = false;
 bool supports_simultaneous_hands_and_controllers_ = false;
 #endif
 
+#if ENABLE_VIVE_TRACKERS
+BVR::GLMPose local_waist_pose_from_VUT;
+#endif
+
 int current_eye = 0;
 float IPD = 0.0063f;
 
@@ -2941,6 +2945,10 @@ struct OpenXrProgram : IOpenXrProgram
 			res = xrLocateSpace(m_input.waistPoseSpace, m_appSpace, predictedDisplayTime, &waistSpaceLocation);
 			CHECK_XRRESULT(res, "xrLocateSpace");
 
+#if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
+			local_waist_pose_from_VUT.is_valid_ = false;
+#endif
+
 			if(XR_UNQUALIFIED_SUCCESS(res))
 			{
 				if((waistSpaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
@@ -2951,6 +2959,17 @@ struct OpenXrProgram : IOpenXrProgram
 					float scale = 0.1f;
 					cubes.push_back(Cube{ waistSpaceLocation.pose, {0.2f * scale, 0.5f * scale, scale} });
 #endif
+
+#if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
+					local_waist_pose_from_VUT = BVR::convert_to_glm(waistSpaceLocation.pose);
+
+					// Change coordinate system to GLM
+					const glm::vec3 euler_angles_radians(deg2rad(90.0f), deg2rad(-90.0f), deg2rad(0.0f));
+					const glm::fquat rotation = glm::fquat(euler_angles_radians);
+					local_waist_pose_from_VUT.rotation_ = glm::normalize(local_waist_pose_from_VUT.rotation_ * rotation);
+                    local_waist_pose_from_VUT.is_valid_ = true;
+#endif
+
 				}
 			}
 		}
@@ -3237,6 +3256,14 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 			}
         }
+#endif
+
+#if (ENABLE_VIVE_TRACKERS && USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION)
+        if (local_waist_pose_from_VUT.is_valid_)
+		{
+            // Override IOBT / FBE waist pose with VUT-based waist pose, which should be more accurate & responsive
+            local_waist_pose = local_waist_pose_from_VUT;
+		}
 #endif
 
 #if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
