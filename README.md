@@ -41,3 +41,7 @@ https://github.com/BattleAxeVR/OpenXR-SDK-Source/blob/main/hello_xr-Vulkan-relea
 PC VR TEST BUILD with SNAP TURN ENABLED:
 https://github.com/BattleAxeVR/OpenXR-SDK-Source/blob/main/hello_xr.exe
 
+
+-----
+UPDATE: Preliminate SUPPORT for HTC Vive Ultimate trackers has been added, for the waist only to compare waist-oriented locomotion. It works well but there's a bug or two in the orientation if you use the right stick to turn. But generally it follows body orientation well as you walk. Perhaps a little too well, it may need some filtering to smooth out the values from being too responsive. Ironically Quest's FBE and IOBT being laggier is actually more comfortable in some sense. Still needs lots of testing / validation.
+
