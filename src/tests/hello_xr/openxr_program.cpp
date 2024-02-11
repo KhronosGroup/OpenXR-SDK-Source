@@ -1246,7 +1246,7 @@ struct OpenXrProgram : IOpenXrProgram
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/input/trigger/value", &triggerValuePath[Side::LEFT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/trigger/value", &triggerValuePath[Side::RIGHT]));
 
-#if 1
+#if ENABLE_VIVE_TRACKERS
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/vive_tracker_htcx/role/waist/input/grip/pose", &waistPosePath));
 #endif
         // Suggest bindings for KHR Simple.
