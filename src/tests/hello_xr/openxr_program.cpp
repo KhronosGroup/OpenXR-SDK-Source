@@ -1390,7 +1390,7 @@ struct OpenXrProgram : IOpenXrProgram
 			CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/htc/vive_tracker_htcx",
 				&viveTrackerInteractionProfilePath));
 
-
+            // Waist
             {
                 TrackerInfo tracker_info;
                 tracker_info.subaction = "/user/vive_tracker_htcx/role/waist";
@@ -1400,6 +1400,39 @@ struct OpenXrProgram : IOpenXrProgram
 
                 m_input.tracker_infos_.push_back(tracker_info);
             }
+
+            // Chest
+            {
+				TrackerInfo tracker_info;
+				tracker_info.subaction = "/user/vive_tracker_htcx/role/chest";
+				tracker_info.actionName = "chest_pose";
+				tracker_info.localizedActionName = "Chest Pose";
+				tracker_info.bindingPath = "/user/vive_tracker_htcx/role/chest/input/grip/pose";
+
+				m_input.tracker_infos_.push_back(tracker_info);
+            }
+
+			// Camera
+			{
+				TrackerInfo tracker_info;
+				tracker_info.subaction = "/user/vive_tracker_htcx/role/camera";
+				tracker_info.actionName = "camera_pose";
+				tracker_info.localizedActionName = "Camera Pose";
+				tracker_info.bindingPath = "/user/vive_tracker_htcx/role/chest/input/camera/pose";
+
+				m_input.tracker_infos_.push_back(tracker_info);
+			}
+
+			// Keyboard
+			{
+				TrackerInfo tracker_info;
+				tracker_info.subaction = "/user/vive_tracker_htcx/role/keyboard";
+				tracker_info.actionName = "keyboard_pose";
+				tracker_info.localizedActionName = "Keyboard Pose";
+				tracker_info.bindingPath = "/user/vive_tracker_htcx/role/chest/input/keyboard/pose";
+
+				m_input.tracker_infos_.push_back(tracker_info);
+			}
 
             const int num_trackers = (int)m_input.tracker_infos_.size();
 
