@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Get modern CMake and Ninja
-        uses: lukka/get-cmake@v3.27.7
+        uses: lukka/get-cmake@v3.28.3
 
       - name: set up JDK 11
         uses: actions/setup-java@v3
@@ -61,7 +61,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Get modern CMake and Ninja
-        uses: lukka/get-cmake@v3.27.7
+        uses: lukka/get-cmake@v3.28.3
       - name: set up JDK 11
         uses: actions/setup-java@v3
         with:
