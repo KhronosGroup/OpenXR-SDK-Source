@@ -46,7 +46,6 @@ makeSubset "$TARNAME" $(getSDKFilenames)
     cd github
 
     # Add the shared public .mailmap used in all GitHub projects derived from the internal openxr repo
-    add_to_tar "$TARNAME" .mailmap
     if [ -f .mailmap ]; then
         # It's in the github folder.
         add_to_tar "$TARNAME" .mailmap
