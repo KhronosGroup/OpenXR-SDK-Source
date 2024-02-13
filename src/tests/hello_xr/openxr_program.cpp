@@ -1093,6 +1093,18 @@ struct OpenXrProgram : IOpenXrProgram
         }
     }
 
+	struct TrackerInfo
+	{
+		std::string subaction;
+		std::string actionName;
+		std::string localizedActionName;
+		std::string bindingPath;
+
+		XrPath tracker_role_path;
+		XrSpace tracker_pose_space{ XR_NULL_HANDLE };
+		XrAction tracker_pose_action{ XR_NULL_HANDLE };
+	};
+
     struct InputState 
     {
         XrActionSet actionSet{XR_NULL_HANDLE};
@@ -1123,9 +1135,7 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if ENABLE_VIVE_TRACKERS
-        XrPath waistTrackerRolePath;
-		XrSpace waistPoseSpace{ XR_NULL_HANDLE };
-        XrAction waistPoseAction{ XR_NULL_HANDLE };
+        std::vector<TrackerInfo> tracker_infos_;
 #endif
     };
 
@@ -1391,34 +1401,55 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_VIVE_TRACKERS
 		if(supports_HTCX_vive_tracker_interaction_)
 		{
+            // From https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#XR_HTCX_vive_tracker_interaction
 			XrPath viveTrackerInteractionProfilePath;
 
 			CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/htc/vive_tracker_htcx",
 				&viveTrackerInteractionProfilePath));
 
-            // From https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html#XR_HTCX_vive_tracker_interaction
 
-			// Create the action with subaction path
-            CHECK_XRCMD(xrStringToPath(m_instance, "/user/vive_tracker_htcx/role/waist",
-				&m_input.waistTrackerRolePath));
+            {
+                TrackerInfo tracker_info;
+                tracker_info.subaction = "/user/vive_tracker_htcx/role/waist";
+                tracker_info.actionName = "waist_pose";
+                tracker_info.localizedActionName = "Waist Pose";
+                tracker_info.bindingPath = "/user/vive_tracker_htcx/role/waist/input/grip/pose";
 
-			XrActionCreateInfo actionInfo{ XR_TYPE_ACTION_CREATE_INFO };
-			actionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
-			strcpy_s(actionInfo.actionName, "waist_pose");
-			strcpy_s(actionInfo.localizedActionName, "Waist Pose");
-			actionInfo.countSubactionPaths = 1;
-			actionInfo.subactionPaths = &m_input.waistTrackerRolePath;
-            CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionInfo, &m_input.waistPoseAction));
+                m_input.tracker_infos_.push_back(tracker_info);
+            }
 
-			// Describe a suggested binding for that action and subaction path.
-			XrPath suggestedBindingPath;
-            CHECK_XRCMD(xrStringToPath(m_instance,"/user/vive_tracker_htcx/role/waist/input/grip/pose", &suggestedBindingPath));
+            const int num_trackers = (int)m_input.tracker_infos_.size();
 
 			std::vector<XrActionSuggestedBinding> actionSuggBindings;
-			XrActionSuggestedBinding actionSuggBinding;
-			actionSuggBinding.action = m_input.waistPoseAction;
-			actionSuggBinding.binding = suggestedBindingPath;
-			actionSuggBindings.push_back(actionSuggBinding);
+
+            for(int tracker_index = 0; tracker_index < num_trackers; tracker_index++)
+            {
+                TrackerInfo& tracker_info = m_input.tracker_infos_[tracker_index];
+				CHECK_XRCMD(xrStringToPath(m_instance, tracker_info.subaction.c_str(), &tracker_info.tracker_role_path));
+
+			    XrActionCreateInfo actionInfo{ XR_TYPE_ACTION_CREATE_INFO };
+			    actionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
+			    strcpy_s(actionInfo.actionName, tracker_info.actionName.c_str());
+			    strcpy_s(actionInfo.localizedActionName, tracker_info.localizedActionName.c_str());
+			    actionInfo.countSubactionPaths = 1;
+			    actionInfo.subactionPaths = &tracker_info.tracker_role_path;
+                CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionInfo, &tracker_info.tracker_pose_action));
+
+			    // Describe a suggested binding for that action and subaction path.
+			    XrPath suggestedBindingPath;
+                CHECK_XRCMD(xrStringToPath(m_instance, tracker_info.bindingPath.c_str(), &suggestedBindingPath));
+
+			    XrActionSuggestedBinding actionSuggBinding;
+			    actionSuggBinding.action = tracker_info.tracker_pose_action;
+			    actionSuggBinding.binding = suggestedBindingPath;
+			    actionSuggBindings.push_back(actionSuggBinding);
+
+				// Create action space for locating tracker
+				XrActionSpaceCreateInfo actionSpaceInfo{ XR_TYPE_ACTION_SPACE_CREATE_INFO };
+				actionSpaceInfo.action = tracker_info.tracker_pose_action;
+				actionSpaceInfo.subactionPath = tracker_info.tracker_role_path;
+				CHECK_XRCMD(xrCreateActionSpace(m_session, &actionSpaceInfo, &tracker_info.tracker_pose_space));
+			}
 
 			XrInteractionProfileSuggestedBinding profileSuggBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
 
@@ -1427,12 +1458,6 @@ struct OpenXrProgram : IOpenXrProgram
 			profileSuggBindings.countSuggestedBindings = (uint32_t)actionSuggBindings.size();
 
             CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &profileSuggBindings));
-
-			// Create action space for locating tracker
-			XrActionSpaceCreateInfo actionSpaceInfo{ XR_TYPE_ACTION_SPACE_CREATE_INFO };
-			actionSpaceInfo.action = m_input.waistPoseAction;
-			actionSpaceInfo.subactionPath = m_input.waistTrackerRolePath;
-            CHECK_XRCMD(xrCreateActionSpace(m_session, &actionSpaceInfo, &m_input.waistPoseSpace));
 		}
 #endif
 
@@ -1463,7 +1488,7 @@ struct OpenXrProgram : IOpenXrProgram
     void CreateVisualizedSpaces() {
         CHECK(m_session != XR_NULL_HANDLE);
 
-        std::string visualizedSpaces[] = {"ViewFront",        "Local", "Stage", "StageLeft", "StageRight", "StageLeftRotated",
+        std::string visualizedSpaces[] = {"ViewFront", "Local", "Stage", "StageLeft", "StageRight", "StageLeftRotated",
                                           "StageRightRotated"};
 
         for (const auto& visualizedSpace : visualizedSpaces) {
@@ -3039,70 +3064,78 @@ struct OpenXrProgram : IOpenXrProgram
 #if ENABLE_VIVE_TRACKERS
         if (supports_HTCX_vive_tracker_interaction_)
 		{
-			XrSpaceLocation waistSpaceLocation{ XR_TYPE_SPACE_LOCATION };
-			res = xrLocateSpace(m_input.waistPoseSpace, m_appSpace, predictedDisplayTime, &waistSpaceLocation);
-			CHECK_XRRESULT(res, "xrLocateSpace");
+#if DRAW_ALL_VIVE_TRACKERS
+			const float scale = 0.05f;
+			const float scale_x = 1.5f * scale;
+			const float scale_y = 1.0f * scale;
+			const float scale_z = 0.5f * scale;
+#endif
 
 #if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
-			local_waist_pose_from_VUT.is_valid_ = false;
+            local_waist_pose_from_VUT.is_valid_ = false;
 #endif
 
-			if(XR_UNQUALIFIED_SUCCESS(res))
-			{
-				if((waistSpaceLocation.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
-					(waistSpaceLocation.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0)
+            const int num_trackers = (int)m_input.tracker_infos_.size();
+
+            for (int tracker_index = 0; tracker_index < num_trackers; tracker_index++)
+            {
+                const bool is_waist = (tracker_index == WAIST_TRACKER_INDEX); // first item, TODO add or use existing enum for IDs
+
+                const TrackerInfo& tracker_info = m_input.tracker_infos_[tracker_index];
+
+				XrSpaceLocation tracker_space_location{ XR_TYPE_SPACE_LOCATION };
+				res = xrLocateSpace(tracker_info.tracker_pose_space, m_appSpace, predictedDisplayTime, &tracker_space_location);
+				CHECK_XRRESULT(res, "xrLocateSpace");
+
+				if(XR_UNQUALIFIED_SUCCESS(res))
 				{
+					if((tracker_space_location.locationFlags & XR_SPACE_LOCATION_POSITION_VALID_BIT) != 0 &&
+						(tracker_space_location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT) != 0)
+					{
+#if ADAPT_VIVE_TRACKER_POSES
+						{
+							glm::vec3 euler_angle_offset_degrees = glm::vec3(90.0f, 180.0f, 0.0f);
 
-#if DRAW_WAIST_TRACKER_POSE
-					float scale = 0.05f;
-                    const float scale_x = 1.5f * scale;
-                    const float scale_y = 1.0f * scale;
-                    const float scale_z = 0.5f * scale;
+							glm::vec3 euler_angles_offset_radians(deg2rad(euler_angle_offset_degrees.x), deg2rad(euler_angle_offset_degrees.y), deg2rad(euler_angle_offset_degrees.z));
+							const glm::fquat offset_rotation = glm::fquat(euler_angles_offset_radians);
 
-#if ADAPT_WAIST_POSE_TO_BELT
-                    {
-                        glm::vec3 euler_angle_offset_degrees = glm::vec3(90.0f, 180.0f, 0.0f);
-
-						glm::vec3 euler_angles_offset_radians(deg2rad(euler_angle_offset_degrees.x), deg2rad(euler_angle_offset_degrees.y), deg2rad(euler_angle_offset_degrees.z));
-                        const glm::fquat offset_rotation = glm::fquat(euler_angles_offset_radians);
-
-						const BVR::GLMPose glm_local_pose = BVR::convert_to_glm(waistSpaceLocation.pose);
-						const glm::fquat adapted_rotation = glm::normalize(glm_local_pose.rotation_ * offset_rotation);
-                        waistSpaceLocation.pose.orientation = BVR::convert_to_xr(adapted_rotation);
-                    }
+							const BVR::GLMPose glm_local_pose = BVR::convert_to_glm(tracker_space_location.pose);
+							const glm::fquat adapted_rotation = glm::normalize(glm_local_pose.rotation_ * offset_rotation);
+                            tracker_space_location.pose.orientation = BVR::convert_to_xr(adapted_rotation);
+						}
 #endif
-					cubes.push_back(Cube{ waistSpaceLocation.pose, {scale_x, scale_y, scale_z} });
+
+#if DRAW_ALL_VIVE_TRACKERS
+						cubes.push_back(Cube{ tracker_space_location.pose, {scale_x, scale_y, scale_z} });
 
 #if DRAW_WORLD_POSES
-					{
-						const BVR::GLMPose glm_local_pose = BVR::convert_to_glm(waistSpaceLocation.pose);
-						const glm::vec3 world_position = player_pose.translation_ + (player_pose.rotation_ * glm_local_pose.translation_);
-						const glm::fquat world_rotation = glm::normalize(player_pose.rotation_ * glm_local_pose.rotation_);
+						{
+							const BVR::GLMPose glm_local_pose = BVR::convert_to_glm(tracker_space_location.pose);
+							const glm::vec3 world_position = player_pose.translation_ + (player_pose.rotation_ * glm_local_pose.translation_);
+							const glm::fquat world_rotation = glm::normalize(player_pose.rotation_ * glm_local_pose.rotation_);
 
-						XrPosef world_xr_pose;
-						world_xr_pose.position = BVR::convert_to_xr(world_position);
-						world_xr_pose.orientation = BVR::convert_to_xr(world_rotation);
+							XrPosef world_xr_pose;
+							world_xr_pose.position = BVR::convert_to_xr(world_position);
+							world_xr_pose.orientation = BVR::convert_to_xr(world_rotation);
 
-						cubes.push_back(Cube{ world_xr_pose, {scale_x, scale_y, scale_z} });
-					}
+							cubes.push_back(Cube{ world_xr_pose, {scale_x, scale_y, scale_z} });
+						}
 #endif
 
 #endif
 
 #if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
-					local_waist_pose_from_VUT = BVR::convert_to_glm(waistSpaceLocation.pose);
-
-					// Change coordinate system to GLM
-					//const glm::vec3 euler_angles_radians(deg2rad(90.0f), deg2rad(-90.0f), deg2rad(0.0f));
-					//const glm::fquat rotation = glm::fquat(euler_angles_radians);
-					//local_waist_pose_from_VUT.rotation_ = glm::normalize(local_waist_pose_from_VUT.rotation_ * rotation);
-                    local_waist_pose_from_VUT.is_valid_ = true;
+                        if(is_waist)
+                        {
+                            local_waist_pose_from_VUT = BVR::convert_to_glm(tracker_space_location.pose);
+                            local_waist_pose_from_VUT.is_valid_ = true;
+                        }
 #endif
+					}
 				}
-			}
-		}
+            }
 #endif
-
+		}
 #endif
         
 #if ADD_GROUND
