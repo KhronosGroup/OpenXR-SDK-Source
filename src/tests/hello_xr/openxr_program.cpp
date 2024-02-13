@@ -1194,18 +1194,6 @@ struct OpenXrProgram : IOpenXrProgram
 			CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionInfo, &m_input.thumbstickYAction));
 #endif
 
-#if ENABLE_VIVE_TRACKERS && 0
-            if(supports_HTCX_vive_tracker_interaction_)
-            {
-				actionInfo.actionType = XR_ACTION_TYPE_POSE_INPUT;
-				strcpy_s(actionInfo.actionName, "waist_pose");
-				strcpy_s(actionInfo.localizedActionName, "Waist Pose");
-				actionInfo.countSubactionPaths = 0;
-				actionInfo.subactionPaths = nullptr;
-				CHECK_XRCMD(xrCreateAction(m_input.actionSet, &actionInfo, &m_input.waistPoseAction));
-            }
-#endif
-
             // Create output actions for vibrating the left and right controller.
             actionInfo.actionType = XR_ACTION_TYPE_VIBRATION_OUTPUT;
             strcpy_s(actionInfo.actionName, "vibrate_hand");
@@ -1241,9 +1229,7 @@ struct OpenXrProgram : IOpenXrProgram
 		std::array<XrPath, Side::COUNT> stickXPath;
         std::array<XrPath, Side::COUNT> stickYPath;
 #endif
-#if ENABLE_VIVE_TRACKERS
-        XrPath waistPosePath;
-#endif
+
         std::array<XrPath, Side::COUNT> hapticPath;
         std::array<XrPath, Side::COUNT> menuClickPath;
         std::array<XrPath, Side::COUNT> bClickPath;
@@ -1278,9 +1264,6 @@ struct OpenXrProgram : IOpenXrProgram
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/left/input/trigger/value", &triggerValuePath[Side::LEFT]));
         CHECK_XRCMD(xrStringToPath(m_instance, "/user/hand/right/input/trigger/value", &triggerValuePath[Side::RIGHT]));
 
-#if ENABLE_VIVE_TRACKERS
-        CHECK_XRCMD(xrStringToPath(m_instance, "/user/vive_tracker_htcx/role/waist/input/grip/pose", &waistPosePath));
-#endif
         // Suggest bindings for KHR Simple.
         {
             XrPath khrSimpleInteractionProfilePath;
