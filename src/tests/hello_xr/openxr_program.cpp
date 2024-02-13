@@ -3062,13 +3062,18 @@ struct OpenXrProgram : IOpenXrProgram
 
 #if ADAPT_WAIST_POSE_TO_BELT
                     {
+                        glm::vec3 euler_angle_offset_degrees = glm::vec3(90.0f, 180.0f, 0.0f);
+
+						glm::vec3 euler_angles_offset_radians(deg2rad(euler_angle_offset_degrees.x), deg2rad(euler_angle_offset_degrees.y), deg2rad(euler_angle_offset_degrees.z));
+                        const glm::fquat offset_rotation = glm::fquat(euler_angles_offset_radians);
+
+
 						const BVR::GLMPose glm_local_pose = BVR::convert_to_glm(waistSpaceLocation.pose);
 						//const glm::vec3 adapted_position = player_pose.translation_ + (player_pose.rotation_ * glm_local_pose.translation_);
-						//const glm::fquat adapted_rotation = glm::normalize(glm_local_pose.rotation_ * BVR::CW_90_rotation_about_x);
+						const glm::fquat adapted_rotation = glm::normalize(glm_local_pose.rotation_ * offset_rotation);
+                        waistSpaceLocation.pose.orientation = BVR::convert_to_xr(adapted_rotation);
 
-                        //waistSpaceLocation.pose.orientation = BVR::convert_to_xr(adapted_rotation);
-
-                        waistSpaceLocation.pose = BVR::convert_to_xr(glm_local_pose);
+                        //waistSpaceLocation.pose = BVR::convert_to_xr(glm_local_pose);
                     }
 #endif
 					cubes.push_back(Cube{ waistSpaceLocation.pose, {scale_x, scale_y, scale_z} });
