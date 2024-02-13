@@ -329,35 +329,34 @@ BVR::GLMPose get_waist_pose_2D(const bool world_space)
 		waist_orientation = glm::normalize(waist_orientation * player_pose.rotation_);
 	}
 
-    glm::vec3 local_forward_direction = forward_direction;
-
-	glm::vec3 waist_direction = glm::rotate(waist_orientation, local_forward_direction);
+	glm::vec3 waist_direction = glm::rotate(waist_orientation, forward_direction);
 	waist_direction.y = 0.0f;
 	waist_direction = glm::normalize(waist_direction);
 
 #if SUPPORT_BACKWARDS_WAIST_ORIENTATION
     if (local_hmd_pose.is_valid_)
     {
-		glm::vec3 waist_direction_local = glm::rotate(local_waist_pose.rotation_, local_forward_direction);
-        waist_direction_local.y = 0.0f;
-        waist_direction_local = glm::normalize(waist_direction_local);
+		glm::vec3 local_waist_direction = glm::rotate(local_waist_pose.rotation_, forward_direction);
+        local_waist_direction.y = 0.0f;
+        local_waist_direction = glm::normalize(local_waist_direction);
 
-        glm::vec3 hmd_direction_local = glm::rotate(local_hmd_pose.rotation_, local_forward_direction);
-        hmd_direction_local.y = 0.0f;
-        hmd_direction_local = glm::normalize(hmd_direction_local);
+        glm::vec3 local_hmd_direction = glm::rotate(local_hmd_pose.rotation_, forward_direction);
+        local_hmd_direction.y = 0.0f;
+        local_hmd_direction = glm::normalize(local_hmd_direction);
 
-        const float dot_product = glm::dot(hmd_direction_local, waist_direction_local);
-        const bool is_waist_tracker_backwards_facing = (dot_product < -0.5f);
+        const float dot_product = glm::dot(local_hmd_direction, local_waist_direction);
+        const bool is_waist_tracker_backwards_facing = (dot_product < BACKWARDS_DOT_PRODUCT_THRESHOLD);
 
         if (is_waist_tracker_backwards_facing)
         {
-            local_forward_direction = -local_forward_direction;
+            waist_direction.x = -waist_direction.x;
+            waist_direction.z = -waist_direction.z;
         }
     }
 #endif
 
 	// Waist pose as returned from Meta can point upward sometimes, but smooth locomotion should only ever be in 2D, X-Z plane
-	const glm::fquat waist_rotation_world_2D = glm::rotation(local_forward_direction, waist_direction);
+	const glm::fquat waist_rotation_world_2D = glm::rotation(forward_direction, waist_direction);
 
 	BVR::GLMPose waist_pose_2D;
 	waist_pose_2D.rotation_ = waist_rotation_world_2D;
