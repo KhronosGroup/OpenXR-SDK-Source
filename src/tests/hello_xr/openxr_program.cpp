@@ -1390,6 +1390,8 @@ struct OpenXrProgram : IOpenXrProgram
 			CHECK_XRCMD(xrStringToPath(m_instance, "/interaction_profiles/htc/vive_tracker_htcx",
 				&viveTrackerInteractionProfilePath));
 
+            // NB Can use xrEnumerateViveTrackerPathsHTCX instead of these hardcoded paths. This'll do for now...
+
             // Waist
             {
                 TrackerInfo tracker_info;
