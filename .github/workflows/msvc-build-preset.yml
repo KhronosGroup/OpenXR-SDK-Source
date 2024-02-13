@@ -57,7 +57,7 @@ jobs:
         run: "cmake --build $env:RUNNER_TEMP --parallel --config ${{ inputs.buildType }} --target install"
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: inputs.artifactName
         with:
           name: "${{ inputs.artifactName }}"
