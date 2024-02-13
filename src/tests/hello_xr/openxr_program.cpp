@@ -3055,8 +3055,8 @@ struct OpenXrProgram : IOpenXrProgram
 				{
 
 #if DRAW_WAIST_TRACKER_POSE
-					float scale = 0.1f;
-                    const float scale_x = 2.0f * scale;
+					float scale = 0.05f;
+                    const float scale_x = 1.5f * scale;
                     const float scale_y = 1.0f * scale;
                     const float scale_z = 0.5f * scale;
 
