@@ -3109,7 +3109,7 @@ struct OpenXrProgram : IOpenXrProgram
         // Long, flat cube = ground
         XrPosef xr_ground_pose = {};
         xr_ground_pose.orientation = { 0.0f, 0.0f, 0.0f, 1.0f };
-        xr_ground_pose.position.y = -1.0f; // relative to head, todo : make it y = 0.0 and HMD pose is relative to ground instead, requires different tracking space
+        xr_ground_pose.position.y = -2.0f; // relative to head, todo : make it y = 0.0 and HMD pose is relative to ground instead, requires different tracking space
         cubes.push_back(Cube{ xr_ground_pose, {100.0f, 0.0001f, 100.0f} });
 #endif
 
