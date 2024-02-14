@@ -43,5 +43,13 @@ https://github.com/BattleAxeVR/OpenXR-SDK-Source/blob/main/hello_xr.exe
 
 
 -----
-UPDATE: Preliminary SUPPORT for HTC Vive Ultimate trackers has been added, for the waist only to compare waist-oriented locomotion. It works well but there's a bug or two in the orientation if you use the right stick to turn. But generally it follows body orientation well as you walk. Perhaps a little too well, it may need some filtering to smooth out the values from being too responsive. Ironically Quest's FBE and IOBT being laggier is actually more comfortable in some sense. Still needs lots of testing / validation.
+UPDATE: Support for HTC Vive Ultimate trackers (and presumably older HTC Trackers) has been added, for the waist to use for waist-oriented locomotion. It works VERY well, very 
+responsive to body movements.
 
+Video is here:
+
+https://twitter.com/BattleAxeVR/status/1757592442923032595
+
+Another video of 5 VUTs all running at the same time is here:
+
+https://twitter.com/BattleAxeVR/status/1757593341586259986
