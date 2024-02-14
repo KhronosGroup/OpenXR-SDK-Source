@@ -3275,9 +3275,8 @@ struct OpenXrProgram : IOpenXrProgram
 
             for (int tracker_index = 0; tracker_index < num_trackers; tracker_index++)
             {
-                const bool is_waist = (tracker_index == WAIST_TRACKER_INDEX); // first item, TODO add or use existing enum for IDs
-
                 const TrackerInfo& tracker_info = m_input.tracker_infos_[tracker_index];
+				const bool is_waist = (tracker_info.actionName == "waist_pose");
 
 				XrSpaceLocation tracker_space_location{ XR_TYPE_SPACE_LOCATION };
 				res = xrLocateSpace(tracker_info.tracker_pose_space, m_appSpace, predictedDisplayTime, &tracker_space_location);
