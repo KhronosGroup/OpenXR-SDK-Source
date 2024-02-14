@@ -1392,6 +1392,32 @@ struct OpenXrProgram : IOpenXrProgram
 
             // NB Can use xrEnumerateViveTrackerPathsHTCX instead of these hardcoded paths. This'll do for now...
 
+#if 0
+            // TODO: Need sub path per hand
+            // 
+			// Left Handheld Object
+			{
+				TrackerInfo tracker_info;
+				tracker_info.subaction = "/user/vive_tracker_htcx/role/handheld_object";
+				tracker_info.actionName = "left_handheld_object_pose";
+				tracker_info.localizedActionName = "Left Handheld Object Pose";
+				tracker_info.bindingPath = "/user/vive_tracker_htcx/role/left_foot/input/grip/pose";
+
+				m_input.tracker_infos_.push_back(tracker_info);
+			}
+
+			// Right Handheld Object
+			{
+				TrackerInfo tracker_info;
+				tracker_info.subaction = "/user/vive_tracker_htcx/role/handheld_object";
+				tracker_info.actionName = "right_handheld_object_pose";
+				tracker_info.localizedActionName = "Right Handheld Object Pose";
+				tracker_info.bindingPath = "/user/vive_tracker_htcx/role/handheld_object/input/grip/pose";
+
+				m_input.tracker_infos_.push_back(tracker_info);
+			}
+#endif
+
             // Left Foot
             {
                 TrackerInfo tracker_info;
