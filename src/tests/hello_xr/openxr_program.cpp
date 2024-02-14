@@ -1392,7 +1392,7 @@ struct OpenXrProgram : IOpenXrProgram
 
             // NB Can use xrEnumerateViveTrackerPathsHTCX instead of these hardcoded paths. This'll do for now...
 
-#if 0
+#if ENABLE_VIVE_HANDHELD_OBJECTS
             // TODO: Need sub path per hand
             // 
 			// Left Handheld Object
@@ -1416,8 +1416,8 @@ struct OpenXrProgram : IOpenXrProgram
 
 				m_input.tracker_infos_.push_back(tracker_info);
 			}
-#endif
 
+#if ENABLE_VIVE_FEET
             // Left Foot
             {
                 TrackerInfo tracker_info;
@@ -1439,7 +1439,9 @@ struct OpenXrProgram : IOpenXrProgram
 
                 m_input.tracker_infos_.push_back(tracker_info);
             }
+#endif
 
+#if ENABLE_VIVE_SHOULDERS
 			// Left Shoulder
 			{
 				TrackerInfo tracker_info;
@@ -1461,7 +1463,9 @@ struct OpenXrProgram : IOpenXrProgram
 
 				m_input.tracker_infos_.push_back(tracker_info);
 			}
+#endif
 
+#if ENABLE_VIVE_ELBOWS
 			// Left Elbow
 			{
 				TrackerInfo tracker_info;
@@ -1483,7 +1487,9 @@ struct OpenXrProgram : IOpenXrProgram
 
 				m_input.tracker_infos_.push_back(tracker_info);
 			}
+#endif
 
+#if ENABLE_VIVE_KNEES
 			// Left Knee
 			{
 				TrackerInfo tracker_info;
@@ -1505,7 +1511,9 @@ struct OpenXrProgram : IOpenXrProgram
 
 				m_input.tracker_infos_.push_back(tracker_info);
 			}
+#endif
 
+#if ENABLE_VIVE_WRISTS
 			// Left Wrist
 			{
 				TrackerInfo tracker_info;
@@ -1527,7 +1535,9 @@ struct OpenXrProgram : IOpenXrProgram
 
 				m_input.tracker_infos_.push_back(tracker_info);
 			}
+#endif
 
+#if ENABLE_VIVE_ANKLES
 			// Left Ankle
 			{
 				TrackerInfo tracker_info;
@@ -1549,7 +1559,9 @@ struct OpenXrProgram : IOpenXrProgram
 
 				m_input.tracker_infos_.push_back(tracker_info);
 			}
+#endif
 
+#if ENABLE_VIVE_WAIST
             // Waist
             {
                 TrackerInfo tracker_info;
@@ -1560,7 +1572,9 @@ struct OpenXrProgram : IOpenXrProgram
 
                 m_input.tracker_infos_.push_back(tracker_info);
             }
+#endif
 
+#if ENABLE_VIVE_CHEST
             // Chest
             {
 				TrackerInfo tracker_info;
@@ -1571,7 +1585,9 @@ struct OpenXrProgram : IOpenXrProgram
 
 				m_input.tracker_infos_.push_back(tracker_info);
             }
+#endif
 
+#if ENABLE_VIVE_CAMERA
 			// Camera
 			{
 				TrackerInfo tracker_info;
@@ -1582,7 +1598,9 @@ struct OpenXrProgram : IOpenXrProgram
 
 				m_input.tracker_infos_.push_back(tracker_info);
 			}
+#endif
 
+#if ENABLE_VIVE_KEYBOARD
 			// Keyboard
 			{
 				TrackerInfo tracker_info;
@@ -1593,6 +1611,9 @@ struct OpenXrProgram : IOpenXrProgram
 
 				m_input.tracker_infos_.push_back(tracker_info);
 			}
+#endif
+
+#endif
 
             const int num_trackers = (int)m_input.tracker_infos_.size();
 
