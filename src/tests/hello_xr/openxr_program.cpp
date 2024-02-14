@@ -1502,6 +1502,28 @@ struct OpenXrProgram : IOpenXrProgram
 				m_input.tracker_infos_.push_back(tracker_info);
 			}
 
+			// Left Ankle
+			{
+				TrackerInfo tracker_info;
+				tracker_info.subaction = "/user/vive_tracker_htcx/role/left_ankle";
+				tracker_info.actionName = "left_ankle_pose";
+				tracker_info.localizedActionName = "Left Ankle Pose";
+				tracker_info.bindingPath = "/user/vive_tracker_htcx/role/left_ankle/input/grip/pose";
+
+				m_input.tracker_infos_.push_back(tracker_info);
+			}
+
+			// Right Ankle
+			{
+				TrackerInfo tracker_info;
+				tracker_info.subaction = "/user/vive_tracker_htcx/role/right_ankle";
+				tracker_info.actionName = "right_ankle_pose";
+				tracker_info.localizedActionName = "Right Ankle Pose";
+				tracker_info.bindingPath = "/user/vive_tracker_htcx/role/right_ankle/input/grip/pose";
+
+				m_input.tracker_infos_.push_back(tracker_info);
+			}
+
             // Waist
             {
                 TrackerInfo tracker_info;
