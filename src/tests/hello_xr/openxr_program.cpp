@@ -1436,6 +1436,28 @@ struct OpenXrProgram : IOpenXrProgram
 				m_input.tracker_infos_.push_back(tracker_info);
 			}
 
+			// Left Elbow
+			{
+				TrackerInfo tracker_info;
+				tracker_info.subaction = "/user/vive_tracker_htcx/role/left_elbow";
+				tracker_info.actionName = "left_elbow_pose";
+				tracker_info.localizedActionName = "Left Elbow Pose";
+				tracker_info.bindingPath = "/user/vive_tracker_htcx/role/left_elbow/input/grip/pose";
+
+				m_input.tracker_infos_.push_back(tracker_info);
+			}
+
+			// Right Elbow
+			{
+				TrackerInfo tracker_info;
+				tracker_info.subaction = "/user/vive_tracker_htcx/role/right_elbow";
+				tracker_info.actionName = "right_elbow_pose";
+				tracker_info.localizedActionName = "Right Elbow Pose";
+				tracker_info.bindingPath = "/user/vive_tracker_htcx/role/right_elbow/input/grip/pose";
+
+				m_input.tracker_infos_.push_back(tracker_info);
+			}
+
             // Waist
             {
                 TrackerInfo tracker_info;
