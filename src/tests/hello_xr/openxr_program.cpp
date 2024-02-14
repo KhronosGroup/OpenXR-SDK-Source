@@ -1416,6 +1416,7 @@ struct OpenXrProgram : IOpenXrProgram
 
 				m_input.tracker_infos_.push_back(tracker_info);
 			}
+#endif
 
 #if ENABLE_VIVE_FEET
             // Left Foot
@@ -1613,11 +1614,7 @@ struct OpenXrProgram : IOpenXrProgram
 			}
 #endif
 
-#endif
-
             const int num_trackers = (int)m_input.tracker_infos_.size();
-
-			std::vector<XrActionSuggestedBinding> actionSuggBindings;
 
             for(int tracker_index = 0; tracker_index < num_trackers; tracker_index++)
             {
@@ -1636,6 +1633,8 @@ struct OpenXrProgram : IOpenXrProgram
 			    XrPath suggestedBindingPath;
                 CHECK_XRCMD(xrStringToPath(m_instance, tracker_info.bindingPath.c_str(), &suggestedBindingPath));
 
+				std::vector<XrActionSuggestedBinding> actionSuggBindings;
+
 			    XrActionSuggestedBinding actionSuggBinding;
 			    actionSuggBinding.action = tracker_info.tracker_pose_action;
 			    actionSuggBinding.binding = suggestedBindingPath;
@@ -1646,15 +1645,15 @@ struct OpenXrProgram : IOpenXrProgram
 				actionSpaceInfo.action = tracker_info.tracker_pose_action;
 				actionSpaceInfo.subactionPath = tracker_info.tracker_role_path;
 				CHECK_XRCMD(xrCreateActionSpace(m_session, &actionSpaceInfo, &tracker_info.tracker_pose_space));
+
+				XrInteractionProfileSuggestedBinding profileSuggBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
+
+				profileSuggBindings.interactionProfile = viveTrackerInteractionProfilePath;
+				profileSuggBindings.suggestedBindings = actionSuggBindings.data();
+				profileSuggBindings.countSuggestedBindings = (uint32_t)actionSuggBindings.size();
+
+				CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &profileSuggBindings));
 			}
-
-			XrInteractionProfileSuggestedBinding profileSuggBindings{ XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING };
-
-			profileSuggBindings.interactionProfile = viveTrackerInteractionProfilePath;
-			profileSuggBindings.suggestedBindings = actionSuggBindings.data();
-			profileSuggBindings.countSuggestedBindings = (uint32_t)actionSuggBindings.size();
-
-            CHECK_XRCMD(xrSuggestInteractionProfileBindings(m_instance, &profileSuggBindings));
 		}
 #endif
 
