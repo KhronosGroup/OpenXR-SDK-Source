@@ -26,13 +26,22 @@ signing {
     }
 }
 
+val loaderAar = file(File(root, "openxr_loader_for_android-${version}.aar"))
+val loaderSourcesJar = file(File(root, "openxr_loader_for_android-${version}-sources.jar"))
+
 publishing {
     publications {
         create<MavenPublication>("maven") {
+
             artifactId = "openxr_loader_for_android"
-            afterEvaluate {
-                artifact(file(File(root, "openxr_loader_for_android-${version}.aar")))
+            artifact(loaderAar) {
+                extension = "aar"
             }
+            artifact(loaderSourcesJar) {
+                extension = "jar"
+                classifier = "sources"
+            }
+
             pom {
                 name.set("OpenXR Loader for Android")
                 description.set("The AAR for the OpenXR Loader as used on Android.")
@@ -50,7 +59,6 @@ publishing {
                 }
                 developers {
                     developer {
-                        id.set("openxr-speceditor")
                         name.set("The Khronos Group, Inc. OpenXR Working Group")
                         email.set("openxr-speceditor AT khronos DOT org")
                         url.set("https://khronos.org/openxr")
@@ -71,10 +79,6 @@ publishing {
             maven {
                 name = "BuildDir"
                 url = uri(layout.buildDirectory.dir("repo"))
-            }
-            maven {
-                name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/KhronosGroup/OpenXR-SDK-Source")
             }
             maven {
                 name = "OSSRH"
