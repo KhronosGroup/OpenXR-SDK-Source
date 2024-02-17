@@ -32,7 +32,7 @@ foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
     )
 endforeach()
 
-add_library(test_runtime MODULE runtime_test.cpp test_runtime.def)
+add_library(test_runtime MODULE runtime_test.cpp)
 set_target_properties(test_runtime PROPERTIES FOLDER ${LOADER_TESTS_FOLDER})
 target_link_libraries(test_runtime PRIVATE OpenXR::headers)
 
@@ -67,16 +67,35 @@ if(WIN32)
         PRIVATE
             "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19>>:/wd4351>"
     )
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set_target_properties(
-        test_runtime PROPERTIES LINK_FLAGS "-Wl,-Bsymbolic,--exclude-libs,ALL"
+endif()
+
+# Dynamic Library:
+#  - Make build depend on the module definition/version script/export map
+#  - Add the linker flag (except windows)
+if(WIN32)
+    target_sources(
+        test_runtime
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/test_runtime.def"
     )
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+elseif(APPLE)
     set_target_properties(
         test_runtime
         PROPERTIES
             LINK_FLAGS
             "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/test_runtime.expsym"
+    )
+    target_sources(
+        test_runtime
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/test_runtime.expsym"
+    )
+else()
+    set_target_properties(
+        test_runtime
+        PROPERTIES LINK_FLAGS "-Wl,--version-script=\"${CMAKE_CURRENT_SOURCE_DIR}/test_runtime.map\""
+    )
+    target_sources(
+        test_runtime
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/test_runtime.map"
     )
 endif()
 

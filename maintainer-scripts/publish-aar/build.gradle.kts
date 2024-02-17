@@ -34,9 +34,11 @@ publishing {
         create<MavenPublication>("maven") {
 
             artifactId = "openxr_loader_for_android"
+
             artifact(loaderAar) {
                 extension = "aar"
             }
+
             artifact(loaderSourcesJar) {
                 extension = "jar"
                 classifier = "sources"

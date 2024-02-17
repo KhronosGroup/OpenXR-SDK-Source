@@ -25,6 +25,13 @@ class PolymorphicStructCollection:
         self.protect_sets_and_protected_structs = protect_sets_and_protected_structs
 
 
+class CommandData:
+    """Represents a OpenXR command"""
+
+    def __init__(self, commandName, featureName):
+        self.commandName = commandName
+        self.featureName = featureName
+
 class StructData:
     """Represents a OpenXR struct type"""
 
@@ -71,6 +78,7 @@ class CReflectionOutputGenerator(OutputGenerator):
         super().__init__(*args, **kwargs)
         self.env = make_jinja_environment(file_with_templates_as_sibs=__file__)
         self.structs = []
+        self.commands = []
         self.enums = []
         self.bitmasks = []
         self.protects = set()
@@ -119,6 +127,12 @@ class CReflectionOutputGenerator(OutputGenerator):
             ((name, data) for name, data in self.registry.extdict.items()
              if data.supported != 'disabled'))
 
+        functions_by_feature = {}
+        for x in self.commands:
+            if x.featureName not in functions_by_feature:
+                functions_by_feature[x.featureName] = []
+            functions_by_feature[x.featureName].append((x.commandName, x.featureName))
+
         extensions.sort(key=lambda x: int(x[1].number))
         file_data += self.template.render(
             unprotectedStructs=unprotected_structs,
@@ -127,7 +141,8 @@ class CReflectionOutputGenerator(OutputGenerator):
             enums=self.enums,
             bitmasks=self.bitmasks,
             extensions=extensions,
-            polymorphic_struct_families=polymorphic_struct_families)
+            polymorphic_struct_families=polymorphic_struct_families,
+            functions_by_feature=functions_by_feature)
         write(file_data, file=self.outFile)
 
         # Finish processing in superclass
@@ -150,6 +165,14 @@ class CReflectionOutputGenerator(OutputGenerator):
             if parent_struct not in self.parents:
                 self.parents[parent_struct] = set()
             self.parents[parent_struct].add(name)
+
+    def genCmd(self, cmdinfo, name, alias):
+        OutputGenerator.genCmd(self, cmdinfo, name, alias)
+
+        if alias:
+            return
+
+        self.commands.append(CommandData(name, self.featureName))
 
     def genStruct(self, typeinfo, typeName, alias):
         OutputGenerator.genStruct(self, typeinfo, typeName, alias)

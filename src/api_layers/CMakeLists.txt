@@ -84,7 +84,6 @@ unset(GENERATED_DEPENDS)
 add_library(
     XrApiLayer_api_dump MODULE
     api_dump.cpp
-    XrApiLayer_api_dump.def
     "${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h"
     # target-specific generated files
     ${API_DUMP_GENERATED_OUTPUT}
@@ -156,7 +155,6 @@ unset(GENERATED_DEPENDS)
 add_library(
     XrApiLayer_core_validation MODULE
     core_validation.cpp
-    XrApiLayer_core_validation.def
     ${PROJECT_SOURCE_DIR}/src/common/hex_and_handles.h
     ${PROJECT_SOURCE_DIR}/src/common/object_info.cpp
     ${PROJECT_SOURCE_DIR}/src/common/object_info.h
@@ -224,34 +222,66 @@ if(WIN32)
         PRIVATE
             "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19>>:/wd4351>"
     )
+endif()
 
+# Dynamic Library:
+#  - Make build depend on the module definition/version script/export map
+#  - Add the linker flag (except windows)
+if(WIN32)
+    # XrApiLayer_api_dump
+    target_sources(
+        XrApiLayer_api_dump
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_api_dump.def"
+    )
+
+    # XrApiLayer_core_validation
+    target_sources(
+        XrApiLayer_core_validation
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_core_validation.def"
+    )
 elseif(APPLE)
-    # Apple api_dump-specific information
+    # XrApiLayer_api_dump
     set_target_properties(
         XrApiLayer_api_dump
         PROPERTIES
             LINK_FLAGS
             "-Wl,-exported_symbols_list,\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_api_dump.expsym\""
     )
+    target_sources(
+        XrApiLayer_api_dump
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_api_dump.expsym"
+    )
 
-    # Apple core_validation-specific information
+    # XrApiLayer_core_validation
     set_target_properties(
         XrApiLayer_core_validation
         PROPERTIES
             LINK_FLAGS
             "-Wl,-exported_symbols_list,\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_core_validation.expsym\""
     )
+    target_sources(
+        XrApiLayer_core_validation
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_core_validation.expsym"
+    )
 else()
-    # Linux api_dump-specific information
+    # XrApiLayer_api_dump
     set_target_properties(
-        XrApiLayer_api_dump PROPERTIES LINK_FLAGS
-                                       "-Wl,-Bsymbolic,--exclude-libs,ALL"
+        XrApiLayer_api_dump
+        PROPERTIES LINK_FLAGS "-Wl,--version-script=\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_api_dump.map\""
+    )
+    target_sources(
+        XrApiLayer_api_dump
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_api_dump.map"
     )
 
-    # Linux core_validation-specific information
+    # XrApiLayer_core_validation
     set_target_properties(
         XrApiLayer_core_validation
-        PROPERTIES LINK_FLAGS "-Wl,-Bsymbolic,--exclude-libs,ALL"
+        PROPERTIES LINK_FLAGS "-Wl,--version-script=\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_core_validation.map\""
+    )
+    target_sources(
+        XrApiLayer_core_validation
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_core_validation.map"
     )
 endif()
 

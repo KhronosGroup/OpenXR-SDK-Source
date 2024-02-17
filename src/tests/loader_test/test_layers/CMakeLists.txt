@@ -32,7 +32,7 @@ foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
     )
 endforeach()
 
-add_library(XrApiLayer_test MODULE layer_test.cpp XrApiLayer_test.def)
+add_library(XrApiLayer_test MODULE layer_test.cpp)
 set_target_properties(XrApiLayer_test PROPERTIES FOLDER ${LOADER_TESTS_FOLDER})
 
 target_link_libraries(XrApiLayer_test PRIVATE OpenXR::headers)
@@ -54,17 +54,35 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
         PRIVATE
             "$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<VERSION_LESS:$<CXX_COMPILER_VERSION>,19>>:/wd4351>"
     )
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set_target_properties(
-        XrApiLayer_test PROPERTIES LINK_FLAGS
-                                   "-Wl,-Bsymbolic,--exclude-libs,ALL"
+endif()
+
+# Dynamic Library:
+#  - Make build depend on the module definition/version script/export map
+#  - Add the linker flag (except windows)
+if (WIN32)
+    target_sources(
+        XrApiLayer_test
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_test.def"
     )
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+elseif(APPLE)
     set_target_properties(
         XrApiLayer_test
         PROPERTIES
             LINK_FLAGS
             "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_test.expsym"
+    )
+    target_sources(
+        XrApiLayer_test
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_test.expsym"
+    )
+else()
+    set_target_properties(
+        XrApiLayer_test
+        PROPERTIES LINK_FLAGS "-Wl,--version-script=\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_test.map\""
+    )
+    target_sources(
+        XrApiLayer_test
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_test.map"
     )
 endif()
 
