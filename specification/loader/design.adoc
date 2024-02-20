@@ -57,6 +57,7 @@ it requires a list of available runtime manifest files.
 [source,c++]
 ----
 static XrResult RuntimeManifestFile::FindManifestFiles(
+            const std::string &openxr_command,
             std::vector<std::unique_ptr<RuntimeManifestFile>> &manifest_files);
 ----
   * pname:manifest_files is a vector that will be used to store a unique_ptr
@@ -101,7 +102,7 @@ it requires a list of available API layer manifest files.
 [source,c++]
 ----
 static XrResult ApiLayerManifestFile::FindManifestFiles(
-            ManifestFileType type,
+            const std::string &openxr_command, ManifestFileType type,
             std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files);
 ----
   * pname:type indicates the specific type of manifest file being searched
@@ -826,6 +827,16 @@ It returns true if the environment variable is set.
 
 Access to certain environment variables needs to be done in a way that
 maintains operational security of the program.
+
+[NOTE]
+.Note
+****
+Specifically, the loader will not use environment variables which control
+code loading for admin (high integrity) processes on Windows as
+the environment variables can be set by non-admin (medium integrity)
+processes.
+****
+
 To read a secure environment variable, the loader calls
 fname:PlatformUtilsGetSecureEnv:
 

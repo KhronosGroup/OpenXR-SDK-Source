@@ -354,8 +354,6 @@ class DocOutputGenerator(OutputGenerator):
                         name, category))
         else:
             body = self.genRequirements(name)
-            if category in ('define',):
-                body = body.strip()
             if alias:
                 # If the type is an alias, just emit a typedef declaration
                 body += 'typedef ' + alias + ' ' + name + ';\n'
@@ -365,7 +363,11 @@ class DocOutputGenerator(OutputGenerator):
                 # Replace <apientry /> tags with an APIENTRY-style string
                 # (from self.genOpts). Copy other text through unchanged.
                 # If the resulting text is an empty string, do not emit it.
-                body += noneStr(typeElem.text)
+                text = noneStr(typeElem.text)
+                if category in ('define',):
+                    text = text.lstrip()
+                body += text
+
                 for elem in typeElem:
                     if elem.tag == 'apientry':
                         body += self.genOpts.apientry + noneStr(elem.tail)
