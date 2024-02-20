@@ -713,9 +713,9 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if ENABLE_OPENXR_FB_SIMULTANEOUS_HANDS_AND_CONTROLLERS
-				if(!strcmp(extension.extensionName, XR_METAX1_SIMULTANEOUS_HANDS_CONTROLLERS_MANAGEMENT_EXTENSION_NAME))
+				if(!strcmp(extension.extensionName, XR_META_SIMULTANEOUS_HANDS_AND_CONTROLLERS_EXTENSION_NAME))
 				{
-					Log::Write(Log::Level::Info, "FB OPENXR XR_METAX1_simultaneous_hands_controllers_management - DETECTED");
+					Log::Write(Log::Level::Info, "FB OPENXR XR_META_SIMULTANEOUS_HANDS_AND_CONTROLLERS_EXTENSION_NAME - DETECTED");
 					supports_simultaneous_hands_and_controllers_ = true;
 				}
 #endif
@@ -917,7 +917,7 @@ struct OpenXrProgram : IOpenXrProgram
 		if(supports_simultaneous_hands_and_controllers_)
 		{
 			Log::Write(Log::Level::Info, "Simultaneous hands and controllers are supported");
-			extensions.push_back(XR_METAX1_SIMULTANEOUS_HANDS_CONTROLLERS_MANAGEMENT_EXTENSION_NAME);
+			extensions.push_back(XR_META_SIMULTANEOUS_HANDS_AND_CONTROLLERS_EXTENSION_NAME);
 		}
 		else
 		{
@@ -1773,7 +1773,7 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if ENABLE_OPENXR_FB_SIMULTANEOUS_HANDS_AND_CONTROLLERS
-		XrSystemSimultaneousHandsControllersPropertiesMETAX1 simultaneous_properties = { XR_TYPE_SYSTEM_SIMULTANEOUS_HANDS_CONTROLLERS_PROPERTIES_METAX1 };
+        XrSystemSimultaneousHandsAndControllersPropertiesMETA simultaneous_properties = { XR_TYPE_SYSTEM_SIMULTANEOUS_HANDS_AND_CONTROLLERS_PROPERTIES_META };
 
 		if(supports_simultaneous_hands_and_controllers_)
 		{
@@ -2657,8 +2657,8 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if ENABLE_OPENXR_FB_SIMULTANEOUS_HANDS_AND_CONTROLLERS
-	PFN_xrResumeSimultaneousHandsControllersTrackingMETAX1 xrResumeSimultaneousHandsControllersTrackingMETAX1 = nullptr;
-	PFN_xrPauseSimultaneousHandsControllersTrackingMETAX1 xrPauseSimultaneousHandsControllersTrackingMETAX1 = nullptr;
+    PFN_xrResumeSimultaneousHandsAndControllersTrackingMETA xrResumeSimultaneousHandsAndControllersTrackingMETA = nullptr;
+    PFN_xrPauseSimultaneousHandsAndControllersTrackingMETA xrPauseSimultaneousHandsAndControllersTrackingMETA = nullptr;
 
     bool simultaneous_hands_and_controllers_enabled_ = false;
 
@@ -2678,18 +2678,18 @@ struct OpenXrProgram : IOpenXrProgram
 		{
 			if(enabled)
 			{
-				if(xrResumeSimultaneousHandsControllersTrackingMETAX1 == nullptr)
+				if(xrResumeSimultaneousHandsAndControllersTrackingMETA == nullptr)
 				{
-					XR_LOAD(m_instance, xrResumeSimultaneousHandsControllersTrackingMETAX1);
+					XR_LOAD(m_instance, xrResumeSimultaneousHandsAndControllersTrackingMETA);
 
-					if(xrResumeSimultaneousHandsControllersTrackingMETAX1 == nullptr)
+					if(xrResumeSimultaneousHandsAndControllersTrackingMETA == nullptr)
 					{
 						return;
 					}
 				}
 
-				XrSimultaneousHandsControllersTrackingResumeInfoMETAX1 simultaneous_hands_controllers_resume_info = { XR_TYPE_SIMULTANEOUS_HANDS_CONTROLLERS_TRACKING_RESUME_INFO_METAX1 };
-				XrResult res = xrResumeSimultaneousHandsControllersTrackingMETAX1(m_session, &simultaneous_hands_controllers_resume_info);
+                XrSimultaneousHandsAndControllersTrackingResumeInfoMETA simultaneous_hands_controllers_resume_info = { XR_TYPE_SIMULTANEOUS_HANDS_AND_CONTROLLERS_TRACKING_RESUME_INFO_META };
+				XrResult res = xrResumeSimultaneousHandsAndControllersTrackingMETA(m_session, &simultaneous_hands_controllers_resume_info);
 
 				if(XR_UNQUALIFIED_SUCCESS(res))
 				{
@@ -2699,18 +2699,18 @@ struct OpenXrProgram : IOpenXrProgram
 			}
 			else
 			{
-				if(xrPauseSimultaneousHandsControllersTrackingMETAX1 == nullptr)
+				if(xrPauseSimultaneousHandsAndControllersTrackingMETA == nullptr)
 				{
-					XR_LOAD(m_instance, xrPauseSimultaneousHandsControllersTrackingMETAX1);
+					XR_LOAD(m_instance, xrPauseSimultaneousHandsAndControllersTrackingMETA);
 
-					if(xrPauseSimultaneousHandsControllersTrackingMETAX1 == nullptr)
+					if(xrPauseSimultaneousHandsAndControllersTrackingMETA == nullptr)
 					{
 						return;
 					}
 				}
 
-				XrSimultaneousHandsControllersTrackingPauseInfoMETAX1 simultaneous_hands_controllers_pause_info = { XR_TYPE_SIMULTANEOUS_HANDS_CONTROLLERS_TRACKING_PAUSE_INFO_METAX1 };
-				XrResult res = xrPauseSimultaneousHandsControllersTrackingMETAX1(m_session, &simultaneous_hands_controllers_pause_info);
+                XrSimultaneousHandsAndControllersTrackingPauseInfoMETA simultaneous_hands_controllers_pause_info = { XR_TYPE_SIMULTANEOUS_HANDS_AND_CONTROLLERS_TRACKING_PAUSE_INFO_META };
+				XrResult res = xrPauseSimultaneousHandsAndControllersTrackingMETA(m_session, &simultaneous_hands_controllers_pause_info);
 
 				if(XR_UNQUALIFIED_SUCCESS(res))
 				{

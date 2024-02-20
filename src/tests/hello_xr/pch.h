@@ -124,39 +124,27 @@
 #if ENABLE_ADVANCED_FEATURES
 
 #include <openxr/extx1_event_channel.h>
-#include <openxr/fb_composition_layer_depth_test.h>
-#include <openxr/fb_eye_tracking_social.h>
 #include <openxr/fb_face_tracking2.h>
-
-#include <openxr/fb_haptic_amplitude_envelope.h>
-#include <openxr/fb_haptic_pcm.h>
 #include <openxr/fb_scene.h>
-#include <openxr/fb_scene_capture.h>
 #include <openxr/fb_spatial_entity.h>
-#include <openxr/fb_spatial_entity_container.h>
-#include <openxr/fb_spatial_entity_query.h>
-#include <openxr/fb_spatial_entity_sharing.h>
-#include <openxr/fb_spatial_entity_storage.h>
-#include <openxr/fb_spatial_entity_storage_batch.h>
-#include <openxr/fb_spatial_entity_user.h>
-#include <openxr/fb_touch_controller_pro.h>
-#include <openxr/fb_touch_controller_proximity.h>
-#include <openxr/metax1_hand_tracking_microgestures.h>
-#include <openxr/metax1_simultaneous_hands_controllers_management.h>
-#include <openxr/metax2_detached_controllers.h>
-#include <openxr/metax2_environment_depth.h>
+
 #include <openxr/meta_automatic_layer_filter.h>
+
 #include <openxr/meta_body_tracking_calibration.h>
 #include <openxr/meta_body_tracking_fidelity.h>
 #include <openxr/meta_body_tracking_full_body.h>
+
+#include <openxr/meta_detached_controllers.h>
 #include <openxr/meta_environment_depth.h>
-#include <openxr/meta_foveation_eye_tracked.h>
-#include <openxr/meta_local_dimming.h>
+
+#include <openxr/meta_hand_tracking_wide_motion_mode.h>
 #include <openxr/meta_recommended_layer_resolution.h>
+#include <openxr/meta_simultaneous_hands_and_controllers.h>
+
 #include <openxr/meta_spatial_entity_mesh.h>
-#include <openxr/meta_touch_controller_plus.h>
+#include <openxr/metax1_hand_tracking_microgestures.h>
+
 #include <openxr/openxr_extension_helpers.h>
-//#include <openxr/openxr_oculus_helpers.h>
 
 #ifdef XR_USE_PLATFORM_ANDROID
 #define PLATFORM_ANDROID 1
