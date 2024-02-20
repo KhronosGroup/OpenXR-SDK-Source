@@ -2446,7 +2446,7 @@ struct OpenXrProgram : IOpenXrProgram
 	PFN_xrDestroyBodyTrackerFB xrDestroyBodyTrackerFB = nullptr;
 	PFN_xrLocateBodyJointsFB xrLocateBodyJointsFB = nullptr;
     
-    bool body_tracking_enabled_ = false;
+    bool fb_body_tracking_enabled_ = false;
     XrBodyTrackerFB body_tracker_ = {};
     XrBodyJointLocationFB body_joints_[XR_BODY_JOINT_COUNT_FB] = {};
     XrBodyJointLocationsFB body_joint_locations_{ XR_TYPE_BODY_JOINT_LOCATIONS_FB, nullptr };
@@ -2488,7 +2488,7 @@ struct OpenXrProgram : IOpenXrProgram
 		if (result == XR_SUCCESS)
 		{
 			Log::Write(Log::Level::Info, "OPENXR - Body tracking enabled and running...");
-            body_tracking_enabled_ = true;
+            fb_body_tracking_enabled_ = true;
 		}
     }
 
@@ -2511,14 +2511,14 @@ struct OpenXrProgram : IOpenXrProgram
 
 		xrDestroyBodyTrackerFB(body_tracker_);
 		body_tracker_ = {};
-		body_tracking_enabled_ = false;
+		fb_body_tracking_enabled_ = false;
 
 		Log::Write(Log::Level::Info, "OPENXR - Body tracker destroyed...");
 	}
 
 	void UpdateFBBodyTrackerLocations(const XrTime& predicted_display_time)
 	{
-        if (body_tracker_ && body_tracking_enabled_)
+        if (body_tracker_ && fb_body_tracking_enabled_)
         {
             if (xrLocateBodyJointsFB == nullptr)
             {
@@ -3530,7 +3530,7 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if ENABLE_OPENXR_FB_BODY_TRACKING
-        if (body_tracking_enabled_)
+        if (fb_body_tracking_enabled_)
         {
             UpdateFBBodyTrackerLocations(predictedDisplayTime);
 
