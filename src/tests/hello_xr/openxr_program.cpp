@@ -3159,7 +3159,7 @@ struct OpenXrProgram : IOpenXrProgram
         }
 #endif
 
-#if 0
+#if DRAW_VISUALIZED_SPACES
         for (XrSpace visualizedSpace : m_visualizedSpaces) 
         {
             XrSpaceLocation spaceLocation{XR_TYPE_SPACE_LOCATION};
@@ -3223,7 +3223,7 @@ struct OpenXrProgram : IOpenXrProgram
             }
 #endif
 
-#if DRAW_AIM_POSE
+#if (DRAW_AIM_POSE && 0)
             {
                 XrSpaceLocation aimSpaceLocation{XR_TYPE_SPACE_LOCATION};
                 res = xrLocateSpace(m_input.aimSpace[hand], m_appSpace, predictedDisplayTime, &aimSpaceLocation);
@@ -3253,9 +3253,10 @@ struct OpenXrProgram : IOpenXrProgram
                     }
                 } 
             }
-#endif
+#endif // DRAW_AIM_POSE
 
         }
+#endif // (DRAW_GRIP_POSE || DRAW_AIM_POSE)
 
 #if ENABLE_VIVE_TRACKERS
         if (supports_HTCX_vive_tracker_interaction_)
@@ -3298,7 +3299,7 @@ struct OpenXrProgram : IOpenXrProgram
 							const glm::fquat adapted_rotation = glm::normalize(glm_local_pose.rotation_ * offset_rotation);
                             tracker_space_location.pose.orientation = BVR::convert_to_xr(adapted_rotation);
 						}
-#endif
+#endif // ADAPT_VIVE_TRACKER_POSES
 
 #if DRAW_ALL_VIVE_TRACKERS
 						cubes.push_back(Cube{ tracker_space_location.pose, {scale_x, scale_y, scale_z} });
@@ -3315,9 +3316,9 @@ struct OpenXrProgram : IOpenXrProgram
 
 							cubes.push_back(Cube{ world_xr_pose, {scale_x, scale_y, scale_z} });
 						}
-#endif
+#endif // DRAW_WORLD_POSES
 
-#endif
+#endif // DRAW_ALL_VIVE_TRACKERS
 
 #if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
                         if(is_waist)
@@ -3325,13 +3326,12 @@ struct OpenXrProgram : IOpenXrProgram
                             local_waist_pose_from_VUT = BVR::convert_to_glm(tracker_space_location.pose);
                             local_waist_pose_from_VUT.is_valid_ = true;
                         }
-#endif
+#endif // USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
 					}
 				}
             }
-#endif
 		}
-#endif
+#endif //  (ENABLE_VIVE_TRACKERS && 0)
         
 #if ADD_GROUND
         // Long, flat cube = ground
