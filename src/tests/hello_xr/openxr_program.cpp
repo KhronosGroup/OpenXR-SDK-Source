@@ -3624,16 +3624,14 @@ struct OpenXrProgram : IOpenXrProgram
                             glm_local_waist_pose_with_offset.translation_ += (glm_local_waist_pose_with_offset.rotation_ * local_waist_offset);
                             glm_local_waist_pose_with_offset.translation_.y += LOCAL_WAIST_DIRECTION_OFFSET_Y;
 
-                            XrPosef local_waist_offset_xr_pose;
-                            local_waist_offset_xr_pose = BVR::convert_to_xr(glm_local_waist_pose_with_offset);
+                            XrPosef local_waist_offset_xr_pose = BVR::convert_to_xr(glm_local_waist_pose_with_offset);
                             cubes.push_back(Cube{local_waist_offset_xr_pose, body_joint_scale});
 #if DRAW_WORLD_POSES
                             BVR::GLMPose glm_world_waist_pose_with_offset = get_waist_pose_2D(true);
                             glm_world_waist_pose_with_offset.translation_ += (glm_world_waist_pose_with_offset.rotation_ * local_waist_offset);
                             glm_world_waist_pose_with_offset.translation_.y += LOCAL_WAIST_DIRECTION_OFFSET_Y;
                             
-                            XrPosef world_waist_offset_xr_pose;
-                            world_waist_offset_xr_pose = BVR::convert_to_xr(glm_world_waist_pose_with_offset);
+                            XrPosef world_waist_offset_xr_pose = BVR::convert_to_xr(glm_world_waist_pose_with_offset);
                             cubes.push_back(Cube{world_waist_offset_xr_pose, body_joint_scale});
 #endif // DRAW_WORLD_POSES
                             
