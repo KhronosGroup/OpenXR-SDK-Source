@@ -415,7 +415,8 @@ void rotate_player(const float right_thumbstick_x_value)
         return;
     }
 
-    const float rotation_degrees = (right_thumbstick_x_value > 0.0f) ? -SNAP_TURN_DEGREES : SNAP_TURN_DEGREES; 
+    const float snap_turn_degrees = -SNAP_TURN_DEGREES_DEFAULT;
+    const float rotation_degrees = BVR::sign(right_thumbstick_x_value) * snap_turn_degrees; 
 #else
     // Rotate player about +Y (UP) axis
     const float rotation_degrees = -right_thumbstick_x_value * rotation_speed;

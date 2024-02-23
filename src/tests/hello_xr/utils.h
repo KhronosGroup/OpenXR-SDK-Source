@@ -119,7 +119,7 @@ XrPosef convert_to_xr(const GLMPose& glm_pose);
 
 inline float sign(float val)
 {
-    return (val < 0.f) ? -1.0f : 1.0f;
+    return (val < 0.0f) ? -1.0f : 1.0f;
 }
 
 }
