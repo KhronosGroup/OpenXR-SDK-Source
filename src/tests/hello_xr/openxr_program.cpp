@@ -317,6 +317,8 @@ const float movement_speed = 0.02f;
 const float rotation_speed = 1.0f;
 const float deadzone = 0.2f;
 
+bool snap_turn_enabled = PREFER_SNAP_TURNING;
+
 #if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
 BVR::GLMPose local_waist_pose;
 
@@ -409,18 +411,23 @@ void rotate_player(const float right_thumbstick_x_value)
         return;
     }
 
-#if PREFER_SNAP_TURNING
-    if (!was_last_x_value_0)
+    float rotation_degrees = 0.0f;
+            
+    if (snap_turn_enabled)
     {
-        return;
-    }
+        if (!was_last_x_value_0)
+        {
+            return;
+        }
 
-    const float snap_turn_degrees = -SNAP_TURN_DEGREES_DEFAULT;
-    const float rotation_degrees = BVR::sign(right_thumbstick_x_value) * snap_turn_degrees; 
-#else
-    // Rotate player about +Y (UP) axis
-    const float rotation_degrees = -right_thumbstick_x_value * rotation_speed;
-#endif
+        const float snap_turn_degrees = -SNAP_TURN_DEGREES_DEFAULT;
+        rotation_degrees = BVR::sign(right_thumbstick_x_value) * snap_turn_degrees;
+    }
+    else
+    {
+        // Rotate player about +Y (UP) axis
+        rotation_degrees = -right_thumbstick_x_value * rotation_speed;
+    }
     
     //player_pose.euler_angles_degrees_.y = fmodf(player_pose.euler_angles_degrees_.y + rotation_degrees, 360.0f);
     player_pose.euler_angles_degrees_.y += rotation_degrees;
