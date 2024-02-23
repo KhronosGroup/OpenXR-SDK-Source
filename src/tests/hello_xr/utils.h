@@ -75,7 +75,7 @@ const glm::fquat down_rotation = CW_90_rotation_about_x;
 const glm::fquat up_rotation = CCW_90_rotation_about_x;
 
 
-    template<typename T> static inline T clamp(T v, T mn, T mx)
+template<typename T> static inline T clamp(T v, T mn, T mx)
 {
     return (v < mn) ? mn : (v > mx) ? mx : v;
 }
@@ -116,6 +116,11 @@ struct GLMPose
 GLMPose convert_to_glm(const XrVector3f& position, const XrQuaternionf& rotation, const XrVector3f& scale);
 GLMPose convert_to_glm(const XrPosef& xr_pose);
 XrPosef convert_to_xr(const GLMPose& glm_pose);
+
+inline float sign(float val)
+{
+    return (val < 0.f) ? -1.0f : 1.0f;
+}
 
 }
 

@@ -2969,14 +2969,22 @@ struct OpenXrProgram : IOpenXrProgram
 #if USE_THUMBSTICKS_FOR_MOVEMENT_X
 					if (axis_state_x.isActive)
 					{
-                        left_thumbstick_values.x = axis_state_x.currentState;
+                        const float& x_val = axis_state_x.currentState;
+                        
+#if USE_THUMBSTICKS_STRAFING_SPEED_POWER
+                        const float sign_val = BVR::sign(x_val);
+                        left_thumbstick_values.x = sign_val * powf(fabs(x_val), THUMBSTICK_STRAFING_SPEED_POWER);
+#else
+                        left_thumbstick_values.x = x_val;
+#endif
 					}
 #endif
 
 #if USE_THUMBSTICKS_FOR_MOVEMENT_Y
 					if (axis_state_y.isActive)
 					{
-						left_thumbstick_values.y = axis_state_y.currentState;
+                        const float& y_val = axis_state_y.currentState;
+						left_thumbstick_values.y = y_val;
 					}
 #endif
 
