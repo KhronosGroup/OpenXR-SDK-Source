@@ -3575,11 +3575,13 @@ struct OpenXrProgram : IOpenXrProgram
                         const BVR::GLMPose glm_local_joint_pose = BVR::convert_to_glm(local_body_joint_pose);
                         const glm::vec3 world_joint_position = player_pose.translation_ + (player_pose.rotation_ * glm_local_joint_pose.translation_);
                         const glm::fquat world_joint_rotation = glm::normalize(player_pose.rotation_ * glm_local_joint_pose.rotation_);
+                        
+                        //const BVR::GLMPose glm_world_joint_pose(world_joint_position, world_joint_rotation);
 
                         XrPosef world_body_joint_pose;
                         world_body_joint_pose.position = BVR::convert_to_xr(world_joint_position);
                         world_body_joint_pose.orientation = BVR::convert_to_xr(world_joint_rotation);
-
+                        //world_body_joint_pose = BVR::convert_to_xr(glm_world_joint_pose);
                         cubes.push_back(Cube{ world_body_joint_pose, body_joint_scale });
 #endif
 
@@ -3617,14 +3619,12 @@ struct OpenXrProgram : IOpenXrProgram
                             local_waist_offset_xr_pose = BVR::convert_to_xr(glm_local_waist_pose_with_offset);
                             cubes.push_back(Cube{local_waist_offset_xr_pose, body_joint_scale});
 #if DRAW_WORLD_POSES
-
-                            const glm::fquat world_waist_rotation = world_joint_rotation;
-                            const glm::vec3 world_waist_offset_position = world_joint_position + (world_waist_rotation * local_waist_offset);
-
+                            BVR::GLMPose glm_world_waist_pose_with_offset;
+                            glm_world_waist_pose_with_offset.translation_ = world_joint_position + (world_joint_rotation * local_waist_offset);
+                            glm_world_waist_pose_with_offset.rotation_ = world_joint_rotation;
+                            
                             XrPosef world_waist_offset_xr_pose;
-                            world_waist_offset_xr_pose.position = BVR::convert_to_xr(world_waist_offset_position);
-                            world_waist_offset_xr_pose.orientation = BVR::convert_to_xr(world_waist_rotation);
-
+                            world_waist_offset_xr_pose = BVR::convert_to_xr(glm_world_waist_pose_with_offset);
                             cubes.push_back(Cube{world_waist_offset_xr_pose, body_joint_scale});
 #endif // DRAW_WORLD_POSES
                             
