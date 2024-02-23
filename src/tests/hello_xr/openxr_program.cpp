@@ -3585,8 +3585,7 @@ struct OpenXrProgram : IOpenXrProgram
                         cubes.push_back(Cube{ world_body_joint_pose, body_joint_scale });
 #endif
 
-
-#if (DRAW_LOCAL_WAIST_DIRECTION || USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION)
+#if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
 
 #if ENABLE_OPENXR_META_FULL_BODY_TRACKING
                         const int hips_joint_id = supports_meta_full_body_tracking_ ? XR_FULL_BODY_JOINT_HIPS_META : XR_BODY_JOINT_HIPS_FB;
@@ -3596,32 +3595,28 @@ struct OpenXrProgram : IOpenXrProgram
 
                         if (joint_id == hips_joint_id) 
                         {
-#if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
                             local_waist_pose = BVR::convert_to_glm(local_body_joint_pose);
-
+                            
                             // Change coordinate system to GLM
                             const glm::vec3 euler_angles_radians(deg2rad(90.0f), deg2rad(-90.0f),deg2rad(0.0f));
 
                             const glm::fquat rotation = glm::fquat(euler_angles_radians);
                             local_waist_pose.rotation_ = glm::normalize(local_waist_pose.rotation_ * rotation);
                             local_waist_pose.is_valid_ = true;
-#endif
-
+                            
 #if DRAW_LOCAL_WAIST_DIRECTION
                             const float waist_arrow_length = 1.0f;
-                            glm::vec3 local_waist_offset = glm::rotate(local_waist_pose.rotation_,forward_direction * waist_arrow_length);
-                            local_waist_offset.y = 0.0f;
+                            const glm::vec3 local_waist_offset = forward_direction * waist_arrow_length;
 
-                            BVR::GLMPose glm_local_waist_pose_with_offset = local_waist_pose;
-                            glm_local_waist_pose_with_offset.translation_ += local_waist_offset;
+                            BVR::GLMPose glm_local_waist_pose_with_offset = get_waist_pose_2D(false);
+                            glm_local_waist_pose_with_offset.translation_ += (glm_local_waist_pose_with_offset.rotation_ * local_waist_offset);
 
                             XrPosef local_waist_offset_xr_pose;
                             local_waist_offset_xr_pose = BVR::convert_to_xr(glm_local_waist_pose_with_offset);
                             cubes.push_back(Cube{local_waist_offset_xr_pose, body_joint_scale});
 #if DRAW_WORLD_POSES
-                            BVR::GLMPose glm_world_waist_pose_with_offset;
-                            glm_world_waist_pose_with_offset.translation_ = world_joint_position + (world_joint_rotation * local_waist_offset);
-                            glm_world_waist_pose_with_offset.rotation_ = world_joint_rotation;
+                            BVR::GLMPose glm_world_waist_pose_with_offset = get_waist_pose_2D(true);
+                            glm_world_waist_pose_with_offset.translation_ += (glm_world_waist_pose_with_offset.rotation_ * local_waist_offset);
                             
                             XrPosef world_waist_offset_xr_pose;
                             world_waist_offset_xr_pose = BVR::convert_to_xr(glm_world_waist_pose_with_offset);
