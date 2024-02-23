@@ -2966,15 +2966,19 @@ struct OpenXrProgram : IOpenXrProgram
                     // Left thumbstick X/Y = Movement (X,0,Z in 3D GLM coords)
                     glm::vec2 left_thumbstick_values = {};
 
+#if USE_THUMBSTICKS_FOR_MOVEMENT_X
 					if (axis_state_x.isActive)
 					{
                         left_thumbstick_values.x = axis_state_x.currentState;
 					}
+#endif
 
+#if USE_THUMBSTICKS_FOR_MOVEMENT_Y
 					if (axis_state_y.isActive)
 					{
 						left_thumbstick_values.y = axis_state_y.currentState;
 					}
+#endif
 
 					const bool has_moved = (axis_state_x.isActive || axis_state_y.isActive);
 
