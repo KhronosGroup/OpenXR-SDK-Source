@@ -313,9 +313,15 @@ float IPD = 0.0063f;
 #if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
 BVR::GLMPose player_pose;
 BVR::GLMPose local_hmd_pose;
-const float movement_speed = 0.02f;
-const float rotation_speed = 1.0f;
-const float deadzone = 0.2f;
+
+const float movement_speed = WALKING_SPEED;
+const float rotation_speed = SMOOTH_TURNING_ROTATION_SPEED;
+
+const float left_deadzone_x = CONTROLLER_THUMBSTICK_DEADZONE_X;
+const float left_deadzone_y = CONTROLLER_THUMBSTICK_DEADZONE_Y;
+
+const float right_deadzone_x = ROTATION_DEADZONE;
+const float right_deadzone_y = CONTROLLER_THUMBSTICK_DEADZONE_Y;
 
 bool snap_turn_enabled = PREFER_SNAP_TURNING;
 
@@ -378,7 +384,7 @@ BVR::GLMPose get_waist_pose_2D(const bool world_space)
 
 void move_player(const glm::vec2& left_thumbstick_values)
 {
-	if ((fabs(left_thumbstick_values.x) < deadzone) && (fabs(left_thumbstick_values.y) < deadzone))
+	if ((fabs(left_thumbstick_values.x) < left_deadzone_x) && (fabs(left_thumbstick_values.y) < left_deadzone_y))
 	{
 		return;
 	}
@@ -405,7 +411,7 @@ void rotate_player(const float right_thumbstick_x_value)
 {
     static bool was_last_x_value_0 = true;
 
-    if (fabs(right_thumbstick_x_value) < deadzone)
+    if (fabs(right_thumbstick_x_value) < right_deadzone_x)
     {
         was_last_x_value_0 = true;
         return;
