@@ -3617,11 +3617,12 @@ struct OpenXrProgram : IOpenXrProgram
                             local_waist_pose.is_valid_ = true;
                             
 #if DRAW_LOCAL_WAIST_DIRECTION
-                            const float waist_arrow_length = 1.0f;
+                            const float waist_arrow_length = LOCAL_WAIST_DIRECTION_OFFSET_Z;
                             const glm::vec3 local_waist_offset = forward_direction * waist_arrow_length;
 
                             BVR::GLMPose glm_local_waist_pose_with_offset = get_waist_pose_2D(false);
                             glm_local_waist_pose_with_offset.translation_ += (glm_local_waist_pose_with_offset.rotation_ * local_waist_offset);
+                            glm_local_waist_pose_with_offset.translation_.y += LOCAL_WAIST_DIRECTION_OFFSET_Y;
 
                             XrPosef local_waist_offset_xr_pose;
                             local_waist_offset_xr_pose = BVR::convert_to_xr(glm_local_waist_pose_with_offset);
@@ -3629,6 +3630,7 @@ struct OpenXrProgram : IOpenXrProgram
 #if DRAW_WORLD_POSES
                             BVR::GLMPose glm_world_waist_pose_with_offset = get_waist_pose_2D(true);
                             glm_world_waist_pose_with_offset.translation_ += (glm_world_waist_pose_with_offset.rotation_ * local_waist_offset);
+                            glm_world_waist_pose_with_offset.translation_.y += LOCAL_WAIST_DIRECTION_OFFSET_Y;
                             
                             XrPosef world_waist_offset_xr_pose;
                             world_waist_offset_xr_pose = BVR::convert_to_xr(glm_world_waist_pose_with_offset);
