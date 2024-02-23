@@ -95,6 +95,10 @@ struct GLMPose
     GLMPose()
     {
     }
+
+    GLMPose(const glm::vec3& translation, const glm::fquat& rotation) : translation_(translation), rotation_(rotation)
+    {
+    }
     
     glm::vec3 translation_ = glm::vec3(0.0f, 0.0f, 0.0f);
     glm::fquat rotation_ = no_rotation;
