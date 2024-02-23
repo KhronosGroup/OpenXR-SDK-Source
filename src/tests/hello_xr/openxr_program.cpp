@@ -3537,9 +3537,8 @@ struct OpenXrProgram : IOpenXrProgram
 			if (body_joint_locations_.isActive) 
             {
 #if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
-                bool found_waist = false;
+                local_waist_pose.is_valid_ = false;
 #endif
-
 
 #if ENABLE_OPENXR_META_FULL_BODY_TRACKING
                 const int num_joints = supports_meta_full_body_tracking_ ? XR_FULL_BODY_JOINT_COUNT_META : XR_BODY_JOINT_COUNT_FB;
@@ -3572,7 +3571,7 @@ struct OpenXrProgram : IOpenXrProgram
 						cubes.push_back(Cube{ local_body_joint_pose, body_joint_scale });
 #endif
 
-#if DRAW_WORLD_BODY_JOINTS
+#if DRAW_WORLD_POSES
                         const BVR::GLMPose glm_local_joint_pose = BVR::convert_to_glm(local_body_joint_pose);
                         const glm::vec3 world_joint_position = player_pose.translation_ + (player_pose.rotation_ * glm_local_joint_pose.translation_);
                         const glm::fquat world_joint_rotation = glm::normalize(player_pose.rotation_ * glm_local_joint_pose.rotation_);
@@ -3583,8 +3582,8 @@ struct OpenXrProgram : IOpenXrProgram
 
                         cubes.push_back(Cube{ world_body_joint_pose, body_joint_scale });
 #endif
-
-#if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
+                        
+#if (DRAW_LOCAL_WAIST_DIRECTION || USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION)
 
 #if ENABLE_OPENXR_META_FULL_BODY_TRACKING
                         const int hips_joint_id = supports_meta_full_body_tracking_ ? XR_FULL_BODY_JOINT_HIPS_META : XR_BODY_JOINT_HIPS_FB;
@@ -3592,24 +3591,58 @@ struct OpenXrProgram : IOpenXrProgram
                         const int hips_joint_id = XR_BODY_JOINT_HIPS_FB;
 #endif
 
-                        if (joint_id == hips_joint_id)
-                        {
+                        if (joint_id == hips_joint_id) {
                             local_waist_pose = BVR::convert_to_glm(local_body_joint_pose);
 
                             // Change coordinate system to GLM
-							const glm::vec3 euler_angles_radians(deg2rad(90.0f), deg2rad(-90.0f), deg2rad(0.0f));
-							const glm::fquat rotation = glm::fquat(euler_angles_radians);
-                            local_waist_pose.rotation_ = glm::normalize(local_waist_pose.rotation_ * rotation);
+                            const glm::vec3 euler_angles_radians(deg2rad(90.0f), deg2rad(-90.0f),
+                                                                 deg2rad(0.0f));
+                            const glm::fquat rotation = glm::fquat(euler_angles_radians);
+                            local_waist_pose.rotation_ = glm::normalize(
+                                    local_waist_pose.rotation_ * rotation);
 
-                            found_waist = true;
+#if DRAW_LOCAL_WAIST_DIRECTION
+                            const float waist_arrow_length = 1.0f;
+                            glm::vec3 local_waist_offset = glm::rotate(
+                                    glm_local_joint_pose.rotation_,
+                                    forward_direction * waist_arrow_length);
+                            local_waist_offset.y = 0.0f;
+
+                            BVR::GLMPose glm_local_waist_pose = glm_local_joint_pose;
+                            glm_local_waist_pose.translation_ += local_waist_offset;
+
+                            XrPosef local_waist_offset_xr_pose;
+                            local_waist_offset_xr_pose = BVR::convert_to_xr(
+                                    glm_local_waist_pose);
+                            cubes.push_back(Cube{local_waist_offset_xr_pose, body_joint_scale});
+
+#if DRAW_WORLD_POSES
+
+                            const glm::vec3 world_waist_position =
+                                    player_pose.translation_ + (player_pose.rotation_ *
+                                                                glm_local_waist_pose.translation_);
+                            const glm::fquat world_waist_rotation = glm::normalize(
+                                    player_pose.rotation_ * glm_local_waist_pose.rotation_);
+
+                            XrPosef world_waist_offset_xr_pose;
+                            world_waist_offset_xr_pose.position = BVR::convert_to_xr(
+                                    world_joint_position);
+                            world_waist_offset_xr_pose.orientation = BVR::convert_to_xr(
+                                    world_joint_rotation);
+
+                            cubes.push_back(
+                                    Cube{world_waist_offset_xr_pose, body_joint_scale});
+#endif // DRAW_WORLD_POSES
+                            
+#endif // DRAW_LOCAL_WAIST_DIRECTION
+                            
+#if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
+                            local_waist_pose.is_valid_ = true;
+#endif
                         }
 #endif
 					}
 				}
-
-#if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
-                local_waist_pose.is_valid_ = found_waist;
-#endif
 			}
         }
 #endif
