@@ -52,6 +52,7 @@ extern BVR::GLMPose local_hmd_pose;
 
 namespace {
 
+#if ENABLE_HDR_SWAPCHAIN
 bool has_GL_extension(const char *extension) 
 {
     GLint numExtensions = 0;
@@ -68,6 +69,7 @@ bool has_GL_extension(const char *extension)
     }
     return false;
 }
+#endif
 
 bool check_gl_errors()
 {
