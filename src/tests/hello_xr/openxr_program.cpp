@@ -325,6 +325,16 @@ const float right_deadzone_y = CONTROLLER_THUMBSTICK_DEADZONE_Y;
 
 bool snap_turn_enabled = PREFER_SNAP_TURNING;
 
+#if SUPPORT_RUNNING_WITH_LEFT_GRIP
+bool currently_running = false;
+float current_left_grip_value = 0.0f;
+#endif
+
+#if SUPPORT_SPINNING_WITH_RIGHT_GRIP
+bool currently_spinning = false;
+float current_right_grip_value = 0.0f;
+#endif
+
 #if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
 BVR::GLMPose local_waist_pose;
 
@@ -391,19 +401,28 @@ void move_player(const glm::vec2& left_thumbstick_values)
 
     // Move player in the direction they are facing currently
     const glm::vec3 position_increment_local{ left_thumbstick_values.x, 0.0f, -left_thumbstick_values.y };
+    
+    float current_movement_speed = movement_speed;
+
+#if SUPPORT_RUNNING_WITH_LEFT_GRIP
+    if (currently_running)
+    {
+        current_movement_speed += current_left_grip_value * movement_speed;
+    }
+#endif
 
 #if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
 	if (local_waist_pose.is_valid_)
 	{
         const BVR::GLMPose world_waist_pose_2D = get_waist_pose_2D(true);
         const glm::vec3 position_increment_world = world_waist_pose_2D.rotation_ * position_increment_local;
-        player_pose.translation_ += position_increment_world * movement_speed;
+        player_pose.translation_ += position_increment_world * current_movement_speed;
 	}
     else
 #endif
     {
         const glm::vec3 position_increment_world = player_pose.rotation_ * position_increment_local;
-        player_pose.translation_ += position_increment_world * movement_speed;
+        player_pose.translation_ += position_increment_world * current_movement_speed;
     }
 }
 
@@ -432,7 +451,16 @@ void rotate_player(const float right_thumbstick_x_value)
     else
     {
         // Rotate player about +Y (UP) axis
-        rotation_degrees = -right_thumbstick_x_value * rotation_speed;
+        float current_turning_speed = rotation_speed;
+
+#if SUPPORT_SPINNING_WITH_RIGHT_GRIP
+        if (currently_spinning)
+        {
+            current_turning_speed += current_right_grip_value * rotation_speed;
+        }
+#endif
+        
+        rotation_degrees = -right_thumbstick_x_value * current_turning_speed;
     }
     
     //player_pose.euler_angles_degrees_.y = fmodf(player_pose.euler_angles_degrees_.y + rotation_degrees, 360.0f);
@@ -2918,11 +2946,41 @@ struct OpenXrProgram : IOpenXrProgram
             {
                 // Scale the rendered hand by 1.0f (open) to 0.5f (fully squeezed).
                 m_input.handScale[hand] = 1.0f - 0.5f * grabValue.currentState;
+                
+                const float& grip_val = grabValue.currentState;
+                bool should_vibrate = (grip_val >= VIBRATION_GRIP_THRESHOLD);
 
-                if (grabValue.currentState > 0.9f) 
+#if SUPPORT_RUNNING_WITH_LEFT_GRIP
+                if (hand == Side::LEFT)
+                {
+                    currently_running = (grip_val >= RUNNING_GRIP_THRESHOLD);
+                    current_left_grip_value = grip_val;
+                    
+                    if (currently_running) 
+                    {
+                        should_vibrate = true;
+                    }
+                }
+#endif
+
+#if SUPPORT_SPINNING_WITH_RIGHT_GRIP
+                if (hand == Side::RIGHT)
+                {
+                    currently_spinning = (grip_val >= SPINNING_GRIP_THRESHOLD);
+                    current_right_grip_value = grip_val;
+                    
+                    if (currently_spinning) 
+                    {
+                        should_vibrate = true;
+                    }
+                    
+                }
+#endif
+
+                if (should_vibrate) 
                 {
                     XrHapticVibration vibration{XR_TYPE_HAPTIC_VIBRATION};
-                    vibration.amplitude = 0.5;
+                    vibration.amplitude = 0.5 * grip_val;
                     vibration.duration = XR_MIN_HAPTIC_DURATION;
                     vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
 
@@ -3016,8 +3074,18 @@ struct OpenXrProgram : IOpenXrProgram
                     // Right thumbstick X value = Rotation
 					if (axis_state_x.isActive)
 					{
-						const float right_thumbstick_x_value = axis_state_x.currentState;
-						rotate_player(right_thumbstick_x_value);
+                        glm::vec2 right_thumbstick_values = {};
+                        
+						const float x_val = axis_state_x.currentState;
+
+#if USE_THUMBSTICKS_TURNING_SPEED_POWER
+                        const float sign_val = BVR::sign(x_val);
+                        right_thumbstick_values.x = sign_val * powf(fabs(x_val), THUMBSTICK_TURNING_SPEED_POWER);
+#else
+                        right_thumbstick_values.x = x_val;
+#endif
+                        
+						rotate_player(right_thumbstick_values.x);
 					}
 #endif
                 }
