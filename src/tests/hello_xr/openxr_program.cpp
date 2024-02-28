@@ -1036,11 +1036,11 @@ struct OpenXrProgram : IOpenXrProgram
                 {
                     const XrViewConfigurationView& view = views[i];
 
-                    Log::Write(Log::Level::Verbose, Fmt("    View [%d]: Recommended Width=%d Height=%d SampleCount=%d", i,
+                    Log::Write(Log::Level::Info, Fmt("    View [%d]: Recommended Width=%d Height=%d SampleCount=%d", i,
                                                         view.recommendedImageRectWidth, view.recommendedImageRectHeight,
                                                         view.recommendedSwapchainSampleCount));
 
-                    Log::Write(Log::Level::Verbose, Fmt("    View [%d]:     Maximum Width=%d Height=%d SampleCount=%d", i, view.maxImageRectWidth,
+                    Log::Write(Log::Level::Info, Fmt("    View [%d]:     Maximum Width=%d Height=%d SampleCount=%d", i, view.maxImageRectWidth,
                                    view.maxImageRectHeight, view.maxSwapchainSampleCount));
                 }
             } 
@@ -2980,7 +2980,7 @@ struct OpenXrProgram : IOpenXrProgram
                 if (should_vibrate) 
                 {
                     XrHapticVibration vibration{XR_TYPE_HAPTIC_VIBRATION};
-                    vibration.amplitude = 0.5 * grip_val;
+                    vibration.amplitude = 0.5f * grip_val;
                     vibration.duration = XR_MIN_HAPTIC_DURATION;
                     vibration.frequency = XR_FREQUENCY_UNSPECIFIED;
 
