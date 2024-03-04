@@ -342,6 +342,16 @@ static inline std::string PlatformUtilsGetSecureEnv(const char* /* name */) {
     return {};
 }
 
+static inline bool PlatformUtilsGetBoolSysProp(const char* name, bool default_value) {
+    bool result = default_value;
+    char value[PROP_VALUE_MAX] = {};
+    if (__system_property_get(name, value) != 0) {
+        result = (value[0] == 't');
+    }
+
+    return result;
+}
+
 // Intended to be only used as a fallback on Android, with a more open, "native" technique used in most cases
 static inline bool PlatformGetGlobalRuntimeFileName(uint16_t major_version, std::string& file_name) {
     // Prefix for the runtime JSON file name
