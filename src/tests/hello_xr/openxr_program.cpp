@@ -236,12 +236,12 @@ void update_sdl_joysticks()
 #endif
 
 #if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
-const glm::vec3 left_direction(-1.0f, 0.0f, 0.0f);
-const glm::vec3 right_direction(1.0f, 1.0f, 0.0f);
-const glm::vec3 up_direction(0.0f, 1.0f, 0.0f);
-const glm::vec3 down_direction(0.0f, -1.0f, 0.0f);
 const glm::vec3 forward_direction(0.0f, 0.0f, -1.0f);
-const glm::vec3 back_direction(0.0f, 0.0f, 1.0f);
+//const glm::vec3 back_direction(0.0f, 0.0f, 1.0f);
+//const glm::vec3 left_direction(-1.0f, 0.0f, 0.0f);
+//const glm::vec3 right_direction(1.0f, 1.0f, 0.0f);
+//const glm::vec3 up_direction(0.0f, 1.0f, 0.0f);
+//const glm::vec3 down_direction(0.0f, -1.0f, 0.0f);
 #endif
 
 #ifndef XR_LOAD
