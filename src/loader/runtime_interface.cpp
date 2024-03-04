@@ -45,8 +45,9 @@ XrResult GetPlatformRuntimeVirtualManifest(Json::Value& out_manifest) {
     if (context.isNull()) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
+    bool systemBroker = false;
     Json::Value virtualManifest;
-    if (0 != openxr_android::getActiveRuntimeVirtualManifest(context, virtualManifest)) {
+    if (0 != openxr_android::getActiveRuntimeVirtualManifest(context, virtualManifest, systemBroker)) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
     out_manifest = virtualManifest;

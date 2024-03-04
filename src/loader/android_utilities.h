@@ -26,7 +26,8 @@ using wrap::android::content::Context;
  *
  * @return 0 on success, something else on failure.
  */
-int getActiveRuntimeVirtualManifest(wrap::android::content::Context const &context, Json::Value &virtualManifest);
+int getActiveRuntimeVirtualManifest(wrap::android::content::Context const &context, Json::Value &virtualManifest,
+                                    bool &systemBroker);
 }  // namespace openxr_android
 
 #endif  // __ANDROID__

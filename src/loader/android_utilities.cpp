@@ -273,12 +273,14 @@ static bool getActiveRuntimeCursor(wrap::android::content::Context const &contex
     return getCursor(context, projection, uri, systemBroker, "active runtime", cursor);
 }
 
-int getActiveRuntimeVirtualManifest(wrap::android::content::Context const &context, Json::Value &virtualManifest) {
-    jni::Array<std::string> projection = makeArray({active_runtime::Columns::PACKAGE_NAME, active_runtime::Columns::NATIVE_LIB_DIR,
-                                                    active_runtime::Columns::SO_FILENAME, active_runtime::Columns::HAS_FUNCTIONS});
+int getActiveRuntimeVirtualManifest(wrap::android::content::Context const &context, Json::Value &virtualManifest,
+                                    bool &systemBroker) {
+    const jni::Array<std::string> projection =
+        makeArray({active_runtime::Columns::PACKAGE_NAME, active_runtime::Columns::NATIVE_LIB_DIR,
+                   active_runtime::Columns::SO_FILENAME, active_runtime::Columns::HAS_FUNCTIONS});
 
     // First, try getting the installable broker's provider
-    bool systemBroker = false;
+    systemBroker = false;
     Cursor cursor;
     if (!getActiveRuntimeCursor(context, projection, systemBroker, cursor)) {
         // OK, try the system broker as a fallback.
