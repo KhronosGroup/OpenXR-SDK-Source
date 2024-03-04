@@ -16,7 +16,6 @@
 #include <openxr/openxr.h>
 
 #include <dlfcn.h>
-#include <sstream>
 #include <vector>
 #include <android/log.h>
 
@@ -26,8 +25,6 @@
 #define ALOGI(...) __android_log_print(ANDROID_LOG_INFO, "OpenXR-Loader", __VA_ARGS__)
 
 namespace openxr_android {
-using wrap::android::content::ContentUris;
-using wrap::android::content::Context;
 using wrap::android::database::Cursor;
 using wrap::android::net::Uri;
 using wrap::android::net::Uri_Builder;
