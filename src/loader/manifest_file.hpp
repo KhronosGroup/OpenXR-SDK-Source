@@ -28,6 +28,16 @@ enum ManifestFileType {
     MANIFEST_TYPE_EXPLICIT_API_LAYER,
 };
 
+//! Where did the data for this manifest file (may be virtual) come from?
+enum ManifestFileSource {
+    //! An actual json file on a file system
+    FROM_JSON_MANIFEST = 0,
+    //! The installable runtime broker on Android
+    FROM_INSTALLABLE_BROKER,
+    //! The system runtime broker on Android
+    FROM_SYSTEM_BROKER,
+};
+
 struct JsonVersion {
     uint32_t major;
     uint32_t minor;

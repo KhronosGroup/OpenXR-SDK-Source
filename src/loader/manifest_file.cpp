@@ -682,7 +682,8 @@ XrResult RuntimeManifestFile::FindManifestFiles(const std::string &openxr_comman
 
 #if defined(XR_KHR_LOADER_INIT_SUPPORT) && defined(XR_USE_PLATFORM_ANDROID)
         Json::Value virtualManifest;
-        result = GetPlatformRuntimeVirtualManifest(virtualManifest);
+        ManifestFileSource runtimeSource = ManifestFileSource::FROM_JSON_MANIFEST;
+        result = GetPlatformRuntimeVirtualManifest(virtualManifest, runtimeSource);
         if (XR_SUCCESS == result) {
             RuntimeManifestFile::CreateIfValid(virtualManifest, "", manifest_files);
             return result;

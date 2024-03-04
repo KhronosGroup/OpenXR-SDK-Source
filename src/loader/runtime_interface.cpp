@@ -35,7 +35,7 @@
 #endif  // XR_USE_PLATFORM_ANDROID
 
 #if defined(XR_KHR_LOADER_INIT_SUPPORT) && defined(XR_USE_PLATFORM_ANDROID)
-XrResult GetPlatformRuntimeVirtualManifest(Json::Value& out_manifest) {
+XrResult GetPlatformRuntimeVirtualManifest(Json::Value& out_manifest, ManifestFileSource& out_runtime_source) {
     using wrap::android::content::Context;
     auto& initData = LoaderInitData::instance();
     if (!initData.initialized()) {
@@ -49,6 +49,11 @@ XrResult GetPlatformRuntimeVirtualManifest(Json::Value& out_manifest) {
     Json::Value virtualManifest;
     if (0 != openxr_android::getActiveRuntimeVirtualManifest(context, virtualManifest, systemBroker)) {
         return XR_ERROR_INITIALIZATION_FAILED;
+    }
+    if (systemBroker) {
+        out_runtime_source = ManifestFileSource::FROM_SYSTEM_BROKER;
+    } else {
+        out_runtime_source = ManifestFileSource::FROM_INSTALLABLE_BROKER;
     }
     out_manifest = virtualManifest;
     return XR_SUCCESS;
