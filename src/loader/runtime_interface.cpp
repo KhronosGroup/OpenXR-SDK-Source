@@ -58,6 +58,25 @@ XrResult GetPlatformRuntimeVirtualManifest(Json::Value& out_manifest, ManifestFi
     out_manifest = virtualManifest;
     return XR_SUCCESS;
 }
+
+XrResult GetPlatformApiLayerVirtualManifests(bool is_implicit, bool system_broker, std::vector<Json::Value>& out_manifest) {
+    using wrap::android::content::Context;
+    auto& initData = LoaderInitData::instance();
+    if (!initData.initialized()) {
+        return XR_ERROR_INITIALIZATION_FAILED;
+    }
+    auto context = Context(reinterpret_cast<jobject>(initData.getData().applicationContext));
+    if (context.isNull()) {
+        return XR_ERROR_INITIALIZATION_FAILED;
+    }
+    std::vector<Json::Value> virtualManifests;
+    if (0 != openxr_android::getApiLayerVirtualManifests(is_implicit ? "implicit" : "explicit", context, virtualManifests,
+                                                         system_broker)) {
+        return XR_ERROR_INITIALIZATION_FAILED;
+    }
+    out_manifest = virtualManifests;
+    return XR_SUCCESS;
+}
 #endif  // defined(XR_USE_PLATFORM_ANDROID) && defined(XR_KHR_LOADER_INIT_SUPPORT)
 
 XrResult RuntimeInterface::TryLoadingSingleRuntime(const std::string& openxr_command,
