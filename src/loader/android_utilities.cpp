@@ -402,59 +402,67 @@ int getActiveRuntimeVirtualManifest(wrap::android::content::Context const &conte
     const jni::Array<std::string> projection =
         makeArray({active_runtime::Columns::PACKAGE_NAME, active_runtime::Columns::NATIVE_LIB_DIR,
                    active_runtime::Columns::SO_FILENAME, active_runtime::Columns::HAS_FUNCTIONS});
+    static bool hasQueryBroker = false;
+    static Json::Value runtimeManifest;
+    if (!hasQueryBroker) {
+        // First, try getting the installable broker's provider
+        systemBroker = false;
+        Cursor cursor;
+        if (!getActiveRuntimeCursor(context, projection, systemBroker, cursor)) {
+            // OK, try the system broker as a fallback.
+            systemBroker = true;
+            getActiveRuntimeCursor(context, projection, systemBroker, cursor);
+        }
+        hasQueryBroker = true;
 
-    // First, try getting the installable broker's provider
-    systemBroker = false;
-    Cursor cursor;
-    if (!getActiveRuntimeCursor(context, projection, systemBroker, cursor)) {
-        // OK, try the system broker as a fallback.
-        systemBroker = true;
-        getActiveRuntimeCursor(context, projection, systemBroker, cursor);
-    }
+        if (cursor.isNull()) {
+            // Couldn't find either broker
+            ALOGI("Could access neither the installable nor system runtime broker.");
+            return -1;
+        }
 
-    if (cursor.isNull()) {
-        // Couldn't find either broker
-        ALOGI("Could access neither the installable nor system runtime broker.");
+        cursor.moveToFirst();
+
+        do {
+            auto filename = cursor.getString(cursor.getColumnIndex(active_runtime::Columns::SO_FILENAME));
+            auto libDir = cursor.getString(cursor.getColumnIndex(active_runtime::Columns::NATIVE_LIB_DIR));
+            auto packageName = cursor.getString(cursor.getColumnIndex(active_runtime::Columns::PACKAGE_NAME));
+
+            auto hasFunctions = cursor.getInt(cursor.getColumnIndex(active_runtime::Columns::HAS_FUNCTIONS)) == 1;
+            ALOGI("Got runtime: package: %s, so filename: %s, native lib dir: %s, has functions: %s", packageName.c_str(),
+                  filename.c_str(), libDir.c_str(), (hasFunctions ? "yes" : "no"));
+
+            auto lib_path = libDir + "/" + filename;
+            auto *lib = dlopen(lib_path.c_str(), RTLD_LAZY | RTLD_LOCAL);
+            if (lib) {
+                // we found a runtime that we can dlopen, use it.
+                dlclose(lib);
+
+                Json::Value manifest = makeMinimumVirtualRuntimeManifest(lib_path);
+                if (hasFunctions) {
+                    int result = populateRuntimeFunctions(context, systemBroker, packageName, manifest);
+                    if (result != 0) {
+                        ALOGW("Unable to populate functions from runtime: %s, checking for more records...", lib_path.c_str());
+                        continue;
+                    }
+                }
+                runtimeManifest = manifest;
+                cursor.close();
+                virtualManifest = runtimeManifest;
+                return 0;
+            }
+            // this runtime was not accessible, see if the broker has more runtimes on
+            // offer.
+            ALOGV("Unable to open broker provided runtime at %s, checking for more records...", lib_path.c_str());
+        } while (cursor.moveToNext());
+
+        ALOGE("Unable to open any of the broker provided runtimes.");
+        cursor.close();
         return -1;
     }
 
-    cursor.moveToFirst();
-
-    do {
-        auto filename = cursor.getString(cursor.getColumnIndex(active_runtime::Columns::SO_FILENAME));
-        auto libDir = cursor.getString(cursor.getColumnIndex(active_runtime::Columns::NATIVE_LIB_DIR));
-        auto packageName = cursor.getString(cursor.getColumnIndex(active_runtime::Columns::PACKAGE_NAME));
-
-        auto hasFunctions = cursor.getInt(cursor.getColumnIndex(active_runtime::Columns::HAS_FUNCTIONS)) == 1;
-        ALOGI("Got runtime: package: %s, so filename: %s, native lib dir: %s, has functions: %s", packageName.c_str(),
-              filename.c_str(), libDir.c_str(), (hasFunctions ? "yes" : "no"));
-
-        auto lib_path = libDir + "/" + filename;
-        auto *lib = dlopen(lib_path.c_str(), RTLD_LAZY | RTLD_LOCAL);
-        if (lib) {
-            // we found a runtime that we can dlopen, use it.
-            dlclose(lib);
-
-            Json::Value manifest = makeMinimumVirtualRuntimeManifest(lib_path);
-            if (hasFunctions) {
-                int result = populateRuntimeFunctions(context, systemBroker, packageName, manifest);
-                if (result != 0) {
-                    ALOGW("Unable to populate functions from runtime: %s, checking for more records...", lib_path.c_str());
-                    continue;
-                }
-            }
-            virtualManifest = manifest;
-            cursor.close();
-            return 0;
-        }
-        // this runtime was not accessible, see if the broker has more runtimes on
-        // offer.
-        ALOGV("Unable to open broker provided runtime at %s, checking for more records...", lib_path.c_str());
-    } while (cursor.moveToNext());
-
-    ALOGE("Unable to open any of the broker provided runtimes.");
-    cursor.close();
-    return -1;
+    virtualManifest = runtimeManifest;
+    return 0;
 }
 
 static int populateApiLayerFunctions(wrap::android::content::Context const &context, bool systemBroker,
