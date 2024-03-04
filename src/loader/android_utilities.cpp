@@ -363,6 +363,17 @@ static bool getCursor(wrap::android::content::Context const &context, jni::Array
     return true;
 }
 
+/// Shared helper for populating the functions object in a manifest
+static void populateFunctionsData(Cursor &cursor, Json::Value &functionsObject) {
+    auto functionIndex = cursor.getColumnIndex(functions::Columns::FUNCTION_NAME);
+    auto symbolIndex = cursor.getColumnIndex(functions::Columns::SYMBOL_NAME);
+    while (cursor.moveToNext()) {
+        functionsObject[cursor.getString(functionIndex)] = cursor.getString(symbolIndex);
+    }
+
+    cursor.close();
+}
+
 static int populateRuntimeFunctions(wrap::android::content::Context const &context, bool systemBroker,
                                     const std::string &packageName, Json::Value &manifest) {
     const jni::Array<std::string> projection = makeArray({functions::Columns::FUNCTION_NAME, functions::Columns::SYMBOL_NAME});
@@ -373,14 +384,8 @@ static int populateRuntimeFunctions(wrap::android::content::Context const &conte
     if (!getCursor(context, projection, uri, systemBroker, "functions", cursor)) {
         return -1;
     }
+    populateFunctionsData(cursor, manifest["functions"]);
 
-    auto functionIndex = cursor.getColumnIndex(functions::Columns::FUNCTION_NAME);
-    auto symbolIndex = cursor.getColumnIndex(functions::Columns::SYMBOL_NAME);
-    while (cursor.moveToNext()) {
-        manifest["functions"][cursor.getString(functionIndex)] = cursor.getString(symbolIndex);
-    }
-
-    cursor.close();
     return 0;
 }
 
@@ -464,11 +469,7 @@ static int populateApiLayerFunctions(wrap::android::content::Context const &cont
         return -1;
     }
 
-    auto functionIndex = cursor.getColumnIndex(functions::Columns::FUNCTION_NAME);
-    auto symbolIndex = cursor.getColumnIndex(functions::Columns::SYMBOL_NAME);
-    while (cursor.moveToNext()) {
-        rootNode["api_layer"]["functions"][cursor.getString(functionIndex)] = cursor.getString(symbolIndex);
-    }
+    populateFunctionsData(cursor, rootNode["api_layer"]["functions"]);
 
     cursor.close();
     return 0;
