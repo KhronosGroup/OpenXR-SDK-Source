@@ -109,6 +109,8 @@ class ApiLayerManifestFile : public ManifestFile {
                          const std::string &description, const JsonVersion &api_version, const uint32_t &implementation_version,
                          const std::string &library_path);
 
+    static void CreateIfValid(ManifestFileType type, const std::string &filename, const Json::Value &root_node,
+                              LibraryLocator locate_library, std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files);
     static void CreateIfValid(ManifestFileType type, const std::string &filename, std::istream &json_stream,
                               LibraryLocator locate_library, std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files);
     static void CreateIfValid(ManifestFileType type, const std::string &filename,
