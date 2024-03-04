@@ -861,7 +861,16 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
         return;
     }
 
-    uint32_t implementation_version = atoi(layer_root_node["implementation_version"].asString().c_str());
+    uint32_t implementation_version = 0;
+    {
+        char *end_ptr;
+        implementation_version = strtol(layer_root_node["implementation_version"].asString().c_str(), &end_ptr, 10);
+        if (*end_ptr != '\0') {
+            std::ostringstream oss(error_ss.str());
+            oss << "layer " << filename << " has invalid implementation version.";
+            LoaderLogger::LogWarningMessage("", oss.str());
+        }
+    }
     std::string library_path = layer_root_node["library_path"].asString();
 
     // If the library_path variable has no directory symbol, it's just a file name and should be accessible on the
