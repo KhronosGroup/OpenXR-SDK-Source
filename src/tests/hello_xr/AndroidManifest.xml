@@ -67,7 +67,6 @@
         <intent>
             <action android:name="org.khronos.openxr.OpenXRApiLayerService" />
         </intent>
-    </queries>
      -->
 
 </queries>
