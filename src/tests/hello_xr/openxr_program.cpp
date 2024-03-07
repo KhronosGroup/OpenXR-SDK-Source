@@ -321,7 +321,7 @@ const float left_deadzone_x = CONTROLLER_THUMBSTICK_DEADZONE_X;
 const float left_deadzone_y = CONTROLLER_THUMBSTICK_DEADZONE_Y;
 
 const float right_deadzone_x = ROTATION_DEADZONE;
-const float right_deadzone_y = CONTROLLER_THUMBSTICK_DEADZONE_Y;
+//const float right_deadzone_y = CONTROLLER_THUMBSTICK_DEADZONE_Y;
 
 bool snap_turn_enabled = PREFER_SNAP_TURNING;
 
