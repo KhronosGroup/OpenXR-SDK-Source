@@ -319,7 +319,7 @@ architectures and ABIs is used.
 
 |`armv5te`
   |
-  | `armel`
+  | `armel` (See <<armhf-rpios-note,note>>.)
   | 32-bit ARMv5TE architecture or compatible, little endian
 
 |`mips64`
@@ -385,6 +385,11 @@ identifier for 32-bit ARM in Android.
 While the Android ABI called `armeabi-v7a` does not use VFP PCS as the
 __system__ ABI, a definition in `openxr_platform_defines.h` enables the VFP
 PCS calling convention for all OpenXR API calls and function pointers.
+
+[[armhf-rpios-note]]
+Note: Raspberry Pi OS differs in its architecture definitions from upstream
+Debian by redefining `armhf` as ARMv6, rather than ARMv7.
+Therefore, on that operating system, `armhf` maps to ID `armv5te`.
 
 [[runtime-enumeration]]
 ==== Runtime Enumeration
