@@ -37,6 +37,16 @@ const float ROOT_OF_HALF = 0.7071067690849304f;
 
 namespace BVR
 {
+
+template<typename T> static inline T clamp(T v, T mn, T mx)
+{
+	return (v < mn) ? mn : (v > mx) ? mx : v;
+}
+
+inline float sign(float val)
+{
+	return (val < 0.0f) ? -1.0f : 1.0f;
+}
     
 const glm::fquat default_rotation(1.0f, 0.0f, 0.0f, 0.0f);
 const glm::fquat rotate_90_CCW_by_x(0.7071067690849304f, 0.7071067690849304f, 0.0f, 0.0f);
@@ -75,11 +85,6 @@ const glm::fquat down_rotation = CW_90_rotation_about_x;
 const glm::fquat up_rotation = CCW_90_rotation_about_x;
 
 
-template<typename T> static inline T clamp(T v, T mn, T mx)
-{
-    return (v < mn) ? mn : (v > mx) ? mx : v;
-}
-
 XrMatrix4x4f convert_to_xr(const glm::mat4& input);
 glm::mat4 convert_to_glm(const XrMatrix4x4f& input);
 
@@ -116,11 +121,6 @@ struct GLMPose
 GLMPose convert_to_glm(const XrVector3f& position, const XrQuaternionf& rotation, const XrVector3f& scale);
 GLMPose convert_to_glm(const XrPosef& xr_pose);
 XrPosef convert_to_xr(const GLMPose& glm_pose);
-
-inline float sign(float val)
-{
-    return (val < 0.0f) ? -1.0f : 1.0f;
-}
 
 }
 
