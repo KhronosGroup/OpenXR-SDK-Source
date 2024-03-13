@@ -67,7 +67,7 @@ glm::mat4 convert_to_rotation_matrix(const glm::fquat& rotation)
 void GLMPose::clear()
 {
 	translation_ = glm::vec3(0.0f, 0.0f, 0.0f);
-	rotation_ = no_rotation;
+	rotation_ = default_rotation;
 	scale_ = glm::vec3(1.0f, 1.0f, 1.0f);
 	euler_angles_degrees_ = glm::vec3(0.0f, 0.0f, 0.0f);
 }

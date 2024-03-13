@@ -38,7 +38,7 @@ const float ROOT_OF_HALF = 0.7071067690849304f;
 namespace BVR
 {
     
-const glm::fquat no_rotation(1.0f, 0.0f, 0.0f, 0.0f);
+const glm::fquat default_rotation(1.0f, 0.0f, 0.0f, 0.0f);
 const glm::fquat rotate_90_CCW_by_x(0.7071067690849304f, 0.7071067690849304f, 0.0f, 0.0f);
 const glm::fquat rotate_180_CCW_about_y(0.0f, 1.0f, 0.0f, 0.0f);
 const glm::fquat rotate_CW_45_rotation_about_x(0.9238795f, -0.3826834f, 0.0f, 0.0f);
@@ -62,7 +62,7 @@ const glm::fquat CCW_30deg_rotation_about_x = glm::fquat(0.258819f, 0, 0, 0.9659
 const glm::fquat CW_30deg_rotation_about_Y = glm::fquat(0.0f, 0.258819f, 0.0f, 0.9659258f);
 const glm::fquat CCW_30deg_rotation_about_Y = glm::fquat(0.0f, -0.258819f, 0.0f, 0.9659258f);
 
-const glm::fquat front_rotation = no_rotation;
+const glm::fquat front_rotation = default_rotation;
 const glm::fquat back_rotation = CCW_180_rotation_about_y;
 
 const glm::fquat left_rotation = CCW_90_rotation_about_y;
@@ -101,7 +101,7 @@ struct GLMPose
     }
     
     glm::vec3 translation_ = glm::vec3(0.0f, 0.0f, 0.0f);
-    glm::fquat rotation_ = no_rotation;
+    glm::fquat rotation_ = default_rotation;
     glm::vec3 scale_ = glm::vec3(1.0f, 1.0f, 1.0f);
     glm::vec3 euler_angles_degrees_ = glm::vec3(0.0f, 0.0f, 0.0f);
     bool is_valid_  = true;
