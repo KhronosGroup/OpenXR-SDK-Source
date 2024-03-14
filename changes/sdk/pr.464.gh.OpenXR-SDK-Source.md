@@ -1,0 +1,4 @@
+---
+- issue.463.gh.OpenXR-SDK-Source
+---
+- loader: Fix build issue for ARMv6 architectures, and note architecture naming quirk of Raspberry Pi OS in the architecture table in the loader documentation.
