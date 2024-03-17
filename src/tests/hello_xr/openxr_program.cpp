@@ -1754,6 +1754,11 @@ struct OpenXrProgram : IOpenXrProgram
             createInfo.next = m_graphicsPlugin->GetGraphicsBinding();
             createInfo.systemId = m_systemId;
             CHECK_XRCMD(xrCreateSession(m_instance, &createInfo, &m_session));
+
+#if ENABLE_OPENXR_FB_REFRESH_RATE
+            GetMaxRefreshRate();
+            SetRefreshRate(DESIRED_REFRESH_RATE);
+#endif
         }
 
         LogReferenceSpaces();
@@ -1767,10 +1772,6 @@ struct OpenXrProgram : IOpenXrProgram
 
         GetSystemProperties();
 
-#if ENABLE_OPENXR_FB_REFRESH_RATE
-        GetMaxRefreshRate();
-		SetRefreshRate(DESIRED_REFRESH_RATE);
-#endif
 
 #if ENABLE_OPENXR_FB_EYE_TRACKING_SOCIAL
 		CreateSocialEyeTracker();
