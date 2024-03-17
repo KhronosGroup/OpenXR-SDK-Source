@@ -47,7 +47,7 @@
 #define XR_ARCH_ABI "aarch64"
 #elif (defined(__ARM_ARCH) && __ARM_ARCH >= 7 && (defined(__ARM_PCS_VFP) || defined(__ANDROID__))) || defined(_M_ARM)
 #define XR_ARCH_ABI "armv7a-vfp"
-#elif defined(__ARM_ARCH_5TE__)
+#elif defined(__ARM_ARCH_5TE__) || (defined(__ARM_ARCH) && __ARM_ARCH > 5)
 #define XR_ARCH_ABI "armv5te"
 #elif defined(__mips64)
 #define XR_ARCH_ABI "mips64"
