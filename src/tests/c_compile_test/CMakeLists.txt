@@ -42,7 +42,7 @@ if(XR_USE_GRAPHICS_API_VULKAN)
     )
 endif()
 
-target_link_libraries(openxr_c_compile_test OpenXR::openxr_loader)
+target_link_libraries(openxr_c_compile_test OpenXR::openxr_loader OpenXR::headers)
 if(MSVC)
     target_compile_options(
         openxr_c_compile_test PRIVATE /Zc:wchar_t /Zc:forScope /W4
