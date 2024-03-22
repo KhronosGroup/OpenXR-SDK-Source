@@ -28,6 +28,12 @@ enum ManifestFileType {
     MANIFEST_TYPE_EXPLICIT_API_LAYER,
 };
 
+enum ManifestFileSource {
+    FROM_JSON_MANIFEST = 0,
+    FROM_INSTALLABLE_BROKER,
+    FROM_SYSTEM_BROKER,
+};
+
 struct JsonVersion {
     uint32_t major;
     uint32_t minor;
@@ -101,6 +107,8 @@ class ApiLayerManifestFile : public ManifestFile {
 
     static void CreateIfValid(ManifestFileType type, const std::string &filename, std::istream &json_stream,
                               LibraryLocator locate_library, std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files);
+    static void CreateIfValid(ManifestFileType type, const Json::Value &root_node, const std::string &filename,
+                              std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files);
     static void CreateIfValid(ManifestFileType type, const std::string &filename,
                               std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files);
     /// @return false if we could not find the library.
