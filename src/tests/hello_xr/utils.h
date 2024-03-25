@@ -8,6 +8,8 @@
 #pragma warning(disable : 4201)
 #endif
 
+#define GLM_ENABLE_EXPERIMENTAL
+
 #include "glm/glm.hpp"
 #include "glm/common.hpp"
 #include "glm/gtc/quaternion.hpp"
@@ -15,8 +17,6 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/transform.hpp"
-
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>
 
 const float PI = 3.1415927f;
