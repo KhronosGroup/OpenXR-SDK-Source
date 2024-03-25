@@ -3385,7 +3385,7 @@ struct OpenXrProgram : IOpenXrProgram
 					{
 #if ADAPT_VIVE_TRACKER_POSES
 						{
-							glm::vec3 euler_angle_offset_degrees = glm::vec3(90.0f, 180.0f, 0.0f);
+							glm::vec3 euler_angle_offset_degrees = glm::vec3(0.0f, 0.0f, 0.0f);
 
 							glm::vec3 euler_angles_offset_radians(deg2rad(euler_angle_offset_degrees.x), deg2rad(euler_angle_offset_degrees.y), deg2rad(euler_angle_offset_degrees.z));
 							const glm::fquat offset_rotation = glm::fquat(euler_angles_offset_radians);
@@ -3733,6 +3733,30 @@ struct OpenXrProgram : IOpenXrProgram
 		{
             // Override IOBT / FBE waist pose with VUT-based waist pose, which should be more accurate & responsive
             local_waist_pose = local_waist_pose_from_HTCX;
+
+#if DRAW_LOCAL_WAIST_DIRECTION
+            XrVector3f body_joint_scale{ BODY_CUBE_SIZE, BODY_CUBE_SIZE, BODY_CUBE_SIZE };
+
+			const float waist_arrow_length = LOCAL_WAIST_DIRECTION_OFFSET_Z;
+			const glm::vec3 local_waist_offset = forward_direction * waist_arrow_length;
+
+			BVR::GLMPose glm_local_waist_pose_with_offset = get_waist_pose_2D(false);
+			glm_local_waist_pose_with_offset.translation_ += (glm_local_waist_pose_with_offset.rotation_ * local_waist_offset);
+			glm_local_waist_pose_with_offset.translation_.y += LOCAL_WAIST_DIRECTION_OFFSET_Y;
+
+			XrPosef local_waist_offset_xr_pose = BVR::convert_to_xr(glm_local_waist_pose_with_offset);
+			cubes.push_back(Cube{ local_waist_offset_xr_pose, body_joint_scale });
+#if DRAW_WORLD_POSES
+			BVR::GLMPose glm_world_waist_pose_with_offset = get_waist_pose_2D(true);
+			glm_world_waist_pose_with_offset.translation_ += (glm_world_waist_pose_with_offset.rotation_ * local_waist_offset);
+			glm_world_waist_pose_with_offset.translation_.y += LOCAL_WAIST_DIRECTION_OFFSET_Y;
+
+			XrPosef world_waist_offset_xr_pose = BVR::convert_to_xr(glm_world_waist_pose_with_offset);
+			cubes.push_back(Cube{ world_waist_offset_xr_pose, body_joint_scale });
+#endif // DRAW_WORLD_POSES
+
+#endif // DRAW_LOCAL_WAIST_DIRECTION
+
 		}
 #endif
 
