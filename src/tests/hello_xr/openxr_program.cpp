@@ -304,7 +304,7 @@ bool supports_simultaneous_hands_and_controllers_ = false;
 
 #if ENABLE_VIVE_TRACKERS
 bool supports_HTCX_vive_tracker_interaction_ = false;
-BVR::GLMPose local_waist_pose_from_VUT;
+BVR::GLMPose local_waist_pose_from_HTCX;
 #endif
 
 int current_eye = 0;
@@ -3364,7 +3364,7 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
-            local_waist_pose_from_VUT.is_valid_ = false;
+            local_waist_pose_from_HTCX.is_valid_ = false;
 #endif
 
             const int num_trackers = (int)m_input.tracker_infos_.size();
@@ -3418,8 +3418,8 @@ struct OpenXrProgram : IOpenXrProgram
 #if USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
                         if(is_waist)
                         {
-                            local_waist_pose_from_VUT = BVR::convert_to_glm(tracker_space_location.pose);
-                            local_waist_pose_from_VUT.is_valid_ = true;
+                            local_waist_pose_from_HTCX = BVR::convert_to_glm(tracker_space_location.pose);
+                            local_waist_pose_from_HTCX.is_valid_ = true;
                         }
 #endif // USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION
 					}
@@ -3729,10 +3729,10 @@ struct OpenXrProgram : IOpenXrProgram
 #endif
 
 #if (ENABLE_VIVE_TRACKERS && USE_WAIST_ORIENTATION_FOR_STICK_DIRECTION)
-		if(supports_HTCX_vive_tracker_interaction_ && local_waist_pose_from_VUT.is_valid_)
+		if(supports_HTCX_vive_tracker_interaction_ && local_waist_pose_from_HTCX.is_valid_)
 		{
             // Override IOBT / FBE waist pose with VUT-based waist pose, which should be more accurate & responsive
-            local_waist_pose = local_waist_pose_from_VUT;
+            local_waist_pose = local_waist_pose_from_HTCX;
 		}
 #endif
 
