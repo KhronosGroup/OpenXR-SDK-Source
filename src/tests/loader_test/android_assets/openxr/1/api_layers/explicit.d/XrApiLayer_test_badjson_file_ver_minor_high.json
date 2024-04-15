@@ -1,0 +1,10 @@
+{
+    "file_format_version": "1.15.0",
+    "api_layer": {
+        "name": "XR_APILAYER_LUNARG_test_badjson_file_ver_minor_high",
+        "library_path": "C:/open/openxr/openxr/src/tests/loader_test/.cxx/Debug/6e665m3m/arm64-v8a/src/tests/loader_test/test_layers/libXrApiLayer_test.so",
+        "api_version": "1.0",
+        "implementation_version": "1",
+        "description": "Test_description"
+    }
+}

@@ -1,10 +1,10 @@
-"""Defines ConsolePrinter, a BasePrinter subclass for appealing console output."""
-
+# Copyright 2018-2024, The Khronos Group Inc.
 # Copyright (c) 2018-2019 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
 # Author(s):    Rylie Pavlik <rylie.pavlik@collabora.com>
+"""Defines ConsolePrinter, a BasePrinter subclass for appealing console output."""
 
 from sys import stdout
 
@@ -135,7 +135,7 @@ def printLineSubsetWithHighlighting(
 
     spaces = ' ' * caretLoc
     tildes = '~' * tildeLength
-    print(spaces + colored('^' + tildes, 'green'))
+    print(spaces + colored(f"^{tildes}", 'green'))
     if replacement is not None:
         print(spaces + colored(replacement, 'green'))
 
@@ -144,7 +144,6 @@ class ConsolePrinter(BasePrinter):
     """Implementation of BasePrinter for generating diagnostic reports in colored, helpful console output."""
 
     def __init__(self):
-        self.show_script_location = False
         super().__init__()
 
     ###
@@ -175,7 +174,7 @@ class ConsolePrinter(BasePrinter):
 
         def makeRowOfBroken(entity, uses):
             fn = checker.findEntity(entity).filename
-            anchor = '[[{}]]'.format(entity)
+            anchor = f'[[{entity}]]'
             locations = ', '.join((toNameAndLine(context, root_path=checker.root_path)
                                    for context in uses))
             return (fn, anchor, locations)
@@ -197,7 +196,7 @@ class ConsolePrinter(BasePrinter):
 
         def makeRowOfMissing(entity):
             fn = checker.findEntity(entity).filename
-            anchor = '[[{}]]'.format(entity)
+            anchor = f'[[{entity}]]'
             return (fn, anchor)
         printTabulated((makeRowOfMissing(entity) for entity in missing),
                        headers=['Include File', 'Anchor in lieu of include'])
@@ -212,8 +211,7 @@ class ConsolePrinter(BasePrinter):
             print()
             print('--------------------------------------------------------------------')
 
-        fileAndLine = colored('{}:'.format(
-            self.formatBrief(msg.context)), attrs=['bold'])
+        fileAndLine = colored(f'{self.formatBrief(msg.context)}:', attrs=['bold'])
 
         headingSize = len('{context}: {mtype}: '.format(
             context=self.formatBrief(msg.context),
@@ -224,7 +222,7 @@ class ConsolePrinter(BasePrinter):
         lines = msg.message[:]
         if msg.see_also:
             lines.append('See also:')
-            lines.extend(('  {}'.format(self.formatBrief(see))
+            lines.extend((f'  {self.formatBrief(see)}'
                           for see in msg.see_also))
 
         if msg.fix:
@@ -234,7 +232,7 @@ class ConsolePrinter(BasePrinter):
             if not printedHeading:
                 scriptloc = ''
                 if msg.script_location and self.show_script_location:
-                    scriptloc = ', ' + msg.script_location
+                    scriptloc = f", {msg.script_location}"
                 print('{fileLine} {mtype} {msg} (-{arg}{loc})'.format(
                     fileLine=fileAndLine, mtype=msg.message_type.formattedWithColon(),
                     msg=colored(line, attrs=['bold']), arg=msg.message_id.enable_arg(), loc=scriptloc))

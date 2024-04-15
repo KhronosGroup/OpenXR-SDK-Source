@@ -1,10 +1,10 @@
-"""Provides the BasePrinter base class for MacroChecker/Message output techniques."""
-
+# Copyright 2018-2024, The Khronos Group Inc.
 # Copyright (c) 2018-2019 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
 # Author(s):    Rylie Pavlik <rylie.pavlik@collabora.com>
+"""Provides the BasePrinter base class for MacroChecker/Message output techniques."""
 
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -36,6 +36,7 @@ class BasePrinter(ABC):
     def __init__(self):
         """Constructor."""
         self._cwd = None
+        self.show_script_location = False
 
     def close(self):
         """Write the tail end of the output and close it, if applicable.
@@ -160,22 +161,22 @@ class BasePrinter(ABC):
 
         May override, default is relativeFilename:line:column
         """
-        return '{}:{}:{}'.format(self.getRelativeFilename(context.filename),
-                                 context.lineNum, getColumn(context))
+        relative = self.getRelativeFilename(context.filename)
+        return f'{relative}:{context.lineNum}:{getColumn(context)}'
 
     def formatMessageTypeBrief(self, message_type, _with_color=True):
         """Format a message type in a brief way.
 
         May override, default is message_type:
         """
-        return '{}:'.format(message_type)
+        return f'{message_type}:'
 
     def formatEntityBrief(self, entity_data, _with_color=True):
         """Format an entity in a brief way.
 
         May override, default is macro:entity.
         """
-        return '{}:{}'.format(entity_data.macro, entity_data.entity)
+        return f'{entity_data.macro}:{entity_data.entity}'
 
     def formatBrief(self, obj, with_color=True):
         """Format any object in a brief way.

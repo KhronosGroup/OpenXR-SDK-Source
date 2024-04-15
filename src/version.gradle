@@ -11,10 +11,16 @@ class OpenXRVersion {
 
     /// Returns a version code for Android usage.
     int getVersionCode() {
-        if (major != 1 || minor != 0) {
-            throw new RuntimeException("Version code mapping needs update for OpenXR 1.1+")
+        if (major == 1) {
+            if (minor == 0) {
+                return patch - 19
+            }
+            if (minor == 1) {
+                // Jump right to code 1036 at 1.1.36
+                return patch + 1000
+            }
         }
-        patch - 19
+        throw new RuntimeException("Version code mapping needs update for OpenXR 1.2+")
     }
 
     @Override

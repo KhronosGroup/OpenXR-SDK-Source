@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 #
+# Copyright 2018-2024, The Khronos Group Inc.
 # Copyright (c) 2018-2019 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -50,6 +51,7 @@ class LinewiseFileProcessor:
     @property
     def trailing_whitespace(self):
         """The trailing whitespace of the current line that gets removed when accessing rstrippedLine"""
+        assert self.line_rstripped is not None
         non_whitespace_length = len(self.line_rstripped)
         return self.line[non_whitespace_length:]
 

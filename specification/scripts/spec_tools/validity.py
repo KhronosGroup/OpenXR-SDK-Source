@@ -46,6 +46,7 @@ class ValidityCollection:
         and the name of the entity, and normally ends in a macro.
         For instance, might be "calling flink:" for a function.
         """
+        assert self.conventions
         if extension_name and not extension_name.startswith(self.conventions.api_version_prefix):
             msg = 'The {} extension must: be enabled prior to {}{}'.format(
                 self.conventions.formatExtension(extension_name), entity_preface, self.entity_name)

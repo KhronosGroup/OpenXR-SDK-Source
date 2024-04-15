@@ -17,7 +17,7 @@
 #               generated source code for the loader.
 
 
-from automatic_source_generator import AutomaticSourceOutputGenerator
+from automatic_source_generator import AutomaticSourceOutputGenerator, CurrentExtensionTracker
 from generator import write
 
 # UtilitySourceOutputGenerator - subclass of AutomaticSourceOutputGenerator.
@@ -62,7 +62,7 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
             header = self.genOpts.filename.replace('.c', '.h')
             preamble += f'#include "{header}"\n\n'
         else:
-            raise RuntimeError("Unknown filename extension! " + self.genOpts.filename)
+            raise RuntimeError(f"Unknown filename extension! {self.genOpts.filename}")
 
         # The different .h files have different includes
         if self.genOpts.filename == 'xr_generated_dispatch_table_core.h':
@@ -98,7 +98,7 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
             file_data += self.outputDispatchTableHelper()
 
         else:
-            raise RuntimeError("Unknown filename extension! " + self.genOpts.filename)
+            raise RuntimeError(f"Unknown filename extension! {self.genOpts.filename}")
 
         file_data += '\n'
         file_data += '#ifdef __cplusplus\n'
@@ -120,13 +120,16 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
         table_helper += '                                      PFN_xrGetInstanceProcAddr get_inst_proc_addr);\n'
         return table_helper
 
+    def _feature_name_to_core_version(self, ext_name: str):
+        return ext_name[len(self.conventions.api_version_prefix):].replace("_", ".")
+
     # Write out a C-style structure used to store the Dispatch table information
     #   self            the ApiDumpOutputGenerator object
     def outputDispatchTable(self):
         assert self.genOpts
         commands = []
         table = ''
-        cur_extension_name = ''
+        cur_extension = CurrentExtensionTracker(self.conventions.api_version_prefix)
 
         table += '// Generated dispatch table\n'
         table += 'struct XrGeneratedDispatchTable {\n'
@@ -162,27 +165,22 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
 
                 # If we've switched to a new "feature" print out a comment on what it is.  Usually,
                 # this is a group of core commands or a group of commands in an extension.
-                if cur_cmd.ext_name != cur_extension_name:
-                    if self.isCoreExtensionName(cur_cmd.ext_name):
-                        table += '\n    // ---- Core %s commands\n' % cur_cmd.ext_name[11:].replace(
-                            "_", ".")
-                    else:
-                        table += '\n    // ---- %s extension commands\n' % cur_cmd.ext_name
-                    cur_extension_name = cur_cmd.ext_name
+                assert cur_cmd.ext_name
+                table += cur_extension.format_if_extension_changed(cur_cmd.ext_name, "\n    // ---- {} commands\n")
 
                 # Remove 'xr' from proto name
                 base_name = cur_cmd.name[2:]
 
                 # If a protect statement exists, use it.
                 if cur_cmd.protect_value:
-                    table += '#if %s\n' % cur_cmd.protect_string
+                    table += f'#if {cur_cmd.protect_string}\n'
 
                 # Write out each command using it's function pointer for each command
-                table += '    PFN_%s %s;\n' % (cur_cmd.name, base_name)
+                table += f'    PFN_{cur_cmd.name} {base_name};\n'
 
                 # If a protect statement exists, wrap it up.
                 if cur_cmd.protect_value:
-                    table += '#endif // %s\n' % cur_cmd.protect_string
+                    table += f'#endif // {cur_cmd.protect_string}\n'
         table += '};\n\n'
         return table
 
@@ -193,7 +191,7 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
         assert self.genOpts
         commands = []
         table_helper = ''
-        cur_extension_name = ''
+        cur_extension = CurrentExtensionTracker(self.conventions.api_version_prefix)
 
         table_helper += '// Helper function to populate an instance dispatch table\n'
         table_helper += 'void GeneratedXrPopulateDispatchTable(struct XrGeneratedDispatchTable *table,\n'
@@ -226,19 +224,14 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
 
                 # If we've switched to a new "feature" print out a comment on what it is.  Usually,
                 # this is a group of core commands or a group of commands in an extension.
-                if cur_cmd.ext_name != cur_extension_name:
-                    if self.isCoreExtensionName(cur_cmd.ext_name):
-                        table_helper += '\n    // ---- Core %s commands\n' % cur_cmd.ext_name[11:].replace(
-                            "_", ".")
-                    else:
-                        table_helper += '\n    // ---- %s extension commands\n' % cur_cmd.ext_name
-                    cur_extension_name = cur_cmd.ext_name
+                assert cur_cmd.ext_name
+                table_helper += cur_extension.format_if_extension_changed(cur_cmd.ext_name, "\n    // ---- {} commands\n")
 
                 # Remove 'xr' from proto name
                 base_name = cur_cmd.name[2:]
 
                 if cur_cmd.protect_value:
-                    table_helper += '#if %s\n' % cur_cmd.protect_string
+                    table_helper += f'#if {cur_cmd.protect_string}\n'
 
                 if cur_cmd.name == 'xrGetInstanceProcAddr':
                     # If the command we're filling in is the xrGetInstanceProcAddr command, use
@@ -251,6 +244,6 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
                         cur_cmd.name, base_name)
 
                 if cur_cmd.protect_value:
-                    table_helper += '#endif // %s\n' % cur_cmd.protect_string
+                    table_helper += f'#endif // {cur_cmd.protect_string}\n'
         table_helper += '}\n\n'
         return table_helper

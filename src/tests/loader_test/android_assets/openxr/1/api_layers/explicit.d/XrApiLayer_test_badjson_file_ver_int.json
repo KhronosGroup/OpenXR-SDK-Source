@@ -1,0 +1,10 @@
+{
+    "file_format_version": 1,
+    "api_layer": {
+        "name": "XR_APILAYER_LUNARG_test_badjson_file_ver_int",
+        "library_path": "libXrApiLayer_test.so",
+        "api_version": "1.0",
+        "implementation_version": "1",
+        "description": "Test_description"
+    }
+}

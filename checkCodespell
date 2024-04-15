@@ -45,7 +45,7 @@ CODESPELL_IGNORE=${CODESPELL_IGNORE:-${DEFAULT_CODESPELL_IGNORE}}
 # ba is from a regex
 # unknwn is a header file name
 # Wee, Ser, Nuber, Blok are names
-IGNORE_WORDS="lod,nd,ba,unknwn,wee,ser,nuber,blok"
+IGNORE_WORDS="lod,nd,ba,unknwn,wee,ser,nuber,blok,rouge,implementor,implementors"
 
 # Add to this to exclude individual files or directories (comma-delimited)
 # - Skipping external code.

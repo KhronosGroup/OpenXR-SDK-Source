@@ -832,9 +832,8 @@ maintains operational security of the program.
 .Note
 ****
 Specifically, the loader will not use environment variables which control
-code loading for admin (high integrity) processes on Windows as
-the environment variables can be set by non-admin (medium integrity)
-processes.
+code loading for admin (high integrity) processes on Windows as the
+environment variables can be set by non-admin (medium integrity) processes.
 ****
 
 To read a secure environment variable, the loader calls

@@ -1,10 +1,10 @@
-"""Types, constants, and utility functions used by multiple sub-modules in spec_tools."""
-
+# Copyright 2018-2024, The Khronos Group Inc.
 # Copyright (c) 2018-2019 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
 # Author(s):    Rylie Pavlik <rylie.pavlik@collabora.com>
+"""Types, constants, and utility functions used by multiple sub-modules in spec_tools."""
 
 import platform
 from collections import namedtuple
@@ -77,16 +77,12 @@ def toNameAndLine(context, root_path=None):
     my_fn = Path(context.filename)
     if root_path:
         my_fn = my_fn.relative_to(root_path)
-    return '{}:{}'.format(str(my_fn), context.lineNum)
+    return f'{str(my_fn)}:{context.lineNum}'
 
 
 def generateInclude(dir_traverse, generated_type, category, entity):
     """Create an include:: directive for generated api or validity from the various pieces."""
-    return 'include::{directory_traverse}{generated_type}/{category}/{entity_name}.txt[]'.format(
-        directory_traverse=dir_traverse,
-        generated_type=generated_type,
-        category=category,
-        entity_name=entity)
+    return f'include::{dir_traverse}{generated_type}/{category}/{entity}.adoc[]'
 
 
 # Data stored per entity (function, struct, enumerant type, enumerant, extension, etc.)
@@ -108,10 +104,10 @@ class MessageType(Enum):
     def formattedWithColon(self):
         """Format a MessageType as a colored, lowercase string followed by a colon."""
         if self == MessageType.WARNING:
-            return colored(str(self) + ':', 'magenta', attrs=['bold'])
+            return colored(f"{str(self)}:", 'magenta', attrs=['bold'])
         if self == MessageType.ERROR:
-            return colored(str(self) + ':', 'red', attrs=['bold'])
-        return str(self) + ':'
+            return colored(f"{str(self)}:", 'red', attrs=['bold'])
+        return f"{str(self)}:"
 
 
 class MessageId(Enum):
@@ -155,6 +151,7 @@ class MessageId(Enum):
     REFPAGE_WHITESPACE = 31
     REFPAGE_DUPLICATE = 32
     UNCLOSED_BLOCK = 33
+    MISSING_INCLUDE_PATH_ATTRIBUTE = 34
 
     def __str__(self):
         """Format as a lowercase string."""
@@ -162,11 +159,11 @@ class MessageId(Enum):
 
     def enable_arg(self):
         """Return the corresponding Wbla string to make the 'enable this message' argument."""
-        return 'W{}'.format(self.name.lower())
+        return f'W{self.name.lower()}'
 
     def disable_arg(self):
         """Return the corresponding Wno_bla string to make the 'enable this message' argument."""
-        return 'Wno_{}'.format(self.name.lower())
+        return f'Wno_{self.name.lower()}'
 
     def desc(self):
         """Return a brief description of the MessageId suitable for use in --help."""
@@ -206,7 +203,8 @@ _MESSAGE_DESCRIPTIONS = {
     MessageId.REFPAGE_XREF_DUPE: "a refpage cross-references list has at least one duplicate",
     MessageId.REFPAGE_WHITESPACE: "a refpage cross-references list has non-minimal whitespace",
     MessageId.REFPAGE_DUPLICATE: "a refpage tag has been seen for a single entity for a second time",
-    MessageId.UNCLOSED_BLOCK: "one or more blocks remain unclosed at the end of a file"
+    MessageId.UNCLOSED_BLOCK: "one or more blocks remain unclosed at the end of a file",
+    MessageId.MISSING_INCLUDE_PATH_ATTRIBUTE: "include:: directives must begin with a recognized path attribute macro",
 }
 
 
@@ -236,7 +234,7 @@ class Message(object):
         if context is not None and context.match is not None and context.group is not None:
             if context.group not in context.match.groupdict():
                 raise RuntimeError(
-                    'Group "{}" does not exist in the match'.format(context.group))
+                    f'Group "{context.group}" does not exist in the match')
 
         self.replacement = replacement
 
@@ -253,7 +251,6 @@ class Message(object):
         if frame:
             try:
                 frameinfo = getframeinfo(frame)
-                self.script_location = "{}:{}".format(
-                    frameinfo.filename, frameinfo.lineno)
+                self.script_location = f"{frameinfo.filename}:{frameinfo.lineno}"
             finally:
                 del frame

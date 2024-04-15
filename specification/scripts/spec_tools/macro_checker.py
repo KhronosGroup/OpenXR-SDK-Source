@@ -1,10 +1,10 @@
-"""Provides the MacroChecker class."""
-
+# Copyright 2018-2024, The Khronos Group Inc.
 # Copyright (c) 2018-2019 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
 # Author(s):    Rylie Pavlik <rylie.pavlik@collabora.com>
+"""Provides the MacroChecker class."""
 
 from io import StringIO
 import re
@@ -18,7 +18,7 @@ class MacroChecker(object):
     """
 
     def __init__(self, enabled_messages, entity_db,
-                 macro_checker_file_type, root_path):
+                 macro_checker_file_type, root_path, conventions):
         """Construct an object that tracks checking one or more files in an API spec.
 
         enabled_messages -- a set of MessageId that should be enabled.
@@ -26,11 +26,13 @@ class MacroChecker(object):
         macro_checker_file_type -- Type to instantiate to create the right
                                    MacroCheckerFile subclass for this API.
         root_path -- A Path object for the root of this repository.
+        conventions -- A ConventionsBase object.
         """
         self.enabled_messages = enabled_messages
         self.entity_db = entity_db
         self.macro_checker_file_type = macro_checker_file_type
         self.root_path = root_path
+        self.conventions = conventions
 
         self.files = []
 
@@ -173,8 +175,7 @@ class MacroChecker(object):
                 len(self.files), s.rstrip())
 
         else:
-            filename = "string{}: {}".format(
-                len(self.files), s.rstrip())
+            filename = f"string{len(self.files)}: {s.rstrip()}"
 
         class StringStreamMaker(object):
             def __init__(self, string):

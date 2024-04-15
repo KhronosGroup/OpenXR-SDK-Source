@@ -49,9 +49,9 @@ def main(argv):
             generate_badjson_jsons = True
 
     file_text = '{\n'
-    file_text += '    "file_format_version": "%s",\n' % cur_runtime_json_version
+    file_text += f'    "file_format_version": "{cur_runtime_json_version}",\n'
     file_text += '    "runtime": {\n'
-    file_text += '        "library_path": "%s",\n' % library_location
+    file_text += f'        "library_path": "{library_location}",\n'
     file_text += '        "functions": {\n'
     file_text += '           "xrNegotiateLoaderRuntimeInterface":\n'
     file_text += '               "xrNegotiateLoaderRuntimeInterface"\n'
@@ -69,7 +69,7 @@ def main(argv):
         bad_name = '_badjson_file_ver_missing.json'
         file_text = '{\n'
         file_text += '    "runtime": {\n'
-        file_text += '        "library_path": "%s",\n' % library_location
+        file_text += f'        "library_path": "{library_location}",\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_file = output_file.replace(".json", bad_name)
@@ -82,7 +82,7 @@ def main(argv):
         file_text = '{\n'
         file_text += '    "file_format_version": 1,\n'
         file_text += '    "runtime": {\n'
-        file_text += '        "library_path": "%s",\n' % library_location
+        file_text += f'        "library_path": "{library_location}",\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_file = output_file.replace(".json", bad_name)
@@ -95,7 +95,7 @@ def main(argv):
         file_text = '{\n'
         file_text += '    "file_format_version": "invalid string",\n'
         file_text += '    "runtime": {\n'
-        file_text += '        "library_path": "%s",\n' % library_location
+        file_text += f'        "library_path": "{library_location}",\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_file = output_file.replace(".json", bad_name)
@@ -108,7 +108,7 @@ def main(argv):
         file_text = '{\n'
         file_text += '    "file_format_version": "0.0.0",\n'
         file_text += '    "runtime": {\n'
-        file_text += '        "library_path": "%s",\n' % library_location
+        file_text += f'        "library_path": "{library_location}",\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_file = output_file.replace(".json", bad_name)
@@ -121,7 +121,7 @@ def main(argv):
         file_text = '{\n'
         file_text += '    "file_format_version": "15.0.0",\n'
         file_text += '    "runtime": {\n'
-        file_text += '        "library_path": "%s",\n' % library_location
+        file_text += f'        "library_path": "{library_location}",\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_file = output_file.replace(".json", bad_name)
@@ -134,7 +134,7 @@ def main(argv):
         file_text = '{\n'
         file_text += '    "file_format_version": "1.15.0",\n'
         file_text += '    "runtime": {\n'
-        file_text += '        "library_path": "%s",\n' % library_location
+        file_text += f'        "library_path": "{library_location}",\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_file = output_file.replace(".json", bad_name)
@@ -148,8 +148,8 @@ def main(argv):
         # Completely Missing
         bad_name = '_badjson_runtime_missing.json'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_runtime_json_version
-        file_text += '    "library_path": "%s",\n' % library_location
+        file_text += f'    "file_format_version": "{cur_runtime_json_version}",\n'
+        file_text += f'    "library_path": "{library_location}",\n'
         file_text += '}\n'
         bad_file = output_file.replace(".json", bad_name)
         f = open(bad_file, 'w')
@@ -159,10 +159,10 @@ def main(argv):
         # Empty
         bad_name = '_badjson_runtime_empty.json'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_runtime_json_version
+        file_text += f'    "file_format_version": "{cur_runtime_json_version}",\n'
         file_text += '    "runtime": {\n'
         file_text += '    },\n'
-        file_text += '    "library_path": "%s",\n' % library_location
+        file_text += f'    "library_path": "{library_location}",\n'
         file_text += '}\n'
         bad_file = output_file.replace(".json", bad_name)
         f = open(bad_file, 'w')
@@ -175,7 +175,7 @@ def main(argv):
         # Missing
         bad_name = '_badjson_path_missing.json'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_runtime_json_version
+        file_text += f'    "file_format_version": "{cur_runtime_json_version}",\n'
         file_text += '    "runtime": {\n'
         file_text += '    }\n'
         file_text += '}\n'
@@ -187,7 +187,7 @@ def main(argv):
         # Use int
         bad_name = '_badjson_path_int.json'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_runtime_json_version
+        file_text += f'    "file_format_version": "{cur_runtime_json_version}",\n'
         file_text += '    "runtime": {\n'
         file_text += '        "library_path": 1,\n'
         file_text += '    }\n'
@@ -200,9 +200,9 @@ def main(argv):
         # Replace valid path with invalid one
         bad_name = '_badjson_path_no_file.json'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_runtime_json_version
+        file_text += f'    "file_format_version": "{cur_runtime_json_version}",\n'
         file_text += '    "runtime": {\n'
-        file_text += '        "library_path": "%s",\n' % library_location.replace("test_runtimes", "not_real")
+        file_text += f"        \"library_path\": \"{library_location.replace('test_runtimes', 'not_real')}\",\n"
         file_text += '    }\n'
         file_text += '}\n'
         bad_file = output_file.replace(".json", bad_name)
@@ -216,9 +216,9 @@ def main(argv):
         # Always fail negotiate
         bad_name = '_badnegotiate_always.json'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_runtime_json_version
+        file_text += f'    "file_format_version": "{cur_runtime_json_version}",\n'
         file_text += '    "runtime": {\n'
-        file_text += '        "library_path": "%s",\n' % library_location
+        file_text += f'        "library_path": "{library_location}",\n'
         file_text += '        "functions": {\n'
         file_text += '           "xrNegotiateLoaderRuntimeInterface":\n'
         file_text += '               "TestRuntimeAlwaysFailNegotiateLoaderRuntimeInterface"\n'
@@ -233,9 +233,9 @@ def main(argv):
         # Pass negotiate, but return null GIPA
         bad_name = '_badnegotiate_invalid_gipa.json'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_runtime_json_version
+        file_text += f'    "file_format_version": "{cur_runtime_json_version}",\n'
         file_text += '    "runtime": {\n'
-        file_text += '        "library_path": "%s",\n' % library_location
+        file_text += f'        "library_path": "{library_location}",\n'
         file_text += '        "functions": {\n'
         file_text += '           "xrNegotiateLoaderRuntimeInterface":\n'
         file_text += '               "TestRuntimeNullGipaNegotiateLoaderRuntimeInterface"\n'
@@ -250,9 +250,9 @@ def main(argv):
         # Pass negotiate, but return invalid interface version
         bad_name = '_badnegotiate_invalid_interface.json'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_runtime_json_version
+        file_text += f'    "file_format_version": "{cur_runtime_json_version}",\n'
         file_text += '    "runtime": {\n'
-        file_text += '        "library_path": "%s",\n' % library_location
+        file_text += f'        "library_path": "{library_location}",\n'
         file_text += '        "functions": {\n'
         file_text += '           "xrNegotiateLoaderRuntimeInterface":\n'
         file_text += '               "TestRuntimeInvalidInterfaceNegotiateLoaderRuntimeInterface"\n'
@@ -267,9 +267,9 @@ def main(argv):
         # Pass negotiate, but return invalid api version
         bad_name = '_badnegotiate_invalid_api.json'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_runtime_json_version
+        file_text += f'    "file_format_version": "{cur_runtime_json_version}",\n'
         file_text += '    "runtime": {\n'
-        file_text += '        "library_path": "%s",\n' % library_location
+        file_text += f'        "library_path": "{library_location}",\n'
         file_text += '        "functions": {\n'
         file_text += '           "xrNegotiateLoaderRuntimeInterface":\n'
         file_text += '               "TestRuntimeInvalidApiNegotiateLoaderRuntimeInterface"\n'

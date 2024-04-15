@@ -1,7 +1,7 @@
 #!/usr/bin/python3 -i
 #
+# Copyright (c) 2019-2024, The Khronos Group Inc.
 # Copyright (c) 2019 Collabora, Ltd.
-# Copyright (c) 2018-2024, The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
@@ -30,7 +30,8 @@ class XMLChecker:
     def __init__(self, entity_db,  conventions: ConventionsBase, manual_types_to_codes=None,
                  forward_only_types_to_codes=None,
                  reverse_only_types_to_codes=None,
-                 suppressions=None):
+                 suppressions=None,
+                 display_warnings=True):
         """Set up data structures.
 
         May extend - call:
@@ -59,6 +60,7 @@ class XMLChecker:
         self.reg = entity_db.registry
         self.handle_data = HandleData(self.reg)
         self.conventions = conventions
+        self.display_warnings = display_warnings
 
         self.CONST_RE = re.compile(r"\bconst\b")
         self.ARRAY_RE = re.compile(r"\[[^]]+\]")
@@ -156,7 +158,10 @@ class XMLChecker:
         name_no_experimental = re.sub("X[0-9]*$", "", name)
 
         for t in self.tags:
-            if name_no_experimental.endswith(t):
+            if (
+                self.conventions.allows_x_number_suffix
+                and name_no_experimental.endswith(t)
+            ):
                 name = name_no_experimental
 
             if name.endswith(t):
@@ -256,7 +261,7 @@ class XMLChecker:
                     print('Error:', m)
 
             messages = self.warnings.get(entity)
-            if messages:
+            if messages and self.display_warnings:
                 for m in messages:
                     print('Warning:', m)
 
@@ -386,7 +391,7 @@ class XMLChecker:
         extension_number = info.elem.get('number')
         if extension_number is not None and extension_number != '0':
             if extension_number in self.ext_numbers:
-                self.record_error('Duplicate extension number ' + extension_number)
+                self.record_error(f"Duplicate extension number {extension_number}")
             else:
                 self.ext_numbers.add(extension_number)
 
@@ -477,7 +482,7 @@ class XMLChecker:
         May extend."""
         referenced_input = self.referenced_input_types[name]
         referenced_types = self.referenced_types[name]
-        error_prefix = self.conventions.api_prefix + "ERROR"
+        error_prefix = f"{self.conventions.api_prefix}ERROR"
 
         bad_success = {x for x in successcodes if x.startswith(error_prefix)}
         if bad_success:
@@ -609,12 +614,12 @@ class XMLChecker:
             return message
 
         if fn is None:
-            return "Line {}: {}".format(sourceline, message)
+            return f"Line {sourceline}: {message}"
 
         if sourceline is None:
-            return "{}: {}".format(fn, message)
+            return f"{fn}: {message}"
 
-        return "{}:{}: {}".format(fn, sourceline, message)
+        return f"{fn}:{sourceline}: {message}"
 
 
 class HandleParents(RecursiveMemoize):

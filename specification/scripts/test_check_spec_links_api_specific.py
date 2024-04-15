@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 #
+# Copyright 2018-2024, The Khronos Group Inc.
 # Copyright (c) 2018-2019 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -27,13 +28,13 @@ def test_openxr_refpage_mismatch(ckr):
     assert ckr.check(
         """[open,refpage='XrSwapchainCreateFlags']
         --
-        include::{generated}/api/enums/XrSwapchainCreateFlagBits.txt[]""").messages
+        include::{generated}/api/enums/XrSwapchainCreateFlagBits.adoc[]""").messages
 
     # Should not error, this is how we expect it
     assert not ckr.check(
         """[open,refpage='XrSwapchainCreateFlagBits']
         --
-        include::{generated}/api/enums/XrSwapchainCreateFlagBits.txt[]""").messages
+        include::{generated}/api/enums/XrSwapchainCreateFlagBits.adoc[]""").messages
 
 def test_openxr_refpage_type(ckr):
     """Test the REFPAGE_TYPE message, for fallout following the flags fix"""
@@ -42,7 +43,7 @@ def test_openxr_refpage_type(ckr):
     assert ckr.check(
         """[open,type='enums',refpage='XrEnvironmentBlendMode']
         --
-        include::{generated}/api/enums/XrEnvironmentBlendMode.txt[]""").numDiagnostics() == 0
+        include::{generated}/api/enums/XrEnvironmentBlendMode.adoc[]""").numDiagnostics() == 0
 
 
 def test_openxr_refpage_missing(ckr):
@@ -51,9 +52,9 @@ def test_openxr_refpage_missing(ckr):
 
     # Should error: all flags includes are in the right place now so we need ref pages for them
     assert ckr.check(
-        "include::{generated}/api/flags/XrSwapchainCreateFlags.txt[]").messages
+        "include::{generated}/api/flags/XrSwapchainCreateFlags.adoc[]").messages
     assert ckr.check(
-        "include::{generated}/api/flags/XrSwapchainCreateFlagBits.txt[]").messages
+        "include::{generated}/api/flags/XrSwapchainCreateFlagBits.adoc[]").messages
 
 
 def test_openxr_refpage_block(ckr):

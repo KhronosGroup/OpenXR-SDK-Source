@@ -20,7 +20,8 @@ add_subdirectory(list_json)
 
 if(NOT ANDROID)
     add_subdirectory(list)
-    if(BUILD_LOADER AND BUILD_API_LAYERS)
-        add_subdirectory(loader_test)
-    endif()
+endif()
+
+if(BUILD_LOADER AND BUILD_API_LAYERS)
+    add_subdirectory(loader_test)
 endif()

@@ -276,8 +276,7 @@ def get_section_range_pairs(orig_section, new_pdf):
     """Return MatchingSection for a section."""
     other_section = new_pdf.find_corresponding_section(orig_section)
     if not other_section:
-        print("Skipping section {} - no match in the other doc!".format(
-            orig_section.title))
+        print(f"Skipping section {orig_section.title} - no match in the other doc!")
         return None
     return MatchingSection(
         title=orig_section.title,
@@ -289,8 +288,7 @@ def get_section_page_pairs(orig_section, new_pdf):
     """Return (orig_page_num, new_page_num) pairs for each page in section."""
     other_section = new_pdf.find_corresponding_section(orig_section)
     if not other_section:
-        print("Skipping section {} - no match in the other doc!".format(
-            orig_section.title))
+        print(f"Skipping section {orig_section.title} - no match in the other doc!")
         return []
     return zip_longest(orig_section.page_numbers, other_section.page_numbers)
 
@@ -454,7 +452,7 @@ if __name__ == "__main__":
     SPECDIR = Path(__file__).resolve().parent.parent
     assert SPECDIR.name == "specification"
     ORIG = SPECDIR / 'compare-base' / 'openxr.pdf'
-    NEW = SPECDIR / 'generated' / 'out' / '1.0' / 'openxr.pdf'
+    NEW = SPECDIR / 'generated' / 'out' / '1.1' / 'openxr.pdf'
     DIFFDIR = SPECDIR / 'diffs'
     DIFFDIR.mkdir(exist_ok=True)
 
@@ -474,7 +472,7 @@ if __name__ == "__main__":
         img = pdf_diff.render_changes(matching.changes,
                                       ('strike', 'underline'),
                                       900)
-        fn = "Diff part {:02d} - {}.diff.png".format(i, matching.title)
+        fn = f"Diff part {i:02d} - {matching.title}.diff.png"
         full_path = DIFFDIR / fn
 
         print('Writing', full_path.relative_to(SPECDIR))

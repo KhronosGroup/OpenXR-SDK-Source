@@ -267,7 +267,9 @@ else()
     # XrApiLayer_api_dump
     set_target_properties(
         XrApiLayer_api_dump
-        PROPERTIES LINK_FLAGS "-Wl,--version-script=\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_api_dump.map\""
+        PROPERTIES
+            LINK_FLAGS
+            "-Wl,--version-script=\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_api_dump.map\""
     )
     target_sources(
         XrApiLayer_api_dump
@@ -277,7 +279,9 @@ else()
     # XrApiLayer_core_validation
     set_target_properties(
         XrApiLayer_core_validation
-        PROPERTIES LINK_FLAGS "-Wl,--version-script=\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_core_validation.map\""
+        PROPERTIES
+            LINK_FLAGS
+            "-Wl,--version-script=\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_core_validation.map\""
     )
     target_sources(
         XrApiLayer_core_validation

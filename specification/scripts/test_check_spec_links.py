@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 #
+# Copyright 2018-2024, The Khronos Group Inc.
 # Copyright (c) 2018-2019 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -41,7 +42,7 @@ class CheckerWrapper(object):
         _ = self.capsys.readouterr()
 
         # Process
-        f = self.ckr.processString(string + '\n')
+        f = self.ckr.processString(f"{string}\n")
 
         # Dump messages
         ConsolePrinter().output(f)
@@ -87,15 +88,15 @@ def test_missing_macro(ckr):
     ckr.enabled([MessageId.MISSING_MACRO])
 
     # This should have a missing macro warning
-    assert ckr.check('with %s by' % PROTO).numDiagnostics() == 1
+    assert ckr.check(f'with {PROTO} by').numDiagnostics() == 1
 
     # These 3 should not have a missing macro warning because of their context
     # (in a link)
-    assert not ckr.check('<<%s' % PROTO).messages
+    assert not ckr.check(f'<<{PROTO}').messages
     # These 2 are simulating links that broke over lines
-    assert not ckr.check('%s>>' % PROTO).messages
+    assert not ckr.check(f'{PROTO}>>').messages
     assert not ckr.check(
-        '%s asdf>> table' % PROTO).messages
+        f'{PROTO} asdf>> table').messages
 
 
 def test_entity_detection(ckr):
@@ -162,40 +163,40 @@ def test_extension(ckr):
     # Check formatting of extension names:
     # the following is the canonical way to refer to an extension
     # (link wrapped in backticks)
-    expected_replacement = 'apiext:%s' % EXT
+    expected_replacement = f'apiext:{EXT}'
 
     # Extension name mentioned without any markup, should be added
-    assert (loneMsgReplacement(ckr.check('asdf %s asdf' % EXT))
+    assert (loneMsgReplacement(ckr.check(f'asdf {EXT} asdf'))
             == expected_replacement)
 
     # Extension name mentioned without any markup and wrong case,
     # should be added and have case fixed
-    assert (loneMsgReplacement(ckr.check('asdf %s asdf' % EXT.upper()))
+    assert (loneMsgReplacement(ckr.check(f'asdf {EXT.upper()} asdf'))
             == expected_replacement)
 
     # Extension name using wrong/old macro: ename isn't for extensions.
-    assert (loneMsgReplacement(ckr.check('asdf ename:%s asdf' % EXT))
+    assert (loneMsgReplacement(ckr.check(f'asdf ename:{EXT} asdf'))
             == expected_replacement)
 
     # Extension name using wrong macro: elink isn't for extensions.
-    assert (loneMsgReplacement(ckr.check('asdf elink:%s asdf' % EXT))
+    assert (loneMsgReplacement(ckr.check(f'asdf elink:{EXT} asdf'))
             == expected_replacement)
 
     # Extension name using wrong macro and wrong case: should have markup and
     # case fixed
-    assert (loneMsgReplacement(ckr.check('asdf elink:%s asdf' % EXT.upper()))
+    assert (loneMsgReplacement(ckr.check(f'asdf elink:{EXT.upper()} asdf'))
             == expected_replacement)
 
     # This shouldn't cause errors because this is how we want it to look.
-    assert not ckr.check('asdf apiext:%s asdf' % EXT).messages
+    assert not ckr.check(f'asdf apiext:{EXT} asdf').messages
 
     # This doesn't (shouldn't?) cause errors because just backticks on their own
     # "escape" names from the "missing markup" tests.
-    assert not ckr.check('asdf `%s` asdf' % EXT).messages
+    assert not ckr.check(f'asdf `{EXT}` asdf').messages
 
     # TODO can we auto-correct this to add the backticks?
     # Doesn't error now, but would be nice if it did...
-    assert not ckr.check('asdf <<%s>> asdf' % EXT).messages
+    assert not ckr.check(f'asdf <<{EXT}>> asdf').messages
 
 
 def test_refpage_tag(ckr):
@@ -219,7 +220,7 @@ def test_refpage_name(ckr):
     ckr.enabled([MessageId.REFPAGE_NAME])
     # Should not error: actually exists.
     assert ckr.check(
-        "[open,refpage='%s',desc='',type='']" % PROTO).numDiagnostics() == 0
+        f"[open,refpage='{PROTO}',desc='',type='']").numDiagnostics() == 0
 
     # Should error: does not exist.
     assert ckr.check("[open,refpage='bogus',desc='',type='']").numDiagnostics() == 1
@@ -239,21 +240,21 @@ def test_refpage_type(ckr):
     ckr.enabled([MessageId.REFPAGE_TYPE])
     # Should not error: this is of type 'protos'.
     assert not ckr.check(
-        "[open,refpage='%s',desc='',type='protos']" % PROTO).messages
+        f"[open,refpage='{PROTO}',desc='',type='protos']").messages
 
     # Should error: this is of type 'protos', not 'structs'.
-    assert ckr.check("[open,refpage='%s',desc='',type='structs']" % PROTO).messages
+    assert ckr.check(f"[open,refpage='{PROTO}',desc='',type='structs']").messages
 
 
 def test_refpage_xrefs(ckr):
     ckr.enabled([MessageId.REFPAGE_XREFS])
     # Should not error: this is a valid entity to have an xref to.
     assert not ckr.check(
-        "[open,refpage='',desc='',type='protos',xrefs='%s']" % STRUCT).messages
+        f"[open,refpage='',desc='',type='protos',xrefs='{STRUCT}']").messages
 
     # case difference:
     # should error but offer a replacement.
-    assert (loneMsgReplacement(ckr.check("[open,refpage='',xrefs='%s']" % STRUCT.lower()))
+    assert (loneMsgReplacement(ckr.check(f"[open,refpage='',xrefs='{STRUCT.lower()}']"))
             == STRUCT)
 
     # Should error: not a valid entity.
@@ -340,28 +341,28 @@ def test_refpage_missing(ckr):
     assert not ckr.check(
         """[open,refpage='%s']
         --
-        include::{generated}/api/protos/%s.txt[]""" % (PROTO, PROTO)).messages
+        include::{generated}/api/protos/%s.adoc[]""" % (PROTO, PROTO)).messages
     assert not ckr.check(
         """[open,refpage='%s']
         --
-        include::{generated}/validity/protos/%s.txt[]""" % (PROTO, PROTO)).messages
+        include::{generated}/validity/protos/%s.adoc[]""" % (PROTO, PROTO)).messages
 
     # Should not error: manual anchors shouldn't trigger this.
-    assert not ckr.check("[[%s]]" % PROTO).messages
+    assert not ckr.check(f"[[{PROTO}]]").messages
 
     # Should have 1 error: file ends immediately after include
     assert ckr.check(
-        "include::{generated}/api/protos/%s.txt[]" % PROTO).numDiagnostics() == 1
+        "include::{generated}/api/protos/%s.adoc[]" % PROTO).numDiagnostics() == 1
     assert ckr.check(
-        "include::{generated}/validity/protos/%s.txt[]" % PROTO).numDiagnostics() == 1
+        "include::{generated}/validity/protos/%s.adoc[]" % PROTO).numDiagnostics() == 1
 
     # Should have 1 error: include is before the refpage open
     assert ckr.check(
-        """include::{generated}/api/protos/%s.txt[]
+        """include::{generated}/api/protos/%s.adoc[]
         [open,refpage='%s']
         --""" % (PROTO, PROTO)).numDiagnostics() == 1
     assert ckr.check(
-        """include::{generated}/validity/protos/%s.txt[]
+        """include::{generated}/validity/protos/%s.adoc[]
         [open,refpage='%s']
         --""" % (PROTO, PROTO)).numDiagnostics() == 1
 
@@ -373,21 +374,21 @@ def test_refpage_mismatch(ckr):
     assert not ckr.check(
         """[open,refpage='%s']
         --
-        include::{generated}/api/protos/%s.txt[]""" % (PROTO, PROTO)).messages
+        include::{generated}/api/protos/%s.adoc[]""" % (PROTO, PROTO)).messages
     assert not ckr.check(
         """[open,refpage='%s']
         --
-        include::{generated}/validity/protos/%s.txt[]""" % (PROTO, PROTO)).messages
+        include::{generated}/validity/protos/%s.adoc[]""" % (PROTO, PROTO)).messages
 
     # Should error: have the tag, an open, and a mis-matching include
     assert ckr.check(
         """[open,refpage='%s']
         --
-        include::{generated}/api/structs/%s.txt[]""" % (PROTO, STRUCT)).numDiagnostics() == 1
+        include::{generated}/api/structs/%s.adoc[]""" % (PROTO, STRUCT)).numDiagnostics() == 1
     assert ckr.check(
         """[open,refpage='%s']
         --
-        include::{generated}/validity/structs/%s.txt[]""" % (PROTO, STRUCT)).numDiagnostics() == 1
+        include::{generated}/validity/structs/%s.adoc[]""" % (PROTO, STRUCT)).numDiagnostics() == 1
 
 
 def test_refpage_unknown_attrib(ckr):

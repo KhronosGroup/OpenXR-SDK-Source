@@ -22,7 +22,6 @@
 
 #include "loader_test_utils.hpp"
 #include "xr_dependencies.h"
-#include <openxr/openxr.h>
 
 #include <cstdio>
 #include <cstdlib>
@@ -89,6 +88,14 @@ bool LoaderTestUnsetEnvironmentVariable(const std::string &variable) {
     }
     return false;
 }
+
+#elif defined(XR_OS_ANDROID)
+
+bool LoaderTestSetEnvironmentVariable(const std::string& /*variable*/, const std::string& /*value*/) { return false; }
+
+bool LoaderTestGetEnvironmentVariable(const std::string& /*variable*/, std::string& /*value*/) { return false; }
+
+bool LoaderTestUnsetEnvironmentVariable(const std::string& /*variable*/) { return false; }
 
 #else
 

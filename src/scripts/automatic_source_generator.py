@@ -550,7 +550,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         self.encountered_error = True
         # Write the message
         print('**CODEGEN_ERROR: %s[%d] %s' % (trimmed_file, line, message))
-        return '#{} "{}"\n#error("Bug: {}")\n'.format(line, file, message)
+        return f'#{line} "{file}"\n#error("Bug: {message}")\n'
 
     # Print a warning message the will clearly identify any possible problems encountered
     # during the code generation process
@@ -1014,10 +1014,10 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                 for protect_define in protect_list:
                     if count > 0:
                         protect_str += ' && '
-                    protect_str += 'defined(%s)' % protect_define
+                    protect_str += f'defined({protect_define})'
                     count = count + 1
             else:
-                protect_str += 'defined(%s)' % protect_type
+                protect_str += f'defined({protect_type})'
         return (protect_type, protect_str)
 
     def getRelationGroupForBaseStruct(self, type_name):
@@ -1060,7 +1060,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         returned_only = (type_info.elem.get('returnedonly') == "true")
 
         # Check if this is a base header.
-        if type_name.endswith("BaseHeader{}".format(self.current_vendor_tag)):
+        if type_name.endswith(f"BaseHeader{self.current_vendor_tag}"):
             # Check if the relation group already existed
             existing_relation_group = self.getRelationGroupForBaseStruct(type_name)
             if existing_relation_group is None:
@@ -1171,7 +1171,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                 # Get the structure information for the group's generic structure
                 generic_struct = self.getStruct(generic_struct_name)
                 if generic_struct is None:
-                    raise RuntimeError("Could not find struct: " + generic_struct_name)
+                    raise RuntimeError(f"Could not find struct: {generic_struct_name}")
                 base_member_count = len(generic_struct.members)
 
                 # Second, it must have at least the same number of members
@@ -1238,7 +1238,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         params = cmd_info.elem.findall('param')
         handle_type = self.getTypeNameTuple(params[0])[0]
         handle = self.registry.tree.find(
-            "types/type/[name='" + handle_type + "'][@category='handle']")
+            f"types/type/[name='{handle_type}'][@category='handle']")
         return_type = cmd_info.elem.find('proto/type')
 
         # If the return type is void, we really don't have a return type so set it to None
@@ -1356,7 +1356,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         returns_result = (return_type is not None) and (return_type.text == 'XrResult')
         if is_create_or_destroy and is_last_param_handle and not returns_result:
             self.printCodeGenErrorMessage(
-                'OpenXR create/destroy command %s requires an XrResult return value' % name)
+                f'OpenXR create/destroy command {name} requires an XrResult return value')
 
         # The Core OpenXR code will be wrapped in a feature called XR_VERSION_#_#
         # For example: XR_VERSION_1_0 wraps the core 1.0 OpenXR functionality
@@ -1629,6 +1629,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   self            the AutomaticSourceOutputGenerator object
     #   type_name       the name of the type to check
     def isEnumType(self, type_name):
+        type_name = self.resolve_type_name_alias(type_name)
         for enum_tuple in self.api_enums:
             if type_name == enum_tuple.name:
                 return True
@@ -1638,6 +1639,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   self            the AutomaticSourceOutputGenerator object
     #   type_name       the name of the type to check
     def isFlagType(self, type_name):
+        type_name = self.resolve_type_name_alias(type_name)
         for flag_tuple in self.api_flags:
             if type_name == flag_tuple.name:
                 return True
@@ -1658,6 +1660,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   self            the AutomaticSourceOutputGenerator object
     #   type_name       the name of the type to check
     def isHandle(self, type_name):
+        type_name = self.resolve_type_name_alias(type_name)
         for handle_tuple in self.api_handles:
             if type_name == handle_tuple.name:
                 return True
@@ -1667,10 +1670,17 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   self            the AutomaticSourceOutputGenerator object
     #   type_name       the name of the type to check
     def getHandle(self, type_name):
+        type_name = self.resolve_type_name_alias(type_name)
         for handle_tuple in self.api_handles:
             if type_name == handle_tuple.name:
                 return handle_tuple
         return None
+
+    # Is this an OpenXR type defined by XR_DEFINE_OPAQUE_64?
+    #   self            the AutomaticSourceOutputGenerator object
+    #   type_name       the name of the type to check
+    def isOpaque64(self, type_name):
+        return type_name == "XR_DEFINE_OPAQUE_64"
 
     # Gets the name of a handle parameter (dereferenced if a pointer,
     # the first element thereof if an array),
@@ -1685,7 +1695,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         if param.pointer_count == 1:
             if param.pointer_count_var is None:
                 # Just a pointer
-                name = "(*{})".format(name)
+                name = f"(*{name})"
             else:
                 name += '[0]'
         return name
@@ -1714,6 +1724,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   type_name   the name of the type to check
     def isStruct(self, type_name):
         is_struct = False
+        type_name = self.resolve_type_name_alias(type_name)
         for cur_struct in self.api_structures:
             if cur_struct.name == type_name:
                 is_struct = True
@@ -1725,6 +1736,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   type_name       the name of the type to check
     def isStructWithHandles(self, type_name):
         struct = None
+        type_name = self.resolve_type_name_alias(type_name)
         for cur_struct in self.api_structures:
             if cur_struct.name == type_name:
                 for member in cur_struct.members:
@@ -1739,6 +1751,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   type_name       the name of the type to get the structure for
     def getStruct(self, type_name):
         ret_struct = None
+        type_name = self.resolve_type_name_alias(type_name)
         for cur_struct in self.api_structures:
             if cur_struct.name == type_name:
                 ret_struct = cur_struct
@@ -1750,6 +1763,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   type_name       the name of the type to check
     def isUnion(self, type_name):
         is_union = False
+        type_name = self.resolve_type_name_alias(type_name)
         for cur_union in self.api_unions:
             if cur_union.name == type_name:
                 is_union = True
@@ -1761,6 +1775,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   type_name       the name of the type to retrieve the union for
     def getUnion(self, type_name):
         ret_union = None
+        type_name = self.resolve_type_name_alias(type_name)
         for cur_union in self.api_unions:
             if cur_union.name == type_name:
                 ret_union = cur_union
@@ -1821,8 +1836,8 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         for handle in self.api_handles:
             if handle.name.lower() == handle_name.lower():
                 return handle.name
-        self.printCodeGenErrorMessage('Generated handle %s for XrObjectType %s does not exist!' % (
-            handle_name, object_type))
+        self.printCodeGenErrorMessage(
+            f'Generated handle {handle_name} for XrObjectType {object_type} does not exist!')
         return ''
 
     # Generate a XrStructureType based on a structure typename
@@ -1868,3 +1883,62 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   indent_cnt      the number of indents to return a string of
     def writeIndent(self, indent_cnt):
         return '    ' * indent_cnt
+
+    def resolve_type_name_alias(self, type_name):
+        """
+        Recursively find the root type name using aliases.
+
+        Will return type_name itself if no alias exists.
+        Not actually a recursive call. Will raise an error if a cycle is detected.
+        """
+        result = type_name
+
+        # Keep a set of all type names visited to detect cycles.
+        seen = set()
+        while True:
+            seen.add(result)
+            alias = self.aliases.get(result)
+            if alias in seen:
+                raise RuntimeError(f"Cycle in type name aliases starting at {type_name}")
+            if not alias:
+                # no more to resolve
+                break
+            result = alias
+
+        return result
+
+
+class CurrentExtensionTracker:
+    """Helps insert comments between extensions/core versions."""
+
+    def __init__(self, api_version_prefix: str):
+        """Initialize state."""
+        self.api_version_prefix = api_version_prefix
+        self.current_extension = ''
+
+    def format_if_extension_changed(self,
+                                    ext_name: str,
+                                    fmt_str: str,
+                                    no_change_str: str = "") -> str:
+        """
+        Format a string with version or extension info if the extension changed.
+
+        Supply a format string with a single {} placeholder in it.
+
+        Return your choice of string, empty string by default, if the extension
+        did not change.
+        """
+        if ext_name == self.current_extension:
+            # no change - empty string.
+            return no_change_str
+
+        # Update current extension
+        self.current_extension = ext_name
+
+        if ext_name.startswith(self.api_version_prefix):
+            # core!
+            ver = ext_name[len(self.api_version_prefix):].replace("_", ".")
+            desc = f"Core {ver}"
+        else:
+            desc = f"{ext_name} extension"
+        return fmt_str.format(desc)

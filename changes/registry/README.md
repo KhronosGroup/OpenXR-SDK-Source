@@ -35,6 +35,6 @@ For reserving one or more extensions:
 > Extension reservation: Reserve an extension for VendorName.
 
 - Pluralize "an extension" if reserving multiple extensions
-- May pre-pend "Register author ID and" if applicable (after the colon).
+- May prepend "Register author ID and" if applicable (after the colon).
 - You may optionally provide information about your plans for those extensions,
   but this is not required, just permitted.
