@@ -79,12 +79,26 @@ ifndef::doctype-manpage[]
 :uri-next-chain: #valid-usage-for-structure-pointer-chains
 endif::doctype-manpage[]
 
+// Attributes for linking
+ifdef::doctype-manpage[]
+:view_space: xref:XrReferenceSpaceType.adoc#XR_REFERENCE_SPACE_TYPE_VIEW[code:VIEW space]
+:local_space: xref:XrReferenceSpaceType.adoc#XR_REFERENCE_SPACE_TYPE_LOCAL[code:LOCAL space]
+:stage_space: xref:XrReferenceSpaceType.adoc#XR_REFERENCE_SPACE_TYPE_STAGE[code:STAGE space]
+:local_floor_space: link:XR_REFERENCE_SPACE_TYPE_LOCAL_FLOOR.html[code:LOCAL_FLOOR space]
+endif::doctype-manpage[]
+ifndef::doctype-manpage[]
+:view_space: <<XR_REFERENCE_SPACE_TYPE_VIEW,code:VIEW space>>
+:local_space: <<XR_REFERENCE_SPACE_TYPE_LOCAL,code:LOCAL space>>
+:stage_space: <<XR_REFERENCE_SPACE_TYPE_STAGE,code:STAGE space>>
+:local_floor_space: <<XR_REFERENCE_SPACE_TYPE_LOCAL_FLOOR,code:LOCAL_FLOOR space>>
+endif::doctype-manpage[]
+
 // URIs used in the spec:
 // If it's in the main spec and extracted to the ref pages, put it here.
 
 // OpenXR URIs
 :uri-openxr-registry-root: https://registry.khronos.org/OpenXR
-:uri-openxr-ratified-spec: {uri-openxr-registry-root}/specs/1.0-khr/html/xrspec.html
+:uri-openxr-ratified-spec: {uri-openxr-registry-root}/specs/1.1-khr/html/xrspec.html
 :uri-github-openxr-docs: https://github.com/KhronosGroup/OpenXR-Docs
 
 // glTF URIs
@@ -99,3 +113,6 @@ endif::doctype-manpage[]
 :uri-vkCreateDevice: {uri-vk-ref-page-root}/vkCreateDevice.html
 :uri-VkDeviceCreateInfo: {uri-vk-ref-page-root}/VkDeviceCreateInfo.html
 :uri-VkAllocationCallbacks: {uri-vk-ref-page-root}/VkAllocationCallbacks.html
+
+// Other URIs
+:uri-iso-iec-18004-2015: https://www.iso.org/standard/62021.html

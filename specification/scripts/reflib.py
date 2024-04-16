@@ -47,14 +47,14 @@ def logHeader(severity):
     """Generate prefix for a diagnostic line using metadata and severity"""
     global logSourcefile, logProcname, logLine
 
-    msg = severity + ': '
+    msg = f"{severity}: "
     if logProcname:
-        msg = msg + ' in ' + logProcname
+        msg = f"{msg} in {logProcname}"
     if logSourcefile:
-        msg = msg + ' for ' + logSourcefile
+        msg = f"{msg} for {logSourcefile}"
     if logLine:
-        msg = msg + ' line ' + str(logLine)
-    return msg + ' '
+        msg = f"{msg} line {str(logLine)}"
+    return f"{msg} "
 
 def setLogFile(setDiag, setWarn, filename):
     """Set the file handle to log either or both warnings and diagnostics to.
@@ -164,9 +164,9 @@ def printPageInfoField(desc, line, file):
     - line - field value or None
     - file - indexed by line"""
     if line is not None:
-        logDiag(desc + ':', line + 1, '\t-> ', file[line], end='')
+        logDiag(f"{desc}:", line + 1, '\t-> ', file[line], end='')
     else:
-        logDiag(desc + ':', line)
+        logDiag(f"{desc}:", line)
 
 def printPageInfo(pi, file):
     """Print out fields of a pageInfo struct
@@ -185,7 +185,7 @@ def printPageInfo(pi, file):
     printPageInfoField('BODY    ', pi.body,     file)
     printPageInfoField('VALIDITY', pi.validity, file)
     printPageInfoField('END     ', pi.end,      file)
-    logDiag('REFS: "' + pi.refs + '"')
+    logDiag(f'REFS: "{pi.refs}"')
 
 def prevPara(file, line):
     """Go back one paragraph from the specified line and return the line number
@@ -284,8 +284,8 @@ def fixupRefs(pageMap, specFile, file):
         # # line to the include line, so autogeneration can at least
         # # pull the include out, but mark it not to be extracted.
         # # Examples include the host sync table includes in
-        # # chapters/fundamentals.txt and the table of Vk*Flag types in
-        # # appendices/boilerplate.txt.
+        # # chapters/fundamentals.adoc and the table of Vk*Flag types in
+        # # appendices/boilerplate.adoc.
         # if pi.begin is None and pi.validity is None and pi.end is None:
         #     pi.begin = pi.include
         #     pi.extractPage = False
@@ -362,7 +362,7 @@ def fixupRefs(pageMap, specFile, file):
                     logDiag('Skipping check for embedding in:', embed.name)
                     continue
                 if embed.begin is None or embed.end is None:
-                    logDiag('fixupRefs:', name + ':',
+                    logDiag('fixupRefs:', f"{name}:",
                             'can\'t compare to unanchored ref:', embed.name,
                             'in', specFile, 'at line', pi.include )
                     printPageInfo(pi, file)
@@ -374,13 +374,25 @@ def fixupRefs(pageMap, specFile, file):
                             'inside:', embedName,
                             'in', specFile, 'at line', pi.include )
                     pi.embed = embed.name
-                    pi.Warning = 'Embedded in definition for ' + embed.name
+                    pi.Warning = f"Embedded in definition for {embed.name}"
                     break
                 else:
                     logDiag('fixupRefs: No embed match for:', name,
                             'inside:', embedName, 'in', specFile,
                             'at line', pi.include)
 
+
+def compatiblePageTypes(refpage_type, pagemap_type):
+    """Returns whether two refpage 'types' (categories) are compatible -
+       this is only true for 'consts' and 'enums' types."""
+
+    constsEnums = [ 'consts', 'enums' ]
+
+    if refpage_type == pagemap_type:
+        return True
+    if refpage_type in constsEnums and pagemap_type in constsEnums:
+        return True
+    return False
 
 # Patterns used to recognize interesting lines in an asciidoc source file.
 # These patterns are only compiled once.
@@ -393,13 +405,13 @@ bodyPat    = re.compile(r'^// *refBody')
 errorPat   = re.compile(r'^// *refError')
 
 # This regex transplanted from check_spec_links
-# It looks for either OpenXR or Vulkan generated file conventions, and for
-# the api/validity include (generated_type), protos/struct/etc path
-# (category), and API name (entity_name). It could be put into the API
-# conventions object.
+# It looks for various generated file conventions, and for the api/validity
+# include (generated_type), protos/struct/etc path (category), and API name
+# (entity_name).
+# It could be put into the API conventions object, instead of being
+# generalized for all the different specs.
 INCLUDE = re.compile(
-        r'include::(?P<directory_traverse>((../){1,4}|\{generated\}/)(generated/)?)(?P<generated_type>[\w]+)/(?P<category>\w+)/(?P<entity_name>[^./]+).txt[\[][\]]')
-
+        r'include::(?P<directory_traverse>((../){1,4}|\{generated\}/)(generated/)?)(?P<generated_type>[\w]+)/(?P<category>\w+)/(?P<entity_name>[^./]+)\.(adoc|txt)[\[][\]]')
 
 def findRefs(file, filename):
     """Identify reference pages in a list of strings, returning a dictionary of
@@ -543,8 +555,8 @@ def findRefs(file, filename):
             if gen_type == 'validity':
                 logDiag('Matched validity pattern')
                 if pi is not None:
-                    if pi.type and refpage_type != pi.type:
-                        logWarn('ERROR: pageMap[' + name + '] type:',
+                    if pi.type and not compatiblePageTypes(refpage_type, pi.type):
+                        logWarn(f"ERROR: pageMap[{name}] type:",
                                 pi.type, 'does not match type:', refpage_type)
                     pi.type = refpage_type
                     pi.validity = line
@@ -560,8 +572,8 @@ def findRefs(file, filename):
                 if pi is not None:
                     if pi.include is not None:
                         logDiag('found multiple includes for this block')
-                    if pi.type and refpage_type != pi.type:
-                        logWarn('ERROR: pageMap[' + name + '] type:',
+                    if pi.type and not compatiblePageTypes(refpage_type, pi.type):
+                        logWarn(f"ERROR: pageMap[{name}] type:",
                                 pi.type, 'does not match type:', refpage_type)
                     pi.type = refpage_type
                     pi.include = line

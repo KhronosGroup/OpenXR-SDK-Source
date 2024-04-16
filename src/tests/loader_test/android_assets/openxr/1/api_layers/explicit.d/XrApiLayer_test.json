@@ -1,0 +1,20 @@
+{
+    "file_format_version": "1.0.0",
+    "api_layer": {
+        "name": "XR_APILAYER_test",
+        "library_path": "libXrApiLayer_test.so",
+        "api_version": "1.0",
+        "implementation_version": "1",
+        "description": "Test_description",
+        "instance_extensions": [
+            {
+                "name": "XR_KHR_fake_ext2",
+                "extension_version": "12"
+            },
+            {
+                "name": "XR_KHR_fake_ext3",
+                "extension_version": "42"
+            }
+        ]
+    }
+}

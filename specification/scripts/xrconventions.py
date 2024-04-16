@@ -26,6 +26,7 @@ MAIN_RE = re.compile(
             ([A-Z][A-Z0-9]+(?![a-z]))       # Or, all-caps letter and digit mix starting with a letter, excluding the last capital before some lowercase
         )''', re.VERBOSE)
 
+
 class OpenXRConventions(ConventionsBase):
     """The specifics of how OpenXR writes a spec."""
 
@@ -144,6 +145,20 @@ class OpenXRConventions(ConventionsBase):
         """Return whether refpage include should be written to extension appendices"""
         return True
 
+    @property
+    def allows_x_number_suffix(self):
+        """Whether vendor tags can be suffixed with X and a number to mark experimental extensions."""
+        return True
+
+    def formatVersion(self, name, apivariant, major, minor):
+        """Mark up an API version name as a link in the spec."""
+        version = f'{major}.{minor}'
+        return f'<<versions-{version}, OpenXR {version}>>'
+
+    def formatExtension(self, name):
+        """Mark up an extension name as a link in the spec."""
+        return f'apiext:{name}'
+
     def writeFeature(self, featureName, featureExtraProtect, filename):
         """Returns True if OutputGenerator.endFeature should write this feature.
 
@@ -204,7 +219,7 @@ class OpenXRConventions(ConventionsBase):
 
     def make_voidpointer_alias(self, tail):
         """Reformat a void * declaration to include the API alias macro"""
-        return '* XR_MAY_ALIAS{}'.format(tail[1:])
+        return f'* XR_MAY_ALIAS{tail[1:]}'
 
     def specURL(self, spectype='api'):
         """Return public registry URL which ref pages should link to for the
@@ -213,7 +228,7 @@ class OpenXRConventions(ConventionsBase):
            instead. N.b. this may need to change on a per-refpage basis if
            there are multiple documents involved.
         """
-        return 'https://registry.khronos.org/OpenXR/specs/1.0/html/xrspec.html'
+        return 'https://registry.khronos.org/OpenXR/specs/1.1/html/xrspec.html'
 
     @property
     def xml_api_name(self):
@@ -243,7 +258,7 @@ class OpenXRConventions(ConventionsBase):
     @property
     def unified_flag_refpages(self):
         """Return True if Flags/FlagBits refpages are unified, False if
-           they're separate.
+           they are separate.
         """
         return False
 
@@ -289,20 +304,15 @@ class OpenXRConventions(ConventionsBase):
 
         (vendor, bare_name) = self.extension_name_split(name)
         vendor = vendor.lower()
-        bare_name = bare_name.lower()
 
-        return '{vendor}/{vendor}_{bare_name}{suffix}'.format(
-                vendor=vendor,
-                bare_name=bare_name,
-                suffix=self.file_suffix)
+        return f'{vendor}/{vendor}_{bare_name.lower()}{self.file_suffix}'
 
     def extension_include_string(self, name):
         """Return format string for include:: line for an extension appendix
            file.
             - name - extension name"""
 
-        return 'include::{{appendices}}/{}[]'.format(
-                self.extension_file_path(name))
+        return f'include::{{appendices}}/{self.extension_file_path(name)}[]'
 
     @property
     def provisional_extension_warning(self):

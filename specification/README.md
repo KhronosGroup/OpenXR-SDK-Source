@@ -86,7 +86,7 @@ These are invoked as follows:
 
 These targets generate a variety of output documents in the directory
 specified by the Makefile variable `$(OUTDIR)` (by default,
-`generated/out/1.0/`).
+`generated/out/1.1/`).
 
 It is recommended to build these targets using a "helper" script from above,
 unless you want to only build the core spec without any extensions.
@@ -210,8 +210,10 @@ environment managers below.
 Please read the remainder of this document (other than platform-specific
 parts you don't use) completely before trying to install.
 
-* Asciidoctor (`asciidoctor`, version: 2.0.10 or compatible)
-* Asciidoctor PDF (`asciidoctor-pdf`, version: 1.5.0 or compatible)
+* Asciidoctor (`asciidoctor`, version: 2.0.10 or compatible, apt package
+  `asciidoctor`)
+* Rouge (`rouge`, apt package `ruby-rouge`)
+* Asciidoctor PDF (`asciidoctor-pdf`, version: 1.5.0 through 1.6.2)
 
 **Note:**
 > Asciidoctor-pdf versions before `1.5.0.alpha15` have issues with multi-page
@@ -219,8 +221,8 @@ valid usage blocks, in that the background only renders for the first page.
 `alpha.15` fixes this issue (as well as a few others); do not use prior
 versions.
 
-Only the `asciidoctor` gem (and its dependencies) is needed if you don't intend
-to build PDF versions of the spec and supporting documents.
+Only the `asciidoctor` and `rouge` gems (and their dependencies) are needed if
+you do not intend to build PDF versions of the spec and supporting documents.
 
 **Note:**
 > While it's easier to install just the toolchain components for HTML builds,
@@ -244,7 +246,6 @@ dependencies can be installed via apt-get, with the two ruby gems installed with
 gem in the user's directory. The Ubuntu 16.04.6 default Ruby install (version
 2.3.1) seems to be up-to-date enough to run all the required gems. Just follow
 the Debian-derived Linux instructions below.
-
 
 **Notes:**
 
@@ -274,18 +275,18 @@ and Yum (SuSE) will have different requirements.
 # Absolute bare minimum for only these makefile targets:
 # header html manhtmlpages extprocess styleguide loader
 sudo apt install make git ruby python3
-gem install --user asciidoctor
+gem install --user "asciidoctor:~>2.0.10" rouge
 
 # More complete, for building these makefile targets:
 # header html pdf pdfA4 manhtmlpages styleguide loader header-test: build-examples check-spec-links release
 sudo apt -y install build-essential python3 git libxml2-dev ttf-lyx ghostscript ruby \
   python3-termcolor python3-tabulate python3-networkx
-gem install --user "asciidoctor:~>2.0.10" "asciidoctor-pdf:~>1.5.0"
+gem install --user "asciidoctor:~>2.0.10" rouge "asciidoctor-pdf:1.6.2"
 
 # Full build: supports all makefile targets, including the "all" target
 sudo apt -y install build-essential python3 git libxml2-dev ttf-lyx ghostscript ruby \
   trang jing python3-termcolor python3-tabulate python3-networkx
-gem install --user "asciidoctor:~>2.0.10" "asciidoctor-pdf:~>1.5.0"
+gem install --user "asciidoctor:~>2.0.10" rouge "asciidoctor-pdf:1.6.2"
 ```
 
 Ubuntu 20.04+, Debian Bullseye, and Debian Buster Backports all have new enough
@@ -295,7 +296,7 @@ be replaced with something like this (adding `-t buster-backports` if you're sti
 on Buster):
 
 ```
-sudo apt install asciidoctor
+sudo apt install asciidoctor ruby-rouge
 
 # or this, if you also want to build PDFs:
 sudo apt install asciidoctor ruby-asciidoctor-pdf
@@ -318,7 +319,7 @@ Something like this will work:
 gem install --user "asciidoctor:~>2.0.10"
 
 # Adding PDF support
-gem install --user "asciidoctor:~>2.0.10" "asciidoctor-pdf:~>1.5.0"
+gem install --user "asciidoctor:~>2.0.10" "asciidoctor-pdf:1.6.2"
 ```
 
 After the `gem install --user`, you may see a message that a directory isn't on
@@ -358,7 +359,7 @@ gem uninstall asciidoctor-pdf \
               asciidoctor-mathematical \
               asciidoctor \
               rake \
-              coderay \
+              rouge \
               json-schema \
               mathematical \
               ruby-enum
@@ -371,7 +372,7 @@ sudo gem uninstall asciidoctor-pdf \
                    asciidoctor-mathematical \
                    asciidoctor \
                    rake \
-                   coderay \
+                   rouge \
                    json-schema \
                    mathematical \
                    ruby-enum
@@ -390,7 +391,7 @@ But, just in case, I asked to install them again.
 ```sh
 sudo gem install asciidoctor \
                  rake \
-                 coderay \
+                 rouge \
                  json-schema \
                  mathematical \
                  ruby-enum \

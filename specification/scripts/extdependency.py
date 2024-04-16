@@ -12,6 +12,7 @@ import xml.etree.ElementTree as etree
 from pathlib import Path
 
 from apiconventions import APIConventions
+from parse_dependency import dependencyNames
 
 class DiGraph:
     """A directed graph.
@@ -97,39 +98,55 @@ class ApiDependencies:
         extensions supported for that API are considered.
         """
 
+        conventions = APIConventions()
         if registry_path is None:
-            registry_path = APIConventions().registry_path
+            registry_path = conventions.registry_path
         if api_name is None:
-            api_name = APIConventions().xml_api_name
+            api_name = conventions.xml_api_name
 
         self.allExts = set()
         self.khrExts = set()
+        self.ratifiedExts = set()
         self.graph = DiGraph()
         self.extensions = {}
         self.tree = etree.parse(registry_path)
 
         # Loop over all supported extensions, creating a digraph of the
-        # extension dependencies in the 'requires' attribute, which is a
-        # comma-separated list of extension names. Also track lists of
-        # all extensions and all KHR extensions.
+        # extension dependencies in the 'depends' attribute, which is a
+        # boolean expression of core version and extension names.
+        # A static dependency tree can be constructed only by treating all
+        # extension names in the expression as dependencies, even though
+        # that may not be true if it is of form (ext OR ext).
+        # For the purpose these dependencies are used for - generating
+        # specifications with required dependencies included automatically -
+        # this will suffice.
+        # Separately tracks lists of all extensions and all KHR extensions,
+        # which are common specification targets.
         for elem in self.tree.findall('extensions/extension'):
             name = elem.get('name')
             supported = elem.get('supported')
+            ratified = elem.get('ratified', '')
 
-            # This works for the present form of the 'supported' attribute,
-            # which is a comma-separate list of XML API names
             if api_name in supported.split(','):
                 self.allExts.add(name)
 
                 if 'KHR' in name:
                     self.khrExts.add(name)
 
-                deps = elem.get('requires')
-                if deps:
-                    for dep in deps.split(','):
-                        self.graph.add_edge(name, dep)
-                else:
-                    self.graph.add_node(name)
+                if api_name in ratified.split(','):
+                    self.ratifiedExts.add(name)
+
+                self.graph.add_node(name)
+
+                depends = elem.get('depends')
+                if depends:
+                    # Walk a list of the leaf nodes (version and extension
+                    # names) in the boolean expression.
+                    for dep in dependencyNames(depends):
+                        # Filter out version names, which are explicitly
+                        # specified when building a specification.
+                        if not conventions.is_api_version_name(dep):
+                            self.graph.add_edge(name, dep)
             else:
                 # Skip unsupported extensions
                 pass
@@ -141,6 +158,10 @@ class ApiDependencies:
     def khrExtensions(self):
         """Returns a set of all KHR extensions in the graph"""
         return self.khrExts
+
+    def ratifiedExtensions(self):
+        """Returns a set of all ratified extensions in the graph"""
+        return self.ratifiedExts
 
     def children(self, extension):
         """Returns a set of the dependencies of an extension.
@@ -158,15 +179,19 @@ if __name__ == '__main__':
 
     parser.add_argument('-registry', action='store',
                         default=APIConventions().registry_path,
-                        help='Use specified registry file instead of ' + APIConventions().registry_path)
+                        help=f"Use specified registry file instead of {APIConventions().registry_path}")
     parser.add_argument('-loops', action='store',
-                        default=20, type=int,
+                        default=10, type=int,
                         help='Number of timing loops to run')
     parser.add_argument('-test', action='store',
                         default=None,
                         help='Specify extension to find dependencies of')
 
     args = parser.parse_args()
+
+    deps = ApiDependencies(args.registry)
+    print('KHR exts =', sorted(deps.khrExtensions()))
+    print('Ratified exts =', sorted(deps.ratifiedExtensions()))
 
     import time
     startTime = time.process_time()
@@ -177,4 +202,4 @@ if __name__ == '__main__':
     endTime = time.process_time()
 
     deltaT = endTime - startTime
-    print('Total time = {} time/loop = {}'.format(deltaT, deltaT / args.loops))
+    print(f'Total time = {deltaT} time/loop = {deltaT / args.loops}')

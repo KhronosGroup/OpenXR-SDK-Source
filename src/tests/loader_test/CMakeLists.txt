@@ -15,7 +15,18 @@
 # limitations under the License.
 #
 
-add_executable(loader_test loader_test_utils.cpp loader_test.cpp)
+if(ANDROID)
+    add_library(loader_test MODULE loader_test_utils.cpp loader_test.cpp $<TARGET_OBJECTS:android_native_app_glue>)
+    target_link_libraries(loader_test PRIVATE ${ANDROID_LIBRARY} ${ANDROID_LOG_LIBRARY})
+    target_include_directories(loader_test PRIVATE ${ANDROID_NATIVE_APP_GLUE})
+
+    target_compile_definitions(
+        loader_test PRIVATE XR_KHR_LOADER_INIT_SUPPORT=1
+    )
+else()
+    add_executable(loader_test loader_test_utils.cpp loader_test.cpp)
+endif()
+
 openxr_add_filesystem_utils(loader_test)
 set_target_properties(loader_test PROPERTIES FOLDER ${LOADER_TESTS_FOLDER})
 target_link_libraries(loader_test PRIVATE OpenXR::openxr_loader)

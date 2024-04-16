@@ -66,7 +66,7 @@ def makeREstring(strings, default=None, strings_are_regex=False):
     if strings or default is None:
         if not strings_are_regex:
             strings = (re.escape(s) for s in strings)
-        return '^(' + '|'.join(strings) + ')$'
+        return f"^({'|'.join(strings)})$"
     return default
 
 
@@ -131,28 +131,46 @@ def makeGenOpts(args):
     conventions = APIConventions()
 
     if HAVE_CONFORMANCE:
+        opts = {
+            'conventions': conventions,
+            'directory': directory,
+            'apiname': 'openxr',
+            'profile': None,
+            'versions': featuresPat,
+            'emitversions': featuresPat,
+            'defaultExtensions': 'openxr',
+            'addExtensions': None,
+            'removeExtensions': None,
+            'emitExtensions': emitExtensionsPat,
+            'prefixText': prefixStrings + xrPrefixStrings,
+            'protectFeature': False,
+            'protectProto': '#ifndef',
+            'protectProtoStr': 'XR_NO_PROTOTYPES',
+            'apicall': 'XRAPI_ATTR ',
+            'apientry': 'XRAPI_CALL ',
+            'apientryp': 'XRAPI_PTR *',
+            'alignFuncParam': 48,
+        }
         genOpts['function_info.cpp'] = [
             ConformanceGenerator,
             AutomaticSourceGeneratorOptions(
-                conventions=conventions,
                 filename='function_info.cpp',
-                directory=directory,
-                apiname='openxr',
-                profile=None,
-                versions=featuresPat,
-                emitversions=featuresPat,
-                defaultExtensions='openxr',
-                addExtensions=None,
-                removeExtensions=None,
-                emitExtensions=emitExtensionsPat,
-                prefixText=prefixStrings + xrPrefixStrings,
-                protectFeature=False,
-                protectProto='#ifndef',
-                protectProtoStr='XR_NO_PROTOTYPES',
-                apicall='XRAPI_ATTR ',
-                apientry='XRAPI_CALL ',
-                apientryp='XRAPI_PTR *',
-                alignFuncParam=48)
+                **opts
+            )
+        ]
+        genOpts['interaction_info_generated.cpp'] = [
+            ConformanceGenerator,
+            AutomaticSourceGeneratorOptions(
+                filename='interaction_info_generated.cpp',
+                **opts
+            )
+        ]
+        genOpts['interaction_info_generated.h'] = [
+            ConformanceGenerator,
+            AutomaticSourceGeneratorOptions(
+                filename='interaction_info_generated.h',
+                **opts
+            )
         ]
 
         genOpts['gen_dispatch.cpp'] = [
@@ -480,7 +498,7 @@ if __name__ == '__main__':
     else:
         startTimer(args.time)
         reg.apiGen()
-        endTimer(args.time, '* Time to generate ' + options.filename + ' =')
+        endTimer(args.time, f"* Time to generate {options.filename} =")
 
     if not args.quiet:
         logDiag('* Generated', options.filename)

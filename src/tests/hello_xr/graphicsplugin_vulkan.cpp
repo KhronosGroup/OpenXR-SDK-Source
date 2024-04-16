@@ -1806,6 +1806,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         // Cycle the window's swapchain on the last view rendered
         if (swapchainContext == &m_swapchainImageContexts.back()) {
             m_swapchain.Acquire();
+            m_swapchain.Wait();
             m_swapchain.Present(m_vkQueue);
         }
 #endif

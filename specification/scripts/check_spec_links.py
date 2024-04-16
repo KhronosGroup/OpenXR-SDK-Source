@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 #
+# Copyright 2018-2024, The Khronos Group Inc.
 # Copyright (c) 2018-2019 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
@@ -18,6 +19,7 @@ from spec_tools.macro_checker import MacroChecker
 from spec_tools.macro_checker_file import BlockType, MacroCheckerFile
 from spec_tools.main import checkerMain
 from spec_tools.shared import MessageId
+from apiconventions import APIConventions
 
 ###
 # "Configuration" constants
@@ -30,6 +32,9 @@ EXTRA_DEFINES = (
     'XRAPI_CALL',
     'XRAPI_PTR',
     'XR_NO_STDINT_H',
+    'XR_VERSION_1_0',
+    'XR_LOADER_VERSION_1_0',
+    'XR_VERSION_1_1',
 )
 
 # TODO move permissions into XML eventually
@@ -151,11 +156,10 @@ class XRMacroCheckerFile(MacroCheckerFile):
         """
         return True
 
-
 def makeMacroChecker(enabled_messages):
     """Create a correctly-configured MacroChecker instance."""
     entity_db = XREntityDatabase()
-    return MacroChecker(enabled_messages, entity_db, XRMacroCheckerFile, ROOT)
+    return MacroChecker(enabled_messages, entity_db, XRMacroCheckerFile, ROOT, APIConventions)
 
 
 if __name__ == '__main__':

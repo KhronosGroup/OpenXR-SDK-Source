@@ -41,16 +41,16 @@ class DocIndexOutputGenerator(OutputGenerator):
     def output_name_dict(self, name_dict, title, prefix):
 
         anchor = title.lower().replace(' ', '-')
-        write('[[index-{}]]'.format(anchor), file=self.outFile)
+        write(f'[[index-{anchor}]]', file=self.outFile)
 
-        write('### ' + title, file=self.outFile)
+        write(f"### {title}", file=self.outFile)
         write('', file=self.outFile)
 
         for name in sorted(name_dict.keys()):
-            text = '* ' + prefix + name
+            text = f"* {prefix}{name}"
             extra_data = name_dict[name]
             if extra_data:
-                text += ' -- ' + extra_data
+                text += f" -- {extra_data}"
             write(text, file=self.outFile)
 
         write('', file=self.outFile)
@@ -96,7 +96,7 @@ class DocIndexOutputGenerator(OutputGenerator):
         elif category == 'bitmask':
             requiredEnum = typeElem.get('bitvalues')
             if requiredEnum is not None:
-                self.record_name(self.flags, name, "See also elink:{}".format(requiredEnum))
+                self.record_name(self.flags, name, f"See also elink:{requiredEnum}")
         elif category == 'enum':
             self.record_name(self.enums, name)
         elif category == 'funcpointer':

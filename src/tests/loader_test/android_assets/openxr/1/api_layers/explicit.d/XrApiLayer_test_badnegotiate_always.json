@@ -1,0 +1,14 @@
+{
+    "file_format_version": "1.0.0",
+    "api_layer": {
+        "name": "XR_APILAYER_LUNARG_test_badnegotiate_always",
+        "library_path": "libXrApiLayer_test.so",
+        "api_version": "1.0",
+        "implementation_version": "1",
+        "description": "Test_description",
+        "functions": {
+           "xrNegotiateLoaderApiLayerInterface":
+               "TestLayerAlwaysFailNegotiateLoaderApiLayerInterface"
+       }
+    }
+}

@@ -1,8 +1,8 @@
-"""Utility functions not closely tied to other spec_tools types."""
-# Copyright (c) 2018-2019 Collabora, Ltd.
 # Copyright 2013-2024, The Khronos Group Inc.
+# Copyright (c) 2018-2019 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
+"""Utility functions not closely tied to other spec_tools types."""
 
 
 def getElemName(elem, default=None):

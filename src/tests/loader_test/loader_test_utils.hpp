@@ -23,7 +23,7 @@
 
 #include <string>
 
-#if defined(XR_OS_LINUX) || defined(XR_OS_APPLE)
+#if defined(XR_OS_ANDROID) || defined(XR_OS_LINUX) || defined(XR_OS_APPLE)
 #include <unistd.h>
 
 #define TEST_PATH_SEPARATOR ':'

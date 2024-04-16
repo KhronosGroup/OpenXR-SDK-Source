@@ -92,25 +92,25 @@ REVISION_RE = re.compile(r' *[*] Revision (?P<num>[1-9][0-9]*),.*')
 def get_extension_source(extname):
     match = EXT_DECOMPOSE_RE.match(extname)
     if not match:
-        raise RuntimeError("Could not decompose " + extname)
+        raise RuntimeError(f"Could not decompose {extname}")
 
     lower_tag = match.group('tag').lower()
     lower_name = match.group('name').lower()
-    fn = '{}_{}.adoc'.format(lower_tag, lower_name)
+    fn = f'{lower_tag}_{lower_name}.adoc'
     return str(SPECIFICATION_DIR / 'sources' / 'chapters' / 'extensions' / lower_tag / fn)
 
 
 def get_extension_vendor(extname):
     match = EXT_DECOMPOSE_RE.match(extname)
     if not match:
-        raise RuntimeError("Could not decompose " + extname)
+        raise RuntimeError(f"Could not decompose {extname}")
     return match.group('tag')
 
 
 def pluralize(s):
     if s.endswith('y'):
-        return s[:-1] + 'ies'
-    return s + 's'
+        return f"{s[:-1]}ies"
+    return f"{s}s"
 
 
 class EntityDatabase(OrigEntityDatabase):
@@ -234,7 +234,7 @@ class Checker(XMLChecker):
 
     def check_enum_naming(self, enum_type):
         stripped_enum_type, enum_tag = self.strip_extension_tag(enum_type)
-        end = "_{}".format(enum_tag) if enum_tag else ""
+        end = f"_{enum_tag}" if enum_tag else ""
         bare_end = None
         if stripped_enum_type.endswith("FlagBits"):
             bare_end = "_BIT"
@@ -561,7 +561,7 @@ class Checker(XMLChecker):
 
         elem = info.elem
         name_upper = name.upper()
-        version_name = "{}_SPEC_VERSION".format(name)
+        version_name = f"{name}_SPEC_VERSION"
         enums = elem.findall('./require/enum[@name]')
         version_elem = findNamedElem(enums, version_name)
         if version_elem is None:
@@ -595,13 +595,13 @@ class Checker(XMLChecker):
                 # This is OK: just means we can't check against the spec text.
                 pass
 
-        name_define = "{}_EXTENSION_NAME".format(name_upper)
+        name_define = f"{name_upper}_EXTENSION_NAME"
         name_elem = findNamedElem(enums, name_define)
         if name_elem is None:
             self.record_error("Missing name enum", name_define)
         else:
             # Note: etree handles the XML entities here and turns &quot; back into "
-            expected_name = '"{}"'.format(name)
+            expected_name = f'"{name}"'
             name_val = name_elem.get('value')
             if name_val != expected_name:
                 self.record_error("Incorrect name enum: expected", expected_name,
@@ -609,7 +609,7 @@ class Checker(XMLChecker):
 
         vendor = get_extension_vendor(name)
         for category in ('enum', 'type', 'command'):
-            items = elem.findall('./require/%s' % category)
+            items = elem.findall(f'./require/{category}')
             for item in items:
                 item_name = item.get('name')
                 # print(item.attrib)

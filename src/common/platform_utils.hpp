@@ -91,8 +91,6 @@ namespace detail {
 
 static inline char* ImplGetEnv(const char* name) { return getenv(name); }
 
-static inline int ImplSetEnv(const char* name, const char* value, int overwrite) { return setenv(name, value, overwrite); }
-
 static inline char* ImplGetSecureEnv(const char* name) {
 #ifdef HAVE_SECURE_GETENV
     return secure_getenv(name);
@@ -162,12 +160,6 @@ static inline std::string PlatformUtilsGetSecureEnv(const char* name) {
 
 static inline bool PlatformUtilsGetEnvSet(const char* name) { return detail::ImplGetEnv(name) != nullptr; }
 
-static inline bool PlatformUtilsSetEnv(const char* name, const char* value) {
-    const int shouldOverwrite = 1;
-    int result = detail::ImplSetEnv(name, value, shouldOverwrite);
-    return (result == 0);
-}
-
 #elif defined(XR_OS_APPLE)
 
 static inline std::string PlatformUtilsGetEnv(const char* name) {
@@ -187,12 +179,6 @@ static inline std::string PlatformUtilsGetSecureEnv(const char* name) {
 }
 
 static inline bool PlatformUtilsGetEnvSet(const char* name) { return detail::ImplGetEnv(name) != nullptr; }
-
-static inline bool PlatformUtilsSetEnv(const char* name, const char* value) {
-    const int shouldOverwrite = 1;
-    int result = detail::ImplSetEnv(name, value, shouldOverwrite);
-    return (result == 0);
-}
 
 static inline bool PlatformGetGlobalRuntimeFileName(uint16_t major_version, std::string& file_name) {
     return detail::ImplTryRuntimeFilename("/usr/local/share/openxr/", major_version, file_name);
@@ -337,17 +323,6 @@ static inline std::string PlatformUtilsGetSecureEnv(const char* name) {
     return envValue;
 }
 
-// Sets an environment variable via UTF8 strings.
-// The name is case-sensitive.
-// Overwrites the variable if it already exists.
-// Returns true if it could be set.
-static inline bool PlatformUtilsSetEnv(const char* name, const char* value) {
-    const std::wstring wname = utf8_to_wide(name);
-    const std::wstring wvalue = utf8_to_wide(value);
-    BOOL result = ::SetEnvironmentVariableW(wname.c_str(), wvalue.c_str());
-    return (result != 0);
-}
-
 #elif defined(XR_OS_ANDROID)
 
 static inline bool PlatformUtilsGetEnvSet(const char* /* name */) {
@@ -363,11 +338,6 @@ static inline std::string PlatformUtilsGetEnv(const char* /* name */) {
 static inline std::string PlatformUtilsGetSecureEnv(const char* /* name */) {
     // Stub func
     return {};
-}
-
-static inline bool PlatformUtilsSetEnv(const char* /* name */, const char* /* value */) {
-    // Stub func
-    return false;
 }
 
 // Intended to be only used as a fallback on Android, with a more open, "native" technique used in most cases
@@ -400,11 +370,6 @@ static inline std::string PlatformUtilsGetEnv(const char* /* name */) {
 static inline std::string PlatformUtilsGetSecureEnv(const char* /* name */) {
     // Stub func
     return {};
-}
-
-static inline bool PlatformUtilsSetEnv(const char* /* name */, const char* /* value */) {
-    // Stub func
-    return false;
 }
 
 static inline bool PlatformGetGlobalRuntimeFileName(uint16_t /* major_version */, std::string const& /* file_name */) {

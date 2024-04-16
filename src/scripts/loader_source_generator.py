@@ -56,16 +56,16 @@ EXTENSIONS_LOADER_IMPLEMENTS = [
 def generateErrorMessage(indent_level, vuid, cur_cmd, message, object_info):
     lines = []
     lines.append('LoaderLogger::LogValidationErrorMessage(')
-    lines.append('    "VUID-{}",'.format('-'.join(vuid)))
-    lines.append('    "{}",'.format(cur_cmd.name))
-    lines.append('    {},'.format(message))
+    lines.append(f"    \"VUID-{'-'.join(vuid)}\",")
+    lines.append(f'    "{cur_cmd.name}",')
+    lines.append(f'    {message},')
 
     object_info_constructors = ['XrSdkLogObjectInfo{%s, %s}' % p for p in object_info]
     if len(object_info_constructors) <= 1:
         lines.append('    {%s});' % (', '.join(object_info_constructors)))
     else:
         lines.append('    {')
-        lines.append(',\n'.join('    %s' % x for x in object_info_constructors))
+        lines.append(',\n'.join(f'    {x}' for x in object_info_constructors))
         lines.append('    });')
     if isinstance(indent_level, str):
         base_indent = indent_level
@@ -175,7 +175,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
         for cur_cmd in self.core_commands:
             if not cur_cmd.name in MANUAL_LOADER_FUNCS:
                 if cur_cmd.protect_value:
-                    manual_funcs += '#if %s\n' % cur_cmd.protect_string
+                    manual_funcs += f'#if {cur_cmd.protect_string}\n'
 
                 func_proto = self.getProto(cur_cmd)
 
@@ -184,7 +184,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 manual_funcs += '\n'
 
                 if cur_cmd.protect_value:
-                    manual_funcs += '#endif // %s\n' % cur_cmd.protect_string
+                    manual_funcs += f'#endif // {cur_cmd.protect_string}\n'
 
         return manual_funcs
 
@@ -237,7 +237,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                         first_handle_name = self.getFirstHandleName(param)
 
                         tramp_variable_defines += '    LoaderInstance* loader_instance;\n'
-                        tramp_variable_defines += '    XrResult result = ActiveLoaderInstance::Get(&loader_instance, "%s");\n' % (cur_cmd.name)
+                        tramp_variable_defines += f'    XrResult result = ActiveLoaderInstance::Get(&loader_instance, "{cur_cmd.name}");\n'
                         tramp_variable_defines += '    if (XR_SUCCEEDED(result)) {\n'
 
                         # These should be mutually exclusive - verify it.
@@ -245,7 +245,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                                 (pointer_count == 0))
                     else:
                         tramp_variable_defines += self.printCodeGenErrorMessage(
-                            'Command %s does not have an OpenXR Object handle as the first parameter.' % cur_cmd.name)
+                            f'Command {cur_cmd.name} does not have an OpenXR Object handle as the first parameter.')
 
                 tramp_param_replace.append(
                     dataclasses.replace(param,
@@ -259,7 +259,7 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 count = count + 1
 
             if cur_cmd.protect_value:
-                generated_funcs += '#if %s\n' % cur_cmd.protect_string
+                generated_funcs += f'#if {cur_cmd.protect_string}\n'
             decl = self.getProto(cur_cmd).replace(";", " XRLOADER_ABI_TRY {\n")
 
             generated_funcs += decl
@@ -289,6 +289,6 @@ class LoaderSourceOutputGenerator(AutomaticSourceOutputGenerator):
             generated_funcs += '}\nXRLOADER_ABI_CATCH_FALLBACK\n'
 
             if cur_cmd.protect_value:
-                generated_funcs += '#endif // %s\n' % cur_cmd.protect_string
+                generated_funcs += f'#endif // {cur_cmd.protect_string}\n'
             generated_funcs += '\n'
         return generated_funcs

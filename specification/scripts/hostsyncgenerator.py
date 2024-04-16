@@ -31,10 +31,10 @@ class HostSynchronizationOutputGenerator(OutputGenerator):
     }
 
     def makeParameterName(self, name):
-        return 'pname:' + name
+        return f"pname:{name}"
 
     def makeFLink(self, name):
-        return 'flink:' + name
+        return f"flink:{name}"
 
     def writeBlock(self, basename, title, contents):
         """Generate an include file.
@@ -42,13 +42,14 @@ class HostSynchronizationOutputGenerator(OutputGenerator):
         - directory - subdirectory to put file in
         - basename - base name of the file
         - contents - contents of the file (Asciidoc boilerplate aside)"""
+        assert self.genOpts
         filename = Path(self.genOpts.directory) / basename
         self.logMsg('diag', '# Generating include file:', filename)
         with open(filename, 'w', encoding='utf-8') as fp:
             write(self.genOpts.conventions.warning_comment, file=fp)
 
             if contents:
-                write('.%s' % title, file=fp)
+                write(f'.{title}', file=fp)
                 write('****', file=fp)
                 write(contents, file=fp, end='')
                 write('****', file=fp)
@@ -58,13 +59,15 @@ class HostSynchronizationOutputGenerator(OutputGenerator):
 
     def writeInclude(self):
         "Generates the asciidoc include files."""
-        self.writeBlock('parameters.txt',
+        assert self.genOpts
+        file_suffix = self.genOpts.conventions.file_suffix
+        self.writeBlock(f'parameters{file_suffix}',
                         'Externally Synchronized Parameters',
                         self.threadsafety['parameters'])
-        self.writeBlock('parameterlists.txt',
+        self.writeBlock(f'parameterlists{file_suffix}',
                         'Externally Synchronized Parameter Lists',
                         self.threadsafety['parameterlists'])
-        self.writeBlock('implicit.txt',
+        self.writeBlock(f'implicit{file_suffix}',
                         'Implicit Externally Synchronized Parameters',
                         self.threadsafety['implicit'])
 
@@ -73,7 +76,7 @@ class HostSynchronizationOutputGenerator(OutputGenerator):
         protoname = cmd.find('proto/name').text
 
         # Find and add any parameters that are thread unsafe
-        explicitexternsyncparams = cmd.findall(paramtext + "[@externsync]")
+        explicitexternsyncparams = cmd.findall(f"{paramtext}[@externsync]")
         if explicitexternsyncparams is not None:
             for param in explicitexternsyncparams:
                 self.makeThreadSafetyForParam(protoname, param)

@@ -36,7 +36,7 @@ def _undecorate(name):
 
 
 def _quote_string(s):
-    return '"{}"'.format(s)
+    return f'"{s}"'
 
 
 def _base_name(name):
@@ -49,13 +49,13 @@ def _collapse_whitespace(s):
 
 def _protect_begin(entity):
     if entity.protect_value:
-        return "#if {}".format(entity.protect_string)
+        return f"#if {entity.protect_string}"
     return ""
 
 
 def _protect_end(entity):
     if entity.protect_value:
-        return "#endif // {}".format(entity.protect_string)
+        return f"#endif // {entity.protect_string}"
     return ""
 
 def _remove_prefix(s: str, prefix: str):

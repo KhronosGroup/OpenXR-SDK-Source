@@ -28,6 +28,11 @@
 #include "filesystem_utils.hpp"
 #include "loader_test_utils.hpp"
 
+#if defined(XR_USE_PLATFORM_ANDROID)
+#include <android_native_app_glue.h>
+#include <android/log.h>
+#endif  // defined(XR_USE_PLATFORM_ANDROID)
+
 #include "xr_dependencies.h"
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
@@ -35,72 +40,109 @@
 #include <type_traits>
 static_assert(sizeof(XrStructureType) == 4, "This should be a 32-bit enum");
 
-// Add some judicious char savers
-using std::cout;
-using std::endl;
+#if defined(XR_USE_PLATFORM_ANDROID)
+#define TESTLOG(...) __android_log_print(ANDROID_LOG_INFO, "LoaderTest", __VA_ARGS__)
+#else
+#define TESTLOG(...) printf(__VA_ARGS__)
+#endif  // defined(XR_USE_PLATFORM_ANDROID)
 
 // Filter out the loader's messages to std::cerr if this is defined to 1.  This allows a
 // clean output for the test.
 #define FILTER_OUT_LOADER_ERRORS 1
 
-#define DEFINE_TEST(test_name) void test_name(uint32_t& total, uint32_t& passed, uint32_t& skipped, uint32_t& failed)
+#define DEFINE_TEST(test_name) void test_name(uint32_t& total, uint32_t& passed, uint32_t& failed)
 
-#define INIT_TEST(test_name)    \
-    uint32_t local_total = 0;   \
-    uint32_t local_passed = 0;  \
-    uint32_t local_skipped = 0; \
-    uint32_t local_failed = 0;  \
-    cout << "    Starting " << #test_name << endl;
+#define INIT_TEST(test_name)   \
+    uint32_t local_total = 0;  \
+    uint32_t local_passed = 0; \
+    uint32_t local_failed = 0; \
+    TESTLOG("    Starting " #test_name "\n")
 
-#define TEST_REPORT(test_name)                                                                                             \
-    cout << "    Finished " << #test_name << ": ";                                                                         \
-    if (local_failed > 0) {                                                                                                \
-        cout << "Failed (Local - Passed: " << std::to_string(local_passed) << ", Failed: " << std::to_string(local_failed) \
-             << ", Skipped: " << std::to_string(local_skipped) << ")" << endl                                              \
-             << endl;                                                                                                      \
-    } else {                                                                                                               \
-        cout << "Passed (Local - Passed: " << std::to_string(local_passed) << ", Failed: " << std::to_string(local_failed) \
-             << ", Skipped: " << std::to_string(local_skipped) << ")" << endl                                              \
-             << endl;                                                                                                      \
-    }                                                                                                                      \
-    total += local_total;                                                                                                  \
-    passed += local_passed;                                                                                                \
-    failed += local_failed;                                                                                                \
-    skipped += local_skipped;
+#define TEST_REPORT(test_name)                                                                                           \
+    if (local_failed > 0) {                                                                                              \
+        TESTLOG("    Finished " #test_name ": Failed (Local - Passed: %u, Failed: %u)\n\n", local_passed, local_failed); \
+    } else {                                                                                                             \
+        TESTLOG("    Finished " #test_name ": Passed (Local - Passed: %u, Failed: %u)\n\n", local_passed, local_failed); \
+    }                                                                                                                    \
+    total += local_total;                                                                                                \
+    passed += local_passed;                                                                                              \
+    failed += local_failed;
 
-#define TEST_EQUAL(test, expected, cout_string)                  \
-    local_total++;                                               \
-    if (expected != (test)) {                                    \
-        cout << "        " << cout_string << ": Failed" << endl; \
-        local_failed++;                                          \
-    } else {                                                     \
-        cout << "        " << cout_string << ": Passed" << endl; \
-        local_passed++;                                          \
-    }
+#define TEST_HEADER(cout_string) TESTLOG("%s\n", cout_string)
 
-#define TEST_NOT_EQUAL(test, expected, cout_string)              \
-    local_total++;                                               \
-    if (expected == (test)) {                                    \
-        cout << "        " << cout_string << ": Failed" << endl; \
-        local_failed++;                                          \
-    } else {                                                     \
-        cout << "        " << cout_string << ": Passed" << endl; \
-        local_passed++;                                          \
+#define TEST_INFO(cout_string) TESTLOG("           - %s\n", cout_string)
+
+#define TEST_EQUAL(test, expected, cout_string)       \
+    local_total++;                                    \
+    if (expected != (test)) {                         \
+        TESTLOG("        %s: Failed\n", cout_string); \
+        local_failed++;                               \
+    } else {                                          \
+        TESTLOG("        %s: Passed\n", cout_string); \
+        local_passed++;                               \
     }
 
 #define TEST_FAIL(cout_string) \
     local_total++;             \
     local_failed++;            \
-    cout << "        " << cout_string << ": Failed" << endl;
+    TESTLOG("        %s: Failed\n", cout_string)
 
-#define RUN_TEST(test) test(total_tests, total_passed, total_skipped, total_failed);
+#define RUN_TEST(test) test(total_tests, total_passed, total_failed);
 
 bool g_has_installed_runtime = false;
 
+#if defined(XR_USE_PLATFORM_ANDROID)
+static JavaVM* AndroidApplicationVM = NULL;
+static jobject AndroidApplicationActivity = NULL;
+#endif  // defined(XR_USE_PLATFORM_ANDROID)
+
+#if defined(XR_KHR_LOADER_INIT_SUPPORT)
+static void InitLoader() {
+    // TODO: we should validate that xrCreateInstance, xrEnumerateInstanceExtensionProperties and xrEnumApiLayers
+    //       all return XR_ERROR_INITIALIZATION_FAILED if XR_KHR_LOADER_INIT_SUPPORT but xrInitializeLoaderKHR
+    //       has not been called.
+
+    PFN_xrInitializeLoaderKHR xrInitializeLoaderKHR;
+    if (XR_SUCCEEDED(
+            xrGetInstanceProcAddr(XR_NULL_HANDLE, "xrInitializeLoaderKHR", (PFN_xrVoidFunction*)(&xrInitializeLoaderKHR))) &&
+        xrInitializeLoaderKHR != NULL) {
+#if defined(XR_USE_PLATFORM_ANDROID)
+        XrLoaderInitInfoAndroidKHR loaderInitializeInfoAndroid = {XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR};
+        loaderInitializeInfoAndroid.applicationVM = AndroidApplicationVM;
+        loaderInitializeInfoAndroid.applicationContext = AndroidApplicationActivity;
+        xrInitializeLoaderKHR((XrLoaderInitInfoBaseHeaderKHR*)&loaderInitializeInfoAndroid);
+#else
+#error "Platform needs implementation of KHR_loader_init functionality"
+#endif
+    }
+}
+#endif  // defined(XR_KHR_LOADER_INIT_SUPPORT)
+
+#if defined(XR_USE_PLATFORM_ANDROID) && defined(XR_KHR_LOADER_INIT_SUPPORT)
+static XrInstanceCreateInfoAndroidKHR GetPlatformInstanceCreateExtension() {
+    XrInstanceCreateInfoAndroidKHR instanceCreateInfoAndroid{XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
+    instanceCreateInfoAndroid.applicationVM = AndroidApplicationVM;
+    instanceCreateInfoAndroid.applicationActivity = AndroidApplicationActivity;
+    return instanceCreateInfoAndroid;
+}
+static const char* base_extension_names[1] = {XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME};
+static const uint32_t base_extension_count = 1;
+#else
+static XrBaseInStructure GetPlatformInstanceCreateExtension() {
+    XrBaseInStructure baseIn{XR_TYPE_UNKNOWN};
+    return baseIn;
+}
+static const char* const* base_extension_names = nullptr;
+static const uint32_t base_extension_count = 0;
+#endif  // defined(XR_USE_PLATFORM_ANDROID) && defined(XR_KHR_LOADER_INIT_SUPPORT)
+
 void CleanupEnvironmentVariables() {
-    LoaderTestUnsetEnvironmentVariable("XR_ENABLE_API_LAYERS");
+#if defined(XR_USE_PLATFORM_ANDROID)
+    // env var override is not available on Android.
+#else
     LoaderTestUnsetEnvironmentVariable("XR_API_LAYER_PATH");
     LoaderTestUnsetEnvironmentVariable("XR_RUNTIME_JSON");
+#endif  // defined(XR_USE_PLATFORM_ANDROID)
 }
 
 // The loader will keep a runtime loaded after a successful xrEnumerateInstanceExtensionProperties call until an instance is created
@@ -110,6 +152,10 @@ void ForceLoaderUnloadRuntime() {
     XrInstanceCreateInfo instance_create_info{XR_TYPE_INSTANCE_CREATE_INFO};
     strcpy(instance_create_info.applicationInfo.applicationName, "Force Unload");
     instance_create_info.applicationInfo.applicationVersion = 688;
+    auto platform_instance_create = GetPlatformInstanceCreateExtension();
+    instance_create_info.next = &platform_instance_create;
+    instance_create_info.enabledExtensionCount = base_extension_count;
+    instance_create_info.enabledExtensionNames = base_extension_names;
     if (XR_SUCCEEDED(xrCreateInstance(&instance_create_info, &instance))) {
         xrDestroyInstance(instance);
     }
@@ -119,8 +165,12 @@ bool DetectInstalledRuntime() {
     bool runtime_found = false;
     uint32_t ext_count = 0;
 
-    // Disable any potential envar override - just looking for an installed runtime
+#if !defined(XR_USE_PLATFORM_ANDROID)
+    // Disable any potential envvar override - just looking for an installed runtime
     LoaderTestUnsetEnvironmentVariable("XR_RUNTIME_JSON");
+#else
+    // XR_RUNTIME_JSON override not supported on Android
+#endif  // !defined(XR_USE_PLATFORM_ANDROID)
 
     ForceLoaderUnloadRuntime();
 
@@ -135,98 +185,82 @@ bool DetectInstalledRuntime() {
 
 // Test the xrEnumerateApiLayerProperties function through the loader.
 DEFINE_TEST(TestEnumLayers) {
-    INIT_TEST(TestEnumLayers)
+    INIT_TEST(TestEnumLayers);
 
     try {
         XrResult test_result = XR_SUCCESS;
-        std::vector<XrApiLayerProperties> layer_props;
 
         uint32_t in_layer_value = 0;
         uint32_t out_layer_value = 0;
-        std::string subtest_name;
 
+#if !defined(XR_USE_PLATFORM_ANDROID) || !defined(XR_KHR_LOADER_INIT_SUPPORT)
+
+#if !defined(XR_USE_PLATFORM_ANDROID)
         // Tests with no explicit layers set
-        subtest_name = "No explicit layers";
         // NOTE: Implicit layers will still be present, need to figure out what to do here.
-        LoaderTestUnsetEnvironmentVariable("XR_ENABLE_API_LAYERS");
         LoaderTestUnsetEnvironmentVariable("XR_API_LAYER_PATH");
+#else
+        // XR_API_LAYER_PATH override not available on Android
+#endif  // !defined(XR_USE_PLATFORM_ANDROID)
 
         // Test number query
-        local_total++;
-        cout << "        " << subtest_name << " layer count check: ";
         test_result = xrEnumerateApiLayerProperties(in_layer_value, &out_layer_value, nullptr);
-        if (XR_FAILED(test_result)) {
-            cout << "Failed with return " << std::to_string(test_result) << endl;
-            local_failed++;
-        } else {
-            local_passed++;
-            cout << "Passed: " << out_layer_value << " layers available." << endl;
-        }
+        TEST_EQUAL(test_result, XR_SUCCESS, "No explicit layers layer count check");
+        TEST_INFO((std::to_string(out_layer_value) + " layers available.").c_str());
 
         // If any implicit layers are found, try property return
         if (out_layer_value > 0) {
             in_layer_value = out_layer_value;
             out_layer_value = 0;
-            layer_props.resize(in_layer_value);
-            for (uint32_t prop = 0; prop < in_layer_value; ++prop) {
-                layer_props[prop] = {XR_TYPE_API_LAYER_PROPERTIES, nullptr, {0, 0}};
-            }
-            local_total++;
-            cout << "        " << subtest_name << " layer props query: ";
+            std::vector<XrApiLayerProperties> layer_props(in_layer_value, {XR_TYPE_API_LAYER_PROPERTIES});
             test_result = xrEnumerateApiLayerProperties(in_layer_value, &out_layer_value, layer_props.data());
-            if (XR_FAILED(test_result)) {
-                cout << "Failed with return " << std::to_string(test_result) << endl;
-                local_failed++;
-            } else {
-                local_passed++;
-                cout << "Passed" << endl;
+            TEST_EQUAL(test_result, XR_SUCCESS, "No explicit layers layer props query");
+            if (test_result == XR_SUCCESS) {
                 for (const auto& prop : layer_props) {
-                    cout << "           - " << prop.layerName << endl;
+                    std::string implictLayerInfo = std::string("Found implicit layer: ") + prop.layerName;
+                    TEST_INFO(implictLayerInfo.c_str());
                 }
             }
         }
+#else
+        // XR_API_LAYER_PATH override not supported on Android
+        TESTLOG("Cannot test no explicit layers on Android if using KHR_LOADER_INIT");
+#endif  // !defined(XR_USE_PLATFORM_ANDROID) || !defined(XR_KHR_LOADER_INIT_SUPPORT)
 
         // Tests with some explicit layers instead
         in_layer_value = 0;
         out_layer_value = 0;
-        subtest_name = "Simple explicit layers";
         uint32_t num_valid_jsons = 6;
 
+#if defined(XR_USE_PLATFORM_ANDROID) && !defined(XR_KHR_LOADER_INIT_SUPPORT)
+        // Android API layer loading from apk is only supported when using XR_KHR_LOADER_INIT_SUPPORT
+        TEST_HEADER("     Cannot test loading API layer from apk on Android without XR_KHR_LOADER_INIT_SUPPORT");
+#else
+
+#if defined(XR_USE_PLATFORM_ANDROID)
+        // API layers from apk on Android are always available and do not require override.
+        // This is because XR_API_LAYER_PATH override is not available on Android.
+#else
         // Point to json directory, contains 6 valid json files
         LoaderTestSetEnvironmentVariable("XR_API_LAYER_PATH", "./resources/layers");
-        // LoaderTestSetEnvironmentVariable("XR_ENABLE_API_LAYERS", "XrApiLayer_test:XrApiLayer_test_good_relative_path");
+#endif  // defined(XR_USE_PLATFORM_ANDROID)
 
         // Test number query
-        local_total++;
-        cout << "        " << subtest_name << " layer count check: ";
         test_result = xrEnumerateApiLayerProperties(in_layer_value, &out_layer_value, nullptr);
-        if (XR_FAILED(test_result)) {
-            cout << "Failed with return " << std::to_string(test_result) << endl;
-            local_failed++;
-        } else {
-            if (out_layer_value != num_valid_jsons) {
-                cout << "Failed, expected count " << num_valid_jsons << ", got " << std::to_string(out_layer_value) << endl;
-                local_failed++;
-            } else {
-                local_passed++;
-                cout << "Passed" << endl;
-            }
-        }
+        TEST_EQUAL(test_result, XR_SUCCESS, "Simple explicit layers layer count check");
+        TEST_EQUAL(out_layer_value, num_valid_jsons,
+                   (std::string("Simple explicit layers expected count ") + std::to_string(num_valid_jsons) + std::string(" got ") +
+                    std::to_string(out_layer_value))
+                       .c_str());
 
         // Try property return
         in_layer_value = out_layer_value;
         out_layer_value = 0;
-        layer_props.resize(in_layer_value);
-        for (uint32_t prop = 0; prop < in_layer_value; ++prop) {
-            layer_props[prop] = {XR_TYPE_API_LAYER_PROPERTIES, nullptr, {0, 0}};
-        }
-        local_total++;
-        cout << "        " << subtest_name << " layer props query: ";
+        std::vector<XrApiLayerProperties> layer_props(in_layer_value, {XR_TYPE_API_LAYER_PROPERTIES});
         test_result = xrEnumerateApiLayerProperties(in_layer_value, &out_layer_value, layer_props.data());
-        if (XR_FAILED(test_result)) {
-            cout << "Failed with return " << std::to_string(test_result) << endl;
-            local_failed++;
-        } else {
+        TEST_EQUAL(test_result, XR_SUCCESS, "Simple explicit layers layer props query");
+
+        if (test_result == XR_SUCCESS) {
             bool found_bad = false;
             bool found_good_absolute_test = false;
             bool found_good_relative_test = false;
@@ -244,38 +278,23 @@ DEFINE_TEST(TestEnumLayers) {
                     found_good_relative_test = true;
                 } else if (std::string::npos != layer_name.find("_badjson")) {
                     // If we enumerated any other layers (excepting the 'badjson' variants), it's an error
-                    cout << "Failed, found unexpected layer " << layer_name << " in list" << endl;
+                    TEST_INFO((std::string("Failed, found unexpected layer ") + layer_name + " in list").c_str());
                     found_bad = true;
-                    local_failed++;
                     break;
                 }
             }
 
-            if (!found_good_absolute_test || !found_good_relative_test) {
-                cout << "Failed, did not find ";
-                if (!found_good_absolute_test) {
-                    cout << "XrApiLayer_test";
-                }
-                if (!found_good_relative_test) {
-                    if (!found_good_absolute_test) {
-                        cout << " or ";
-                    }
-                    cout << "XrApiLayer_test_good_relative_path";
-                }
-                cout << endl;
-                local_failed++;
-            } else if (!found_bad) {
-                cout << "Passed" << endl;
-                local_passed++;
-            }
+            TEST_EQUAL(found_good_absolute_test, true, "Simple explicit layers found_good_absolute_test");
+            TEST_EQUAL(found_good_relative_test, true, "Simple explicit layers found_good_absolute_test");
+            TEST_EQUAL(found_bad, false, "Simple explicit layers found_bad");
 
             for (const auto& prop : layer_props) {
-                cout << "           - " << prop.layerName << endl;
+                TEST_INFO((std::string("Found API layer: ") + prop.layerName).c_str());
             }
         }
-
+#endif  // defined(XR_USE_PLATFORM_ANDROID) && !defined(XR_KHR_LOADER_INIT_SUPPORT)
     } catch (...) {
-        TEST_FAIL("Exception triggered during test, automatic failure")
+        TEST_FAIL("Exception triggered during test, automatic failure");
     }
 
     // Cleanup
@@ -287,15 +306,21 @@ DEFINE_TEST(TestEnumLayers) {
 
 // Test the xrEnumerateInstanceExtensionProperties function through the loader.
 DEFINE_TEST(TestEnumInstanceExtensions) {
-    INIT_TEST(TestEnumInstanceExtensions)
+    INIT_TEST(TestEnumInstanceExtensions);
 
     try {
         XrResult test_result = XR_SUCCESS;
         uint32_t in_extension_value;
         uint32_t out_extension_value;
-        std::vector<XrExtensionProperties> properties;
 
         for (uint32_t test = 0; test < 2; ++test) {
+#if defined(XR_USE_PLATFORM_ANDROID) && defined(XR_KHR_LOADER_INIT_SUPPORT)
+            if (test == 0) {
+                TEST_HEADER("     Cannot test with no explicit API layers on Android");
+                continue;
+            }
+#endif  // !defined(XR_USE_PLATFORM_ANDROID) || !defined(XR_KHR_LOADER_INIT_SUPPORT)
+
             std::string subtest_name;
             std::string valid_runtime_path;
 
@@ -304,16 +329,23 @@ DEFINE_TEST(TestEnumInstanceExtensions) {
                 case 0:
                     subtest_name = "with no explicit API layers";
                     // NOTE: Implicit layers will still be present, need to figure out what to do here.
-                    LoaderTestUnsetEnvironmentVariable("XR_ENABLE_API_LAYERS");
+#if !defined(XR_USE_PLATFORM_ANDROID)
                     LoaderTestUnsetEnvironmentVariable("XR_API_LAYER_PATH");
+#else
+                    // XR_API_LAYER_PATH not supported on Android
+#endif  // !defined(XR_USE_PLATFORM_ANDROID)
                     break;
                 default:
                     subtest_name = "with explicit API layers";
+#if !defined(XR_USE_PLATFORM_ANDROID)
                     LoaderTestSetEnvironmentVariable("XR_API_LAYER_PATH", "./resources/layers");
-                    LoaderTestSetEnvironmentVariable("XR_ENABLE_API_LAYERS", "XrApiLayer_test");
+#else
+                    // XR_API_LAYER_PATH not supported on Android
+#endif  // !defined(XR_USE_PLATFORM_ANDROID)
                     break;
             }
 
+#if !defined(XR_USE_PLATFORM_ANDROID)
             // Test various bad runtime json files
             std::vector<std::string> files;
             std::string test_path;
@@ -331,108 +363,82 @@ DEFINE_TEST(TestEnumInstanceExtensions) {
 
                         in_extension_value = 0;
                         out_extension_value = 0;
-                        local_total++;
-                        cout << "        JSON " << cur_file << " extension enum count query (" << subtest_name << "): ";
                         test_result =
                             xrEnumerateInstanceExtensionProperties(nullptr, in_extension_value, &out_extension_value, nullptr);
-                        if (XR_SUCCEEDED(test_result)) {
-                            cout << "Failed" << endl;
-                            local_failed++;  // Success is unexpected.
-                        } else {
-                            cout << "Passed" << endl;
-                            local_passed++;  // Failure is expected.
-                        }
+                        TEST_EQUAL(
+                            test_result, XR_ERROR_RUNTIME_UNAVAILABLE,
+                            (std::string("JSON ") + cur_file + " extension enum count query (" + subtest_name + ")").c_str());
                     }
                 }
             }
+#else
+                // XR_RUNTIME_JSON override not supported on Android
+#endif  // !defined(XR_USE_PLATFORM_ANDROID)
 
             // Test the active runtime, if installed
             if (g_has_installed_runtime) {
+#if !defined(XR_USE_PLATFORM_ANDROID)
                 LoaderTestUnsetEnvironmentVariable("XR_RUNTIME_JSON");
+#else
+                // XR_RUNTIME_JSON override not supported on Android
+#endif  // !defined(XR_USE_PLATFORM_ANDROID)
 
                 ForceLoaderUnloadRuntime();
 
                 // Query the count (should return 2)
                 in_extension_value = 0;
                 out_extension_value = 0;
-                local_total++;
-                cout << "        Active runtime extension enum count query (" << subtest_name << "): ";
                 test_result = xrEnumerateInstanceExtensionProperties(nullptr, in_extension_value, &out_extension_value, nullptr);
-                if (XR_FAILED(test_result)) {
-                    cout << "Failed" << endl;
-                    local_failed++;
-                } else {
-                    cout << "Passed" << endl;
-                    local_passed++;
-                }
+                TEST_EQUAL(test_result, XR_SUCCESS, ("Active runtime extension enum count query (" + subtest_name + ")").c_str());
 
                 // Get the properties
-                properties.resize(out_extension_value);
-                for (uint32_t prop = 0; prop < out_extension_value; ++prop) {
-                    properties[prop] = {XR_TYPE_EXTENSION_PROPERTIES, nullptr, {0, 0}};
-                }
+                std::vector<XrExtensionProperties> properties(out_extension_value, {XR_TYPE_EXTENSION_PROPERTIES});
                 in_extension_value = out_extension_value;
                 out_extension_value = 0;
-                local_total++;
-                cout << "        Active runtime extension enum properties query (" << subtest_name << "): ";
                 test_result =
                     xrEnumerateInstanceExtensionProperties(nullptr, in_extension_value, &out_extension_value, properties.data());
-                if (XR_FAILED(test_result)) {
-                    cout << "Failed" << endl;
-                    local_failed++;
-                } else {
+                TEST_EQUAL(test_result, XR_SUCCESS,
+                           ("Active runtime extension enum properties query (" + subtest_name + ")").c_str());
+
+                if (test_result == XR_SUCCESS) {
                     bool found_error = false;
-                    for (XrExtensionProperties prop : properties) {
+                    for (const XrExtensionProperties& prop : properties) {
                         // Just check if extension name begins with "XR_"
                         if (strlen(prop.extensionName) < 4 || 0 != strncmp(prop.extensionName, "XR_", 3)) {
                             found_error = true;
                         }
                     }
-
-                    if (found_error) {
-                        cout << "Failed, malformed extension name." << endl;
-                        local_failed++;
-                    } else {
-                        cout << "Passed" << endl;
-                        local_passed++;
-                    }
+                    TEST_EQUAL(found_error, false, "Active runtime extension enum properties query malformed extension name");
                 }
 
                 // Try with a garbage layer name
                 in_extension_value = 0;
                 out_extension_value = 0;
-                local_total++;
-                cout << "        Garbage Layer extension enum count query (" << subtest_name << "): ";
                 test_result = xrEnumerateInstanceExtensionProperties("XrApiLayer_no_such_layer", in_extension_value,
                                                                      &out_extension_value, nullptr);
-                if (XR_ERROR_API_LAYER_NOT_PRESENT != test_result) {
-                    cout << "Failed" << endl;
-                    local_failed++;
-                } else {
-                    cout << "Passed" << endl;
-                    local_passed++;
-                }
+                TEST_EQUAL(test_result, XR_ERROR_API_LAYER_NOT_PRESENT,
+                           ("Garbage Layer extension enum count query (" + subtest_name + ")").c_str());
 
                 // Try with a valid layer name (if layer is present)
                 in_extension_value = 0;
                 out_extension_value = 0;
-                local_total++;
-                cout << "        Valid Layer extension enum count query (" << subtest_name << "): ";
                 test_result =
                     xrEnumerateInstanceExtensionProperties("XR_APILAYER_test", in_extension_value, &out_extension_value, nullptr);
-                if ((test == 0 && XR_ERROR_API_LAYER_NOT_PRESENT != test_result) || (test == 1 && XR_FAILED(test_result))) {
-                    cout << "Failed" << endl;
-                    local_failed++;
+
+                if (test == 0) {
+                    TEST_EQUAL(test_result, XR_ERROR_API_LAYER_NOT_PRESENT,
+                               ("Valid Layer extension enum count query (" + subtest_name + ")").c_str());
+                } else if (test == 1) {
+                    TEST_EQUAL(test_result, XR_SUCCESS, ("Valid Layer extension enum count query (" + subtest_name + ")").c_str());
                 } else {
-                    cout << "Passed" << endl;
-                    local_passed++;
+                    TEST_FAIL("Unknown test");
                 }
             }
         }
     } catch (std::exception const& e) {
-        TEST_FAIL("Exception triggered during test (" << e.what() << "), automatic failure")
+        TEST_FAIL((std::string("Exception triggered during test (") + e.what() + "), automatic failure").c_str());
     } catch (...) {
-        TEST_FAIL("Exception triggered during test, automatic failure")
+        TEST_FAIL("Exception triggered during test, automatic failure");
     }
 
     // Cleanup
@@ -444,7 +450,7 @@ DEFINE_TEST(TestEnumInstanceExtensions) {
 
 // Test creating and destroying an OpenXR instance through the loader.
 DEFINE_TEST(TestCreateDestroyInstance) {
-    INIT_TEST(TestCreateDestroyInstance)
+    INIT_TEST(TestCreateDestroyInstance);
 
     try {
         XrResult expected_result = XR_SUCCESS;
@@ -454,8 +460,14 @@ DEFINE_TEST(TestCreateDestroyInstance) {
         char invalid_extension_to_enable[] = "XR_KHR_fake_ext1";
         const char* const valid_layer_name_array[1] = {valid_layer_to_enable};
         const char* const invalid_layer_name_array[1] = {invalid_layer_to_enable};
+#if defined(XR_USE_PLATFORM_ANDROID)
+        const char* valid_extension_name_array[2] = {XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME, valid_extension_to_enable};
+        const char* const invalid_extension_name_array[2] = {XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME,
+                                                             invalid_extension_to_enable};
+#else
         const char* valid_extension_name_array[1] = {valid_extension_to_enable};
         const char* const invalid_extension_name_array[1] = {invalid_extension_to_enable};
+#endif
         XrApplicationInfo application_info = {};
         strcpy(application_info.applicationName, "Loader Test");
         application_info.applicationVersion = 688;
@@ -466,10 +478,15 @@ DEFINE_TEST(TestCreateDestroyInstance) {
         std::string current_path;
         std::string layer_path;
 
+#if !defined(XR_USE_PLATFORM_ANDROID)
         // Ensure using installed runtime
         LoaderTestUnsetEnvironmentVariable("XR_RUNTIME_JSON");
+#else
+        // XR_RUNTIME_JSON override not supported on Android
+#endif  // !defined(XR_USE_PLATFORM_ANDROID)
 
-        // Convert relative test layer path to absolute, set envar
+#if !defined(XR_USE_PLATFORM_ANDROID)
+        // Convert relative test layer path to absolute, set envvar
         FileSysUtilsGetCurrentPath(layer_path);
         layer_path =
             layer_path + TEST_DIRECTORY_SYMBOL + ".." + TEST_DIRECTORY_SYMBOL + ".." + TEST_DIRECTORY_SYMBOL + "api_layers";
@@ -477,13 +494,27 @@ DEFINE_TEST(TestCreateDestroyInstance) {
 
         // Make API dump write to a file, when loaded
         LoaderTestSetEnvironmentVariable("XR_API_DUMP_FILE_NAME", "api_dump_out.txt");
+#else
+        // XR_API_LAYER_PATH override not supported on Android
+#endif  // !defined(XR_USE_PLATFORM_ANDROID)
 
         for (uint32_t test_num = 0; test_num < 6; ++test_num) {
+#if defined(XR_USE_PLATFORM_ANDROID)
+            if (test_num == 1 || test_num == 5) {
+                TEST_HEADER(("     Skip test " + std::to_string(test_num) + " on Android").c_str());
+                continue;
+            }
+#endif  // defined(XR_USE_PLATFORM_ANDROID)
+
             XrInstance instance = XR_NULL_HANDLE;
             XrResult create_result = XR_ERROR_VALIDATION_FAILURE;
             std::string current_test_string;
             XrInstanceCreateInfo instance_create_info = {XR_TYPE_INSTANCE_CREATE_INFO};
             instance_create_info.applicationInfo = application_info;
+            auto platform_instance_create = GetPlatformInstanceCreateExtension();
+            instance_create_info.next = &platform_instance_create;
+            instance_create_info.enabledExtensionCount = base_extension_count;
+            instance_create_info.enabledExtensionNames = base_extension_names;
 
             switch (test_num) {
                 // Test 0 - Basic, plain-vanilla xrCreateInstance
@@ -507,16 +538,16 @@ DEFINE_TEST(TestCreateDestroyInstance) {
                     break;
                 // Test 3 - xrCreateInstance with a valid extension
                 case 3:
-                    current_test_string = "xrCreateInstance with a single valid extension";
+                    current_test_string = "xrCreateInstance with a single extra valid extension";
                     expected_result = XR_SUCCESS;
-                    instance_create_info.enabledExtensionCount = 1;
+                    instance_create_info.enabledExtensionCount = 1 + base_extension_count;
                     instance_create_info.enabledExtensionNames = valid_extension_name_array;
                     break;
                 // Test 4 - xrCreateInstance with an invalid extension
                 case 4:
-                    current_test_string = "xrCreateInstance with a single invalid extension";
+                    current_test_string = "xrCreateInstance with a single extra invalid extension";
                     expected_result = XR_ERROR_EXTENSION_NOT_PRESENT;
-                    instance_create_info.enabledExtensionCount = 1;
+                    instance_create_info.enabledExtensionCount = 1 + base_extension_count;
                     instance_create_info.enabledExtensionNames = invalid_extension_name_array;
                     break;
                 // Test 5 - xrCreateInstance with everything
@@ -525,7 +556,7 @@ DEFINE_TEST(TestCreateDestroyInstance) {
                     expected_result = XR_SUCCESS;
                     instance_create_info.enabledApiLayerCount = 1;
                     instance_create_info.enabledApiLayerNames = valid_layer_name_array;
-                    instance_create_info.enabledExtensionCount = 1;
+                    instance_create_info.enabledExtensionCount = 1 + base_extension_count;
                     instance_create_info.enabledExtensionNames = valid_extension_name_array;
                     break;
             }
@@ -533,19 +564,19 @@ DEFINE_TEST(TestCreateDestroyInstance) {
             // Try create instance and look for the correct return
             std::string cur_message = current_test_string + " - xrCreateInstance";
             create_result = xrCreateInstance(&instance_create_info, &instance);
-            TEST_EQUAL(create_result, expected_result, cur_message)
+            TEST_EQUAL(create_result, expected_result, cur_message.c_str())
 
             // If the expected return was a success, clean up the created instance
             if (XR_SUCCEEDED(create_result)) {
                 cur_message = current_test_string + " - xrDestroyInstance";
-                TEST_EQUAL(xrDestroyInstance(instance), XR_SUCCESS, cur_message)
+                TEST_EQUAL(xrDestroyInstance(instance), XR_SUCCESS, cur_message.c_str())
             }
         }
 
         // Make sure DestroyInstance with a NULL handle gives correct error
         TEST_EQUAL(xrDestroyInstance(XR_NULL_HANDLE), XR_ERROR_HANDLE_INVALID, "xrDestroyInstance(XR_NULL_HANDLE)")
     } catch (...) {
-        TEST_FAIL("Exception triggered during test, automatic failure")
+        TEST_FAIL("Exception triggered during test, automatic failure");
     }
 
     // Cleanup
@@ -558,18 +589,9 @@ DEFINE_TEST(TestCreateDestroyInstance) {
 // Test at least one XrInstance function not directly implemented in the loader's manual code section.
 // This is to make sure that the automatic instance functions work.
 DEFINE_TEST(TestGetSystem) {
-    INIT_TEST(TestGetSystem)
+    INIT_TEST(TestGetSystem);
 
     try {
-        std::string current_path;
-        std::string layer_path;
-        if (!FileSysUtilsGetCurrentPath(current_path) || !FileSysUtilsCombinePaths(current_path, "../../api_layers", layer_path)) {
-            TEST_FAIL("Unable to set API layer path")
-            TEST_REPORT(TestGetSystem)
-            return;
-        }
-        LoaderTestSetEnvironmentVariable("XR_API_LAYER_PATH", layer_path);
-
         XrInstance instance = XR_NULL_HANDLE;
         XrApplicationInfo application_info = {};
         strcpy(application_info.applicationName, "Loader Test");
@@ -579,6 +601,10 @@ DEFINE_TEST(TestGetSystem) {
         application_info.apiVersion = XR_CURRENT_API_VERSION;
         XrInstanceCreateInfo instance_create_info = {XR_TYPE_INSTANCE_CREATE_INFO};
         instance_create_info.applicationInfo = application_info;
+        auto platform_instance_create = GetPlatformInstanceCreateExtension();
+        instance_create_info.next = &platform_instance_create;
+        instance_create_info.enabledExtensionCount = base_extension_count;
+        instance_create_info.enabledExtensionNames = base_extension_names;
 
         TEST_EQUAL(xrCreateInstance(&instance_create_info, &instance), XR_SUCCESS, "Creating instance")
 
@@ -588,9 +614,9 @@ DEFINE_TEST(TestGetSystem) {
         XrSystemId systemId = XR_NULL_SYSTEM_ID;
         TEST_EQUAL(xrGetSystem(instance, &system_get_info, &systemId), XR_SUCCESS, "xrGetSystem");
 
-        TEST_EQUAL(xrDestroyInstance(instance), XR_SUCCESS, "Destroying instance")
+        TEST_EQUAL(xrDestroyInstance(instance), XR_SUCCESS, "Destroying instance");
     } catch (...) {
-        TEST_FAIL("Exception triggered during test, automatic failure")
+        TEST_FAIL("Exception triggered during test, automatic failure");
     }
 
     // Cleanup
@@ -602,19 +628,9 @@ DEFINE_TEST(TestGetSystem) {
 
 // Test at least one non-XrInstance function to make sure that the automatic non-instance functions work.
 DEFINE_TEST(TestCreateDestroyAction) {
-    INIT_TEST(TestCreateDestroyAction)
+    INIT_TEST(TestCreateDestroyAction);
 
     try {
-        std::string current_path;
-        std::string layer_path;
-
-        if (!FileSysUtilsGetCurrentPath(current_path) || !FileSysUtilsCombinePaths(current_path, "../../api_layers", layer_path)) {
-            TEST_FAIL("Unable to set API layer path")
-            TEST_REPORT(TestCreateDestroySystem)
-            return;
-        }
-        LoaderTestSetEnvironmentVariable("XR_API_LAYER_PATH", layer_path);
-
         XrInstance instance = XR_NULL_HANDLE;
 
         XrApplicationInfo app_info = {};
@@ -626,6 +642,11 @@ DEFINE_TEST(TestCreateDestroyAction) {
 
         XrInstanceCreateInfo instance_ci = {XR_TYPE_INSTANCE_CREATE_INFO};
         instance_ci.applicationInfo = app_info;
+        auto platform_instance_create = GetPlatformInstanceCreateExtension();
+        instance_ci.next = &platform_instance_create;
+        instance_ci.enabledExtensionCount = base_extension_count;
+        instance_ci.enabledExtensionNames = base_extension_names;
+
         TEST_EQUAL(xrCreateInstance(&instance_ci, &instance), XR_SUCCESS, "Creating instance")
 
         if (instance != XR_NULL_HANDLE) {
@@ -645,7 +666,7 @@ DEFINE_TEST(TestCreateDestroyAction) {
 
         TEST_EQUAL(xrDestroyInstance(instance), XR_SUCCESS, "Destroying instance")
     } catch (...) {
-        TEST_FAIL("Exception triggered during test, automatic failure")
+        TEST_FAIL("Exception triggered during test, automatic failure");
     }
 
     // Cleanup
@@ -655,16 +676,71 @@ DEFINE_TEST(TestCreateDestroyAction) {
     TEST_REPORT(TestCreateDestroyAction)
 }
 
-int main(int argc, char* argv[]) {
+bool runTests() {
     uint32_t total_tests = 0;
     uint32_t total_passed = 0;
-    uint32_t total_skipped = 0;
     uint32_t total_failed = 0;
 
-    // Unused for now.
-    (void)argc;
-    (void)argv;
+    TEST_HEADER("Starting loader_test");
+    TEST_HEADER("--------------------");
 
+    g_has_installed_runtime = DetectInstalledRuntime();
+
+    RUN_TEST(TestEnumLayers)
+    RUN_TEST(TestEnumInstanceExtensions)
+
+    if (g_has_installed_runtime) {
+        TEST_HEADER("Installed XR runtime detected - doing active runtime tests");
+        TEST_HEADER("----------------------------------------------------------");
+        RUN_TEST(TestCreateDestroyInstance)
+        RUN_TEST(TestGetSystem)
+        RUN_TEST(TestCreateDestroyAction)
+    } else {
+        TEST_HEADER("No installed XR runtime detected - active runtime tests skipped(!)");
+    }
+
+    // Cleanup
+    CleanupEnvironmentVariables();
+
+    TEST_HEADER("    Results:");
+    TEST_HEADER("    ------------------------------");
+    TEST_HEADER(("        Total Tests:    " + std::to_string(total_tests)).c_str());
+    TEST_HEADER(("        Tests Passed:   " + std::to_string(total_passed)).c_str());
+    TEST_HEADER(("        Tests Failed:   " + std::to_string(total_failed)).c_str());
+    if (total_failed == 0) {
+        TEST_HEADER("        Overall Result: Passed");
+        return true;
+    } else {
+        TEST_HEADER("        Overall Result: Failed");
+        return false;
+    }
+}
+
+#if defined(XR_USE_PLATFORM_ANDROID)
+static void app_handle_cmd(struct android_app* app, int32_t cmd) {
+    (void)app;
+    (void)cmd;
+}
+
+void android_main(struct android_app* app) {
+    AndroidApplicationVM = app->activity->vm;
+    AndroidApplicationActivity = app->activity->clazz;
+
+    JNIEnv* Env;
+    app->activity->vm->AttachCurrentThread(&Env, nullptr);
+
+    app->userData = NULL;
+    app->onAppCmd = app_handle_cmd;
+
+    InitLoader();
+
+    runTests();
+
+    ANativeActivity_finish(app->activity);
+    app->activity->vm->DetachCurrentThread();
+}
+#else
+int main(int /*argc*/, char* /*argv*/[]) {
 #if FILTER_OUT_LOADER_ERRORS == 1
     // Re-direct std::cerr to a string since we're intentionally causing errors and we don't
     // want it polluting the output stream.
@@ -673,41 +749,13 @@ int main(int argc, char* argv[]) {
     original_cerr = std::cerr.rdbuf(buffer.rdbuf());
 #endif
 
-    cout << "Starting loader_test" << endl << "--------------------" << endl;
-
-    g_has_installed_runtime = DetectInstalledRuntime();
-
-    RUN_TEST(TestEnumLayers)
-    RUN_TEST(TestEnumInstanceExtensions)
-
-    if (g_has_installed_runtime) {
-        cout << "Installed XR runtime detected - doing active runtime tests" << endl;
-        cout << "----------------------------------------------------------" << endl;
-        RUN_TEST(TestCreateDestroyInstance)
-        RUN_TEST(TestGetSystem)
-        RUN_TEST(TestCreateDestroyAction)
-    } else {
-        cout << "No installed XR runtime detected - active runtime tests skipped(!)" << endl;
-    }
+    bool success = runTests();
 
 #if FILTER_OUT_LOADER_ERRORS == 1
     // Restore std::cerr to the original buffer
     std::cerr.rdbuf(original_cerr);
 #endif
 
-    // Cleanup
-    CleanupEnvironmentVariables();
-
-    cout << "    Results:" << endl << "    ------------------------------" << endl;
-    cout << "        Total Tests:    " << std::to_string(total_tests) << endl;
-    cout << "        Tests Passed:   " << std::to_string(total_passed) << endl;
-    cout << "        Tests Skipped:  " << std::to_string(total_skipped) << endl;
-    cout << "        Tests Failed:   " << std::to_string(total_failed) << endl;
-    cout << "        Overall Result: ";
-    if (total_failed > 0) {
-        cout << "Failed" << endl;
-        return -1;
-    }
-    cout << "Passed" << endl;
-    return 0;
+    return success ? 0 : -1;
 }
+#endif  // defined(XR_USE_PLATFORM_ANDROID)

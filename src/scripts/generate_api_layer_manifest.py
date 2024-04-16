@@ -122,13 +122,13 @@ def main(argv):
             generate_badjson_jsons = True
 
     file_text = '{\n'
-    file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+    file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
     file_text += '    "api_layer": {\n'
-    file_text += '        "name": "XR_APILAYER_%s",\n' % layer_name
-    file_text += '        "library_path": "%s",\n' % library_location
-    file_text += '        "api_version": "%s",\n' % api_version
-    file_text += '        "implementation_version": "%s",\n' % implementation_version
-    file_text += '        "description": "%s"' % description
+    file_text += f'        "name": "XR_APILAYER_{layer_name}",\n'
+    file_text += f'        "library_path": "{library_location}",\n'
+    file_text += f'        "api_version": "{api_version}",\n'
+    file_text += f'        "implementation_version": "{implementation_version}",\n'
+    file_text += f'        "description": "{description}"'
 
     # If testing bad JSONs, then add in a fake extension
     if generate_badjson_jsons:
@@ -158,11 +158,11 @@ def main(argv):
         bad_name = '_badjson_file_ver_missing'
         file_text = '{\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "library_path": "%s",\n' % library_location
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'        "library_path": "{library_location}",\n'
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_name += '.json'
@@ -176,11 +176,11 @@ def main(argv):
         file_text = '{\n'
         file_text += '    "file_format_version": 1,\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "library_path": "%s",\n' % library_location
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'        "library_path": "{library_location}",\n'
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_name += '.json'
@@ -194,11 +194,11 @@ def main(argv):
         file_text = '{\n'
         file_text += '    "file_format_version": "invalid string",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "library_path": "%s",\n' % library_location
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'        "library_path": "{library_location}",\n'
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_name += '.json'
@@ -212,11 +212,11 @@ def main(argv):
         file_text = '{\n'
         file_text += '    "file_format_version": "0.0.0",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "library_path": "%s",\n' % library_location
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'        "library_path": "{library_location}",\n'
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_name += '.json'
@@ -230,11 +230,11 @@ def main(argv):
         file_text = '{\n'
         file_text += '    "file_format_version": "15.0.0",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "library_path": "%s",\n' % library_location
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'        "library_path": "{library_location}",\n'
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_name += '.json'
@@ -248,11 +248,11 @@ def main(argv):
         file_text = '{\n'
         file_text += '    "file_format_version": "1.15.0",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "library_path": "%s",\n' % library_location
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'        "library_path": "{library_location}",\n'
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_name += '.json'
@@ -267,12 +267,12 @@ def main(argv):
         # Completely Missing
         bad_name = '_badjson_layer_missing'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
-        file_text += '    "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '    "library_path": "%s",\n' % library_location
-        file_text += '    "api_version": "%s",\n' % api_version
-        file_text += '    "implementation_version": "%s",\n' % implementation_version
-        file_text += '    "description": "%s"\n' % description
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
+        file_text += f'    "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'    "library_path": "{library_location}",\n'
+        file_text += f'    "api_version": "{api_version}",\n'
+        file_text += f'    "implementation_version": "{implementation_version}",\n'
+        file_text += f'    "description": "{description}\"\n'
         file_text += '}\n'
         bad_name += '.json'
         bad_file = output_file.replace(".json", bad_name)
@@ -283,14 +283,14 @@ def main(argv):
         # Empty
         bad_name = '_badjson_layer_empty'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
         file_text += '    },\n'
-        file_text += '    "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '    "library_path": "%s",\n' % library_location
-        file_text += '    "api_version": "%s",\n' % api_version
-        file_text += '    "implementation_version": "%s",\n' % implementation_version
-        file_text += '    "description": "%s"\n' % description
+        file_text += f'    "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'    "library_path": "{library_location}",\n'
+        file_text += f'    "api_version": "{api_version}",\n'
+        file_text += f'    "implementation_version": "{implementation_version}",\n'
+        file_text += f'    "description": "{description}\"\n'
         file_text += '}\n'
         bad_name += '.json'
         bad_file = output_file.replace(".json", bad_name)
@@ -304,13 +304,13 @@ def main(argv):
         # Use int
         bad_name = '_badjson_name_int'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
         file_text += '        "name": 1,\n'
-        file_text += '        "library_path": "%s",\n' % library_location
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "library_path": "{library_location}",\n'
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_name += '.json'
@@ -322,12 +322,12 @@ def main(argv):
         # Missing
         bad_name = '_badjson_name_missing'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "library_path": "%s",\n' % library_location
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "library_path": "{library_location}",\n'
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_name += '.json'
@@ -342,12 +342,12 @@ def main(argv):
         # Missing
         bad_name = '_badjson_path_missing'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_name += '.json'
@@ -359,13 +359,13 @@ def main(argv):
         # Use int
         bad_name = '_badjson_path_int'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
         file_text += '        "library_path": 1,\n'
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_name += '.json'
@@ -377,13 +377,13 @@ def main(argv):
         # Replace valid path with invalid one
         bad_name = '_badjson_path_no_file'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "library_path": "%s",\n' % library_location.replace("test_layers", "not_real")
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f"        \"library_path\": \"{library_location.replace('test_layers', 'not_real')}\",\n"
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_name += '.json'
@@ -398,12 +398,12 @@ def main(argv):
         # Missing
         bad_name = '_badjson_api_int'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "library_path": "%s",\n' % library_location
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'        "library_path": "{library_location}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_name += '.json'
@@ -415,13 +415,13 @@ def main(argv):
         # Use int
         bad_name = '_badjson_api_int'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "library_path": "%s",\n' % library_location
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'        "library_path": "{library_location}",\n'
         file_text += '        "api_version": 1,\n'
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_name += '.json'
@@ -433,13 +433,13 @@ def main(argv):
         # Use float
         bad_name = '_badjson_api_float'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "library_path": "%s",\n' % library_location
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'        "library_path": "{library_location}",\n'
         file_text += '        "api_version": 1.0,\n'
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_name += '.json'
@@ -451,13 +451,13 @@ def main(argv):
         # Bad string
         bad_name = '_badjson_api_string'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "library_path": "%s",\n' % library_location
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'        "library_path": "{library_location}",\n'
         file_text += '        "api_version": "string",\n'
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_name += '.json'
@@ -469,13 +469,13 @@ def main(argv):
         # Too high of a major API version
         bad_name = '_badjson_api_major_high'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "library_path": "%s",\n' % library_location
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'        "library_path": "{library_location}",\n'
         file_text += '        "api_version": "15.0",\n'
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         bad_name += '.json'
@@ -490,13 +490,13 @@ def main(argv):
         # Always fail negotiate
         bad_name = '_badnegotiate_always'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "library_path": "%s",\n' % library_location
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s",\n' % description
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'        "library_path": "{library_location}",\n'
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}",\n'
         file_text += '        "functions": {\n'
         file_text += '           "xrNegotiateLoaderApiLayerInterface":\n'
         file_text += '               "TestLayerAlwaysFailNegotiateLoaderApiLayerInterface"\n'
@@ -512,13 +512,13 @@ def main(argv):
         # Pass negotiate, but return null GIPA
         bad_name = '_badnegotiate_invalid_gipa'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "library_path": "%s",\n' % library_location
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s",\n' % description
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'        "library_path": "{library_location}",\n'
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}",\n'
         file_text += '        "functions": {\n'
         file_text += '           "xrNegotiateLoaderApiLayerInterface":\n'
         file_text += '               "TestLayerNullGipaNegotiateLoaderApiLayerInterface"\n'
@@ -534,13 +534,13 @@ def main(argv):
         # Pass negotiate, but return invalid interface version
         bad_name = '_badnegotiate_invalid_interface'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "library_path": "%s",\n' % library_location
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s",\n' % description
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'        "library_path": "{library_location}",\n'
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}",\n'
         file_text += '        "functions": {\n'
         file_text += '           "xrNegotiateLoaderApiLayerInterface":\n'
         file_text += '               "TestLayerInvalidInterfaceNegotiateLoaderApiLayerInterface"\n'
@@ -556,13 +556,13 @@ def main(argv):
         # Pass negotiate, but return invalid api version
         bad_name = '_badnegotiate_invalid_api'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, bad_name)
-        file_text += '        "library_path": "%s",\n' % library_location
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s",\n' % description
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{bad_name}",\n'
+        file_text += f'        "library_path": "{library_location}",\n'
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}",\n'
         file_text += '        "functions": {\n'
         file_text += '           "xrNegotiateLoaderApiLayerInterface":\n'
         file_text += '               "TestLayerInvalidApiNegotiateLoaderApiLayerInterface"\n'
@@ -582,13 +582,13 @@ def main(argv):
         # Provide a good relative path
         layer_suffix_name = '_good_relative_path'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, layer_suffix_name)
-        file_text += '        "library_path": "%s",\n' % relative_lib
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{layer_suffix_name}",\n'
+        file_text += f'        "library_path": "{relative_lib}",\n'
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         layer_suffix_name += '.json'
@@ -600,13 +600,13 @@ def main(argv):
         # Provide a bad relative path
         layer_suffix_name = '_badjson_relative_path'
         file_text = '{\n'
-        file_text += '    "file_format_version": "%s",\n' % cur_layer_json_version
+        file_text += f'    "file_format_version": "{cur_layer_json_version}",\n'
         file_text += '    "api_layer": {\n'
-        file_text += '        "name": "XR_APILAYER_LUNARG_%s%s",\n' % (layer_name, layer_suffix_name)
-        file_text += '        "library_path": "%s",\n' % relative_lib.replace("test_layers", "not_real")
-        file_text += '        "api_version": "%s",\n' % api_version
-        file_text += '        "implementation_version": "%s",\n' % implementation_version
-        file_text += '        "description": "%s"\n' % description
+        file_text += f'        "name": "XR_APILAYER_LUNARG_{layer_name}{layer_suffix_name}",\n'
+        file_text += f"        \"library_path\": \"{relative_lib.replace('test_layers', 'not_real')}\",\n"
+        file_text += f'        "api_version": "{api_version}",\n'
+        file_text += f'        "implementation_version": "{implementation_version}",\n'
+        file_text += f'        "description": "{description}\"\n'
         file_text += '    }\n'
         file_text += '}\n'
         layer_suffix_name += '.json'

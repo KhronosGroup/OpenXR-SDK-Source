@@ -74,8 +74,7 @@ endif()
 #  - Add the linker flag (except windows)
 if(WIN32)
     target_sources(
-        test_runtime
-        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/test_runtime.def"
+        test_runtime PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/test_runtime.def"
     )
 elseif(APPLE)
     set_target_properties(
@@ -85,17 +84,17 @@ elseif(APPLE)
             "-Wl,-exported_symbols_list,${CMAKE_CURRENT_SOURCE_DIR}/test_runtime.expsym"
     )
     target_sources(
-        test_runtime
-        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/test_runtime.expsym"
+        test_runtime PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/test_runtime.expsym"
     )
 else()
     set_target_properties(
         test_runtime
-        PROPERTIES LINK_FLAGS "-Wl,--version-script=\"${CMAKE_CURRENT_SOURCE_DIR}/test_runtime.map\""
+        PROPERTIES
+            LINK_FLAGS
+            "-Wl,--version-script=\"${CMAKE_CURRENT_SOURCE_DIR}/test_runtime.map\""
     )
     target_sources(
-        test_runtime
-        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/test_runtime.map"
+        test_runtime PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/test_runtime.map"
     )
 endif()
 

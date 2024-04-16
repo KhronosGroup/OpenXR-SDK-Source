@@ -1,0 +1,75 @@
+// Copyright (c) 2020-2024, The Khronos Group Inc.
+//
+// SPDX-License-Identifier: Apache-2.0
+
+// Open this directory in Android Studio, or build with Gradle,
+// to build the "loader_test" test application.
+// Results are output to logcat when launched.
+
+plugins {
+    id 'com.android.application' version '7.4.2'
+}
+
+
+// These next few lines are just to make the version match the OpenXR release.
+project.ext.repoRoot = file('../../../')
+apply from: file('../../version.gradle')
+
+def assetDest = layout.buildDir.dir('intermediates/generated_assets')
+
+tasks.register('copyAssets', Copy) {
+    // layer manifests
+    from('android_assets') {
+        include '**/*.json'
+    }
+
+    into assetDest
+}
+
+android {
+    compileSdk 33
+    ndkVersion "23.2.8568313"
+    buildToolsVersion = "34.0.0"
+    namespace 'org.khronos.openxr.loader_test'
+
+    defaultConfig {
+        applicationId "org.khronos.openxr.loader_test"
+        // for Vulkan, need at least 24
+        minSdkVersion 24
+
+        versionName = project.versionOpenXR.toString() + project.versionQualifier
+        versionCode = project.versionOpenXR.getVersionCode()
+
+        externalNativeBuild {
+            cmake {
+                arguments '-DBUILD_API_LAYERS=ON',
+                        '-DBUILD_TESTS=ON',
+                        '-DBUILD_LOADER=ON',
+                        '-DBUILD_CONFORMANCE_TESTS=OFF',
+                        '-DBUILD_ALL_EXTENSIONS=ON'
+                targets "openxr_loader", "loader_test", "XrApiLayer_test", "test_runtime"
+            }
+        }
+        preBuild.dependsOn(copyAssets)
+    }
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            assets.srcDirs assetDest
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "${project.repoRoot}/CMakeLists.txt"
+        }
+    }
+
+}
+

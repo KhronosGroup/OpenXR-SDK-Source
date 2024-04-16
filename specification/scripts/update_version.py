@@ -38,11 +38,8 @@ if __name__ == "__main__":
             if 'type name' in line:
                 printed = True
                 print('            <type name="XR_CURRENT_API_VERSION"/>')
-        elif 'XR_VERSION_' in line and 'feature' in line and 'number' in line and 'openxr' in line:
-            printed = True
-            print('    <feature api="openxr" name="XR_VERSION_%s_%s" number="%s.%s">' % (major_version, minor_version, major_version, minor_version))
         if not printed:
-            print("%s" % (line), end='')
+            print(f"{line}", end='')
 
     # Now update the version in the appropriate places in the
     # specification make file (Makefile).
@@ -54,4 +51,4 @@ if __name__ == "__main__":
             printed = True
             print('SPECREVISION = %s.%s.%s' % spec_version)
         if not printed:
-            print("%s" % (line), end='')
+            print(f"{line}", end='')

@@ -1,10 +1,10 @@
-"""Provides a re-usable command-line interface to a MacroChecker."""
-
+# Copyright 2018-2024, The Khronos Group Inc.
 # Copyright (c) 2018-2019 Collabora, Ltd.
 #
 # SPDX-License-Identifier: Apache-2.0
 #
 # Author(s):    Rylie Pavlik <rylie.pavlik@collabora.com>
+"""Provides a reusable command-line interface to a MacroChecker."""
 
 
 import argparse
@@ -96,17 +96,17 @@ def checkerMain(default_enabled_messages, make_macro_checker,
         disable_arg = message_id.disable_arg()
         disable_args.append((message_id, disable_arg))
         if message_id in enabled_messages:
-            parser.add_argument('-' + disable_arg, action="store_true",
-                                help="Disable message category {}: {}".format(str(message_id), message_id.desc()))
+            parser.add_argument(f"-{disable_arg}", action="store_true",
+                                help=f"Disable message category {str(message_id)}: {message_id.desc()}")
             # Don't show the enable flag in help since it's enabled by default
-            parser.add_argument('-' + enable_arg, action="store_true",
+            parser.add_argument(f"-{enable_arg}", action="store_true",
                                 help=argparse.SUPPRESS)
         else:
-            parser.add_argument('-' + enable_arg, action="store_true",
-                                help="Enable message category {}: {}".format(str(message_id), message_id.desc()))
+            parser.add_argument(f"-{enable_arg}", action="store_true",
+                                help=f"Enable message category {str(message_id)}: {message_id.desc()}")
             # Don't show the disable flag in help since it's disabled by
             # default
-            parser.add_argument('-' + disable_arg, action="store_true",
+            parser.add_argument(f"-{disable_arg}", action="store_true",
                                 help=argparse.SUPPRESS)
 
     args = parser.parse_args()
@@ -204,7 +204,7 @@ def checkerMain(default_enabled_messages, make_macro_checker,
 
     if checker.hasFixes():
         fixFn = 'applyfixes.sh'
-        print('Saving shell script to apply fixes as {}'.format(fixFn))
+        print(f'Saving shell script to apply fixes as {fixFn}')
         with open(fixFn, 'w', encoding='utf-8') as f:
             f.write('#!/bin/sh -e\n')
             for fileChecker in checker.files:
@@ -212,7 +212,7 @@ def checkerMain(default_enabled_messages, make_macro_checker,
                 for msg in fileChecker.messages:
                     if msg.fix is not None:
                         if not wroteComment:
-                            f.write('\n# {}\n'.format(fileChecker.filename))
+                            f.write(f'\n# {fileChecker.filename}\n')
                             wroteComment = True
                         search, replace = msg.fix
                         f.write(
@@ -222,17 +222,15 @@ def checkerMain(default_enabled_messages, make_macro_checker,
                                 fileChecker.filename))
                         f.write('\n')
 
-    print('Total number of errors with this run: {}'.format(numErrors))
+    print(f'Total number of errors with this run: {numErrors}')
 
     if args.ignore_count:
         if numErrors > args.ignore_count:
             # Exit with non-zero error code so that we "fail" CI, etc.
-            print('Exceeded specified limit of {}, so exiting with error'.format(
-                args.ignore_count))
+            print(f'Exceeded specified limit of {args.ignore_count}, so exiting with error')
             exit(1)
         else:
-            print('At or below specified limit of {}, so exiting with success'.format(
-                args.ignore_count))
+            print(f'At or below specified limit of {args.ignore_count}, so exiting with success')
             exit(0)
 
     if numErrors:

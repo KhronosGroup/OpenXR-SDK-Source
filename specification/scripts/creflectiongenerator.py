@@ -50,7 +50,7 @@ class StructData:
     def protect_string(self) -> Optional[str]:
         """The preprocessor expression to test for protection, or None"""
         if self.protect:
-            return " && ".join("defined({})".format(x) for x in self.protect)
+            return " && ".join(f"defined({x})" for x in self.protect)
 
 
 class BitmaskData:
@@ -87,7 +87,7 @@ class CReflectionOutputGenerator(OutputGenerator):
 
     def beginFile(self, genOpts):
         OutputGenerator.beginFile(self, genOpts)
-        self.template = JinjaTemplate(self.env, "template_{}".format(genOpts.filename))
+        self.template = JinjaTemplate(self.env, f"template_{genOpts.filename}")
 
     def _get_structs_for_protect(self, protect=None):
         """
@@ -230,7 +230,7 @@ class CReflectionOutputGenerator(OutputGenerator):
             expandSuffix = ''
             expandSuffixMatch = re.search(r'[A-Z][A-Z]+$', groupName)
             if expandSuffixMatch:
-                expandSuffix = '_' + expandSuffixMatch.group()
+                expandSuffix = f"_{expandSuffixMatch.group()}"
                 # Strip off the suffix from the prefix
                 expandPrefix = expandName.rsplit(expandSuffix, 1)[0]
 

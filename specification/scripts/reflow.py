@@ -60,10 +60,10 @@ endPara = re.compile(r'^( *|\[.*\]|//.*|<<<<|:.*|[a-z]+::.*|\+|.*::)$')
 # Special case of markup ending a paragraph, used to track the current
 # command/structure. This allows for either OpenXR or Vulkan API path
 # conventions. Nominally it should use the file suffix defined by the API
-# conventions (conventions.file_suffix), except that XR uses '.txt' for
+# conventions (conventions.file_suffix), except that XR used to use '.txt' for
 # generated API include files, not '.adoc' like its other includes.
 includePat = re.compile(
-        r'include::(?P<directory_traverse>((../){1,4}|\{generated\}/)(generated/)?)(?P<generated_type>[\w]+)/(?P<category>\w+)/(?P<entity_name>[^./]+).txt[\[][\]]')
+        r'include::(?P<directory_traverse>((../){1,4}|\{generated\}/)(generated/)?)(?P<generated_type>[\w]+)/(?P<category>\w+)/(?P<entity_name>[^./]+).(txt|adoc)[\[][\]]')
 
 # Find the first pname: or code: pattern in a Valid Usage statement
 pnamePat = re.compile(r'pname:(?P<param>\{?\w+\}?)')
@@ -341,7 +341,7 @@ class ReflowState:
                             # the current line no matter its length.
 
                             (addWord, closeLine, startLine) = (True, True, False)
-                        elif beginBullet.match(word + ' '):
+                        elif beginBullet.match(f"{word} "):
                             # If the word *is* a bullet point, add it to
                             # the current line no matter its length.
                             # This avoids an innocent inline '-' or '*'
@@ -366,7 +366,7 @@ class ReflowState:
                     # Add a word to the current line
                     if addWord:
                         if outLine:
-                            outLine += ' ' + word
+                            outLine += f" {word}"
                             outLineLen = newLen
                         else:
                             # Fall through to startLine case if there is no
@@ -378,7 +378,7 @@ class ReflowState:
                     # will ever have contents.
                     if closeLine:
                         if outLine:
-                            outPara.append(outLine + '\n')
+                            outPara.append(f"{outLine}\n")
                             outLine = None
 
                     # Start a new line and add a word to it
@@ -392,7 +392,7 @@ class ReflowState:
 
         # Add this line to the output paragraph.
         if outLine:
-            outPara.append(outLine + '\n')
+            outPara.append(f"{outLine}\n")
 
         return outPara
 
@@ -411,7 +411,7 @@ class ReflowState:
                     # Check for nested bullet points. These should not be
                     # assigned VUIDs, nor present at all, because they break
                     # the VU extractor.
-                    logWarn(self.filename + ': Invalid nested bullet point in VU block:', self.para[0])
+                    logWarn(f"{self.filename}: Invalid nested bullet point in VU block:", self.para[0])
                 elif self.vuPrefix not in self.para[0]:
                     # If:
                     #   - a tag is not already present, and
@@ -721,8 +721,8 @@ def reflowFile(filename, args):
                 and not beginBullet.match(line)
                 and conditionalStart.match(lines[state.lineNumber-2])):
 
-                logWarn('Detected embedded Valid Usage conditional: {}:{}'.format(
-                        filename, state.lineNumber - 1))
+                logWarn('Detected embedded Valid Usage conditional:',
+                        f'{filename}:{state.lineNumber - 1}')
                 # Keep track of warning check count
                 args.warnCount = args.warnCount + 1
 
@@ -753,12 +753,12 @@ def reflowAllAdocFiles(folder_to_reflow, args):
                 reflowFile(file_path, args)
         for subdir in subdirs:
             sub_folder = os.path.join(root, subdir)
-            print('Sub-folder = %s' % sub_folder)
+            print(f'Sub-folder = {sub_folder}')
             if subdir.lower() not in conventions.spec_no_reflow_dirs:
-                print('   Parsing = %s' % sub_folder)
+                print(f'   Parsing = {sub_folder}')
                 reflowAllAdocFiles(sub_folder, args)
             else:
-                print('   Skipping = %s' % sub_folder)
+                print(f'   Skipping = {sub_folder}')
 
 # Patterns used to recognize interesting lines in an asciidoc source file.
 # These patterns are only compiled once.
@@ -815,7 +815,7 @@ if __name__ == '__main__':
                         help='Set the suffix added to updated file names (default: none)')
     parser.add_argument('files', metavar='filename', nargs='*',
                         help='a filename to reflow text in')
-    parser.add_argument('--version', action='version', version='%(prog)s 1.0')
+    parser.add_argument('--version', action='version', version='%(prog)s 1.1')
 
     args = parser.parse_args()
 
@@ -883,9 +883,9 @@ if __name__ == '__main__':
         for vuid in sorted(args.vuidDict):
             found = args.vuidDict[vuid]
             if len(found) > 1:
-                logWarn('Duplicate VUID number {} found in files:'.format(vuid))
+                logWarn(f'Duplicate VUID number {vuid} found in files:')
                 for (file, line) in found:
-                    logWarn('    {}: {}'.format(file, line))
+                    logWarn(f'    {file}: {line}')
                 dupVUIDs = dupVUIDs + 1
 
         if dupVUIDs > 0:
@@ -908,12 +908,8 @@ if __name__ == '__main__':
             print('# Key is branch name, value is [ start, end, nextfree ]', file=reflow_count_file)
             print('vuidCounts = {', file=reflow_count_file)
             for key in sorted(vuidCounts):
-                print("    '{}': [ {}, {}, {} ],".format(
-                    key,
-                    vuidCounts[key][0],
-                    vuidCounts[key][1],
-                    vuidCounts[key][2]),
-                    file=reflow_count_file)
+                print(f"    '{key}': [ {', '.join(vuidCounts[key])} ],",
+                      file=reflow_count_file)
             print('}', file=reflow_count_file)
             reflow_count_file.close()
         except:

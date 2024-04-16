@@ -82,9 +82,9 @@ generate_src src/loader xr_generated_loader.cpp  "$TARNAME"
 generate_src src/loader xr_generated_loader.hpp  "$TARNAME"
 
 # If the loader doc has been generated, include it too.
-if [ -f specification/generated/out/1.0/loader.html ]; then
+if [ -f specification/generated/out/1.1/loader.html ]; then
     mkdir -p doc/loader
-    cp specification/generated/out/1.0/loader.html doc/loader/OpenXR_loader_design.html
+    cp specification/generated/out/1.1/loader.html doc/loader/OpenXR_loader_design.html
     add_to_tar "$TARNAME" doc/loader/OpenXR_loader_design.html
 fi
 

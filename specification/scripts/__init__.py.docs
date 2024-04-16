@@ -1,13 +1,12 @@
+# Copyright 2019-2024 The Khronos Group Inc.
+#
+# SPDX-License-Identifier: Apache-2.0
 """Scripts for building the OpenXR specification and artifacts.
 
 
 See also `src.scripts` for scripts that help build the loader and layers,
 many of which build on these scripts.
 """
-
-# Copyright (c) 2013-2024, The Khronos Group Inc.
-#
-# SPDX-License-Identifier: Apache-2.0
 
 # This is only used during doc builds, hence the weird file extension.
 # It messes up scripts at other times.

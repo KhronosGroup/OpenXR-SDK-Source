@@ -1,0 +1,9 @@
+{
+    "file_format_version": "1.0.0",
+    "api_layer": {
+        "name": "XR_APILAYER_LUNARG_test_badjson_path_missing",
+        "api_version": "1.0",
+        "implementation_version": "1",
+        "description": "Test_description"
+    }
+}
