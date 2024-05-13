@@ -60,14 +60,12 @@
     <queries>
         <provider android:authorities="org.khronos.openxr.runtime_broker;org.khronos.openxr.system_runtime_broker" />
 
-        <!-- This part doesn't work on Quest 1 for some reason
         <intent>
             <action android:name="org.khronos.openxr.OpenXRRuntimeService" />
         </intent>
         <intent>
             <action android:name="org.khronos.openxr.OpenXRApiLayerService" />
         </intent>
-     -->
 
 </queries>
 
