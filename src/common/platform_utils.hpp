@@ -324,15 +324,18 @@ static inline std::string PlatformUtilsGetSecureEnv(const char* name) {
 }
 
 #elif defined(XR_OS_ANDROID)
+namespace detail {
 
-static inline bool PlatformUtilsGetEnvSet(const char* /* name */) {
-    // Stub func
-    return false;
-}
+static inline char* ImplGetEnv(const char* name) { return getenv(name); }
+}  // namespace detail
+static inline bool PlatformUtilsGetEnvSet(const char* name) { return detail::ImplGetEnv(name) != nullptr; }
 
-static inline std::string PlatformUtilsGetEnv(const char* /* name */) {
-    // Stub func
-    return {};
+static inline std::string PlatformUtilsGetEnv(const char* name) {
+    auto str = detail::ImplGetEnv(name);
+    if (str == nullptr) {
+        return {};
+    }
+    return str;
 }
 
 static inline std::string PlatformUtilsGetSecureEnv(const char* /* name */) {
