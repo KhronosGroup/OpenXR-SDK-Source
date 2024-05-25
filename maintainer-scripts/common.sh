@@ -154,6 +154,7 @@ getSDKSourceFilenames() {
         checkCodespell \
         CMakeLists.txt \
         format_file.sh \
+        open-in-docker.sh \
         LICENSE \
         openxr-codespell.exclude \
         runClangFormat.sh \

@@ -242,7 +242,7 @@ class Checker(XMLChecker):
             stripped_enum_type = stripped_enum_type.replace("FlagBits", "")
         # This is how we apply the "convert type to enum value name" transform: pretend it's a structure type,
         # then replace "XR_TYPE_" with the generic prefix "XR_"
-        start = self.conventions.generate_structure_type_from_name(stripped_enum_type).replace("XR_TYPE", "XR") + "_"
+        start = f"{self.conventions.generate_structure_type_from_name(stripped_enum_type).replace('XR_TYPE', 'XR')}_"
 
         value_names = get_enum_value_names(self.db.registry, enum_type)
 

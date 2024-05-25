@@ -771,7 +771,7 @@ class Registry:
                                 stage_flag = enum.get('alias')
                             featureName = elem.get('depends') if elem.get('depends') is not None else featureInfo.name
                             if stage_flag in sync_pipeline_stage_condition:
-                                sync_pipeline_stage_condition[stage_flag] += "," + featureName
+                                sync_pipeline_stage_condition[stage_flag] += f",{featureName}"
                             else:
                                 sync_pipeline_stage_condition[stage_flag] = featureName
                         elif groupName == "VkAccessFlagBits2":
@@ -780,7 +780,7 @@ class Registry:
                                 access_flag = enum.get('alias')
                             featureName = elem.get('depends') if elem.get('depends') is not None else featureInfo.name
                             if access_flag in sync_access_condition:
-                                sync_access_condition[access_flag] += "," + featureName
+                                sync_access_condition[access_flag] += f",{featureName}"
                             else:
                                 sync_access_condition[access_flag] = featureName
 

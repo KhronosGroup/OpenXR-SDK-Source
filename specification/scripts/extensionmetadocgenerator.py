@@ -154,6 +154,7 @@ class Extension:
 
     def conditionalLinkCoreAPI(self, apiVersion, linkSuffix, isRefpage):
         versionMatch = re.match(f"{self.conventions.api_version_prefix}(\\d+)_(\\d+)", apiVersion)
+        assert versionMatch
         major = versionMatch.group(1)
         minor = versionMatch.group(2)
 
@@ -295,9 +296,7 @@ class Extension:
                 separator = ''
             else:
                 separator = '+'
-            write(separator + '\n--\n' +
-                  dependencyMarkup(self.depends) +
-                  '--', file=fp)
+            write(f"{separator}\n--\n{dependencyMarkup(self.depends)}--", file=fp)
         else:
             # Do not specify the base API redundantly, but put something
             # here to avoid formatting trouble.
@@ -328,10 +327,7 @@ class Extension:
 
             names = sorted(sorted(interacts), key=versionKey)
             for name in names:
-                if "_VERSION_" in name:
-                    write(f"* Interacts with {self.conventions.formatVersion(name)}", file=fp)
-                else:
-                    write(f"* Interacts with {self.conventions.formatExtension(name)}", file=fp)
+                write(f"* Interacts with {self.conventions.formatVersionOrExtension(name)}", file=fp)
 
         if self.name in SPV_deps:
             self.writeTag('SPIR-V Dependencies', None, isRefpage, fp)

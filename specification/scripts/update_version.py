@@ -31,13 +31,10 @@ if __name__ == "__main__":
     print('Replacing version lines in the registry')
     for line in fileinput.input('registry/xr.xml', inplace=True):
         printed = False
-        if 'XR_CURRENT_API_VERSION' in line:
+        if '<name>XR_CURRENT_API_VERSION</name>' in line:
             if 'XR_MAKE_VERSION' in line:
                 printed = True
                 print('#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(%s, %s, %s)</type>' % spec_version)
-            if 'type name' in line:
-                printed = True
-                print('            <type name="XR_CURRENT_API_VERSION"/>')
         if not printed:
             print(f"{line}", end='')
 

@@ -130,7 +130,8 @@ static std::string stringFromXrVersion(XrVersion ver) {
 static int main_body() {
     XrInstanceCreateInfo instanceCreateInfo = {XR_TYPE_INSTANCE_CREATE_INFO};
     strncpy(instanceCreateInfo.applicationInfo.applicationName, "OpenXR-Inventory List", XR_MAX_APPLICATION_NAME_SIZE);
-    instanceCreateInfo.applicationInfo.apiVersion = XR_CURRENT_API_VERSION;
+    // Current version is 1.1.x, but this app only requires 1.0.x
+    instanceCreateInfo.applicationInfo.apiVersion = XR_API_VERSION_1_0;
 
     XrInstance instance = XR_NULL_HANDLE;
 
