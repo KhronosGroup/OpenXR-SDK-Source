@@ -35,6 +35,7 @@
 #include <cstring>
 #include <fstream>
 #include <iostream>
+#include <inttypes.h>
 #include <memory>
 #include <mutex>
 #include <sstream>
@@ -43,6 +44,10 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+
+#ifdef __ANDROID__
+#include "android/log.h"
+#endif
 
 #if defined(__GNUC__) && __GNUC__ >= 4
 #define LAYER_EXPORT __attribute__((visibility("default")))
@@ -213,12 +218,15 @@ bool CoreValidationWriteHtmlFooter() {
 
 // For routing platform_utils.hpp messages.
 void LogPlatformUtilsError(const std::string &message) {
-    (void)message;
+    (void)message;  // maybe unused
 #if !defined(NDEBUG)
     std::cerr << message << std::endl;
+#endif
+
 #if defined(XR_OS_WINDOWS)
     OutputDebugStringA((message + "\n").c_str());
-#endif
+#elif defined(XR_OS_ANDROID)
+    __android_log_write(ANDROID_LOG_ERROR, "OpenXR-CoreValidation", message.c_str());
 #endif
 }
 
@@ -294,27 +302,31 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
 
         switch (g_record_info.type) {
             case RECORD_TEXT_COUT: {
-                std::cout << "[" << severity_string << " | " << message_id << " | " << command_name << "]: " << message
-                          << std::endl;
+#if defined(ANDROID)
+#define ALOGI(...)       \
+    printf(__VA_ARGS__); \
+    __android_log_print(ANDROID_LOG_INFO, "core_validation", __VA_ARGS__)
+#else
+#define ALOGI(...) printf(__VA_ARGS__)
+#endif
+                ALOGI("[%s|%s|%s]: %s \n", severity_string.c_str(), message_id.c_str(), command_name.c_str(), message.c_str());
                 if (!objects_info.empty()) {
-                    std::cout << "  Objects:" << std::endl;
+                    ALOGI("  Objects:\n");
                     uint32_t count = 0;
                     for (const auto &object_info : objects_info) {
                         std::string object_type = GenValidUsageXrObjectTypeToString(object_info.type);
-                        std::ostringstream oss_object_handle;
-                        std::cout << "   [" << std::to_string(count++) << "] - " << object_type << " ("
-                                  << Uint64ToHexString(object_info.handle) << ")";
-                        std::cout << std::endl;
+                        std::string hexString = Uint64ToHexString(object_info.handle);
+                        ALOGI("   [%" PRIu32 "] - %s (%s)\n", count++, object_type.c_str(), hexString.c_str());
                     }
                 }
                 if (!names_and_labels.labels.empty()) {
-                    std::cout << "  Session Labels:" << std::endl;
+                    ALOGI("  Session Labels:\n");
                     uint32_t count = 0;
                     for (const auto &session_label : names_and_labels.labels) {
-                        std::cout << "   [" << std::to_string(count++) << "] - " << session_label.labelName << std::endl;
+                        ALOGI("   [%" PRIu32 "] - %s\n", count++, session_label.labelName);
+#undef ALOGI
                     }
                 }
-                std::cout << std::flush;
                 break;
             }
             case RECORD_TEXT_FILE: {
@@ -497,8 +509,16 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrCreateApiLayerInstance(const XrIn
             g_record_info.type = RECORD_TEXT_COUT;
         }
 
+#if !defined(ANDROID)
         std::string export_type = PlatformUtilsGetEnv("XR_CORE_VALIDATION_EXPORT_TYPE");
         std::string file_name = PlatformUtilsGetEnv("XR_CORE_VALIDATION_FILE_NAME");
+#else
+        // We match the pattern used by the Vulkan api_dump layer here
+        // (we replace the `XR_` prefix with `debug.` and make it lowercase.)
+        // adb shell "setprop debug.api_dump_file_name '/sdcard/xr_apidump.txt'"
+        std::string export_type = PlatformUtilsGetAndroidSystemProperty("debug.core_validation_export_type");
+        std::string file_name = PlatformUtilsGetAndroidSystemProperty("debug.core_validation_file_name");
+#endif
         if (!file_name.empty()) {
             g_record_info.file_name = file_name;
             g_record_info.type = RECORD_TEXT_FILE;

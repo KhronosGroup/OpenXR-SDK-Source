@@ -53,6 +53,12 @@ export XR_API_DUMP_EXPORT_TYPE=text
 export XR_API_DUMP_FILE_NAME=my_api_dump.txt
 ```
 
+On Android, the equivalent settings are:
+```sh
+adb shell setprop debug.api_dump_export_type 'text'
+adb shell setprop debug.api_dump_file_name '/sdcard/xr_apidump.txt'
+```
+
 When the `XR_APILAYER_LUNARG_api_dump` API layer is enabled, the
 output (whether to stdout or a file) should look like
 the following:
@@ -120,8 +126,13 @@ For outputting HTML content to a file, you would do the following:
 export XR_API_DUMP_EXPORT_TYPE=html
 export XR_API_DUMP_FILE_NAME=my_api_dump.html
 ```
+On Android, the equivalent settings are:
+```sh
+adb shell setprop debug.api_dump_export_type 'html'
+adb shell setprop debug.api_dump_file_name '/sdcard/my_api_dump.txt'
+```
 
-When the XR_APILAYER_LUNARG_api_dump APIlayer is enabled, and the
+When the `XR_APILAYER_LUNARG_api_dump` API layer is enabled, and the
 user has enabled HTML output, the resulting HTML file contents
 (when rendered through an internet browser) should look like the
 following:

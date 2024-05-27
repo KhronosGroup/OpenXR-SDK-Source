@@ -99,6 +99,11 @@ set_target_properties(
 target_link_libraries(
     XrApiLayer_api_dump PRIVATE Threads::Threads OpenXR::headers
 )
+if(ANDROID)
+    target_link_libraries(
+        XrApiLayer_api_dump PRIVATE ${ANDROID_LOG_LIBRARY}
+    )
+endif()
 target_compile_definitions(
     XrApiLayer_api_dump PRIVATE ${OPENXR_ALL_SUPPORTED_DEFINES}
 )
@@ -172,6 +177,11 @@ set_target_properties(
 target_link_libraries(
     XrApiLayer_core_validation PRIVATE Threads::Threads OpenXR::headers
 )
+if(ANDROID)
+    target_link_libraries(
+        XrApiLayer_core_validation PRIVATE ${ANDROID_LOG_LIBRARY}
+    )
+endif()
 target_compile_definitions(
     XrApiLayer_core_validation PRIVATE ${OPENXR_ALL_SUPPORTED_DEFINES}
 )

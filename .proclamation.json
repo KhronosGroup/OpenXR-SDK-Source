@@ -22,10 +22,6 @@
             "news_filename": "CHANGELOG.Docs.md",
             "template": "changes/template.md",
             "sections": {
-                "Major Update": {
-                    "directory": "changes/major",
-                    "sort_by_prefix": true
-                },
                 "Registry": {
                     "directory": "changes/registry",
                     "sort_by_prefix": true

@@ -73,7 +73,13 @@ to stdout.  However, it supports two environmental variables:
 
 ```sh
 export XR_CORE_VALIDATION_EXPORT_TYPE=text
-export XR_CORE_VALIDATION_FILE_NAME=my_api_dump.txt
+export XR_CORE_VALIDATION_FILE_NAME=my_validation_output.txt
+```
+
+On Android, the equivalent settings are:
+```sh
+adb shell setprop debug.core_validation_export_type 'text'
+adb shell setprop debug.core_validation_file_name '/sdcard/my_validation_output.txt'
 ```
 
 When the `XR_APILAYER_LUNARG_core_validation` layer is enabled, the

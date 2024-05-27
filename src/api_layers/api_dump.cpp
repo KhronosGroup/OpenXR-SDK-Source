@@ -42,6 +42,10 @@
 #include <utility>
 #include <vector>
 
+#ifdef __ANDROID__
+#include "android/log.h"
+#endif
+
 #if defined(__GNUC__) && __GNUC__ >= 4
 #define LAYER_EXPORT __attribute__((visibility("default")))
 #elif defined(__SUNPRO_C) && (__SUNPRO_C >= 0x590)
@@ -71,14 +75,15 @@ static std::mutex g_record_mutex = {};
 
 // For routing platform_utils.hpp messages.
 void LogPlatformUtilsError(const std::string &message) {
+    (void)message;  // maybe unused
 #if !defined(NDEBUG)
     std::cerr << message << std::endl;
+#endif
+
 #if defined(XR_OS_WINDOWS)
     OutputDebugStringA((message + "\n").c_str());
-#endif
-#else
-    // Unused
-    (void)message;
+#elif defined(XR_OS_ANDROID)
+    __android_log_write(ANDROID_LOG_ERROR, "OpenXR-APIDump", message.c_str());
 #endif
 }
 
@@ -235,22 +240,30 @@ bool ApiDumpLayerRecordContent(std::vector<std::tuple<std::string, std::string, 
         uint32_t count = 0;
         switch (g_record_info.type) {
             case RECORD_TEXT_COUT: {
+#if defined(ANDROID)
+#define ALOGI(...)       \
+    printf(__VA_ARGS__); \
+    __android_log_print(ANDROID_LOG_INFO, "api_dump", __VA_ARGS__)
+#else
+#define ALOGI(...) printf(__VA_ARGS__)
+#endif
                 for (const auto &content : contents) {
                     std::string content_type;
                     std::string content_name;
                     std::string content_value;
                     std::tie(content_type, content_name, content_value) = content;
-                    if (count++ != 0) {
-                        std::cout << "    ";
-                    }
+
+                    const char *indent = (count++ != 0) ? "    " : "";
+
                     if (!content_value.empty()) {
-                        std::cout << content_type << " " << content_name << " = " << content_value << "\n";
+                        ALOGI("%s%s %s = %s", indent, content_type.c_str(), content_name.c_str(), content_value.c_str());
                     } else {
-                        std::cout << content_type << " " << content_name << "\n";
+                        ALOGI("%s%s %s", indent, content_type.c_str(), content_name.c_str());
                     }
                 }
                 success = true;
                 break;
+#undef ALOGI
             }
             case RECORD_TEXT_FILE: {
                 std::ofstream text_file;
@@ -439,8 +452,17 @@ XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrCreateApiLayerInstance(const XrInst
             g_record_info.type = RECORD_TEXT_COUT;
         }
 
+#if !defined(ANDROID)
         std::string export_type = PlatformUtilsGetEnv("XR_API_DUMP_EXPORT_TYPE");
         std::string file_name = PlatformUtilsGetEnv("XR_API_DUMP_FILE_NAME");
+#else
+        // We match the pattern used by the Vulkan api_dump layer here
+        // (we replace the `XR_` prefix with `debug.` and make it lowercase.)
+        // adb shell "setprop debug.api_dump_file_name '/sdcard/xr_apidump.txt'"
+        std::string export_type = PlatformUtilsGetAndroidSystemProperty("debug.api_dump_export_type");
+        std::string file_name = PlatformUtilsGetAndroidSystemProperty("debug.api_dump_file_name");
+#endif
+
         if (!file_name.empty()) {
             g_record_info.file_name = file_name;
             g_record_info.type = RECORD_TEXT_FILE;

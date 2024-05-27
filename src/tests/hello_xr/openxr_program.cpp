@@ -988,8 +988,7 @@ struct OpenXrProgram : IOpenXrProgram
         strcpy(createInfo.applicationInfo.applicationName, "HelloXR");
 
         // Current version is 1.1.x, but hello_xr only requires 1.0.x
-        createInfo.applicationInfo.apiVersion =
-            XR_MAKE_VERSION(XR_VERSION_MAJOR(XR_CURRENT_API_VERSION), 0, XR_VERSION_PATCH(XR_CURRENT_API_VERSION));
+        createInfo.applicationInfo.apiVersion = XR_API_VERSION_1_0;
 
         CHECK_XRCMD(xrCreateInstance(&createInfo, &m_instance));
     }

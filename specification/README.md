@@ -8,10 +8,13 @@ SPDX-License-Identifier: CC-BY-4.0
 
 Before building the specification, install the necessary prerequisite tools as described later in this document.
 
-You may instead choose to use the `open-in-docker.sh` script,
-which will mount the repository in a container built from an image with all the necessary tools installed.
-See that script for more details.
-You can find the associated Dockerfile at https://github.com/KhronosGroup/DockerContainers/blob/master/Dockerfile.openxr
+You may instead choose to use the `open-in-docker.sh` script, available in the
+OpenXR-Docs (spec source) and OpenXR-SDK-Source (SDK, for loader docs build)
+repo as well as the internal monorepo. This script which will mount the
+repository in a container built from an image with all the necessary tools
+installed: these are regularly pushed to Docker Hub. See that script for more
+details. You can find the associated Dockerfile at
+<https://github.com/KhronosGroup/DockerContainers/blob/main/openxr.Dockerfile>
 
 ## Conditional Inclusion of Extensions
 
@@ -91,6 +94,10 @@ specified by the Makefile variable `$(OUTDIR)` (by default,
 It is recommended to build these targets using a "helper" script from above,
 unless you want to only build the core spec without any extensions.
 
+Most of these are not supported if building in `OpenXR-SDK-Source`: this
+repository is mostly software, and the only contained AsciiDoc content is the
+loader design document source.
+
 These targets are currently supported.
 
 * API spec:
@@ -118,6 +125,10 @@ For example:
 ```bash
 make styleguide
 ```
+
+Many of these are not supported if building in `OpenXR-SDK-Source`: this
+repository is mostly software, and the only contained AsciiDoc content is the
+loader design document source.
 
 * "OpenXR Documentation and Extensions" guide (aka Style Guide):
   * `styleguide` - Single-file HTML5 in `$(OUTDIR)/styleguide.html`
@@ -219,7 +230,8 @@ parts you don't use) completely before trying to install.
 > Asciidoctor-pdf versions before `1.5.0.alpha15` have issues with multi-page
 valid usage blocks, in that the background only renders for the first page.
 `alpha.15` fixes this issue (as well as a few others); do not use prior
-versions.
+versions. On the other hand, versions later than 1.6.2 break our index
+customization script, so 1.6.2 is ideal.
 
 Only the `asciidoctor` and `rouge` gems (and their dependencies) are needed if
 you do not intend to build PDF versions of the spec and supporting documents.
@@ -229,6 +241,14 @@ you do not intend to build PDF versions of the spec and supporting documents.
 people submitting MRs with substantial changes to the Specification are
 responsible for verifying that their branches build *both* `html` and `pdf`
 targets.
+
+The easiest way to get the right version of these gems is to use "bundler":
+
+```sh
+bundle install
+```
+
+Then, pass `BUNDLER=1` to each `make` (or wrapper script) invocation.
 
 ### Platforms and System Packages
 

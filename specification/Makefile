@@ -7,7 +7,13 @@ SHELL = /usr/bin/env bash
 QUIET      ?= @
 VERYQUIET  ?= @
 PYTHON	   ?= python3
+ifneq (,$(strip $(BUNDLER)))
+ASCIIDOC   ?= bundle exec asciidoctor --trace
+HEXAPDF    ?= bundle exec hexapdf
+else
 ASCIIDOC   ?= asciidoctor
+HEXAPDF    ?= hexapdf
+endif
 RM          = rm -f
 RMRF        = rm -rf
 MKDIR       = mkdir -p
@@ -33,7 +39,7 @@ endif
 VERSIONS := XR_VERSION_1_0 XR_VERSION_1_1 XR_LOADER_VERSION_1_0
 VERSIONOPTIONS := $(foreach version,$(VERSIONS),-feature $(version))
 
-SPECREVISION = 1.1.36
+SPECREVISION = 1.1.37
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -343,7 +349,7 @@ pdfA4: $(PDFA4SPEC)
 ASCIIDOCTOR_TARGETS += $(PDFSPEC) $(PDFA4SPEC)
 
 # Target-specific variables and deps customizing the AsciiDoctor rule
-$(PDFSPEC) $(PDFA4SPEC): BACKEND_ARGS=--backend pdf --require asciidoctor-pdf -a compress  -r ./scripts/pdf-index-customizer.rb
+$(PDFSPEC) $(PDFA4SPEC): BACKEND_ARGS=--backend pdf --require asciidoctor-pdf -a compress --require ./scripts/pdf-index-customizer.rb
 $(PDFSPEC): PAGESIZE=LETTER
 $(PDFA4SPEC): PAGESIZE=A4
 $(PDFSPEC) $(PDFA4SPEC): $(COMMONDOCS)
@@ -647,14 +653,17 @@ $(REGISTRYOUTDIR)/headers/openxr: | $(REGISTRYOUTDIR)/headers
 	$(QUIET)$(MKDIR) "$@"
 
 release-htmlpdf: html pdf $(REGISTRYOUTDIR)/pdf $(REGISTRYOUTDIR)/html
-	-asciidoctor-pdf-optimize $(PDFSPEC)
-	$(QUIET)$(CP) $(PDFSPEC) $(REGISTRYOUTDIR)/pdf/$(SPEC_FILENAME_STEM).pdf
+	$(ECHO) "[hexapdf]     $(call MAKE_RELATIVE,$(REGISTRYOUTDIR)/pdf/$(SPEC_FILENAME_STEM).pdf)"
+	$(QUIET)$(HEXAPDF) optimize --force $(PDFSPEC) $(REGISTRYOUTDIR)/pdf/$(SPEC_FILENAME_STEM).pdf
+	$(ECHO) "[cp]          $(call MAKE_RELATIVE,$(REGISTRYOUTDIR)/html/$(SPEC_FILENAME_STEM).html)"
 	$(QUIET)$(CP) $(HTMLSPEC) $(REGISTRYOUTDIR)/html/$(SPEC_FILENAME_STEM).html
 .PHONY: release-htmlpdf
 
 
 release: release-htmlpdf manhtmlpages loader styleguide extprocess | $(REGISTRYOUTDIR) $(REGISTRYOUTDIR)/man
+	$(ECHO) "[cp]          $(call MAKE_RELATIVE,$(REGISTRYOUTDIR))/{styleguide,extprocess,loader}.html"
 	$(QUIET)$(CP) $(OUTDIR)/styleguide.html $(OUTDIR)/extprocess.html $(OUTDIR)/loader.html $(REGISTRYOUTDIR)
+	$(ECHO) "[cp]          $(REGISTRYOUTDIR)/man/html"
 	$(QUIET)$(CP) -R $(MANHTMLDIR) $(REGISTRYOUTDIR)/man/html
 .PHONY: release
 
