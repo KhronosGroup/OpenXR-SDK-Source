@@ -164,6 +164,7 @@ class GeneratorOptions:
                  emitExtensions=None,
                  emitSpirv=None,
                  emitFormats=None,
+                 emitComments=False,
                  emitRecursiveRequirements=True,
                  reparentEnums=True,
                  sortProcedure=regSortFeatures,
@@ -289,6 +290,10 @@ class GeneratorOptions:
         self.emitFormats = self.emptyRegex(emitFormats)
         """regex matching names of formats
         to actually emit interfaces for."""
+
+        self.emitComments = emitComments
+        """boolean specifying whether to include xml <comment>
+        elements and comment="" parameters in the generated code"""
 
         self.emitRecursiveRequirements = emitRecursiveRequirements
         """boolean specifying whether to emit types that are referenced
@@ -605,19 +610,29 @@ class OutputGenerator:
 
         # Prefix
         body = f"// Flag bits for {flagTypeName}\n"
+        groupComment = groupElem.get('comment')
+        if groupComment and self.genOpts.emitComments:
+            body += self.makeCComment(groupComment)
 
         # Loop over the nested 'enum' tags.
         for elem in groupElem.findall('enum'):
-            # Convert the value to an integer and use that to track min/max.
-            # Values of form -(number) are accepted but nothing more complex.
-            # Should catch exceptions here for more complex constructs. Not yet.
-            (_, strVal) = self.enumToValue(elem, True, parent_for_alias_dereference=groupElem)
-            alias_of = elem.get('alias')
-            name = elem.get('name')
-            body += f"static const {flagTypeName} {name} = {strVal};"
-            if alias_of is not None:
-                body += f"  // alias of {alias_of}"
-            body += "\n"
+            if elem.tag == "enum":
+                # Convert the value to an integer and use that to track min/max.
+                # Values of form -(number) are accepted but nothing more complex.
+                # Should catch exceptions here for more complex constructs. Not yet.
+                (_, strVal) = self.enumToValue(elem, True, parent_for_alias_dereference=groupElem)
+                alias_of = elem.get('alias')
+                name = elem.get('name')
+                if self.genOpts.emitComments:
+                    comment = elem.get('comment')
+                    if comment:
+                        body += self.makeCComment(comment)
+                body += f"static const {flagTypeName} {name} = {strVal};"
+                if alias_of is not None:
+                    body += f"  // alias of {alias_of}"
+                body += "\n"
+            elif elem.tag == "comment" and self.genOpts.emitComments:
+                body += self.makeCComment(elem.text)
 
         # Postfix
 
@@ -639,7 +654,11 @@ class OutputGenerator:
             expandPrefix = expandName.rsplit(expandSuffix, 1)[0]
 
         # Prefix
-        body = ["typedef enum %s {" % groupName]
+        body = []
+        comment = groupElem.get('comment')
+        if comment and self.genOpts.emitComments:
+            body.append(self.makeCComment(comment).rstrip())
+        body.append("typedef enum %s {" % groupName)
 
         # @@ Should use the type="bitmask" attribute instead
         isEnum = ('FLAG_BITS' not in expandPrefix)
@@ -670,52 +689,60 @@ class OutputGenerator:
         maxName = None
         minValue = None
         maxValue = None
-        for elem in enums:
-            # Convert the value to an integer and use that to track min/max.
-            # Values of form -(number) are accepted but nothing more complex.
-            # Should catch exceptions here for more complex constructs. Not yet.
-            (numVal, strVal) = self.enumToValue(elem, True)
-            name = elem.get('name')
+        for elem in list(groupElem):
+            if elem.tag == 'enum' and elem in enums:
+                # Convert the value to an integer and use that to track min/max.
+                # Values of form -(number) are accepted but nothing more complex.
+                # Should catch exceptions here for more complex constructs. Not yet.
+                (numVal, strVal) = self.enumToValue(elem, True)
+                name = elem.get('name')
 
-            # Extension enumerants are only included if they are required
-            if self.isEnumRequired(elem):
-                decl = ''
+                # Extension enumerants are only included if they are required
+                if self.isEnumRequired(elem):
+                    decl = ''
 
-                protect = elem.get('protect')
-                if protect is not None:
-                    decl += f'#ifdef {protect}\n'
+                    if self.genOpts.emitComments:
+                        comment = elem.get('comment')
+                        if comment:
+                            decl += self.makeCComment(comment, indents = 1)
 
-                # Indent requirements comment, if there is one
-                requirements = self.genRequirements(name, mustBeFound = False)
-                if requirements != '':
-                    requirements = f"  {requirements}"
-                decl += requirements
-                decl += f'    {name} = {strVal},'
+                    protect = elem.get('protect')
+                    if protect is not None:
+                        decl += f'#ifdef {protect}\n'
 
-                if protect is not None:
-                    decl += '\n#endif'
+                    # Indent requirements comment, if there is one
+                    requirements = self.genRequirements(name, mustBeFound = False)
+                    if requirements != '':
+                        requirements = f"  {requirements}"
+                    decl += requirements
+                    decl += f'    {name} = {strVal},'
 
-                if numVal is not None:
-                    body.append(decl)
-                else:
-                    aliasText.append(decl)
+                    if protect is not None:
+                        decl += '\n#endif'
 
-            # Range check for the enum value
-            if numVal is not None and (numVal > maxValidValue or numVal < minValidValue):
-                self.logMsg('error', 'Allowable range for C enum types is [', minValidValue, ',', maxValidValue, '], but', name, 'has a value outside of this (', strVal, ')\n')
-                exit(1)
+                    if numVal is not None:
+                        body.append(decl)
+                    else:
+                        aliasText.append(decl)
 
-            # Do not track min/max for non-numbers (numVal is None)
-            if isEnum and numVal is not None and elem.get('extends') is None:
-                if minName is None:
-                    minName = maxName = name
-                    minValue = maxValue = numVal
-                elif minValue is None or numVal < minValue:
-                    minName = name
-                    minValue = numVal
-                elif maxValue is None or numVal > maxValue:
-                    maxName = name
-                    maxValue = numVal
+                # Range check for the enum value
+                if numVal is not None and (numVal > maxValidValue or numVal < minValidValue):
+                    self.logMsg('error', 'Allowable range for C enum types is [', minValidValue, ',', maxValidValue, '], but', name, 'has a value outside of this (', strVal, ')\n')
+                    exit(1)
+
+                # Do not track min/max for non-numbers (numVal is None)
+                if isEnum and numVal is not None and elem.get('extends') is None:
+                    if minName is None:
+                        minName = maxName = name
+                        minValue = maxValue = numVal
+                    elif minValue is None or numVal < minValue:
+                        minName = name
+                        minValue = numVal
+                    elif maxValue is None or numVal > maxValue:
+                        maxName = name
+                        maxValue = numVal
+            elif elem.tag == 'comment' and self.genOpts.emitComments:
+                body.append(self.makeCComment(elem.text, indents = 1).rstrip())
 
         # Now append the non-numeric enumerant values
         body.extend(aliasText)
@@ -749,6 +776,13 @@ class OutputGenerator:
 
         <enum> tags may specify their values in several ways, but are
         usually just integers or floating-point numbers."""
+
+        prefix = ''
+        if self.genOpts.emitComments:
+            comment = enuminfo.elem.get('comment')
+            if comment:
+                prefix  += self.makeCComment(comment)
+
 
         (_, strVal) = self.enumToValue(enuminfo.elem, False)
 
@@ -800,7 +834,7 @@ class OutputGenerator:
         else:
             body = f"#define {name.ljust(33)} {strVal}"
 
-        return body
+        return prefix + body
 
     def makeDir(self, path: Path):
         """Create a directory, if not already done.
@@ -1239,6 +1273,13 @@ class OutputGenerator:
 
         return required
 
+    def makeCComment(self, comment, indents = 0):
+        commentString = ''
+        for line in comment.split('\n'):
+            commentString += indents * '    ' + '// ' + line.strip() + '\n'
+
+        return commentString
+
     def makeCDecls(self, cmd):
         """Return C prototype and function pointer typedef for a
         `<command>` Element, as a two-element list of strings.
@@ -1248,6 +1289,15 @@ class OutputGenerator:
             raise MissingGeneratorOptionsError()
         proto = cmd.find('proto')
         params = cmd.findall('param')
+        comments = cmd.findall('comment')
+
+        # Optionally add <comment> elements
+        # as a C style comment above func definition
+        funcComment = ''
+        if self.genOpts.emitComments:
+            for c in comments:
+                funcComment  += self.makeCComment(c.text)
+
         # Begin accumulating prototype and typedef strings
         pdecl = self.genOpts.apicall
         tdecl = 'typedef '
@@ -1324,7 +1374,7 @@ class OutputGenerator:
         else:
             paramdecl += 'void'
         paramdecl += ");"
-        return [pdecl + indentdecl, tdecl + paramdecl]
+        return [funcComment + pdecl + indentdecl, tdecl + paramdecl]
 
     def newline(self):
         """Print a newline to the output file (utility function)"""
