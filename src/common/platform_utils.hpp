@@ -324,6 +324,7 @@ static inline std::string PlatformUtilsGetSecureEnv(const char* name) {
 }
 
 #elif defined(XR_OS_ANDROID)
+#include <sys/system_properties.h>
 
 #include <sys/system_properties.h>
 
@@ -340,6 +341,16 @@ static inline std::string PlatformUtilsGetEnv(const char* /* name */) {
 static inline std::string PlatformUtilsGetSecureEnv(const char* /* name */) {
     // Stub func
     return {};
+}
+
+static inline bool PlatformUtilsGetSysProp(const char* name, bool default_value) {
+    bool result = default_value;
+    char value[PROP_VALUE_MAX] = {};
+    if (__system_property_get(name, value) != 0) {
+        result = (value[0] == 't');
+    }
+
+    return result;
 }
 
 // Intended to be only used as a fallback on Android, with a more open, "native" technique used in most cases

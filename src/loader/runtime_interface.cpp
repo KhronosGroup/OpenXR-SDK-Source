@@ -35,7 +35,7 @@
 #endif  // XR_USE_PLATFORM_ANDROID
 
 #if defined(XR_KHR_LOADER_INIT_SUPPORT) && defined(XR_USE_PLATFORM_ANDROID)
-XrResult GetPlatformRuntimeVirtualManifest(Json::Value& out_manifest) {
+XrResult GetPlatformRuntimeVirtualManifest(Json::Value& out_manifest, ManifestFileSource& runtime_source) {
     using wrap::android::content::Context;
     auto& initData = LoaderInitData::instance();
     if (!initData.initialized()) {
@@ -45,11 +45,36 @@ XrResult GetPlatformRuntimeVirtualManifest(Json::Value& out_manifest) {
     if (context.isNull()) {
         return XR_ERROR_INITIALIZATION_FAILED;
     }
+    bool systemBroker = false;
     Json::Value virtualManifest;
-    if (0 != openxr_android::getActiveRuntimeVirtualManifest(context, virtualManifest)) {
+    if (0 != openxr_android::getActiveRuntimeVirtualManifest(context, virtualManifest, systemBroker)) {
+        runtime_source = ManifestFileSource::FROM_JSON_MANIFEST;
         return XR_ERROR_INITIALIZATION_FAILED;
     }
+    if (systemBroker) {
+        runtime_source = ManifestFileSource::FROM_SYSTEM_BROKER;
+    } else {
+        runtime_source = ManifestFileSource::FROM_INSTALLABLE_BROKER;
+    }
     out_manifest = virtualManifest;
+    return XR_SUCCESS;
+}
+
+XrResult GetPlatformApiLayerVirtualManifests(std::string type, std::vector<Json::Value>& out_manifest, bool system_broker) {
+    using wrap::android::content::Context;
+    auto& initData = LoaderInitData::instance();
+    if (!initData.initialized()) {
+        return XR_ERROR_INITIALIZATION_FAILED;
+    }
+    auto context = Context(reinterpret_cast<jobject>(initData.getData().applicationContext));
+    if (context.isNull()) {
+        return XR_ERROR_INITIALIZATION_FAILED;
+    }
+    std::vector<Json::Value> virtualManifests;
+    if (0 != openxr_android::getApiLayerVirtualManifests(type, context, virtualManifests, system_broker)) {
+        return XR_ERROR_INITIALIZATION_FAILED;
+    }
+    out_manifest = virtualManifests;
     return XR_SUCCESS;
 }
 #endif  // defined(XR_USE_PLATFORM_ANDROID) && defined(XR_KHR_LOADER_INIT_SUPPORT)
