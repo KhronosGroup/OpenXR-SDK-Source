@@ -63,6 +63,8 @@ struct Options {
 
     std::string AppSpace{"Local"};
 
+    bool EnableMirrorWindow = false;
+
     struct {
         XrFormFactor FormFactor{XR_FORM_FACTOR_HEAD_MOUNTED_DISPLAY};
 
