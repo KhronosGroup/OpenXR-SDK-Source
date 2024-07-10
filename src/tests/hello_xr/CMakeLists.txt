@@ -168,7 +168,7 @@ if(NOT ANDROID)
 
 endif()
 
-target_include_directories(hello_xr PUBLIC $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR/Include)
+target_include_directories(hello_xr PUBLIC $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR)
 target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/glm)
 target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/SDL/include)
 target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/Streamline/include)

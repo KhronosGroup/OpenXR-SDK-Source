@@ -118,7 +118,7 @@
 #define ADD_EXTRA_CUBES 1
 
 #ifndef ENABLE_ADVANCED_FEATURES
-#define ENABLE_ADVANCED_FEATURES 0
+#define ENABLE_ADVANCED_FEATURES 1
 #endif
 
 #define THUMBSTICK_TURNING_SPEED_POWER 2.0f
@@ -128,28 +128,15 @@
 
 #if ENABLE_ADVANCED_FEATURES
 
-#include <openxr/extx1_event_channel.h>
-#include <openxr/fb_face_tracking2.h>
-#include <openxr/fb_scene.h>
-#include <openxr/fb_spatial_entity.h>
-
-#include <openxr/meta_automatic_layer_filter.h>
-
-#include <openxr/meta_body_tracking_calibration.h>
-#include <openxr/meta_body_tracking_fidelity.h>
-#include <openxr/meta_body_tracking_full_body.h>
-
-#include <openxr/meta_detached_controllers.h>
-#include <openxr/meta_environment_depth.h>
-
-#include <openxr/meta_hand_tracking_wide_motion_mode.h>
-#include <openxr/meta_recommended_layer_resolution.h>
-#include <openxr/meta_simultaneous_hands_and_controllers.h>
-
-#include <openxr/meta_spatial_entity_mesh.h>
-#include <openxr/metax1_hand_tracking_microgestures.h>
-
-#include <openxr/openxr_extension_helpers.h>
+#include <meta_openxr_preview/extx1_event_channel.h>
+#include <meta_openxr_preview/meta_body_tracking_calibration.h>
+#include <meta_openxr_preview/meta_body_tracking_fidelity.h>
+#include <meta_openxr_preview/meta_body_tracking_full_body.h>
+#include <meta_openxr_preview/meta_detached_controllers.h>
+#include <meta_openxr_preview/meta_environment_depth.h>
+#include <meta_openxr_preview/meta_hand_tracking_wide_motion_mode.h>
+#include <meta_openxr_preview/meta_simultaneous_hands_and_controllers.h>
+#include <meta_openxr_preview/openxr_extension_helpers.h>
 
 #ifdef XR_USE_PLATFORM_ANDROID
 #define PLATFORM_ANDROID 1
