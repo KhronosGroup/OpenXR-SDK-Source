@@ -190,6 +190,7 @@ def makeGenOpts(args):
             profile           = None,
             versions          = None,
             emitversions      = None,
+            emitComments      = True,
             defaultExtensions = 'openxr',
             addExtensions     = None,
             removeExtensions  = None,

@@ -343,7 +343,7 @@ In order to support this, the desktop loader can be forced to look in
 specific paths for explicit API layers with the `XR_API_LAYER_PATH`
 environment variable.
 Simply set it to a properly delimited list of paths that you want the loader
-to search for explicit API layer JSON Manfiest files.
+to search for explicit API layer JSON Manifest files.
 While relative paths may work, it is preferable to use absolute paths when
 defining this environment variable to reduce issues.
 

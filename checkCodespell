@@ -44,13 +44,15 @@ CODESPELL_IGNORE=${CODESPELL_IGNORE:-${DEFAULT_CODESPELL_IGNORE}}
 # .Nd is used for a description in a mandoc manpage.
 # ba is from a regex
 # unknwn is a header file name
-# Wee, Ser, Nuber, Blok are names
-IGNORE_WORDS="lod,nd,ba,unknwn,wee,ser,nuber,blok,rouge,implementor,implementors"
+# Wee, Ser, Nuber, Blok, DeVault are names
+# rouge is a word (and our source code highlighter)
+# implementors is just how we spell it
+IGNORE_WORDS="lod,nd,ba,unknwn,wee,ser,nuber,blok,devault,rouge,implementor,implementors"
 
 # Add to this to exclude individual files or directories (comma-delimited)
 # - Skipping external code.
-# - Skipping binary files.
-SKIP="${ROOT}/src/external,${ROOT}/src/conformance/framework/catch2,*.pyc,*.png,*.jpg,*.svg,*.otf"
+# - Skipping binary and data files.
+SKIP="${ROOT}/src/external,${ROOT}/src/conformance/framework/catch2,*.pyc,*.png,*.jpg,*.svg,*.otf,*.slvs"
 
 # Args that get passed if no args are provided to this script.
 # -q4 to silence "UINT  ==> UNIT  | disabled due to being a data type"

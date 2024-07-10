@@ -361,6 +361,10 @@ class COutputGenerator(OutputGenerator):
                 if category == 'define' and self.misracppstyle():
                     body = body.replace("(uint32_t)", "static_cast<uint32_t>")
             if body:
+                comment = typeElem.get('comment')
+                if comment and self.genOpts.emitComments:
+                    body = self.makeCComment(comment) + body
+
                 # Add extra newline after multi-line entries.
                 if '\n' in body[0:-1]:
                     body += '\n'
@@ -428,10 +432,14 @@ class COutputGenerator(OutputGenerator):
 
         typeElem = typeinfo.elem
 
+        body = ''
+        comment = typeElem.get('comment')
+        if comment and self.genOpts.emitComments:
+            body += self.makeCComment(comment)
+
         if alias:
-            body = f"typedef {alias} {typeName};\n"
+            body += f"typedef {alias} {typeName};\n"
         else:
-            body = ''
             (protect_begin, protect_end) = self.genProtectString(typeElem.get('protect'))
             if protect_begin:
                 body += protect_begin
@@ -451,9 +459,12 @@ class COutputGenerator(OutputGenerator):
             body += f" {typeName} {{\n"
 
             targetLen = self.getMaxCParamTypeLength(typeinfo)
-            for member in typeElem.findall('.//member'):
-                body += self.makeCParamDecl(member, targetLen + 4)
-                body += ';\n'
+            for elem in list(typeElem):
+                if elem.tag == 'member':
+                    body += self.makeCParamDecl(elem, targetLen + 4)
+                    body += ';\n'
+                elif elem.tag == 'comment' and self.genOpts.emitComments:
+                    body += self.makeCComment(elem.text, indents = 1)
             body += f"}} {typeName};\n"
             if protect_end:
                 body += protect_end
