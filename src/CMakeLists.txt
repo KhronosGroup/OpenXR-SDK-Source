@@ -414,7 +414,7 @@ macro(run_xr_xml_generate dependency output)
         )
         list(APPEND GENERATED_OUTPUT "${CMAKE_CURRENT_SOURCE_DIR}/${output}")
     else()
-        if(NOT PYTHON_EXECUTABLE)
+        if(NOT Python3_EXECUTABLE)
             message(
                 FATAL_ERROR
                     "Python 3 not found, but pre-generated ${CMAKE_CURRENT_SOURCE_DIR}/${output} not found"
@@ -424,7 +424,7 @@ macro(run_xr_xml_generate dependency output)
             OUTPUT "${output}"
             COMMAND
                 "${CMAKE_COMMAND}" -E env "PYTHONPATH=${CODEGEN_PYTHON_PATH}"
-                "${PYTHON_EXECUTABLE}"
+                "${Python3_EXECUTABLE}"
                 "${PROJECT_SOURCE_DIR}/src/scripts/src_genxr.py" -registry
                 "${PROJECT_SOURCE_DIR}/specification/registry/xr.xml"
                 "${output}"
@@ -438,7 +438,7 @@ macro(run_xr_xml_generate dependency output)
                 ${ARGN}
             VERBATIM
             COMMENT
-                "Generating ${output} using ${PYTHON_EXECUTABLE} on ${dependency}"
+                "Generating ${output} using ${Python3_EXECUTABLE} on ${dependency}"
         )
         set_source_files_properties(${output} PROPERTIES GENERATED TRUE)
         list(APPEND GENERATED_OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/${output}")
@@ -460,7 +460,7 @@ macro(
         OUTPUT "${filename}"
         COMMAND
             "${CMAKE_COMMAND}" -E env "PYTHONPATH=${CODEGEN_PYTHON_PATH}"
-            "${PYTHON_EXECUTABLE}"
+            "${Python3_EXECUTABLE}"
             "${PROJECT_SOURCE_DIR}/src/scripts/generate_api_layer_manifest.py"
             -f "${filename}" -n ${layername} -l ${libfile} -a ${MAJOR}.${MINOR}
             -v ${version} ${genbad} -d ${desc}
