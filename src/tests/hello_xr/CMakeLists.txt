@@ -97,6 +97,11 @@ source_group("Shaders" FILES ${VULKAN_SHADERS})
 
 target_link_libraries(hello_xr PRIVATE OpenXR::openxr_loader)
 
+target_include_directories(hello_xr PUBLIC $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR)
+target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/glm)
+target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/SDL/include)
+target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/Streamline/include)
+
 compile_glsl(run_hello_xr_glsl_compiles ${VULKAN_SHADERS})
 
 add_dependencies(hello_xr run_hello_xr_glsl_compiles)
@@ -167,9 +172,3 @@ if(NOT ANDROID)
     endif()
 
 endif()
-
-target_include_directories(hello_xr PUBLIC $ENV{OCULUS_OPENXR_MOBILE_SDK}/OpenXR)
-target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/glm)
-target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/SDL/include)
-target_include_directories(hello_xr PUBLIC ${PROJECT_SOURCE_DIR}/src/external/Streamline/include)
-
