@@ -118,7 +118,7 @@
 #define ADD_EXTRA_CUBES 1
 
 #ifndef ENABLE_ADVANCED_FEATURES
-#define ENABLE_ADVANCED_FEATURES 0
+#define ENABLE_ADVANCED_FEATURES 1
 #endif
 
 #define THUMBSTICK_TURNING_SPEED_POWER 2.0f
@@ -133,7 +133,6 @@
 #include <meta_openxr_preview/meta_body_tracking_fidelity.h>
 #include <meta_openxr_preview/meta_body_tracking_full_body.h>
 #include <meta_openxr_preview/meta_detached_controllers.h>
-#include <meta_openxr_preview/meta_environment_depth.h>
 #include <meta_openxr_preview/meta_hand_tracking_wide_motion_mode.h>
 #include <meta_openxr_preview/meta_simultaneous_hands_and_controllers.h>
 #include <meta_openxr_preview/openxr_extension_helpers.h>
