@@ -37,6 +37,7 @@ set(LOCAL_SOURCE
     graphicsplugin_opengl.cpp
     graphicsplugin_opengles.cpp
     graphicsplugin_vulkan.cpp
+    graphicsplugin_metal.cpp
     logger.cpp
     main.cpp
     openxr_program.cpp
@@ -90,6 +91,11 @@ else()
     add_executable(hello_xr ${LOCAL_SOURCE} ${LOCAL_HEADERS} ${VULKAN_SHADERS})
 endif()
 
+if(APPLE)
+    # use C++17 since there is a dependency on metal-cpp
+    target_compile_features(hello_xr PUBLIC cxx_std_17)
+endif()
+
 set_target_properties(hello_xr PROPERTIES FOLDER ${SAMPLES_FOLDER})
 source_group("Headers" FILES ${LOCAL_HEADERS})
 source_group("Shaders" FILES ${VULKAN_SHADERS})
@@ -105,6 +111,7 @@ target_include_directories(
     PRIVATE
         "${PROJECT_SOURCE_DIR}/src"
         "${PROJECT_SOURCE_DIR}/src/common"
+        "${PROJECT_SOURCE_DIR}/src/external/metal-cpp"
         "${PROJECT_SOURCE_DIR}/src/tests/hello_xr/vulkan_shaders"
         # for helper headers
         "${PROJECT_SOURCE_DIR}/external/include"
@@ -150,6 +157,13 @@ if(WIN32)
                 dxgi
         )
     endif()
+endif()
+
+if(APPLE)
+    target_link_libraries(
+        hello_xr PRIVATE "-framework Foundation" "-framework CoreGraphics"
+                         "-framework Metal"
+    )
 endif()
 
 if(NOT ANDROID)

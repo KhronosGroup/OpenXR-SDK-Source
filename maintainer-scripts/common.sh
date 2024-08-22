@@ -208,6 +208,8 @@ getSDKSourceFilenames() {
         src/external/android-jni-wrappers \
         src/external/jnipp \
         src/external/jsoncpp \
+        src/external/catch2 \
+        src/external/metal-cpp \
         src/loader \
         src/scripts \
         src/tests \

@@ -438,6 +438,47 @@ XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrCreateInstance(const XrInstanceCrea
     return XR_SUCCESS;
 }
 
+XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrGetInstanceProcAddr(XrInstance instance, const char *name,
+                                                                 PFN_xrVoidFunction *function) {
+    try {
+        std::string func_name = name;
+
+        // Generate output for this command
+        std::vector<std::tuple<std::string, std::string, std::string>> contents;
+        contents.emplace_back("XrResult", "xrGetInstanceProcAddr", "");
+        contents.emplace_back("XrInstance", "instance", HandleToHexString(instance));
+        contents.emplace_back("const char*", "name", name);
+        contents.emplace_back("PFN_xrVoidFunction*", "function", PointerToHexString(reinterpret_cast<const void *>(function)));
+        ApiDumpLayerRecordContent(contents);
+
+        *function = ApiDumpLayerInnerGetInstanceProcAddr(name);
+
+        // If we setup the function, just return
+        if (*function != nullptr) {
+            return XR_SUCCESS;
+        }
+
+        // We have not found it, so pass it down to the next layer/runtime
+        XrGeneratedDispatchTable *gen_dispatch_table = nullptr;
+        {
+            std::unique_lock<std::mutex> mlock(g_instance_dispatch_mutex);
+            auto map_iter = g_instance_dispatch_map.find(instance);
+            if (map_iter == g_instance_dispatch_map.end()) {
+                return XR_ERROR_HANDLE_INVALID;
+            }
+            gen_dispatch_table = map_iter->second;
+        }
+
+        if (nullptr == gen_dispatch_table) {
+            return XR_ERROR_HANDLE_INVALID;
+        }
+
+        return gen_dispatch_table->GetInstanceProcAddr(instance, name, function);
+    } catch (...) {
+        return XR_ERROR_VALIDATION_FAILURE;
+    }
+}
+
 XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrCreateApiLayerInstance(const XrInstanceCreateInfo *info,
                                                                     const struct XrApiLayerCreateInfo *apiLayerInfo,
                                                                     XrInstance *instance) {
@@ -591,13 +632,14 @@ XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrDestroyInstance(XrInstance instance
     contents.emplace_back("XrInstance", "instance", HandleToHexString(instance));
     ApiDumpLayerRecordContent(contents);
 
-    std::unique_lock<std::mutex> mlock(g_instance_dispatch_mutex);
     XrGeneratedDispatchTable *next_dispatch = nullptr;
-    auto map_iter = g_instance_dispatch_map.find(instance);
-    if (map_iter != g_instance_dispatch_map.end()) {
-        next_dispatch = map_iter->second;
+    {
+        std::unique_lock<std::mutex> mlock(g_instance_dispatch_mutex);
+        auto map_iter = g_instance_dispatch_map.find(instance);
+        if (map_iter != g_instance_dispatch_map.end()) {
+            next_dispatch = map_iter->second;
+        }
     }
-    mlock.unlock();
 
     if (nullptr == next_dispatch) {
         return XR_ERROR_HANDLE_INVALID;

@@ -47,7 +47,7 @@ class ValidityCollection:
         For instance, might be "calling flink:" for a function.
         """
         assert self.conventions
-        if extension_name and not extension_name.startswith(self.conventions.api_version_prefix):
+        if extension_name and not self.conventions.is_api_version_name(extension_name):
             msg = 'The {} extension must: be enabled prior to {}{}'.format(
                 self.conventions.formatExtension(extension_name), entity_preface, self.entity_name)
             self.addValidityEntry(msg, anchor=('extension', 'notenabled'))
