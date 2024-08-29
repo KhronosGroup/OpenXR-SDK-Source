@@ -53,6 +53,7 @@ jobs:
         with:
           java-version: "11"
           distribution: "temurin"
+      # Also performs Gradle wrapper validation
       - uses: "gradle/actions/setup-gradle@v4"
 
       # HelloXR OpenGLES version
