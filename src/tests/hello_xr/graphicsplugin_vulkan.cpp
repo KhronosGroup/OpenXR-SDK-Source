@@ -1740,62 +1740,60 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
             VkDeviceSize offset = 0;
             vkCmdBindVertexBuffers(m_cmdBuffer.buf, 0, 1, &m_drawBuffer.vtxBuf, &offset);
 
-            // Compute the view-projection transform.
-            // Note all matrices (including OpenXR's) are column-major, right-handed.
-            const XrPosef& pose = layerView.pose;
+        // Compute the view-projection transform.
+        // Note all matrixes (including OpenXR's) are column-major, right-handed.
+        const auto& pose = layerView.pose;
+  
+		XrMatrix4x4f proj;
+		XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_VULKAN, layerView.fov, 0.05f, 100.0f);
 
-            XrMatrix4x4f proj;
-            XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_VULKAN, layerView.fov, 0.05f, 100.0f);
+		XrMatrix4x4f toView;
+		XrVector3f scale{1.f, 1.f, 1.f};
 
-            XrMatrix4x4f toView;
-            XrVector3f scale{1.f, 1.f, 1.f};
+		XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose.position, &pose.orientation, &scale);
 
-            XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose.position, &pose.orientation, &scale);
-
-            XrMatrix4x4f view;
-            XrMatrix4x4f_InvertRigidBody(&view, &toView);
+		XrMatrix4x4f view;
+		XrMatrix4x4f_InvertRigidBody(&view, &toView);
 
 #if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
-            const XrPosef xr_local_eye_pose = layerView.pose;
-            const BVR::GLMPose local_eye_pose = BVR::convert_to_glm(xr_local_eye_pose);
+		const XrPosef xr_local_eye_pose = layerView.pose;
+		const BVR::GLMPose local_eye_pose = BVR::convert_to_glm(xr_local_eye_pose);
 
-            const glm::vec3 local_hmd_to_eye = local_eye_pose.translation_ - local_hmd_pose.translation_;
-            const glm::vec3 world_hmd_to_eye = player_pose.rotation_ * local_hmd_to_eye;
+		const glm::vec3 local_hmd_to_eye = local_eye_pose.translation_ - local_hmd_pose.translation_;
+		const glm::vec3 world_hmd_to_eye = player_pose.rotation_ * local_hmd_to_eye;
 
-            const glm::vec3 world_hmd_offset = player_pose.rotation_ * local_hmd_pose.translation_;
-            const glm::vec3 world_hmd_position = player_pose.translation_ + world_hmd_offset;
+		const glm::vec3 world_hmd_offset = player_pose.rotation_ * local_hmd_pose.translation_;
+		const glm::vec3 world_hmd_position = player_pose.translation_ + world_hmd_offset;
 
-            const glm::vec3 world_eye_position = world_hmd_position + world_hmd_to_eye;
-            const glm::fquat world_orientation = glm::normalize(player_pose.rotation_ * local_hmd_pose.rotation_);
+		const glm::vec3 world_eye_position = world_hmd_position + world_hmd_to_eye;
+		const glm::fquat world_orientation = glm::normalize(player_pose.rotation_ * local_hmd_pose.rotation_);
 
-            BVR::GLMPose world_eye_pose;
-            world_eye_pose.translation_ = world_eye_position;
-            world_eye_pose.rotation_ = world_orientation;
+		BVR::GLMPose world_eye_pose;
+		world_eye_pose.translation_ = world_eye_position;
+		world_eye_pose.rotation_ = world_orientation;
 
-            const glm::mat4 inverse_view_glm = world_eye_pose.to_matrix();
-            const glm::mat4 view_glm = glm::inverse(inverse_view_glm);
+		const glm::mat4 inverse_view_glm = world_eye_pose.to_matrix();
+		const glm::mat4 view_glm = glm::inverse(inverse_view_glm);
 
-            view = BVR::convert_to_xr(view_glm);
+		view = BVR::convert_to_xr(view_glm);
 #endif
 
-            XrMatrix4x4f vp;
-            XrMatrix4x4f_Multiply(&vp, &proj, &view);
+		XrMatrix4x4f vp;
+		XrMatrix4x4f_Multiply(&vp, &proj, &view);
 
-            // Render each cube
-            for (const Cube& cube : cubes)
-            {
-                // Compute the model-view-projection transform and push it.
-                XrMatrix4x4f model;
-                XrMatrix4x4f_CreateTranslationRotationScale(&model, &cube.Pose.position, &cube.Pose.orientation, &cube.Scale);
-                XrMatrix4x4f mvp;
-                XrMatrix4x4f_Multiply(&mvp, &vp, &model);
-                vkCmdPushConstants(m_cmdBuffer.buf, m_pipelineLayout.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp.m), &mvp.m[0]);
+		// Render each cube
+		for (const Cube& cube : cubes)
+		{
+			// Compute the model-view-projection transform and push it.
+			XrMatrix4x4f model;
+			XrMatrix4x4f_CreateTranslationRotationScale(&model, &cube.Pose.position, &cube.Pose.orientation, &cube.Scale);
+			XrMatrix4x4f mvp;
+			XrMatrix4x4f_Multiply(&mvp, &vp, &model);
+			vkCmdPushConstants(m_cmdBuffer.buf, m_pipelineLayout.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp.m), &mvp.m[0]);
 
-                // Draw the cube.
-                vkCmdDrawIndexed(m_cmdBuffer.buf, m_drawBuffer.count.idx, 1, 0, 0, 0);
-            }
-
-        }
+			// Draw the cube.
+			vkCmdDrawIndexed(m_cmdBuffer.buf, m_drawBuffer.count.idx, 1, 0, 0, 0);
+		}
 
         vkCmdEndRenderPass(m_cmdBuffer.buf);
 

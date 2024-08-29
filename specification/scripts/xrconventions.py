@@ -341,3 +341,8 @@ class OpenXRConventions(ConventionsBase):
         """Return True if generated #endif should have a comment matching
            the protection symbol used in the opening #ifdef/#ifndef."""
         return True
+
+    def is_api_version_name(self, name):
+        if name.startswith("XR_LOADER_VERSION_"):
+            return True
+        return super().is_api_version_name(name)

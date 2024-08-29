@@ -425,22 +425,29 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
             // Set shaders and uniform variables.
             glUseProgram(m_program);
 
-            const auto& pose = layerView.pose;
-            XrMatrix4x4f proj;
-            XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_OPENGL_ES, layerView.fov, 0.05f, 100.0f);
+
+        const auto& pose = layerView.pose;
+        XrMatrix4x4f proj;
+        XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_OPENGL_ES, layerView.fov, 0.05f, 100.0f);
+        XrMatrix4x4f toView;
+        XrMatrix4x4f_CreateFromRigidTransform(&toView, &pose);
+        XrMatrix4x4f view;
+        XrMatrix4x4f_InvertRigidBody(&view, &toView);
+        XrMatrix4x4f vp;
+        XrMatrix4x4f_Multiply(&vp, &proj, &view);
 
 #if HARDCODE_PROJECTION_MATRIX
 #endif
 
-            XrMatrix4x4f toView;
-            XrVector3f scale{1.f, 1.f, 1.f};
-            XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose.position, &pose.orientation, &scale);
+		XrMatrix4x4f toView;
+		XrVector3f scale{1.f, 1.f, 1.f};
+		XrMatrix4x4f_CreateTranslationRotationScale(&toView, &pose.position, &pose.orientation, &scale);
 
-            XrMatrix4x4f view;
-            XrMatrix4x4f_InvertRigidBody(&view, &toView);
+		XrMatrix4x4f view;
+		XrMatrix4x4f_InvertRigidBody(&view, &toView);
 
 #if HARDCODE_VIEW_MATRIX
-            {
+		{
             static int eye = 1;
             const float ipd = 0.0680999979f;
             const float half_ipd = ipd / 2.0f;
@@ -461,49 +468,49 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
 #endif
 
 #if USE_THUMBSTICKS_FOR_SMOOTH_LOCOMOTION
-            const XrPosef xr_local_eye_pose = layerView.pose;
-            const BVR::GLMPose local_eye_pose = BVR::convert_to_glm(xr_local_eye_pose);
+		const XrPosef xr_local_eye_pose = layerView.pose;
+		const BVR::GLMPose local_eye_pose = BVR::convert_to_glm(xr_local_eye_pose);
 
-            const glm::vec3 local_hmd_to_eye = local_eye_pose.translation_ - local_hmd_pose.translation_;
-            const glm::vec3 world_hmd_to_eye = player_pose.rotation_ * local_hmd_to_eye;
+		const glm::vec3 local_hmd_to_eye = local_eye_pose.translation_ - local_hmd_pose.translation_;
+		const glm::vec3 world_hmd_to_eye = player_pose.rotation_ * local_hmd_to_eye;
 
-            const glm::vec3 world_hmd_offset = player_pose.rotation_ * local_hmd_pose.translation_;
-            const glm::vec3 world_hmd_position = player_pose.translation_ + world_hmd_offset;
+		const glm::vec3 world_hmd_offset = player_pose.rotation_ * local_hmd_pose.translation_;
+		const glm::vec3 world_hmd_position = player_pose.translation_ + world_hmd_offset;
 
-            const glm::vec3 world_eye_position = world_hmd_position + world_hmd_to_eye;
-            const glm::fquat world_orientation = glm::normalize(player_pose.rotation_ * local_hmd_pose.rotation_);
+		const glm::vec3 world_eye_position = world_hmd_position + world_hmd_to_eye;
+		const glm::fquat world_orientation = glm::normalize(player_pose.rotation_ * local_hmd_pose.rotation_);
 
-            BVR::GLMPose world_eye_pose;
-            world_eye_pose.translation_ = world_eye_position;
-            world_eye_pose.rotation_ = world_orientation;
+		BVR::GLMPose world_eye_pose;
+		world_eye_pose.translation_ = world_eye_position;
+		world_eye_pose.rotation_ = world_orientation;
 
-            const glm::mat4 inverse_view_glm = world_eye_pose.to_matrix();
-            const glm::mat4 view_glm = glm::inverse(inverse_view_glm);
+		const glm::mat4 inverse_view_glm = world_eye_pose.to_matrix();
+		const glm::mat4 view_glm = glm::inverse(inverse_view_glm);
 
-            view = BVR::convert_to_xr(view_glm);
+		view = BVR::convert_to_xr(view_glm);
 #endif
 
-            XrMatrix4x4f vp;
-            XrMatrix4x4f_Multiply(&vp, &proj, &view);
+		XrMatrix4x4f vp;
+		XrMatrix4x4f_Multiply(&vp, &proj, &view);
 
-            // Set cube primitive data.
-            glBindVertexArray(m_vao);
+		// Set cube primitive data.
+		glBindVertexArray(m_vao);
 
-            // Render each cube
-            for (const Cube& cube : cubes) {
-                // Compute the model-view-projection transform and set it..
-                XrMatrix4x4f model;
-                XrMatrix4x4f_CreateTranslationRotationScale(&model, &cube.Pose.position, &cube.Pose.orientation, &cube.Scale);
-                XrMatrix4x4f mvp;
-                XrMatrix4x4f_Multiply(&mvp, &vp, &model);
-                glUniformMatrix4fv(m_modelViewProjectionUniformLocation, 1, GL_FALSE, reinterpret_cast<const GLfloat*>(&mvp));
+		// Render each cube
+		for (const Cube& cube : cubes) {
+			// Compute the model-view-projection transform and set it..
+			XrMatrix4x4f model;
+			XrMatrix4x4f_CreateTranslationRotationScale(&model, &cube.Pose.position, &cube.Pose.orientation, &cube.Scale);
+			XrMatrix4x4f mvp;
+			XrMatrix4x4f_Multiply(&mvp, &vp, &model);
+			glUniformMatrix4fv(m_modelViewProjectionUniformLocation, 1, GL_FALSE, reinterpret_cast<const GLfloat*>(&mvp));
 
-                // Draw the cube.
-                glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(ArraySize(Geometry::c_cubeIndices)), GL_UNSIGNED_SHORT, nullptr);
-            }
+			// Draw the cube.
+			glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(ArraySize(Geometry::c_cubeIndices)), GL_UNSIGNED_SHORT, nullptr);
+		}
 
-            glBindVertexArray(0);
-            glUseProgram(0);
+		glBindVertexArray(0);
+		glUseProgram(0);
         }
         
         glBindFramebuffer(GL_FRAMEBUFFER, 0);

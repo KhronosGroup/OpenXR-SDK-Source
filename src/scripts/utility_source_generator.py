@@ -115,7 +115,12 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
     def outputDispatchPrototypes(self):
         table_helper = '\n'
         table_helper += '// Prototype for dispatch table helper function\n'
-        table_helper += 'void GeneratedXrPopulateDispatchTable(struct XrGeneratedDispatchTable *table,\n'
+
+        if self.genOpts.filename == 'xr_generated_dispatch_table_core.h':
+            table_helper += 'void GeneratedXrPopulateDispatchTableCore(struct XrGeneratedDispatchTableCore *table,\n'
+        else:
+            table_helper += 'void GeneratedXrPopulateDispatchTable(struct XrGeneratedDispatchTable *table,\n'
+
         table_helper += '                                      XrInstance instance,\n'
         table_helper += '                                      PFN_xrGetInstanceProcAddr get_inst_proc_addr);\n'
         return table_helper
@@ -132,7 +137,10 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
         cur_extension = CurrentExtensionTracker(self.conventions.api_version_prefix)
 
         table += '// Generated dispatch table\n'
-        table += 'struct XrGeneratedDispatchTable {\n'
+        if self.genOpts.filename == 'xr_generated_dispatch_table_core.h':
+            table += 'struct XrGeneratedDispatchTableCore {\n'
+        else:
+            table += 'struct XrGeneratedDispatchTable {\n'
 
         # functions implemented for the loader are different
         LOADER_FUNCTIONS = [
@@ -194,7 +202,10 @@ class UtilitySourceOutputGenerator(AutomaticSourceOutputGenerator):
         cur_extension = CurrentExtensionTracker(self.conventions.api_version_prefix)
 
         table_helper += '// Helper function to populate an instance dispatch table\n'
-        table_helper += 'void GeneratedXrPopulateDispatchTable(struct XrGeneratedDispatchTable *table,\n'
+        if self.genOpts.filename == 'xr_generated_dispatch_table_core.c':
+            table_helper += 'void GeneratedXrPopulateDispatchTableCore(struct XrGeneratedDispatchTableCore *table,\n'
+        else:
+            table_helper += 'void GeneratedXrPopulateDispatchTable(struct XrGeneratedDispatchTable *table,\n'
         table_helper += '                                      XrInstance instance,\n'
         table_helper += '                                      PFN_xrGetInstanceProcAddr get_inst_proc_addr) {\n'
 

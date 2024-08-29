@@ -135,6 +135,8 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         generated_prototypes = '// Layer\'s xrGetInstanceProcAddr\n'
         generated_prototypes += 'XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrGetInstanceProcAddr(XrInstance instance,\n'
         generated_prototypes += '                                          const char* name, PFN_xrVoidFunction* function);\n\n'
+        generated_prototypes += '// Api Dump Inner inner xrGetInstanceProcAddr helper\n'
+        generated_prototypes += 'PFN_xrVoidFunction ApiDumpLayerInnerGetInstanceProcAddr(const char* name);\n\n'
         generated_prototypes += '// Api Dump Log Command\n'
         generated_prototypes += 'bool ApiDumpLayerRecordContent(std::vector<std::tuple<std::string, std::string, std::string>> contents);\n\n'
         generated_prototypes += '// Api Dump Manual Functions\n'
@@ -1103,11 +1105,15 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                     handle_param = cur_cmd.params[0]
                     base_handle_name = undecorate(handle_param.type)
                     first_handle_name = self.getFirstHandleName(handle_param)
-                    generated_commands += f'        std::unique_lock<std::mutex> mlock(g_{base_handle_name}_dispatch_mutex);\n'
-                    generated_commands += f'        auto map_iter = g_{base_handle_name}_dispatch_map.find({first_handle_name});\n'
-                    generated_commands += '        mlock.unlock();\n\n'
-                    generated_commands += f'        if (map_iter == g_{base_handle_name}_dispatch_map.end()) return XR_ERROR_VALIDATION_FAILURE;\n'
-                    generated_commands += '        XrGeneratedDispatchTable *gen_dispatch_table = map_iter->second;\n'
+                    generated_commands += f'        XrGeneratedDispatchTable *gen_dispatch_table = nullptr;\n\n'
+                    generated_commands += f'        {{\n'
+                    generated_commands += f'            std::unique_lock<std::mutex> mlock(g_{base_handle_name}_dispatch_mutex);\n'
+                    generated_commands += f'            auto map_iter = g_{base_handle_name}_dispatch_map.find({first_handle_name});\n'
+                    generated_commands += f'            if (map_iter == g_{base_handle_name}_dispatch_map.end()) {{\n'
+                    generated_commands += f'                return XR_ERROR_VALIDATION_FAILURE;\n'
+                    generated_commands += f'            }}\n';
+                    generated_commands += f'            gen_dispatch_table = map_iter->second;\n'
+                    generated_commands += f'        }}\n\n';
                 else:
                     generated_commands += self.printCodeGenErrorMessage(
                         f'Command {cur_cmd.name} does not have an OpenXR Object handle as the first parameter.')
@@ -1185,7 +1191,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 if cur_cmd.protect_value:
                     generated_commands += f'#endif // {cur_cmd.protect_string}\n'
 
-        generated_commands += 'static PFN_xrVoidFunction ApiDumpLayerInnerGetInstanceProcAddr(\n'
+        generated_commands += 'PFN_xrVoidFunction ApiDumpLayerInnerGetInstanceProcAddr(\n'
         generated_commands += '    const char*                                 name) {\n'
         generated_commands += '        std::string func_name = name;\n\n'
 
@@ -1225,42 +1231,4 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         generated_commands += '        return nullptr;\n'
         generated_commands += '    }\n'
 
-        # Output the xrGetInstanceProcAddr command for the API Dump layer.
-        generated_commands += '\n// Layer\'s xrGetInstanceProcAddr\n'
-        generated_commands += 'XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrGetInstanceProcAddr(\n'
-        generated_commands += '    XrInstance                                  instance,\n'
-        generated_commands += '    const char*                                 name,\n'
-        generated_commands += '    PFN_xrVoidFunction*                         function) {\n'
-        generated_commands += '    try {\n'
-        generated_commands += '        std::string func_name = name;\n\n'
-        generated_commands += '        // Generate output for this command\n'
-        generated_commands += '        std::vector<std::tuple<std::string, std::string, std::string>> contents;\n'
-        generated_commands += '        contents.emplace_back("XrResult", "xrGetInstanceProcAddr", "");\n'
-        generated_commands += '        contents.emplace_back("XrInstance", "instance", HandleToHexString(instance));\n'
-        generated_commands += '        contents.emplace_back("const char*", "name", name);\n'
-        generated_commands += '        contents.emplace_back("PFN_xrVoidFunction*", "function", PointerToHexString(reinterpret_cast<const void*>(function)));\n'
-        generated_commands += '        ApiDumpLayerRecordContent(contents);\n'
-
-        generated_commands += '        *function = ApiDumpLayerInnerGetInstanceProcAddr(name);\n\n'
-
-        generated_commands += '        // If we setup the function, just return\n'
-        generated_commands += '        if (*function != nullptr) {\n'
-        generated_commands += '            return XR_SUCCESS;\n'
-        generated_commands += '        }\n\n'
-        generated_commands += '        // We have not found it, so pass it down to the next layer/runtime\n'
-        generated_commands += '        std::unique_lock<std::mutex> mlock(g_instance_dispatch_mutex);\n'
-        generated_commands += '        auto map_iter = g_instance_dispatch_map.find(instance);\n'
-        generated_commands += '        mlock.unlock();\n\n'
-        generated_commands += '        if (map_iter == g_instance_dispatch_map.end()) {\n'
-        generated_commands += '            return XR_ERROR_HANDLE_INVALID;\n'
-        generated_commands += '        }\n\n'
-        generated_commands += '        XrGeneratedDispatchTable *gen_dispatch_table = map_iter->second;\n'
-        generated_commands += '        if (nullptr == gen_dispatch_table) {\n'
-        generated_commands += '            return XR_ERROR_HANDLE_INVALID;\n'
-        generated_commands += '        }\n\n'
-        generated_commands += '        return gen_dispatch_table->GetInstanceProcAddr(instance, name, function);\n'
-        generated_commands += '    } catch (...) {\n'
-        generated_commands += '        return XR_ERROR_VALIDATION_FAILURE;\n'
-        generated_commands += '    }\n'
-        generated_commands += '}\n'
         return generated_commands

@@ -17,11 +17,23 @@
 
 set -e
 (
-    PREFERRED_CLANG_FORMAT=clang-format-10
-    ACCEPTABLE_CLANG_FORMATS="${PREFERRED_CLANG_FORMAT} clang-format-11 clang-format-12 clang-format-13 clang-format-14 clang-format-15 clang-format-16 clang-format"
+    PREFERRED_CLANG_FORMAT=clang-format-14
+    ACCEPTABLE_CLANG_FORMATS=(
+        "${PREFERRED_CLANG_FORMAT}"
+        clang-format-11
+        clang-format-12
+        clang-format-13
+        clang-format-14
+        clang-format-15
+        clang-format-16
+        clang-format-17
+        clang-format-18
+        clang-format-19
+        clang-format-20
+        clang-format)
     cd "$(dirname "$0")"
     if [ ! "${CLANGFORMAT}" ]; then
-        for tool in ${ACCEPTABLE_CLANG_FORMATS}; do
+        for tool in "${ACCEPTABLE_CLANG_FORMATS[@]}"; do
             if which "$tool" > /dev/null 2> /dev/null; then
                 CLANGFORMAT=$tool
                 break
@@ -30,7 +42,7 @@ set -e
     fi
     if [ ! "${CLANGFORMAT}" ]; then
         echo "Could not find clang-format. Prefer ${PREFERRED_CLANG_FORMAT} but will accept newer." 1>&2
-        echo "Looked for the names: ${ACCEPTABLE_CLANG_FORMATS}"
+        echo "Looked for the names: ${ACCEPTABLE_CLANG_FORMATS[*]}"
         exit 1
     fi
     echo "'Official' clang-format version recommended is ${PREFERRED_CLANG_FORMAT}. Currently using:"
@@ -41,6 +53,7 @@ set -e
     find . \( -wholename ./src/\* \) \
         -and -not \( -wholename ./src/external/\* \) \
         -and -not \( -wholename ./src/scripts/\* \) \
+        -and -not \( -ipath \*/.cxx/\* \) \
         -and \( -name \*.hpp -or -name \*.h -or -name \*.cpp -or -name \*.c \) \
         -exec "${CLANGFORMAT}" -i -style=file {} +
 
