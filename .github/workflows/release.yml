@@ -8,10 +8,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  android:
-    uses: ./.github/workflows/android.yml
-    with:
-      release: true
+  # Currently Android artifacts are generated and signed internally before publication to GitHub.
+  # android:
+  #   uses: ./.github/workflows/android.yml
+  #   with:
+  #     release: true
 
   msvc-build:
     uses: ./.github/workflows/windows-matrix.yml
