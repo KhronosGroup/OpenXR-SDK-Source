@@ -1,4 +1,4 @@
-# Copyright 2021-2022, Collabora, Ltd.
+# Copyright 2021-2024, Collabora, Ltd.
 # SPDX-License-Identifier: CC0-1.0
 
 name: Build release artifacts
@@ -16,5 +16,4 @@ jobs:
   msvc-build:
     uses: ./.github/workflows/windows-matrix.yml
     with:
-      organizeAndRelease: true # TODO
-
+      organizeAndRelease: true
