@@ -1083,8 +1083,24 @@ XrResult ApiLayerManifestFile::FindManifestFiles(const std::string &openxr_comma
         result = GetPlatformApiLayerVirtualManifests(type == ManifestFileType::MANIFEST_TYPE_IMPLICIT_API_LAYER, system_broker,
                                                      virtual_manifests);
         if (XR_SUCCESS == result) {
-            for (const auto &virtual_manifest : virtual_manifests) {
-                ApiLayerManifestFile::CreateIfValid(type, "virtual manifest", virtual_manifest,
+            std::string fnBase;
+            {
+                std::ostringstream oss{"_virtualManifest_"};
+                if (system_broker) {
+                    oss << "systemBroker_";
+                } else {
+                    oss << "installableBroker_";
+                }
+                if (type == ManifestFileType::MANIFEST_TYPE_IMPLICIT_API_LAYER) {
+                    oss << "implicit.json";
+                } else {
+                    oss << "explicit.json";
+                }
+                fnBase = oss.str();
+            }
+            const size_t n = virtual_manifests.size();
+            for (size_t i = 0; i < n; ++i) {
+                ApiLayerManifestFile::CreateIfValid(type, std::to_string(i) + fnBase, virtual_manifests[i],
                                                     &ApiLayerManifestFile::LocateLibraryInAssets, manifest_files);
             }
         } else {
