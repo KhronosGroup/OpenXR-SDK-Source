@@ -185,30 +185,15 @@ static constexpr auto ABI = "x86_64";
 #error "Unknown ABI!"
 #endif
 
-/// Helper class to generate the jsoncpp object corresponding to a synthetic runtime manifest.
-class JsonManifestBuilder {
-   public:
-    JsonManifestBuilder(const std::string &libraryPathParent, const std::string &libraryPath);
-    JsonManifestBuilder &function(const std::string &functionName, const std::string &symbolName);
+static inline Json::Value makeMinimumVirtualRuntimeManifest(const std::string &libraryPath) {
+    Json::Value root_node(Json::objectValue);
 
-    Json::Value build() const { return root_node; }
-
-   private:
-    Json::Value root_node;
-};
-
-inline JsonManifestBuilder::JsonManifestBuilder(const std::string &libraryPathParent, const std::string &libraryPath)
-    : root_node(Json::objectValue) {
     root_node["file_format_version"] = "1.0.0";
     root_node["instance_extensions"] = Json::Value(Json::arrayValue);
     root_node["functions"] = Json::Value(Json::objectValue);
-    root_node[libraryPathParent] = Json::objectValue;
-    root_node[libraryPathParent]["library_path"] = libraryPath;
-}
-
-inline JsonManifestBuilder &JsonManifestBuilder::function(const std::string &functionName, const std::string &symbolName) {
-    root_node["functions"][functionName] = symbolName;
-    return *this;
+    root_node["runtime"] = Json::objectValue;
+    root_node["runtime"]["library_path"] = libraryPath;
+    return root_node;
 }
 
 static constexpr const char *getBrokerTypeName(bool systemBroker) { return systemBroker ? "system" : "installable"; }
@@ -259,9 +244,9 @@ static bool getCursor(wrap::android::content::Context const &context, jni::Array
     return true;
 }
 
-static int populateFunctions(wrap::android::content::Context const &context, bool systemBroker, const std::string &packageName,
-                             JsonManifestBuilder &builder) {
-    jni::Array<std::string> projection = makeArray({functions::Columns::FUNCTION_NAME, functions::Columns::SYMBOL_NAME});
+static int populateRuntimeFunctions(wrap::android::content::Context const &context, bool systemBroker,
+                                    const std::string &packageName, Json::Value &manifest) {
+    const jni::Array<std::string> projection = makeArray({functions::Columns::FUNCTION_NAME, functions::Columns::SYMBOL_NAME});
 
     auto uri = functions::makeRuntimeContentUri(systemBroker, XR_VERSION_MAJOR(XR_CURRENT_API_VERSION), packageName, ABI);
     ALOGI("populateFunctions: Querying URI: %s", uri.toString().c_str());
@@ -273,7 +258,7 @@ static int populateFunctions(wrap::android::content::Context const &context, boo
     auto functionIndex = cursor.getColumnIndex(functions::Columns::FUNCTION_NAME);
     auto symbolIndex = cursor.getColumnIndex(functions::Columns::SYMBOL_NAME);
     while (cursor.moveToNext()) {
-        builder.function(cursor.getString(functionIndex), cursor.getString(symbolIndex));
+        manifest["functions"][cursor.getString(functionIndex)] = cursor.getString(symbolIndex);
     }
 
     cursor.close();
@@ -324,15 +309,15 @@ int getActiveRuntimeVirtualManifest(wrap::android::content::Context const &conte
             // we found a runtime that we can dlopen, use it.
             dlclose(lib);
 
-            JsonManifestBuilder builder{"runtime", lib_path};
+            Json::Value manifest = makeMinimumVirtualRuntimeManifest(lib_path);
             if (hasFunctions) {
-                int result = populateFunctions(context, systemBroker, packageName, builder);
+                int result = populateRuntimeFunctions(context, systemBroker, packageName, manifest);
                 if (result != 0) {
                     ALOGW("Unable to populate functions from runtime: %s, checking for more records...", lib_path.c_str());
                     continue;
                 }
             }
-            virtualManifest = builder.build();
+            virtualManifest = manifest;
             cursor.close();
             return 0;
         }
