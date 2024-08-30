@@ -813,24 +813,29 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
         LoaderLogger::LogErrorMessage("", error_ss.str());
         return;
     }
+
+    // Figure out enabled state of implicit layers
     if (MANIFEST_TYPE_IMPLICIT_API_LAYER == type) {
         bool enabled = true;
         // Implicit layers require the disable environment variable.
-        if (layer_root_node["disable_environment"].isNull() || !layer_root_node["disable_environment"].isString()) {
+        auto &disable_env_node = layer_root_node["disable_environment"];
+        if (disable_env_node.isNull() || !disable_env_node.isString()) {
             error_ss << "Implicit layer " << filename << " is missing \"disable_environment\"";
             LoaderLogger::LogErrorMessage("", error_ss.str());
             return;
         }
-        // Check if there's an enable environment variable provided
-        if (!layer_root_node["enable_environment"].isNull() && layer_root_node["enable_environment"].isString()) {
-            std::string env_var = layer_root_node["enable_environment"].asString();
+        // Check if there's an enable environment variable provided: If so, it must be set in the environment.
+        auto &enable_env_node = layer_root_node["enable_environment"];
+        if (!enable_env_node.isNull() && enable_env_node.isString()) {
+            std::string env_var = enable_env_node.asString();
             // If it's not set in the environment, disable the layer
             if (!PlatformUtilsGetEnvSet(env_var.c_str())) {
                 enabled = false;
             }
         }
+
         // Check for the disable environment variable, which must be provided in the JSON
-        std::string env_var = layer_root_node["disable_environment"].asString();
+        std::string env_var = disable_env_node.asString();
         // If the env var is set, disable the layer. Disable env var overrides enable above
         if (PlatformUtilsGetEnvSet(env_var.c_str())) {
             enabled = false;
