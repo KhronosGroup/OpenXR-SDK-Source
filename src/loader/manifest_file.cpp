@@ -640,8 +640,7 @@ void RuntimeManifestFile::CreateIfValid(const Json::Value &root_node, const std:
     // Add this runtime manifest file
     manifest_files.emplace_back(new RuntimeManifestFile(filename, lib_path));
 
-    // Add any extensions to it after the fact.
-    // Handle any renamed functions
+    // Add any extensions to it after the fact, while handling any renamed functions
     manifest_files.back()->ParseCommon(runtime_root_node);
 }
 
@@ -895,7 +894,7 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
     manifest_files.emplace_back(
         new ApiLayerManifestFile(type, filename, layer_name, description, api_version, implementation_version, library_path));
 
-    // Add any extensions to it after the fact.
+    // Add any extensions to it after the fact, while handling any renamed functions
     manifest_files.back()->ParseCommon(layer_root_node);
 }
 
