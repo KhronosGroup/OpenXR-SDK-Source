@@ -831,7 +831,15 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
         }
 
 #if defined(XR_OS_ANDROID)
+
+        // Implicit layers require the disable system property on Android.
         auto &disable_prop_node = layer_root_node["disable_sys_prop"];
+        if (disable_prop_node.isNull() || !disable_prop_node.isString()) {
+            error_ss << "Implicit layer " << filename << " is missing \"disable_sys_prop\"";
+            LoaderLogger::LogErrorMessage("", error_ss.str());
+            return;
+        }
+
         // Check if there's an system property to enable this API layer
         auto &enable_prop_node = layer_root_node["enable_sys_prop"];
         if (!enable_prop_node.isNull() && enable_prop_node.isString()) {
