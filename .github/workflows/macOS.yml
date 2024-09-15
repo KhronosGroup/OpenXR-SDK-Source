@@ -1,0 +1,41 @@
+# Copyright (c) 2024, The Khronos Group Inc.
+# SPDX-License-Identifier: CC0-1.0
+
+name: macOS
+
+on:
+  push:
+    branches: [ main ]
+
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  macOS-build:
+    strategy:
+        matrix:
+          device: [
+            macos-14, # Tests Mac arm64
+          ]
+    runs-on: ${{ matrix.device }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: "Get modern CMake and Ninja"
+        uses: "lukka/get-cmake@v3.30.2"
+      - name: Prepare Vulkan SDK
+        uses: humbletim/setup-vulkan-sdk@v1.2.0
+        with:
+          vulkan-query-version: 1.3.290.0
+          vulkan-components: Vulkan-Headers, Vulkan-Loader
+          vulkan-use-cache: true
+      - name: Build
+        run: |
+          mkdir -p build/macos
+          cd build/macos
+          cmake -G "Xcode" ../..
+          xcodebuild -list -project OPENXR.xcodeproj/
+          xcodebuild -scheme ALL_BUILD build
