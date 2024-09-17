@@ -1,0 +1,2 @@
+- ci: Add GitHub Action for macOS building
+- doc: Add command to build OpenXR targets on macOS
