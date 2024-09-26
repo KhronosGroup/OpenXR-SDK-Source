@@ -2044,6 +2044,19 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
     virtual XrStructureType GetGraphicsBindingType() const override { return XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR; }
     virtual XrStructureType GetSwapchainImageType() const override { return XR_TYPE_SWAPCHAIN_IMAGE_VULKAN_KHR; }
 
+    static void LogVulkanExtensions(const std::string title, const std::vector<const char*>& extensions, unsigned int start = 0) {
+        const std::string indentStr(1, ' ');
+
+        Log::Write(Log::Level::Verbose, Fmt("%s: (%d)", title.c_str(), extensions.size() - start));
+        for (auto ext : extensions) {
+            if (start) {
+                start--;
+                continue;
+            }
+            Log::Write(Log::Level::Verbose, Fmt("%s  Name=%s", indentStr.c_str(), ext));
+        }
+    }
+
     virtual XrResult CreateVulkanInstanceKHR(XrInstance instance, const XrVulkanInstanceCreateInfoKHR* createInfo,
                                              VkInstance* vulkanInstance, VkResult* vulkanResult) override {
         PFN_xrGetVulkanInstanceExtensionsKHR pfnGetVulkanInstanceExtensionsKHR = nullptr;
@@ -2068,11 +2081,14 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
             // Note: This cannot outlive the extensionNames above, since it's just a collection of views into that string!
             std::vector<const char*> extensions = ParseExtensionString(&extensionNames[0]);
 #endif
+            LogVulkanExtensions("Vulkan Instance Extensions, requested by runtime", extensions);
 
             // Merge the runtime's request with the applications requests
             for (uint32_t i = 0; i < createInfo->vulkanCreateInfo->enabledExtensionCount; ++i) {
                 extensions.push_back(createInfo->vulkanCreateInfo->ppEnabledExtensionNames[i]);
             }
+            LogVulkanExtensions("Vulkan Instance Extensions, requested by application", extensions,
+                                extensions.size() - createInfo->vulkanCreateInfo->enabledExtensionCount);
 
             VkInstanceCreateInfo instInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
             memcpy(&instInfo, createInfo->vulkanCreateInfo, sizeof(instInfo));
@@ -2157,11 +2173,14 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
                 extensions = ParseExtensionString(&deviceExtensionNames[0]);
             }
 #endif
+            LogVulkanExtensions("Vulkan Device Extensions, requested by runtime", extensions);
 
             // Merge the runtime's request with the applications requests
             for (uint32_t i = 0; i < createInfo->vulkanCreateInfo->enabledExtensionCount; ++i) {
                 extensions.push_back(createInfo->vulkanCreateInfo->ppEnabledExtensionNames[i]);
             }
+            LogVulkanExtensions("Vulkan Device Extensions, requested by application", extensions,
+                                extensions.size() - createInfo->vulkanCreateInfo->enabledExtensionCount);
 
             VkPhysicalDeviceFeatures features{};
             memcpy(&features, createInfo->vulkanCreateInfo->pEnabledFeatures, sizeof(features));

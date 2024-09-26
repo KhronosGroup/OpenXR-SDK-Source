@@ -155,7 +155,16 @@ cd build/macos
 cmake -G "Xcode" ../..
 ```
 
-Finally, open the build/macos/OPENXR.xcodeproj in Xcode to build the samples.
+Finally, open the `build/macos/OPENXR.xcodeproj` in Xcode to build the samples.
+
+If you want to build on the command line, you can run the following command to
+check available targets and built `ALL_BUILD` target as example:
+
+```shell
+# In build/macos directory
+xcodebuild -list -project OPENXR.xcodeproj/
+xcodebuild -scheme ALL_BUILD build
+```
 
 ### Android
 
