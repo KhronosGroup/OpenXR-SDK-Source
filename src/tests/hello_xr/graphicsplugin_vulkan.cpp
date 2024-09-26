@@ -2081,14 +2081,13 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
             // Note: This cannot outlive the extensionNames above, since it's just a collection of views into that string!
             std::vector<const char*> extensions = ParseExtensionString(&extensionNames[0]);
 #endif
-            LogVulkanExtensions("Vulkan Instance Extensions, requested by runtime", extensions);
 
             // Merge the runtime's request with the applications requests
             for (uint32_t i = 0; i < createInfo->vulkanCreateInfo->enabledExtensionCount; ++i) {
                 extensions.push_back(createInfo->vulkanCreateInfo->ppEnabledExtensionNames[i]);
             }
             LogVulkanExtensions("Vulkan Instance Extensions, requested by application", extensions,
-                                extensions.size() - createInfo->vulkanCreateInfo->enabledExtensionCount);
+                                (uint32_t)extensions.size() - createInfo->vulkanCreateInfo->enabledExtensionCount);
 
             VkInstanceCreateInfo instInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
             memcpy(&instInfo, createInfo->vulkanCreateInfo, sizeof(instInfo));
@@ -2173,14 +2172,13 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
                 extensions = ParseExtensionString(&deviceExtensionNames[0]);
             }
 #endif
-            LogVulkanExtensions("Vulkan Device Extensions, requested by runtime", extensions);
 
             // Merge the runtime's request with the applications requests
             for (uint32_t i = 0; i < createInfo->vulkanCreateInfo->enabledExtensionCount; ++i) {
                 extensions.push_back(createInfo->vulkanCreateInfo->ppEnabledExtensionNames[i]);
             }
             LogVulkanExtensions("Vulkan Device Extensions, requested by application", extensions,
-                                extensions.size() - createInfo->vulkanCreateInfo->enabledExtensionCount);
+                                (uint32_t)extensions.size() - createInfo->vulkanCreateInfo->enabledExtensionCount);
 
             VkPhysicalDeviceFeatures features{};
             memcpy(&features, createInfo->vulkanCreateInfo->pEnabledFeatures, sizeof(features));
