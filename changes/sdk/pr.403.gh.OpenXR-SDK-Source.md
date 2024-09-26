@@ -1,1 +1,0 @@
-- Addition: hello_xr: Log Vulkan extensions requested by runtime and by app, visible when running with `--verbose`.
