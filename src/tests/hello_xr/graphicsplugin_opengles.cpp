@@ -429,12 +429,6 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         const auto& pose = layerView.pose;
         XrMatrix4x4f proj;
         XrMatrix4x4f_CreateProjectionFov(&proj, GRAPHICS_OPENGL_ES, layerView.fov, 0.05f, 100.0f);
-        XrMatrix4x4f toView;
-        XrMatrix4x4f_CreateFromRigidTransform(&toView, &pose);
-        XrMatrix4x4f view;
-        XrMatrix4x4f_InvertRigidBody(&view, &toView);
-        XrMatrix4x4f vp;
-        XrMatrix4x4f_Multiply(&vp, &proj, &view);
 
 #if HARDCODE_PROJECTION_MATRIX
 #endif
