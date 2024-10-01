@@ -1176,24 +1176,13 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
 
                 # Second, it must have at least the same number of members
                 if len(members) >= base_member_count:
-                    members_match = True
-                    # Third, the first 'n' elements must match in name and type
-                    for mem in range(base_member_count):
-                        member = members_info[mem]
-                        generic_member = generic_struct.members[mem]
-                        if (member.name != generic_member.name or member.type != generic_member.type):
-                            members_match = False
-                            break
+                    # Third, the first 'n' elements must match in type
+                    members_match = all(generic_member.type == member.type
+                                        for generic_member, member
+                                        in zip(generic_struct.members, members_info))
                     if members_match:
                         relation_group.child_struct_names.append(type_name)
-                    else:
-                        frame = currentframe()
-                        frameinfo = getframeinfo(frame) if frame is not None else None
-                        self.printCodeGenWarningMessage(
-                            frameinfo.filename if frame is not None else None,
-                            (frameinfo.lineno + 1) if frame is not None else None,
-                            'Struct \"%s\" has different children than possible parent struct \"%s\".' % (
-                                type_name, generic_struct_name))
+
         if is_union:
             self.api_unions.append(
                 StructUnionData(name=type_name,
