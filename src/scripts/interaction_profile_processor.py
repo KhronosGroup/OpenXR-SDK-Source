@@ -19,23 +19,33 @@ _VERBOSE_INTERACTION_PROFILE_PROCESSING = False
 
 def _format_conjunction(and_terms):
     if len(and_terms) > 1:
-        return f"({'+'.join(and_terms)})"
+        return f"({'+'.join(sorted(and_terms))})"
     assert and_terms
     return tuple(and_terms)[0]
 
 
 def _repr_conjunction(and_terms):
-    terms = ", ".join(f"'{t}'" for t in and_terms)
+    terms = ", ".join(f"'{t}'" for t in sorted(and_terms))
     return "".join(("{", terms, "}"))
 
 
 FrozenAvailability = Tuple[Tuple[str, ...], ...]
+
 
 class Availability:
     """
     Information on when something is available.
 
     In 'disjunctive normal form' - an OR of ANDs.
+
+    >>> Availability([{'a'}, {'b'}])
+    [{'a'}, {'b'}]
+
+    >>> Availability([{'a'}, {'a', 'b'}])
+    [{'a'}]
+
+    >>> Availability([{'a', 'b'}, {'a'}])
+    [{'a'}]
     """
 
     def __init__(self, conjunctions: Iterable[Set[str]]):
@@ -54,16 +64,107 @@ class Availability:
         Add a new set of features that would make this available.
 
         Return true if this feature set is redundant given what already exists.
+
+        >>> Availability([{'a'}]).add({'a', 'b'})
+        True
+
+        >>> Availability([{'a'}]).add({'b'})
+        False
+
+        >>> a = Availability([{'a'}])
+        >>> a.add({'b'})
+        False
+        >>> a
+        [{'a'}, {'b'}]
+
+        >>> a = Availability([{'a'}])
+        >>> a.add({'a', 'b'})
+        True
+        >>> a
+        [{'a'}]
+
+        >>> a = Availability([{'a', 'b'}])
+        >>> a.add({'a'})
+        False
+        >>> a
+        [{'a'}]
         """
         return self._add_impl(frozenset(features))
 
     def merge(self, other: 'Availability') -> bool:
-        """Merge two availabilities."""
+        """Merge two availabilities (by OR)."""
         redundant = [self._add_impl(condition) for condition in other.conjunctions]
         return all(redundant)
 
+    def merged(self, other: 'Availability') -> 'Availability':
+        """
+        Return the results of merging without changing this object.
+
+
+        >>> Availability([{'a'}]).merged(Availability([{'b', 'c'}]))
+        [{'a'}, {'b', 'c'}]
+
+        >>> Availability([{'a'}]).merged(Availability([{'a', 'b'}, {'b', 'c'}]))
+        [{'a'}, {'b', 'c'}]
+
+        >>> Availability([{'a'}, {'b', 'c'}]).merged(Availability([{'a', 'b'}]))
+        [{'a'}, {'b', 'c'}]
+        """
+        clone = deepcopy(self)
+        clone.merge(other)
+        return clone
+
+    def anded(self, other: 'Availability') -> 'Availability':
+        """
+        Return the boolean AND of this and another availability.
+
+        >>> Availability([{'a'}]).anded(Availability([{'b', 'c'}]))
+        [{'a', 'b', 'c'}]
+
+
+        >>> Availability([{'a'}]).anded(Availability([{'a', 'b'}]))
+        [{'a', 'b'}]
+
+        >>> # a+b+c drops out because a+b is sufficient
+        >>> Availability([{'a'}]).anded(Availability([{'a', 'b'}, {'b', 'c'}]))
+        [{'a', 'b'}]
+
+        >>> Availability([{'a'}]).anded(Availability([{'b'}, {'c'}]))
+        [{'a', 'b'}, {'a', 'c'}]
+
+        >>> Availability([{'a'}]).anded(Availability([{'b', 'c'}, {'d', 'e'}]))
+        [{'a', 'b', 'c'}, {'a', 'd', 'e'}]
+
+        >>> Availability([{'a', 'b'}]).anded(Availability([{'c'}, {'d'}]))
+        [{'a', 'b', 'c'}, {'a', 'b', 'd'}]
+
+        >>> Availability([{'a'}]).anded(Availability([]))
+        []
+
+        >>> Availability([]).anded(Availability([{'a'}]))
+        []
+        """
+        ret = Availability([])
+
+        for self_term in self.conjunctions:
+            for other_term in other.conjunctions:
+                ret._add_impl(self_term.union(other_term))
+
+        return ret
+
     def test(self, present_features: Set[str]) -> bool:
-        """See if the provided features satisfy any of the conjunctions."""
+        """
+        See if the provided features satisfy any of the conjunctions.
+
+        >>> Availability([{'a'}]).test({'b'})
+        False
+
+        >>> Availability([{'a'}]).test({'a'})
+        True
+
+        >>> Availability([]).test({'a'})
+        False
+        """
         for condition in self.conjunctions:
             if condition.issubset(present_features):
                 return True
@@ -76,27 +177,14 @@ class Availability:
         if len(set(self.conjunctions)) < len(self.conjunctions):
             # got a dupe
             return False
-        for a, b in itertools.permutations(self.conjunctions):
+        for a, b in itertools.permutations(self.conjunctions, 2):
             if a.issubset(b):
                 # One condition is a subset of another
                 return False
         return True
 
-    def issubset(self, potential_superset: "Availability") -> bool:
-        for condition in self.conjunctions:
-            for other_condition in potential_superset.conjunctions:
-                if condition.issubset(other_condition):
-                    return True
-        return False
-
-    def issuperset(self, other: "Availability") -> bool:
-        for condition in self.conjunctions:
-            for other_condition in other.conjunctions:
-                if condition.issuperset(other_condition):
-                    return True
-        return False
-
     def make_frozen(self) -> FrozenAvailability:
+        """Convert to a tuple of term tuples."""
         terms = []
         for condition in self.conjunctions:
             terms.append(tuple(sorted(condition)))
@@ -107,21 +195,34 @@ class Availability:
                  for c in sorted(self.conjunctions)]
         return "_or_".join(conjs)
 
+    def cleaned(self, cleaner) -> 'Availability':
+        """Return an availability where each term has been filtered by your function."""
+        ret = Availability([])
+        for term in self.conjunctions:
+            ret.add(set(cleaner(term)))
+        return ret
+
     def _add_impl(self, features: FrozenSet[str]) -> bool:
         if features in self.conjunctions:
             return True
 
-        # these we can't be sure which is right
-        redundant = any(features.issubset(c) or features.issuperset(c) for c in self.conjunctions)
-        self.conjunctions.append(features)
-        return redundant
+        # Do not add this term if we are a superset of any existing term
+        # e.g. A, A+B -> A
+        if any(features.issuperset(c) for c in self.conjunctions):
+            return True
+
+        # Drop any terms that are a superset of the new term
+        remaining = [term for term in self.conjunctions if not term.issuperset(features)]
+        remaining.append(features)
+        self.conjunctions = remaining
+        return False
 
     def __str__(self):
-        conjs = [_format_conjunction(c) for c in self.conjunctions]
+        conjs = [_format_conjunction(c) for c in sorted(self.conjunctions)]
         return f'({" OR ".join(conjs)})'
 
     def __repr__(self) -> str:
-        conjs = [_repr_conjunction(c) for c in self.conjunctions]
+        conjs = [_repr_conjunction(c) for c in sorted(self.conjunctions)]
         return f"[{ ', '.join(conjs)}]"
 
     @classmethod
@@ -142,6 +243,38 @@ class AvailabilitySymbols:
     def make_frozen(self) -> List[Tuple[str, FrozenAvailability]]:
         return [(key, self.syms[key].make_frozen())
                 for key in sorted(self.syms.keys())]
+
+
+def _version_cleaner(term: FrozenSet[str]) -> FrozenSet[str]:
+    versions = list(sorted((s for s in term if s.startswith("XR_VERSION_"))))
+    if not versions:
+        return term
+
+    mutable_term = set(term)
+    # Saying the default version is redundant if we have more interesting dependencies.
+    if len(versions) == 1 and versions[0] == _DEFAULT_VER and len(term) > 1:
+        mutable_term.discard(_DEFAULT_VER)
+
+    # keep the last one
+    redundant_versions = versions[:-1]
+    if redundant_versions:
+        mutable_term.difference_update(redundant_versions)
+
+    return frozenset(mutable_term)
+
+
+_DEFAULT_VER = 'XR_VERSION_1_0'
+
+
+def _process_depends_string(s: Optional[str]) -> Availability:
+    if not s:
+        return Availability.create({_DEFAULT_VER})
+
+    terms = [{feat.strip() for feat in t.split("+")} for t in s.split(',')]
+    for t in terms:
+        if not any(feat.startswith('XR_VERSION_') for feat in t):
+            t.add(_DEFAULT_VER)
+    return Availability(terms)
 
 
 @dataclass
@@ -200,16 +333,13 @@ class InteractionProfile:
                       limit_to_user_path: Optional[str] = None,
                       verbose: bool = _VERBOSE_INTERACTION_PROFILE_PROCESSING
                       ) -> InteractionProfileComponent:
-        # if not avail.issuperset(self.availability):
-        #     # the component availability does not include all the requirements of the profile availability?
-        #     print(f"{self.name}: Add {subpath}: component availability {avail} is not a superset of profile availability {self.availability}")
 
         if limit_to_user_path:
             user_paths = {limit_to_user_path}
         else:
-            user_paths = deepcopy(self.valid_user_paths)
-        if subpath in self.components:
-            component = self.components[subpath]
+            user_paths = self.valid_user_paths
+        component = self.components.get(subpath)
+        if component:
             if action_type != component.action_type:
                 raise RuntimeError(f"{self.name}: Add {subpath} again: Action type mismatch")
             if system != component.system:
@@ -217,11 +347,9 @@ class InteractionProfile:
             if user_paths != component.valid_user_paths:
                 raise RuntimeError(f"{self.name}: Add {subpath} again: Valid user paths mismatch")
 
-            assert len(avail.conjunctions) == 1
-            # Just extend the availability
-            redundant = component.availability.merge(avail)
-            if redundant and verbose:
-                print(f"{self.name}{subpath}: Redundant availability {avail}")
+            # Just extend the availability. Not caring about return value (whether the avail is redundant)
+            component.availability.merge(avail)
+
             return component
 
         ret = InteractionProfileComponent(
@@ -235,14 +363,39 @@ class InteractionProfile:
         self.components[subpath] = ret
         return ret
 
+    def yield_user_path_and_component_pairs(self):
+        """
+        Yield a user path and a component object.
+
+        Outer iteration is over user paths.
+        """
+        for user_path in sorted(self.valid_user_paths):
+            for subpath in sorted(self.components.keys()):
+                component = self.components[subpath]
+                if user_path in component.valid_user_paths:
+                    yield user_path, component
+
+    def generate_binding_paths(self):
+        """
+        Yield a full binding path, availability, and the component object.
+
+        Outer iteration is over user paths.
+        """
+        for user_path, component in self.yield_user_path_and_component_pairs():
+            yield (f"{user_path}{component.subpath}",
+                   self.compute_component_availability(component),
+                   component)
+
+    def compute_component_availability(self, component: InteractionProfileComponent) -> Availability:
+        return self.availability.anded(component.availability).cleaned(_version_cleaner)
+
 
 class InteractionProfileProcessor:
     """Encapsulates the logic to process interaction profiles in the XML."""
 
     def __init__(self):
         self.interaction_profiles: Dict[str, InteractionProfile] = dict()
-        self.deferred_added_components = defaultdict(list)
-        self.availabilities: Set[FrozenAvailability] = set()
+        self.processed_features: List[et.Element] = []
         self.finished = False
         self.verbose = _VERBOSE_INTERACTION_PROFILE_PROCESSING
 
@@ -255,12 +408,12 @@ class InteractionProfileProcessor:
         root is the root of the registry XML tree.
         interface is either a `<feature>` tag or `<extension>` tag.
 
-        This may queue added components, if a feature requiring their profile
-        is not yet processed. Call process_deferred() to resolve this once all features
-        are processed.
+        This logs the features processed, in order, to perform additional passes
+        when finishing processing. Call `finish_processing()` once all features
+        are processed to perform these subsequent processing passes.
         """
         if self.finished:
-            print("Hey, we think we are already finished!")
+            raise ValueError("Cannot process more features once we are finished!")
 
         interface_name = interface.get('name')
         assert interface_name
@@ -268,11 +421,12 @@ class InteractionProfileProcessor:
         if self.verbose:
             print(f"Handling {interface.tag}: {interface_name} {emit}")
 
+        # Only grab interaction profiles in this first pass
         for require in interface.findall('./require[interaction_profile]'):
-            required_features = self._compute_deps_for_interaction_profile(interface, require)
+            avail = self._compute_deps_for_interaction_profile(interface, require)
 
             if self.verbose:
-                print(interface.tag, interface_name, required_features)
+                print(interface.tag, interface_name, avail)
 
             for include_ipp in require.findall('./interaction_profile'):
                 # Path
@@ -282,61 +436,58 @@ class InteractionProfileProcessor:
                 if self.verbose:
                     print(interface_name, name)
 
-                self._include_interaction_profile(root, name, required_features)
+                self._include_interaction_profile(root, name, avail)
+        self.processed_features.append(interface)
 
+    def _process_extending_bindings(self, interface: et.Element):
+
+        interface_name = interface.get('name')
+        assert interface_name
+
+        if self.verbose:
+            print(f"Handling {interface.tag}: {interface_name}: Pass 2, additional binding paths")
         for require in interface.findall('./require[extend]'):
-            required_features = self._compute_deps_for_interaction_profile(interface, require)
+            avail = self._compute_deps_for_interaction_profile(interface, require)
 
             for extend in require.findall('./extend[@interaction_profile_path]'):
                 profile_name = extend.get("interaction_profile_path")
                 assert profile_name
-                profile = self.interaction_profiles.get(profile_name)
-                if profile:
-                    self._add_interaction_profile_components(profile, extend, required_features)
-                else:
-                    self.deferred_added_components[profile_name].append((extend, required_features))
+                profile = self.interaction_profiles[profile_name]
+                self._add_interaction_profile_components(profile, extend, avail)
 
-    def process_deferred(self):
+    def finish_processing(self):
         """
-        Process components originating in features processed before their profile.
+        Perform the second pass over features and other finish-up work.
 
-        This is idempotent: you can call it multiple times safely.
-        However, you must have processed the profiles referred to by deferred components
-        first! So, just call it once from endFile() if you are using the common
-        Generator classes.
+        To guarantee correct processing, only call this once, after all
+        calls to `process_feature()` are complete.
+        Call it once from `endFile()` if you are using the common
+        `Generator` classes.
         """
-        for profile_name, components in self.deferred_added_components.items():
-            for extend, deps in components:
-                profile = self.interaction_profiles.get(profile_name)
-                assert profile
-                self._add_interaction_profile_components(profile, extend, deps)
-        self.deferred_added_components.clear()
+        # Second pass: extend binding paths (components)
+        for feature in self.processed_features:
+            self._process_extending_bindings(feature)
 
-        for profile in self.interaction_profiles.values():
-            self.availabilities.add(profile.availability.make_frozen())
-            for component in profile.components.values():
-                self.availabilities.add(component.availability.make_frozen())
+        self.processed_features.clear()
 
         self.finished = True
-        # for ip in self.interaction_profiles.values():
-        #     for component in ip.components:
 
-    def _include_interaction_profile(self, root: et.Element, name: str, required_features: Set[str]):
+    def _include_interaction_profile(self, root: et.Element, name: str, avail: Availability):
 
         if name in self.interaction_profiles:
             profile = self.interaction_profiles[name]
-            redundant = profile.availability.add(required_features)
+            redundant = profile.availability.merge(avail)
             if redundant and self.verbose:
-                print(f"{name}: Adding redundant set of required features! {required_features}")
+                print(f"{name}: Adding redundant availability! {avail}")
 
             # Add our new route of availability to all components defined inline, without
             # going through the XML again.
             for component in profile.components.values():
                 if component.integral:
-                    redundant = component.availability.add(required_features)
+                    redundant = component.availability.merge(avail)
                     if redundant and self.verbose:
-                        print(f"{name}{component.subpath}: Adding redundant set of required features!")
-                        print(f"                new: {required_features} existing availability: {component.availability}")
+                        print(f"{name}{component.subpath}: Adding redundant availability!")
+                        print(f"                new: {avail} existing availability: {component.availability}")
 
             return
 
@@ -348,37 +499,27 @@ class InteractionProfileProcessor:
 
         title = profile_elt.get("title")
         assert title
-        avail = Availability.create(required_features)
         profile = InteractionProfile(valid_user_paths=user_paths,
                                      name=name,
                                      title=title,
                                      availability=avail)
         self.interaction_profiles[name] = profile
 
-        self._add_interaction_profile_components(profile, profile_elt, required_features, integral=True)
+        self._add_interaction_profile_components(profile, profile_elt, avail, integral=True)
 
-    def _compute_deps_for_interaction_profile(self, feature_elt: et.Element, require_elt: et.Element) -> Set[str]:
+    def _compute_deps_for_interaction_profile(self, feature_elt: et.Element, require_elt: et.Element) -> Availability:
         feature_name = feature_elt.get("name")
         assert feature_name
 
-        deps = {feature_name}
+        deps = Availability.create({feature_name})
 
-        # TODO finish fixing for schema update
-        if feature_elt.tag == "extension":
-            requiresCore = feature_elt.get("requiresCore", "1.0")
-            deps.add(f"XR_VERSION_{requiresCore.replace('.', '_')}")
+        require_depends = require_elt.get('depends')
+        if require_depends:
+            deps = deps.anded(_process_depends_string(require_depends))
 
-        additional_extension = require_elt.get('extension')
-        if additional_extension is None:
-            additional_extension = require_elt.get('depends')
-        if additional_extension is not None:
-            deps.add(additional_extension)
+        return deps.cleaned(_version_cleaner)
 
-        return deps
-
-    def _add_interaction_profile_components(self, profile: InteractionProfile, component_parent, required_features: Set[str], integral: bool = False):
-
-        avail = Availability.create(required_features)
+    def _add_interaction_profile_components(self, profile: InteractionProfile, component_parent, avail: Availability, integral: bool = False):
         for component in component_parent.findall("./component"):
             system = False
             if component.get("system") is not None:

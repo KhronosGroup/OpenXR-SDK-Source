@@ -300,6 +300,7 @@ getConformanceFilenames() {
         maintainer-scripts/check-changelog-fragments.sh \
         specification/.gitignore \
         specification/registry/*.xml \
+        specification/config \
         specification/scripts \
         specification/Makefile \
         specification/README.md \

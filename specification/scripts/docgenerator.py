@@ -34,6 +34,7 @@ class _Enumerant:
     comment: str
     extname: Optional[str] = None
     deprecated: Optional[str] = None
+    alias: Optional[str] = None
 
 
 def orgLevelKey(name):
@@ -447,7 +448,6 @@ class DocOutputGenerator(OutputGenerator):
 
         self.writeInclude('structs', typeName, body)
 
-
     def _maybe_return_enumerant_object_for_table(
         self, elems, elem, missing_comments: List[str]
     ) -> Optional[_Enumerant]:
@@ -466,15 +466,21 @@ class DocOutputGenerator(OutputGenerator):
             return
 
         comment = elem.get("comment")
+        alias = elem.get("alias")
         if comment is None:
             if name.endswith("_UNKNOWN") and num_val == 0:
                 # This is a placeholder for 0-initialization to be clearly invalid.
                 # Just skip this silently
                 return
-            # Skip but record this in case it is an odd-one-out missing
-            # a comment.
-            missing_comments.append(name)
-            return
+            if alias is not None:
+                # oh it's an alias. That's fine. We can generate a comment.
+                comment = f"Alias for ename:{alias}"
+
+            else:
+                # Skip but record this in case it is an odd-one-out missing
+                # a comment.
+                missing_comments.append(name)
+                return
 
         assert num_val is not None
 
@@ -531,13 +537,18 @@ class DocOutputGenerator(OutputGenerator):
             if maybe_data:
                 values.append(maybe_data)
 
-        if values:
-            # If any had a comment, output it.
+        if values and any(v.alias is None for v in values):
+            # If any had a (non-alias) comment, output it.
 
             if missing_comments:
-                self.logMsg('warn', 'The following values for', groupName,
-                            'were omitted from the table due to missing comment attributes:',
-                            ', '.join(missing_comments))
+                # Warn if it looks like we have comments, but some were missed.
+                if len(missing_comments) < len(values):
+                    self.logMsg('warn', 'The following value(s) for', groupName,
+                                'were omitted from the table due to missing comment attributes:',
+                                ', '.join(missing_comments))
+                else:
+                    self.logMsg('warn', 'The enumeration ', groupName,
+                                'appears to be missing comments for most of its elements')
 
             group_type = groupinfo.elem.get('type')
             if groupName == self.result_type:
