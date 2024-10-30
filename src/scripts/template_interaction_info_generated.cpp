@@ -9,12 +9,12 @@
 
 namespace Conformance {
 
-//# macro make_qualified_path_entry(user_path, component)
+//# macro make_path_entry(binding_path, avail, component)
     InputSourcePathAvailData{
-        /*{ (user_path + component.subpath) | quote_string }*/,
+        /*{ binding_path | quote_string }*/,
         /*{ component.action_type }*/,
-        InteractionProfileAvailability::Avail_/*{- component.availability.as_normalized_symbol() }*/
-        //# if component.system
+        InteractionProfileAvailability::Avail_/*{- avail.as_normalized_symbol() }*/
+        //#- if component.system
         , true
         //# endif
     }
@@ -24,13 +24,14 @@ const std::vector<InteractionProfileAvailMetadata>& GetAllInteractionProfiles() 
     //
     // Generated lists of component paths for interaction profiles, with metadata and availability expressions.
     //
+
 //# for path, profile in interaction_profiles.items()
 
-    static const InputSourcePathAvailCollection /*{'c' + (path | replace("/", "_")) }*/{
-//# for component in profile.components.values()
-//# for user_path in component.valid_user_paths
-        /*{ make_qualified_path_entry(user_path, component) | collapse_whitespace }*/,
-//# endfor
+    // Interaction profile path: /*{ path }*/
+    // Availability: /*{ profile.availability }*/
+    static const InputSourcePathAvailCollection /*{'c' + (path | replace("/", "_") | replace("-", "_")) }*/{
+//# for binding_path, avail, component in profile.generate_binding_paths()
+        /*{ make_path_entry(binding_path, avail, component) | collapse_whitespace }*/,
 //# endfor
     };
 
@@ -46,12 +47,12 @@ const std::vector<InteractionProfileAvailMetadata>& GetAllInteractionProfiles() 
             /*{ profile.name | quote_string }*/,
             /*{ profile.name | replace("/interaction_profiles/", "") | quote_string }*/,
             {
-                //# for user_path in profile.valid_user_paths
+                //# for user_path in profile.valid_user_paths | sort
                 /*{ user_path | quote_string }*/,
                 //# endfor
             },
             InteractionProfileAvailability::Avail_/*{- profile.availability.as_normalized_symbol() -}*/,
-            /*{'c' + (path |replace("/", "_")) }*/
+            /*{'c' + (path | replace("/", "_") | replace("-", "_")) }*/
         },
 //# endfor
     };

@@ -379,6 +379,11 @@ architectures and ABIs is used.
   | `sparc64`
   | 64-bit SPARC architecture
 
+|`loong64`
+  |
+  | `loong64`
+  | 64-bit LoongArch architecture, little endian (LP64D ABI)
+
 |===
 
 [[android-arm32-note]]

@@ -61,7 +61,7 @@ static const std::array<Availability, /*{ availabilities | length }*/> kInteract
 /// This is a generated list of all interaction profiles in the order returned by GetAllInteractionProfiles.
 enum class InteractionProfileIndex {
 //# for path, profile in interaction_profiles.items()
-     Profile_/*{ (path | replace("/interaction_profiles/", "") | replace("/", "_")) }*/,
+     Profile_/*{ (path | replace("/interaction_profiles/", "") | replace("/", "_") | replace("-", "_")) }*/,
 //# endfor
 };
 
