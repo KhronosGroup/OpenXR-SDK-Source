@@ -1378,6 +1378,16 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 #endif  // defined(VK_USE_PLATFORM_WIN32_KHR)
 #endif  // defined(USE_MIRROR_WINDOW)
 
+        VkDebugUtilsMessengerCreateInfoEXT debugInfo{VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT};
+        debugInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
+#if !defined(NDEBUG)
+        debugInfo.messageSeverity |= VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
+#endif
+        debugInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                                VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        debugInfo.pfnUserCallback = debugMessageThunk;
+        debugInfo.pUserData = this;
+
         VkApplicationInfo appInfo{VK_STRUCTURE_TYPE_APPLICATION_INFO};
         appInfo.pApplicationName = "hello_xr";
         appInfo.applicationVersion = 1;
@@ -1386,6 +1396,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         appInfo.apiVersion = VK_API_VERSION_1_0;
 
         VkInstanceCreateInfo instInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
+        instInfo.pNext = &debugInfo;
         instInfo.pApplicationInfo = &appInfo;
         instInfo.enabledLayerCount = (uint32_t)layers.size();
         instInfo.ppEnabledLayerNames = layers.empty() ? nullptr : layers.data();
@@ -1402,21 +1413,8 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 
         vkCreateDebugUtilsMessengerEXT =
             (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_vkInstance, "vkCreateDebugUtilsMessengerEXT");
-        vkDestroyDebugUtilsMessengerEXT =
-            (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(m_vkInstance, "vkDestroyDebugUtilsMessengerEXT");
 
-        if (vkCreateDebugUtilsMessengerEXT != nullptr && vkDestroyDebugUtilsMessengerEXT != nullptr) {
-            VkDebugUtilsMessengerCreateInfoEXT debugInfo{VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT};
-            debugInfo.messageSeverity =
-                VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
-#if !defined(NDEBUG)
-            debugInfo.messageSeverity |=
-                VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT;
-#endif
-            debugInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                                    VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-            debugInfo.pfnUserCallback = debugMessageThunk;
-            debugInfo.pUserData = this;
+        if (vkCreateDebugUtilsMessengerEXT != nullptr) {
             CHECK_VKCMD(vkCreateDebugUtilsMessengerEXT(m_vkInstance, &debugInfo, nullptr, &m_vkDebugUtilsMessenger));
         }
 
@@ -1699,7 +1697,6 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 #endif
 
     PFN_vkCreateDebugUtilsMessengerEXT vkCreateDebugUtilsMessengerEXT{nullptr};
-    PFN_vkDestroyDebugUtilsMessengerEXT vkDestroyDebugUtilsMessengerEXT{nullptr};
     VkDebugUtilsMessengerEXT m_vkDebugUtilsMessenger{VK_NULL_HANDLE};
 
     static std::string vkObjectTypeToString(VkObjectType objectType) {

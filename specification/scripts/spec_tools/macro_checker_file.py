@@ -70,7 +70,7 @@ MEMBER_REFERENCE = re.compile(
 # or containing our interested area when matched against the text preceding).
 # Used to skip checking in some places.
 OPEN_LINK = re.compile(
-    r'.*(?<!`)<<[^>]*$'
+    r'.*(?<!`)(<<[^>]*|xref:[^\[]*)$'
 )
 
 # Matches if a string begins and is followed by a link "close" without a matching open.
@@ -85,8 +85,9 @@ CLOSE_LINK = re.compile(
 # - `ifdef:`
 # - `endif:`
 # - `todo` (followed by something matching \b, like : or (. capitalization ignored)
+# - `[#` (anchor for an image)
 SKIP_LINE = re.compile(
-    r'^(ifdef:)|(endif:)|([tT][oO][dD][oO]\b).*'
+    r'^(ifdef:)|(endif:)|([tT][oO][dD][oO]\b)|(\[#).*'
 )
 
 # Matches the whole inside of a refpage tag.
