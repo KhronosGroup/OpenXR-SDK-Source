@@ -39,7 +39,7 @@ endif
 VERSIONS := XR_VERSION_1_0 XR_VERSION_1_1 XR_LOADER_VERSION_1_0
 VERSIONOPTIONS := $(foreach version,$(VERSIONS),-feature $(version))
 
-SPECREVISION = 1.1.42
+SPECREVISION = 1.1.43
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -351,7 +351,7 @@ ASCIIDOCTOR_TARGETS += $(PDFSPEC) $(PDFA4SPEC)
 
 # Target-specific variables and deps customizing the AsciiDoctor rule
 # EXTRAATRIBS is for build-time customization
-$(PDFSPEC) $(PDFA4SPEC): BACKEND_ARGS=--backend pdf --require asciidoctor-pdf -a compress --require ./scripts/pdf-index-customizer.rb $(EXTRAATTRIBS) 
+$(PDFSPEC) $(PDFA4SPEC): BACKEND_ARGS=--backend pdf --require asciidoctor-pdf -a compress --require ./scripts/pdf-index-customizer.rb $(EXTRAATTRIBS)
 $(PDFSPEC): PAGESIZE=LETTER
 $(PDFA4SPEC): PAGESIZE=A4
 $(PDFSPEC) $(PDFA4SPEC): $(COMMONDOCS)

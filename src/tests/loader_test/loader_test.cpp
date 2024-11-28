@@ -20,7 +20,9 @@
 // Author: Dave Houlton <daveh@lunarg.com>
 //
 
+#include <algorithm>
 #include <cstring>
+#include <functional>
 #include <iostream>
 #include <sstream>
 #include <type_traits>
@@ -42,6 +44,7 @@
 #include <catch2/catch_session.hpp>
 #include <catch2/catch_test_case_info.hpp>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_predicate.hpp>
 #include <catch2/internal/catch_clara.hpp>  // for customizing arg parsing
 #include <catch2/reporters/catch_reporter_event_listener.hpp>
 #include <catch2/reporters/catch_reporter_registrars.hpp>
@@ -227,6 +230,42 @@ bool DetectInstalledRuntime() {
     return runtime_found;
 }
 
+namespace Catch {
+template <>
+struct StringMaker<XrApiLayerProperties> {
+    static std::string convert(XrApiLayerProperties const& value) {
+        std::ostringstream oss;
+        oss << value.layerName << " (v" << value.layerVersion << ", " << value.description << ")";
+        return oss.str();
+    }
+};
+}  // namespace Catch
+
+/// Custom matcher for use with ???_THAT() assertions, which takes a user-provided predicate and checks for at least one
+/// element in the collection for which this is true.
+template <typename T, typename ValType = typename T::value_type>
+class ContainsPredicate : public Catch::Matchers::MatcherBase<T> {
+   public:
+    using ValueType = ValType;
+    using PredicateType = std::function<bool(ValueType const&)>;
+    ContainsPredicate(PredicateType&& predicate, const char* desc) : predicate_(std::move(predicate)), desc_(desc) {}
+
+    virtual bool match(T const& container) const override {
+        using std::begin;
+        using std::end;
+        return end(container) != std::find_if(begin(container), end(container), predicate_);
+    }
+
+    virtual std::string describe() const override { return std::string("contains an element such that ") + desc_; }
+
+   private:
+    PredicateType predicate_;
+    const char* desc_;
+};
+
+template <typename T>
+using VectorContainsPredicate = ContainsPredicate<std::vector<T>>;
+
 // Test the xrEnumerateApiLayerProperties function through the loader.
 TEST_CASE("TestEnumLayers", "") {
     XrResult test_result = XR_SUCCESS;
@@ -245,23 +284,18 @@ TEST_CASE("TestEnumLayers", "") {
 #endif  // !defined(XR_USE_PLATFORM_ANDROID)
 
     // Test number query
-    test_result = xrEnumerateApiLayerProperties(in_layer_value, &out_layer_value, nullptr);
-    TEST_EQUAL(test_result, XR_SUCCESS, "No explicit layers layer count check");
-    TEST_INFO((std::to_string(out_layer_value) + " layers available.").c_str());
+    {
+        INFO("First call to xrEnumerateApiLayerProperties: get count");
+        CHECK(XR_SUCCESS == xrEnumerateApiLayerProperties(in_layer_value, &out_layer_value, nullptr));
+    }
+    INFO("Layers available: " << out_layer_value);
 
     // If any implicit layers are found, try property return
     if (out_layer_value > 0) {
         in_layer_value = out_layer_value;
         out_layer_value = 0;
         std::vector<XrApiLayerProperties> layer_props(in_layer_value, {XR_TYPE_API_LAYER_PROPERTIES});
-        test_result = xrEnumerateApiLayerProperties(in_layer_value, &out_layer_value, layer_props.data());
-        TEST_EQUAL(test_result, XR_SUCCESS, "No explicit layers layer props query");
-        if (test_result == XR_SUCCESS) {
-            for (const auto& prop : layer_props) {
-                std::string implictLayerInfo = std::string("Found implicit layer: ") + prop.layerName;
-                TEST_INFO(implictLayerInfo.c_str());
-            }
-        }
+        CHECK(XR_SUCCESS == (test_result = xrEnumerateApiLayerProperties(in_layer_value, &out_layer_value, layer_props.data())));
     }
 #else
     // XR_API_LAYER_PATH override not supported on Android
@@ -287,50 +321,61 @@ TEST_CASE("TestEnumLayers", "") {
 #endif  // defined(XR_USE_PLATFORM_ANDROID)
 
     // Test number query
-    test_result = xrEnumerateApiLayerProperties(in_layer_value, &out_layer_value, nullptr);
-    TEST_EQUAL(test_result, XR_SUCCESS, "Simple explicit layers layer count check");
-    TEST_EQUAL(out_layer_value, num_valid_jsons,
-               (std::string("Simple explicit layers expected count ") + std::to_string(num_valid_jsons) + std::string(" got ") +
-                std::to_string(out_layer_value))
-                   .c_str());
+    {
+        INFO("Simple explicit layers");
+        test_result = xrEnumerateApiLayerProperties(in_layer_value, &out_layer_value, nullptr);
+        REQUIRE(test_result == XR_SUCCESS);
+        CHECK(out_layer_value == num_valid_jsons);
+    }
 
     // Try property return
     in_layer_value = out_layer_value;
     out_layer_value = 0;
     std::vector<XrApiLayerProperties> layer_props(in_layer_value, {XR_TYPE_API_LAYER_PROPERTIES});
-    test_result = xrEnumerateApiLayerProperties(in_layer_value, &out_layer_value, layer_props.data());
-    TEST_EQUAL(test_result, XR_SUCCESS, "Simple explicit layers layer props query");
+    CHECK(XR_SUCCESS == (test_result = xrEnumerateApiLayerProperties(in_layer_value, &out_layer_value, layer_props.data())));
 
     if (test_result == XR_SUCCESS) {
-        bool found_bad = false;
-        bool found_good_absolute_test = false;
-        bool found_good_relative_test = false;
         uint16_t expected_major = XR_VERSION_MAJOR(XR_CURRENT_API_VERSION);
         uint16_t expected_minor = XR_VERSION_MINOR(XR_CURRENT_API_VERSION);
-        for (uint32_t iii = 0; iii < out_layer_value; ++iii) {
-            std::string layer_name = layer_props[iii].layerName;
-            if ("XR_APILAYER_test" == layer_name && 1 == layer_props[iii].layerVersion &&
-                XR_MAKE_VERSION(expected_major, expected_minor, 0U) == layer_props[iii].specVersion &&
-                0 == strcmp(layer_props[iii].description, "Test_description")) {
-                found_good_absolute_test = true;
-            } else if ("XR_APILAYER_LUNARG_test_good_relative_path" == layer_name && 1 == layer_props[iii].layerVersion &&
-                       XR_MAKE_VERSION(expected_major, expected_minor, 0U) == layer_props[iii].specVersion &&
-                       0 == strcmp(layer_props[iii].description, "Test_description")) {
-                found_good_relative_test = true;
-            } else if (std::string::npos != layer_name.find("_badjson")) {
-                // If we enumerated any other layers (excepting the 'badjson' variants), it's an error
-                TEST_INFO((std::string("Failed, found unexpected layer ") + layer_name + " in list").c_str());
-                found_bad = true;
-                break;
-            }
+
+        CAPTURE(layer_props);
+
+        {
+            INFO("Looking for good API layer that uses an absolute path to the binary");
+
+            const auto layerNamePredicate = [](const XrApiLayerProperties& prop) {
+                return 0 == strcmp(prop.layerName, "XR_APILAYER_test");
+            };
+            REQUIRE_THAT(layer_props,
+                         VectorContainsPredicate<XrApiLayerProperties>(layerNamePredicate, "layer name is XR_APILAYER_test"));
+            const auto it = std::find_if(layer_props.begin(), layer_props.end(), layerNamePredicate);
+            REQUIRE(it != layer_props.end());
+            CHECK(1 == it->layerVersion);
+            CHECK(XR_MAKE_VERSION(expected_major, expected_minor, 0U) == it->specVersion);
+            CHECK(std::string("Test_description") == it->description);
         }
 
-        TEST_EQUAL(found_good_absolute_test, true, "Simple explicit layers found_good_absolute_test");
-        TEST_EQUAL(found_good_relative_test, true, "Simple explicit layers found_good_absolute_test");
-        TEST_EQUAL(found_bad, false, "Simple explicit layers found_bad");
+        {
+            INFO("Looking for good API layer that uses a relative path to the binary");
 
-        for (const auto& prop : layer_props) {
-            TEST_INFO((std::string("Found API layer: ") + prop.layerName).c_str());
+            const auto layerNamePredicate = [](const XrApiLayerProperties& prop) {
+                return 0 == strcmp(prop.layerName, "XR_APILAYER_LUNARG_test_good_relative_path");
+            };
+            REQUIRE_THAT(layer_props, VectorContainsPredicate<XrApiLayerProperties>(
+                                          layerNamePredicate, "layer name is XR_APILAYER_LUNARG_test_good_relative_path"));
+            const auto it = std::find_if(layer_props.begin(), layer_props.end(), layerNamePredicate);
+            REQUIRE(it != layer_props.end());
+            CHECK(1 == it->layerVersion);
+            CHECK(XR_MAKE_VERSION(expected_major, expected_minor, 0U) == it->specVersion);
+            CHECK(std::string("Test_description") == it->description);
+        }
+        {
+            INFO("Checking that no layers described with bad JSON were enumerated");
+            CHECK_THAT(layer_props, !VectorContainsPredicate<XrApiLayerProperties>(
+                                        [](const XrApiLayerProperties& prop) {
+                                            return std::string::npos != std::string(prop.layerName).find("_badjson");
+                                        },
+                                        "layer name mentions _badjson"));
         }
     }
 #endif  // defined(XR_USE_PLATFORM_ANDROID) && !defined(XR_KHR_LOADER_INIT_SUPPORT)
@@ -476,18 +521,17 @@ TEST_CASE("TestCreateDestroyInstance", "") {
         SKIP("Skipped - no runtime installed");
     }
 
-    XrResult expected_result = XR_SUCCESS;
-    char valid_layer_to_enable[] = "XR_APILAYER_LUNARG_api_dump";
-    char invalid_layer_to_enable[] = "XrApiLayer_invalid_layer_test";
-    char valid_extension_to_enable[] = "XR_EXT_debug_utils";
-    char invalid_extension_to_enable[] = "XR_KHR_fake_ext1";
-    const char* const valid_layer_name_array[1] = {valid_layer_to_enable};
+    const char invalid_layer_to_enable[] = "XrApiLayer_invalid_layer_test";
+    const char valid_extension_to_enable[] = "XR_EXT_debug_utils";
+    const char invalid_extension_to_enable[] = "XR_KHR_fake_ext1";
     const char* const invalid_layer_name_array[1] = {invalid_layer_to_enable};
 #if defined(XR_USE_PLATFORM_ANDROID)
     const char* valid_extension_name_array[2] = {XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME, valid_extension_to_enable};
     const char* const invalid_extension_name_array[2] = {XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME,
                                                          invalid_extension_to_enable};
 #else
+    const char valid_layer_to_enable[] = "XR_APILAYER_LUNARG_api_dump";
+    const char* const valid_layer_name_array[1] = {valid_layer_to_enable};
     const char* valid_extension_name_array[1] = {valid_extension_to_enable};
     const char* const invalid_extension_name_array[1] = {invalid_extension_to_enable};
 #endif
@@ -520,83 +564,77 @@ TEST_CASE("TestCreateDestroyInstance", "") {
     // XR_API_LAYER_PATH override not supported on Android
 #endif  // !defined(XR_USE_PLATFORM_ANDROID)
 
-    for (uint32_t test_num = 0; test_num < 6; ++test_num) {
-#if defined(XR_USE_PLATFORM_ANDROID)
-        if (test_num == 1 || test_num == 5) {
-            TEST_HEADER(("     Skip test " + std::to_string(test_num) + " on Android").c_str());
-            continue;
-        }
-#endif  // defined(XR_USE_PLATFORM_ANDROID)
+    XrInstance instance = XR_NULL_HANDLE;
+    XrResult create_result = XR_ERROR_VALIDATION_FAILURE;
 
-        XrInstance instance = XR_NULL_HANDLE;
-        XrResult create_result = XR_ERROR_VALIDATION_FAILURE;
-        std::string current_test_string;
-        XrInstanceCreateInfo instance_create_info = {XR_TYPE_INSTANCE_CREATE_INFO};
-        instance_create_info.applicationInfo = application_info;
-        auto platform_instance_create = GetPlatformInstanceCreateExtension();
-        instance_create_info.next = &platform_instance_create;
-        instance_create_info.enabledExtensionCount = base_extension_count;
-        instance_create_info.enabledExtensionNames = base_extension_names;
+    auto platform_instance_create = GetPlatformInstanceCreateExtension();
+    XrInstanceCreateInfo instance_create_info = {XR_TYPE_INSTANCE_CREATE_INFO};
+    instance_create_info.next = &platform_instance_create;
+    instance_create_info.applicationInfo = application_info;
+    instance_create_info.enabledExtensionCount = base_extension_count;
+    instance_create_info.enabledExtensionNames = base_extension_names;
 
-        switch (test_num) {
-            // Test 0 - Basic, plain-vanilla xrCreateInstance
-            case 0:
-                current_test_string = "Simple xrCreateInstance";
-                expected_result = XR_SUCCESS;
-                break;
-            // Test 1 - xrCreateInstance with a valid layer
-            case 1:
-                current_test_string = "xrCreateInstance with a single valid layer";
-                expected_result = XR_SUCCESS;
-                instance_create_info.enabledApiLayerCount = 1;
-                instance_create_info.enabledApiLayerNames = valid_layer_name_array;
-                break;
-            // Test 2 - xrCreateInstance with an invalid layer
-            case 2:
-                current_test_string = "xrCreateInstance with a single invalid layer";
-                expected_result = XR_ERROR_API_LAYER_NOT_PRESENT;
-                instance_create_info.enabledApiLayerCount = 1;
-                instance_create_info.enabledApiLayerNames = invalid_layer_name_array;
-                break;
-            // Test 3 - xrCreateInstance with a valid extension
-            case 3:
-                current_test_string = "xrCreateInstance with a single extra valid extension";
-                expected_result = XR_SUCCESS;
-                instance_create_info.enabledExtensionCount = 1 + base_extension_count;
-                instance_create_info.enabledExtensionNames = valid_extension_name_array;
-                break;
-            // Test 4 - xrCreateInstance with an invalid extension
-            case 4:
-                current_test_string = "xrCreateInstance with a single extra invalid extension";
-                expected_result = XR_ERROR_EXTENSION_NOT_PRESENT;
-                instance_create_info.enabledExtensionCount = 1 + base_extension_count;
-                instance_create_info.enabledExtensionNames = invalid_extension_name_array;
-                break;
-            // Test 5 - xrCreateInstance with everything
-            case 5:
-                current_test_string = "xrCreateInstance with app info, valid layer, and a valid extension";
-                expected_result = XR_SUCCESS;
-                instance_create_info.enabledApiLayerCount = 1;
-                instance_create_info.enabledApiLayerNames = valid_layer_name_array;
-                instance_create_info.enabledExtensionCount = 1 + base_extension_count;
-                instance_create_info.enabledExtensionNames = valid_extension_name_array;
-                break;
-        }
-
-        // Try create instance and look for the correct return
-        std::string cur_message = current_test_string + " - xrCreateInstance";
-        create_result = xrCreateInstance(&instance_create_info, &instance);
-        TEST_EQUAL(create_result, expected_result, cur_message.c_str());
-
-        // If the expected return was a success, clean up the created instance
-        if (XR_SUCCEEDED(create_result)) {
-            cur_message = current_test_string + " - xrDestroyInstance";
-            TEST_EQUAL(xrDestroyInstance(instance), XR_SUCCESS, cur_message.c_str());
-        }
+    // Test 0 - Basic, plain-vanilla xrCreateInstance
+    SECTION("Simple xrCreateInstance") {
+        INFO("xrCreateInstance");
+        CHECK(XR_SUCCESS == (create_result = xrCreateInstance(&instance_create_info, &instance)));
     }
 
-    // Make sure DestroyInstance with a NULL handle gives correct error
-    TEST_EQUAL(xrDestroyInstance(XR_NULL_HANDLE), XR_ERROR_HANDLE_INVALID, "xrDestroyInstance(XR_NULL_HANDLE)");
+#if !defined(XR_USE_PLATFORM_ANDROID)
+    // Test 1 - xrCreateInstance with a valid layer
+    SECTION("xrCreateInstance with a single valid layer") {
+        INFO("xrCreateInstance");
+        instance_create_info.enabledApiLayerCount = 1;
+        instance_create_info.enabledApiLayerNames = valid_layer_name_array;
+        CHECK(XR_SUCCESS == (create_result = xrCreateInstance(&instance_create_info, &instance)));
+    }
+#endif  // !defined(XR_USE_PLATFORM_ANDROID)
+
+    // Test 2 - xrCreateInstance with an invalid layer
+    SECTION("xrCreateInstance with a single invalid layer") {
+        INFO("xrCreateInstance");
+        instance_create_info.enabledApiLayerCount = 1;
+        instance_create_info.enabledApiLayerNames = invalid_layer_name_array;
+        CHECK(XR_ERROR_API_LAYER_NOT_PRESENT == (create_result = xrCreateInstance(&instance_create_info, &instance)));
+    }
+
+    // Test 3 - xrCreateInstance with a valid extension
+    SECTION("xrCreateInstance with a single extra valid extension") {
+        INFO("xrCreateInstance");
+        instance_create_info.enabledExtensionCount++;
+        instance_create_info.enabledExtensionNames = valid_extension_name_array;
+        CHECK(XR_SUCCESS == (create_result = xrCreateInstance(&instance_create_info, &instance)));
+    }
+
+    // Test 4 - xrCreateInstance with an invalid extension
+    SECTION("xrCreateInstance with a single extra invalid extension") {
+        INFO("xrCreateInstance");
+        instance_create_info.enabledExtensionCount++;
+        instance_create_info.enabledExtensionNames = invalid_extension_name_array;
+        CHECK(XR_ERROR_EXTENSION_NOT_PRESENT == (create_result = xrCreateInstance(&instance_create_info, &instance)));
+    }
+
+#if !defined(XR_USE_PLATFORM_ANDROID)
+    // Test 5 - xrCreateInstance with everything
+    SECTION("xrCreateInstance with app info, valid layer, and a valid extension") {
+        INFO("xrCreateInstance");
+        instance_create_info.enabledApiLayerCount = 1;
+        instance_create_info.enabledApiLayerNames = valid_layer_name_array;
+        instance_create_info.enabledExtensionCount++;
+        instance_create_info.enabledExtensionNames = valid_extension_name_array;
+        CHECK(XR_SUCCESS == (create_result = xrCreateInstance(&instance_create_info, &instance)));
+    }
+#endif  // !defined(XR_USE_PLATFORM_ANDROID)
+
+    SECTION("DestroyInstance with a NULL handle") {
+        // Make sure DestroyInstance with a NULL handle gives correct error
+        CHECK(XR_ERROR_HANDLE_INVALID == xrDestroyInstance(XR_NULL_HANDLE));
+    }
+
+    if (XR_SUCCEEDED(create_result)) {
+        INFO("xrDestroyInstance");
+        CHECK(XR_SUCCESS == xrDestroyInstance(instance));
+    }
 
     // Cleanup
     CleanupEnvironmentVariables();
@@ -666,17 +704,19 @@ TEST_CASE("TestCreateDestroyAction", "") {
         strcpy(actionSetInfo.actionSetName, "test");
         strcpy(actionSetInfo.localizedActionSetName, "test");
         XrActionSet actionSet{XR_NULL_HANDLE};
-        TEST_EQUAL(xrCreateActionSet(instance, &actionSetInfo, &actionSet), XR_SUCCESS, "Calling xrCreateActionSet");
+        CHECK(XR_SUCCESS == xrCreateActionSet(instance, &actionSetInfo, &actionSet));
 
-        XrActionCreateInfo actionInfo{XR_TYPE_ACTION_CREATE_INFO};
-        actionInfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
-        strcpy(actionInfo.actionName, "action_test");
-        strcpy(actionInfo.localizedActionName, "Action test");
-        XrAction completeAction{XR_NULL_HANDLE};
-        TEST_EQUAL(xrCreateAction(actionSet, &actionInfo, &completeAction), XR_SUCCESS, "Calling xrCreateAction");
+        if (actionSet != XR_NULL_HANDLE) {
+            XrActionCreateInfo actionInfo{XR_TYPE_ACTION_CREATE_INFO};
+            actionInfo.actionType = XR_ACTION_TYPE_BOOLEAN_INPUT;
+            strcpy(actionInfo.actionName, "action_test");
+            strcpy(actionInfo.localizedActionName, "Action test");
+            XrAction completeAction{XR_NULL_HANDLE};
+            CHECK(XR_SUCCESS == xrCreateAction(actionSet, &actionInfo, &completeAction));
+        }
     }
 
-    TEST_EQUAL(xrDestroyInstance(instance), XR_SUCCESS, "Destroying instance");
+    CHECK(XR_SUCCESS == xrDestroyInstance(instance));
 
     // Cleanup
     CleanupEnvironmentVariables();

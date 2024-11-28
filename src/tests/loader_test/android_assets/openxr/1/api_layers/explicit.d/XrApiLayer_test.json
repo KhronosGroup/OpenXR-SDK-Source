@@ -3,7 +3,7 @@
     "api_layer": {
         "name": "XR_APILAYER_test",
         "library_path": "libXrApiLayer_test.so",
-        "api_version": "1.0",
+        "api_version": "1.1",
         "implementation_version": "1",
         "description": "Test_description",
         "instance_extensions": [

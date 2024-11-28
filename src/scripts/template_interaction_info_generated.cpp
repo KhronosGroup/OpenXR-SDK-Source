@@ -10,7 +10,7 @@
 namespace Conformance {
 
 //# macro make_path_entry(binding_path, avail, component)
-    InputSourcePathAvailData{
+    BindingPathData{
         /*{ binding_path | quote_string }*/,
         /*{ component.action_type }*/,
         InteractionProfileAvailability::Avail_/*{- avail.as_normalized_symbol() }*/
@@ -29,7 +29,7 @@ const std::vector<InteractionProfileAvailMetadata>& GetAllInteractionProfiles() 
 
     // Interaction profile path: /*{ path }*/
     // Availability: /*{ profile.availability }*/
-    static const InputSourcePathAvailCollection /*{'c' + (path | replace("/", "_") | replace("-", "_")) }*/{
+    static const BindingPathDataCollection /*{'c' + (path | replace("/", "_") | replace("-", "_")) }*/{
 //# for binding_path, avail, component in profile.generate_binding_paths()
         /*{ make_path_entry(binding_path, avail, component) | collapse_whitespace }*/,
 //# endfor
