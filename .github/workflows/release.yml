@@ -18,3 +18,8 @@ jobs:
     uses: ./.github/workflows/windows-matrix.yml
     with:
       organizeAndRelease: true
+
+  macos-build:
+    uses: ./.github/workflows/build-macos.yml
+    with:
+      organizeAndRelease: true
