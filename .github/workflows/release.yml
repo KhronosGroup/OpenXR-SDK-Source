@@ -20,6 +20,6 @@ jobs:
       organizeAndRelease: true
 
   macos-build:
-    uses: ./.github/workflows/build-macos.yml
-    with:
-      organizeAndRelease: true
+    uses: ./.github/workflows/macos-build-preset.yml
+    # with:
+    #   organizeAndRelease: true
