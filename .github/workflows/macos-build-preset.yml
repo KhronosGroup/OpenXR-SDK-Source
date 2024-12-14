@@ -4,11 +4,6 @@
 name: macOS builds
 on:
   workflow_call:
-    # inputs:
-    #   organizeAndRelease:
-    #     description: "Should we organize and release our artifacts?"
-    #     type: boolean
-    #     default: false
   workflow_dispatch:
 
 jobs:
@@ -16,42 +11,42 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # Step 2: Set up Homebrew and install dependencies
       - name: Install Dependencies
         run: |
           brew update
           brew install cmake ninja
           # Add any additional dependencies here
           
-      # Step 3: Configure the build with CMake
       - name: Configure Build
         run: |
           mkdir build
           cd build
           cmake -G Ninja \
                 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+                -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
                 -DCMAKE_INSTALL_PREFIX=../install \
                 ..
 
-      # Step 4: Build the project
       - name: Build OpenXR Loader
         run: |
           cd build
           cmake --build . --target install
 
-      # Step 5: Package the build artifacts
+      - name: Add a note about the Quarantine flag
+        run: |
+          cd install
+          echo "After unzipping the package, run 'xattr -d com.apple.quarantine lib/libopenxr_loader.dylib' to allow using the pre-built loader on macOS computers" > README.md
+
       - name: Package Artifacts
         run: |
           cd install
-          tar -czvf OpenXR-Loader-macos-package.tar.gz *
+          tar -czvf openxr_loader_macos.tar.gz *
 
-      # Step 6: Upload the build artifacts
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OpenXR-Loader-macos-package
-          path: install/OpenXR-Loader-macos-package.tar.gz
+          name: openxr_loader_macos
+          path: install/openxr_loader_macos.tar.gz
