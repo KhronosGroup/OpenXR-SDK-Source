@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-macos:
+  macos-build:
     runs-on: macos-latest
 
     steps:
@@ -17,7 +17,7 @@ jobs:
       - name: Install Dependencies
         run: |
           brew update
-          brew install cmake ninja
+          brew install --formula cmake ninja
           # Add any additional dependencies here
           
       - name: Configure Build
@@ -35,6 +35,11 @@ jobs:
           cd build
           cmake --build . --target install
 
+      # Note: The com.apple.quarantine attribute is a macOS extended attribute that 
+      # marks files as downloaded from the internet. When this flag is set, macOS’s 
+      # Gatekeeper enforces security checks, prompting users to confirm whether they 
+      # want to open the file. For developers who download the pre-built OpenXR Loader
+      # using a web browser, they need to manually remove the quarantine attribute.
       - name: Add a note about the Quarantine flag
         run: |
           cd install
