@@ -1886,7 +1886,7 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
                 extensions.push_back(createInfo->vulkanCreateInfo->ppEnabledExtensionNames[i]);
             }
             LogVulkanExtensions("Vulkan Instance Extensions, requested by application", extensions,
-                                extensions.size() - createInfo->vulkanCreateInfo->enabledExtensionCount);
+                                (uint32_t)extensions.size() - createInfo->vulkanCreateInfo->enabledExtensionCount);
 
             VkInstanceCreateInfo instInfo{VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO};
             memcpy(&instInfo, createInfo->vulkanCreateInfo, sizeof(instInfo));
@@ -1927,7 +1927,7 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
                 extensions.push_back(createInfo->vulkanCreateInfo->ppEnabledExtensionNames[i]);
             }
             LogVulkanExtensions("Vulkan Device Extensions, requested by application", extensions,
-                                extensions.size() - createInfo->vulkanCreateInfo->enabledExtensionCount);
+                                (uint32_t)extensions.size() - createInfo->vulkanCreateInfo->enabledExtensionCount);
 
             VkPhysicalDeviceFeatures features{};
             memcpy(&features, createInfo->vulkanCreateInfo->pEnabledFeatures, sizeof(features));
