@@ -70,6 +70,7 @@ makeSubset "$TARNAME" $(getSDKFilenames)
 
 # Read the list of headers we should generate, and generate them.
 while read -r header; do
+    header=$(echo "$header" | sed 's/[[:space:]]*$//')
     generate_spec include/openxr "$header" "$TARNAME"
 done < include/generated_header_list.txt
 
