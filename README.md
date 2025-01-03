@@ -20,7 +20,13 @@ Body tracking extension works fine on Standalone but gives a runtime error on PC
 
 ![image](https://user-images.githubusercontent.com/11604039/200270625-e627a78b-5d4e-409f-80da-79bebe81bb63.png)
 
-I also implemented waist-oriented locomotion, where available. This works on Quest 1, 2, and Pro, both on Android and Link/AirLink on PC. 
+I also implemented waist-oriented locomotion, where available. This works on Quest 1, 2, and Pro, both on Android and Link/AirLink on PC:
+
+
+
+https://github.com/user-attachments/assets/1e24ba14-c99c-415c-9380-b4a20f94a8cf
+
+
 
 I posted a hello_xr.exe test app and an OpenGL ES / Vulkan pre-built APK for SideLoading / ADB pushing to try it out quickly.
 
