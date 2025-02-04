@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2017-2024, The Khronos Group Inc.
+Copyright (c) 2017-2025 The Khronos Group Inc.
 Copyright (c) 2016 Oculus VR, LLC.
 Portions of macOS, iOS, functionality copyright (c) 2016 The Brenwill Workshop Ltd.
 
