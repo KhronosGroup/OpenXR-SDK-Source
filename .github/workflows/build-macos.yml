@@ -47,11 +47,11 @@ jobs:
       - name: Package Artifacts
         run: |
           cd install
-          tar -czvf OpenXR-Loader-macos-${GITHUB_REF#refs/tags/}.tar.gz *
+          tar -czvf OpenXR-Loader-macos.tar.gz *
 
       # Step 6: Upload the build artifacts
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OpenXR-Loader-macos-${GITHUB_REF#refs/tags/}
-          path: install/OpenXR-Loader-macos-${GITHUB_REF#refs/tags/}.tar.gz
+          name: OpenXR-Loader-macos
+          path: install/OpenXR-Loader-macos.tar.gz
