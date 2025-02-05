@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 // Used in conformance tests.
+#pragma once
 
 #include "utilities/feature_availability.h"
 #include <openxr/openxr.h>

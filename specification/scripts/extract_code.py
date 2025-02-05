@@ -50,9 +50,9 @@ class Language(Enum):
 
     @classmethod
     def from_string(cls, s):
-        s = s.upper()
+        s = s.casefold()
         for val in Language:
-            if s == str(val).upper():
+            if s == val.value.casefold():
                 return val
         return Language.UNKNOWN
 
@@ -105,13 +105,16 @@ class CodeExtractor(LinewiseFileProcessor):
             # Not going to handle this.
             return
 
-        tags = set(code_block_tag.group('tags').upper().split(','))
+        tags = set(t.strip() for t in code_block_tag.group('tags').casefold().split(','))
 
-        self.language = Language.UNKNOWN
-        for lang in Language:
-            if str(lang).upper() in tags:
-                self.language = lang
+        lang = Language.UNKNOWN
+        for tag in tags:
+            lang = Language.from_string(tag)
+            if lang != Language.UNKNOWN:
                 break
+
+        self.language = lang
+
         if self.language == Language.UNKNOWN:
             self.print_message('Not extracting code snippet introduced with {} (tags = {})'.format(
                 code_block_tag.group(), tags))
@@ -121,7 +124,7 @@ class CodeExtractor(LinewiseFileProcessor):
             self.print_message('Not extracting code snippet identified as {}'.format(
                 self.language))
             return
-        if 'SUPPRESS-BUILD' in tags:
+        if 'suppress-build' in tags:
             self.print_message(
                 'Suppressing extraction of code snippet because we saw "suppress-build"')
             return

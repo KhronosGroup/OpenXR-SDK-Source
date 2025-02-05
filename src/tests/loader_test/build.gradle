@@ -7,7 +7,7 @@
 // Results are output to logcat when launched.
 
 plugins {
-    id 'com.android.application' version '7.4.2'
+    id 'com.android.application' version '8.1.4'
 }
 
 
@@ -27,7 +27,7 @@ tasks.register('copyAssets', Copy) {
 }
 
 android {
-    compileSdk 33
+    compileSdk 34
     ndkVersion "23.2.8568313"
     buildToolsVersion = "34.0.0"
     namespace 'org.khronos.openxr.loader_test'

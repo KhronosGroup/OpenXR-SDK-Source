@@ -53,6 +53,11 @@ if [ -z "$ANDROID_NDK_HOME" ]; then
     exit 1
 fi
 
+if [ ! -f "maintainer-scripts/archive-sdk.sh" ]; then
+    logMsg "archive-sdk.sh not found, assuming building from a source jar. Must skip generating a new one."
+    SKIP_SOURCES_JAR=true
+fi
+
 while getopts ":hsC" o; do
 
     case "${o}" in
@@ -146,7 +151,7 @@ else
     rm -f OpenXR-SDK.tar.gz
     rm -rf ${SOURCES_JAR_ROOT}
     mkdir -p ${SOURCES_JAR_ROOT}/${SOURCES_NAMESPACE_PATH}
-    maintainer-scripts/archive-sdk.sh
+    bash maintainer-scripts/archive-sdk.sh
 
     logMsg "Repacking SDK sources as a sources jar"
     SOURCESFILE="$ROOT/${DECORATED%.pom}-sources.jar"
@@ -157,8 +162,6 @@ else
         # Add files we want, for reproducibility
         mkdir -p maintainer-scripts
         cp "${ROOT}/maintainer-scripts/build-aar.sh" maintainer-scripts
-        cp "${ROOT}/maintainer-scripts/archive-sdk.sh" maintainer-scripts
-        cp "${ROOT}/maintainer-scripts/common.sh" maintainer-scripts
 
         # Drop files/dirs we don't care about
         rm -rf \

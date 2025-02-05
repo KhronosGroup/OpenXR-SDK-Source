@@ -6,7 +6,7 @@
 // to build the "list_json" sample application
 
 plugins {
-    id 'com.android.application' version '7.4.2'
+    id 'com.android.application' version '8.1.4'
 }
 
 
@@ -15,7 +15,7 @@ project.ext.repoRoot = file('../../../')
 apply from: file('../../version.gradle')
 
 android {
-    compileSdk 33
+    compileSdk 34
     ndkVersion "23.2.8568313"
     buildToolsVersion = "34.0.0"
     namespace 'org.khronos.openxr.list_json'
