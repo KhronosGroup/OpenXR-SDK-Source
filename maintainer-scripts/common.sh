@@ -167,6 +167,7 @@ getSDKSourceFilenames() {
         .github/dependabot.yml \
         .github/scripts \
         .github/workflows/android.yml \
+        .github/workflows/build-macos.yml \
         .github/workflows/check_clang_format_and_codespell.yml \
         .github/workflows/gradle-wrapper-validation.yml \
         .github/workflows/msvc-build-preset.yml \
