@@ -1,4 +1,4 @@
-# Copyright 2021-2024, Collabora, Ltd.
+# Copyright 2021-2025, Collabora, Ltd.
 # SPDX-License-Identifier: CC0-1.0
 
 name: macOS builds
@@ -8,6 +8,7 @@ on:
 
 jobs:
   macos-build:
+    name: macOS build
     runs-on: macos-latest
 
     steps:
@@ -19,25 +20,22 @@ jobs:
           brew update
           brew install --formula cmake ninja
           # Add any additional dependencies here
-          
+
       - name: Configure Build
         run: |
-          mkdir build
-          cd build
-          cmake -G Ninja \
+          cmake -S . \
+                -B build \
+                -G Ninja \
                 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
                 -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
-                -DCMAKE_INSTALL_PREFIX=../install \
-                ..
+                -DCMAKE_INSTALL_PREFIX=install
 
-      - name: Build OpenXR Loader
-        run: |
-          cd build
-          cmake --build . --target install
+      - name: Build OpenXR SDK
+        run: ninja -C build/ all install
 
-      # Note: The com.apple.quarantine attribute is a macOS extended attribute that 
-      # marks files as downloaded from the internet. When this flag is set, macOS’s 
-      # Gatekeeper enforces security checks, prompting users to confirm whether they 
+      # Note: The com.apple.quarantine attribute is a macOS extended attribute that
+      # marks files as downloaded from the internet. When this flag is set, macOS's
+      # Gatekeeper enforces security checks, prompting users to confirm whether they
       # want to open the file. For developers who download the pre-built OpenXR Loader
       # using a web browser, they need to manually remove the quarantine attribute.
       - name: Add a note about the Quarantine flag

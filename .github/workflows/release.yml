@@ -1,4 +1,4 @@
-# Copyright 2021-2024, Collabora, Ltd.
+# Copyright 2021-2025, Collabora, Ltd.
 # SPDX-License-Identifier: CC0-1.0
 
 name: Build release artifacts
@@ -20,6 +20,4 @@ jobs:
       organizeAndRelease: true
 
   macos-build:
-    uses: ./.github/workflows/build-macos.yml
-    with:
-      organizeAndRelease: true
+    uses: ./.github/workflows/macos-build.yml
