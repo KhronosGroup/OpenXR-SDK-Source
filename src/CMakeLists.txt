@@ -249,6 +249,10 @@ if((OPENGL_FOUND OR OpenGLES_FOUND)
         )
     endif()
     set_target_properties(openxr-gfxwrapper PROPERTIES FOLDER ${HELPER_FOLDER})
+    if(WIN32)
+        target_link_libraries(openxr-gfxwrapper PUBLIC gdi32)
+    endif()
+
     message(
         STATUS
             "Enabling OpenGL support in hello_xr, loader_test, and conformance, if configured"
