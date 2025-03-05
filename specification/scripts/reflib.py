@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #
 # Copyright 2016-2025 The Khronos Group Inc.
 #
@@ -326,6 +326,13 @@ def fixupRefs(pageMap, specFile, file):
                 pi.param = nextPara(file, pi.include)
                 if pi.body is None:
                     pi.body = nextPara(file, pi.param)
+
+                    # Vulkan Feature struct refpages may have interstitial
+                    # text between the include block and the actual
+                    # parameter descriptions.
+                    # If so, advance the body one more paragraph.
+                    if 'This structure describes the following feature' in file[pi.param]:
+                        pi.body = nextPara(file, pi.body)
             else:
                 if pi.body is None:
                     pi.body = nextPara(file, pi.include)
@@ -336,6 +343,19 @@ def fixupRefs(pageMap, specFile, file):
         # the end of block, if, for example, there is no parameter section.
         pi.param = clampToBlock(pi.param, pi.include, pi.end)
         pi.body = clampToBlock(pi.body, pi.param, pi.end)
+
+        if pi.type in ['funcpointers', 'protos']:
+            # It is possible for the inferred parameter section to be invalid,
+            # such as for the type PFN_vkVoidFunction, which has no parameters.
+            # Since the parameter section is always a bullet-point list, we know
+            # the section is invalid if its text does not start with a list item.
+            # Note: This also deletes parameter sections that are simply empty.
+            if pi.param is not None:
+                has_vulkan_param_list = file[pi.param].startswith('  * ')
+                has_openxr_param_list = file[pi.param].startswith('.Parameter Descriptions')
+                if not has_vulkan_param_list and not has_openxr_param_list:
+                    pi.body = pi.param
+                    pi.param = None
 
         # We can get to this point with .include, .param, and .validity
         # all being None, indicating those sections were not found.

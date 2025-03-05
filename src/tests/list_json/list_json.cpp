@@ -27,11 +27,11 @@
 
 #if defined(XR_USE_PLATFORM_ANDROID)
 #include <android_native_app_glue.h>
-#include <android/log.h>
 
 #define LOG_TAG "list_json"
-#define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, LOG_TAG, __VA_ARGS__)
-#define LOGI(...) __android_log_print(ANDROID_LOG_INFO, LOG_TAG, __VA_ARGS__)
+#include "android_logging.h"
+#define LOGE(...) ALOGE(__VA_ARGS__)
+#define LOGI(...) ALOGI(__VA_ARGS__)
 #else  // !defined(XR_USE_PLATFORM_ANDROID)
 #define LOGE(...) fprintf(stderr, __VA_ARGS__)
 #define LOGI(...) printf(__VA_ARGS__)

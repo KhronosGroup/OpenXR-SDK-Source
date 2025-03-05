@@ -166,10 +166,12 @@ getSDKSourceFilenames() {
         .azure-pipelines/openxr-sdk-source.yml \
         .github/dependabot.yml \
         .github/scripts \
+        .github/.java-version* \
         .github/workflows/android.yml \
-        .github/workflows/build-macos.yml \
         .github/workflows/check_clang_format_and_codespell.yml \
         .github/workflows/gradle-wrapper-validation.yml \
+        .github/workflows/macos-build.yml \
+        .github/workflows/macOS.yml \
         .github/workflows/msvc-build-preset.yml \
         .github/workflows/pr.yml \
         .github/workflows/release.yml \
@@ -238,6 +240,7 @@ getSDKFilenames() {
         .azure-pipelines/nuget \
         .azure-pipelines/openxr-sdk.yml \
         .github/scripts \
+        .github/.java-version* \
         .github/workflows/android.yml \
         .github/workflows/check_clang_format_and_codespell.yml \
         .github/workflows/msvc-build-preset.yml \
@@ -279,6 +282,7 @@ getConformanceFilenames() {
         runClangFormat.sh \
         tox.ini \
         .github/dependabot.yml \
+        .github/.java-version* \
         .github/scripts \
         .github/workflows/android-cts-build.yml \
         .github/workflows/android-cts-pr.yml \

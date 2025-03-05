@@ -1,4 +1,4 @@
-#!/usr/bin/python3 -i
+#!/usr/bin/env python3 -i
 #
 # Copyright 2013-2025 The Khronos Group Inc.
 #
@@ -437,6 +437,12 @@ class Registry:
         self.cmddict = {}
         "dictionary of CmdInfo objects keyed by command name"
 
+        self.aliasdict = {}
+        "dictionary of type and command names mapped to their alias, such as VkFooKHR -> VkFoo"
+
+        self.enumvaluedict = {}
+        "dictionary of enum values mapped to their type, such as VK_FOO_VALUE -> VkFoo"
+
         self.apidict = {}
         "dictionary of FeatureInfo objects for `<feature>` elements keyed by API name"
 
@@ -549,6 +555,22 @@ class Registry:
         """Specify a feature name regexp to break on when generating features."""
         self.breakPat = re.compile(regexp)
 
+    def addEnumValue(self, enum, type_name):
+        """Track aliasing and map back from enum values to their type"""
+        # Record alias, if any
+        value = enum.get('name')
+        alias = enum.get('alias')
+        if alias:
+            self.aliasdict[value] = alias
+        # Map the value back to the type
+        if type_name in self.aliasdict:
+            type_name = self.aliasdict[type_name]
+        if value in self.enumvaluedict:
+            # Some times the same enum is defined by multiple extensions
+            assert(type_name == self.enumvaluedict[value])
+        else:
+            self.enumvaluedict[value] = type_name
+
     def parseTree(self):
         """Parse the registry Element, once created"""
         # This must be the Element for the root <registry>
@@ -572,6 +594,9 @@ class Registry:
         else:
             stripNonmatchingAPIs(self.reg, self.genOpts.apiname, actuallyDelete = True)
 
+        self.aliasdict = {}
+        self.enumvaluedict = {}
+
         # Create dictionary of registry types from toplevel <types> tags
         # and add 'name' attribute to each <type> tag (where missing)
         # based on its <name> element.
@@ -582,12 +607,19 @@ class Registry:
         for type_elem in self.reg.findall('types/type'):
             # If the <type> does not already have a 'name' attribute, set
             # it from contents of its <name> tag.
-            if type_elem.get('name') is None:
+            name = type_elem.get('name')
+            if name is None:
                 name_elem = type_elem.find('name')
                 if name_elem is None or not name_elem.text:
                     raise RuntimeError("Type without a name!")
-                type_elem.set('name', name_elem.text)
+                name = name_elem.text
+                type_elem.set('name', name)
             self.addElementInfo(type_elem, TypeInfo(type_elem), 'type', self.typedict)
+
+            # Record alias, if any
+            alias = type_elem.get('alias')
+            if alias:
+                self.aliasdict[name] = alias
 
         # Create dictionary of registry enum groups from <enums> tags.
         #
@@ -610,10 +642,14 @@ class Registry:
         self.enumdict = {}
         for enums in self.reg.findall('enums'):
             required = (enums.get('type') is not None)
+            type_name = enums.get('name')
+            # Enum values are defined only for the type that is not aliased to something else.
+            assert(type_name not in self.aliasdict)
             for enum in enums.findall('enum'):
                 enumInfo = EnumInfo(enum)
                 enumInfo.required = required
                 self.addElementInfo(enum, enumInfo, 'enum', self.enumdict)
+                self.addEnumValue(enum, type_name)
 
         # Create dictionary of registry commands from <command> tags
         # and add 'name' attribute to each <command> tag (where missing)
@@ -623,7 +659,7 @@ class Registry:
         # Required <command> attributes: 'name' or <proto><name> tag contents
         self.cmddict = {}
         # List of commands which alias others. Contains
-        #   [ aliasName, element ]
+        #   [ name, aliasName, element ]
         # for each alias
         cmdAlias = []
         for cmd in self.reg.findall('commands/command'):
@@ -640,6 +676,7 @@ class Registry:
             alias = cmd.get('alias')
             if alias:
                 cmdAlias.append([name, alias, cmd])
+                self.aliasdict[name] = alias
 
         # Now loop over aliases, injecting a copy of the aliased command's
         # Element with the aliased prototype name replaced with the command
@@ -714,6 +751,7 @@ class Registry:
                     if addEnumInfo:
                         enumInfo = EnumInfo(enum)
                         self.addElementInfo(enum, enumInfo, 'enum', self.enumdict)
+                        self.addEnumValue(enum, groupName)
 
         sync_pipeline_stage_condition = dict()
         sync_access_condition = dict()
@@ -792,6 +830,7 @@ class Registry:
                     if addEnumInfo:
                         enumInfo = EnumInfo(enum)
                         self.addElementInfo(enum, enumInfo, 'enum', self.enumdict)
+                        self.addEnumValue(enum, groupName)
 
         # Parse out all spirv tags in dictionaries
         # Use addElementInfo to catch duplicates

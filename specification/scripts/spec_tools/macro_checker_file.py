@@ -54,7 +54,7 @@ INCLUDE = re.compile(
 # Matches an [[AnchorLikeThis]]
 ANCHOR = re.compile(r'\[\[(?P<entity_name>[^\]]+)\]\]')
 
-# Looks for flink:foo:: or slink::foo:: at the end of string:
+# Looks for flink:foo:: or slink:foo:: at the end of string:
 # used to detect explicit pname context.
 PRECEDING_MEMBER_REFERENCE = re.compile(
     r'\b(?P<macro>[fs](text|link)):(?P<entity_name>[\w*]+)::$')
@@ -97,6 +97,7 @@ BRACKETS = re.compile(r'\[(?P<tags>.*)\]')
 REF_PAGE_ATTRIB = re.compile(
     r"(?P<key>[a-z]+)='(?P<value>[^'\\]*(?:\\.[^'\\]*)*)'")
 
+ARRAY_DIMENSION = re.compile(r"\[(?P<dim>[^\]]+)\]$")
 
 class Attrib(Enum):
     """Attributes of a ref page."""
@@ -500,7 +501,7 @@ class MacroCheckerFile:
                 # check pname here because it won't come up in normal iteration below
                 # because of the missing macro
                 self.entity = match.group('entity_name')
-                self.checkPname(match.group('scope'))
+                self.checkPname(match.group('scope'), fully_qualified=True)
 
         ###
         # Look for things that seem like a missing macro.
@@ -716,7 +717,7 @@ class MacroCheckerFile:
             scope = PRECEDING_MEMBER_REFERENCE.search(preceding)
             if scope:
                 # Yes there is, check it out.
-                self.checkPname(scope.group('entity_name'))
+                self.checkPname(scope.group('entity_name'), fully_qualified=True)
             elif self.current_ref_page is not None:
                 # No, but there is a current ref page: very reliable
                 self.checkPnameImpliedContext(self.current_ref_page)
@@ -906,7 +907,7 @@ class MacroCheckerFile:
             # in case we're in the documentation block.
             self.pname_mentions[pname_context.entity].add(self.entity)
 
-    def checkPname(self, pname_context):
+    def checkPname(self, pname_context, fully_qualified=False):
         """Check the current match (as a pname: usage) with the given entity as its 'pname context', if possible.
 
         e.g. slink:foo::pname:bar, pname_context would be 'foo', while self.entity would be 'bar', etc.
@@ -933,8 +934,15 @@ class MacroCheckerFile:
                          f'pname context entity was un-recognized {pname_context}')
             return
 
+        assert entity
+
+        # Strip trailing array dimension
+        if ARRAY_DIMENSION.search(entity):
+            entity = ARRAY_DIMENSION.sub("", entity)
+
         if entity not in members:
-            self.warning(MessageId.UNKNOWN_MEMBER, [f"Could not find member/param named '{entity}' in {pname_context}",
+            message_id = MessageId.UNKNOWN_MEMBER_FULLY_QUALIFIED if fully_qualified else MessageId.UNKNOWN_MEMBER
+            self.warning(message_id, ["Could not find member/param named '{}' in {}".format(entity, pname_context),
                                                     'Known {} member/param names are: {}'.format(
                 pname_context, ', '.join(members))], group='entity_name')
 

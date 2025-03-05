@@ -5,12 +5,12 @@
 #include "pch.h"
 #include "logger.h"
 
-#include <sstream>
-
 #if defined(ANDROID)
-#define ALOGE(...) __android_log_print(ANDROID_LOG_ERROR, "hello_xr", __VA_ARGS__)
-#define ALOGV(...) __android_log_print(ANDROID_LOG_VERBOSE, "hello_xr", __VA_ARGS__)
+#define LOG_TAG "hello_xr"
+#include "android_logging.h"
 #endif
+
+#include <sstream>
 
 namespace {
 Log::Level g_minSeverity{Log::Level::Info};

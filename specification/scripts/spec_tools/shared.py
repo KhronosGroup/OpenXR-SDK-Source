@@ -152,6 +152,7 @@ class MessageId(Enum):
     REFPAGE_DUPLICATE = 32
     UNCLOSED_BLOCK = 33
     MISSING_INCLUDE_PATH_ATTRIBUTE = 34
+    UNKNOWN_MEMBER_FULLY_QUALIFIED = 35
 
     def __str__(self):
         """Format as a lowercase string."""
@@ -205,6 +206,7 @@ _MESSAGE_DESCRIPTIONS = {
     MessageId.REFPAGE_DUPLICATE: "a refpage tag has been seen for a single entity for a second time",
     MessageId.UNCLOSED_BLOCK: "one or more blocks remain unclosed at the end of a file",
     MessageId.MISSING_INCLUDE_PATH_ATTRIBUTE: "include:: directives must begin with a recognized path attribute macro",
+    MessageId.UNKNOWN_MEMBER_FULLY_QUALIFIED: "fully qualified form slink:___::pname: used but member/argument by that name not found",
 }
 
 

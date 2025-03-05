@@ -1,4 +1,4 @@
-#!/usr/bin/python3 -i
+#!/usr/bin/env python3 -i
 #
 # Copyright (c) 2013-2025 The Khronos Group Inc.
 #
@@ -159,7 +159,7 @@ class OpenXRConventions(ConventionsBase):
         """Mark up an extension name as a link in the spec."""
         return f'apiext:{name}'
 
-    def writeFeature(self, featureName, featureExtraProtect, filename):
+    def writeFeature(self, featureName, featureExtraProtect, genOpts):
         """Returns True if OutputGenerator.endFeature should write this feature.
 
         Used in COutputGenerator.
@@ -167,23 +167,24 @@ class OpenXRConventions(ConventionsBase):
         In OpenXR, a feature is written to the openxr_platform header
         if and only if it has a defined "protect" attribute.
         """
-        if filename == 'openxr_reflection.h':
+        if genOpts.filename == 'openxr_reflection.h':
             # Write all features to the reflection header
             return True
         is_loader = featureName == 'XR_LOADER_VERSION_1_0'
         is_protected = featureExtraProtect is not None
-        is_platform_header = (filename == 'openxr_platform.h')
+        is_platform_header = (genOpts.filename == 'openxr_platform.h')
 
         # Only write loader spec to loader file.
         if is_loader:
-            return filename == 'openxr_loader_negotiation.h'
+            return genOpts.filename == 'openxr_loader_negotiation.h'
 
-        if filename == 'openxr_loader_negotiation.h':
+        if genOpts.filename == 'openxr_loader_negotiation.h':
             return False
 
         # non-protected goes in non-platform header,
         # protected goes in platform header.
-        return is_protected == is_platform_header
+        # standalone extensions get both protected and unprotected features.
+        return ( is_protected == is_platform_header ) or genOpts.standaloneExtension
 
     def requires_error_validation(self, return_type):
         """Returns True if the return_type element is an API result code
@@ -346,3 +347,10 @@ class OpenXRConventions(ConventionsBase):
         if name.startswith("XR_LOADER_VERSION_"):
             return True
         return super().is_api_version_name(name)
+
+    @property
+    def docgen_source_options(self):
+        """Return block options to be used in docgenerator [source] blocks,
+           which are appended to the 'source' block type.
+           Can be empty."""
+        return ''

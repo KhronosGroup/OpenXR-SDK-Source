@@ -1,4 +1,4 @@
-#!/usr/bin/python3 -i
+#!/usr/bin/env python3 -i
 #
 # Copyright (c) 2019-2025 The Khronos Group Inc.
 # Copyright (c) 2019 Collabora, Ltd.
@@ -148,6 +148,14 @@ class XMLChecker:
             ret = False
 
         return ret
+
+    def is_enum_value(self, value, expected_type):
+        if value not in self.reg.enumvaluedict:
+            return False
+
+        enumtype = self.reg.enumvaluedict[value]
+        real_enumtype = self.reg.aliasdict.get(enumtype, enumtype)
+        return real_enumtype == expected_type
 
     def strip_extension_tag(self, name):
         """Remove a single author tag from the end of a name, if any.

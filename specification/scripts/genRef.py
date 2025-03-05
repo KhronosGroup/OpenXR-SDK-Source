@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #
 # Copyright 2016-2025 The Khronos Group Inc.
 #
@@ -39,8 +39,10 @@ refpage_api_types = (
 # Other refpage types - SPIR-V builtins, API feature blocks, etc. - which do
 # not have structured content.
 refpage_other_types = (
+    'builtins',
     'feature',
     'freeform',
+    'spirv'
 )
 
 
@@ -155,12 +157,12 @@ def seeAlsoList(apiName, explicitRefs=None, apiAliases=[]):
     allApis = apiAliases.copy()
     allApis.append(apiName)
 
-    # Add all the implicit references to refs
+    # Add all the implicit references from the XML definition of the API
     for name in allApis:
         if name in api.mapDict:
             refs.update(api.mapDict[name])
 
-    # Add all the explicit references
+    # Add all the explicit references from the refpage block attributes
     if explicitRefs is not None:
         if isinstance(explicitRefs, str):
             explicitRefs = explicitRefs.split()
@@ -233,7 +235,7 @@ def refPageShell(pageName, pageDesc, fp, head_content = None, sections=None, tai
     printCopyrightSourceComments(fp)
 
     print(':data-uri:',
-          ':icons: font',
+          ':!icons:',
           ':attribute-missing: warn',
           conventions.extra_refpage_headers,
           '',
@@ -736,7 +738,7 @@ def genSinglePageRef(baseDir):
 
     print(f"= {apiName} API Reference Pages",
           ':data-uri:',
-          ':icons: font',
+          ':!icons:',
           ':doctype: book',
           ':numbered!:',
           ':max-width: 200',
@@ -903,7 +905,7 @@ def genExtension(baseDir, extpath, name, info):
     ref_page_sections['Specification'] = f'See link:{{html_spec_relative}}#{name}[{name}] in the main specification for complete information.'
 
     refPageShell(name,
-                 f"{ext_type} extension",
+                 conventions.extension_short_description(elem),
                  fp,
                  appbody,
                  sections=ref_page_sections,

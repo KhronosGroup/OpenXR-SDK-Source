@@ -1,4 +1,4 @@
-#!/usr/bin/python3 -i
+#!/usr/bin/env python3 -i
 #
 # Copyright 2013-2025 The Khronos Group Inc.
 #
@@ -233,7 +233,21 @@ class ScriptOutputGenerator(OutputGenerator):
 
             if count > 0:
                 if category == 'bitmask':
+                    # 'bitmask' are *Flags types.
+                    # Try to determine the corresponding *FlagBits type and
+                    # add that mapping to the 'flags' dictionary
+                    # The FlagBits type is specified in the 'requires'
+                    # attribute for 32-bit flags, and the 'bitvalues'
+                    # attribute for 64-bit flags.
+                    # It is possible for neither to be present, for example
+                    # when a Flags type is defined as a placeholder, but no
+                    # corresponding FlagBits are defined by an extension
+                    # yet.
+
                     requiredEnum = typeElem.get('requires')
+                    if requiredEnum is None:
+                        requiredEnum = typeElem.get('bitvalues')
+
                     self.addName(self.flags, name, requiredEnum)
 
                     # This happens when the Flags type is defined, but no
@@ -253,13 +267,26 @@ class ScriptOutputGenerator(OutputGenerator):
                 elif category == 'define':
                     self.defines[name] = None
                 elif category == 'basetype':
-                    # Do not add an entry for base types that are not API types
-                    # e.g. an API Bool type gets an entry, uint32_t does not
-                    if self.apiName(name):
-                        self.basetypes[name] = None
-                        self.addName(self.typeCategory, name, 'basetype')
-                    else:
-                        self.logMsg('diag', 'ScriptOutputGenerator::genType: unprocessed type:', name, 'category:', category)
+                    self.basetypes[name] = None
+                    self.addName(self.typeCategory, name, 'basetype')
+
+                # Add type mappings present in the nested <type> tags of the
+                # element, and/or in the 'requires' (for multiple type
+                # categories) and 'bitvalues' (bitmask types) attributes.
+                # 'member' is a misnaming but retained since this was forked
+                # from genStruct() below and may be refactored into common
+                # underlying code.
+
+                memberTypes = [member.text for member in typeinfo.elem.findall('.//type')]
+                for member_type in memberTypes:
+                    self.addMapping(name, member_type)
+
+                member_type = typeElem.get('requires')
+                if member_type is not None:
+                    self.addMapping(name, member_type)
+                member_type = typeElem.get('bitvalues')
+                if member_type is not None:
+                    self.addMapping(name, member_type)
             else:
                 self.logMsg('diag', 'ScriptOutputGenerator::genType: unprocessed type:', name)
 

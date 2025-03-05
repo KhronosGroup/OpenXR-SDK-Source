@@ -1,4 +1,4 @@
-#!/usr/bin/python3 -i
+#!/usr/bin/env python3 -i
 #
 # Copyright 2013-2025 The Khronos Group Inc.
 #
@@ -40,6 +40,7 @@ class CGeneratorOptions(GeneratorOptions):
                  aliasMacro='',
                  misracstyle=False,
                  misracppstyle=False,
+                 standaloneExtension=False,
                  **kwargs
                  ):
         """Constructor.
@@ -93,6 +94,7 @@ class CGeneratorOptions(GeneratorOptions):
         with <extends="EnumType" offset="0"> to be redefined in the current header
         as a constant cast to the right type. This only makes sense if you're
         generating a standalone header which won't include the actual enum type
+        - standaloneExtension - generate feature output appropriate for standalone extensions
         """
 
         GeneratorOptions.__init__(self, **kwargs)
@@ -164,6 +166,8 @@ class CGeneratorOptions(GeneratorOptions):
         self.codeGenerator = True
         """True if this generator makes compilable code"""
 
+        self.standaloneExtension = standaloneExtension
+        """True if this generator will output features appropriate to standalone extensions"""
 
 class COutputGenerator(OutputGenerator):
     """Generates C-language API interfaces."""
@@ -253,7 +257,7 @@ class COutputGenerator(OutputGenerator):
                 if self.genOpts.conventions is None:
                     raise MissingGeneratorOptionsConventionsError()
                 is_core = self.featureName and self.featureName.startswith(f"{self.conventions.api_prefix}VERSION_")
-                if self.genOpts.conventions.writeFeature(self.featureName, self.featureExtraProtect, self.genOpts.filename):
+                if self.genOpts.conventions.writeFeature(self.featureName, self.featureExtraProtect, self.genOpts):
                     self.newline()
                     if self.genOpts.protectFeature:
                         write('#ifndef', self.featureName, file=self.outFile)
@@ -344,15 +348,18 @@ class COutputGenerator(OutputGenerator):
         else:
             if self.genOpts is None:
                 raise MissingGeneratorOptionsError()
+
+            body = self.deprecationComment(typeElem)
+
             # OpenXR: this section was not under 'else:' previously, just fell through
             if alias:
                 # If the type is an alias, just emit a typedef declaration
-                body = f"typedef {alias} {name};\n"
+                body += f"typedef {alias} {name};\n"
             else:
                 # Replace <apientry /> tags with an APIENTRY-style string
                 # (from self.genOpts). Copy other text through unchanged.
                 # If the resulting text is an empty string, do not emit it.
-                body = noneStr(typeElem.text)
+                body += noneStr(typeElem.text)
                 for elem in typeElem:
                     if elem.tag == 'apientry':
                         body += self.genOpts.apientry + noneStr(elem.tail)
@@ -431,8 +438,7 @@ class COutputGenerator(OutputGenerator):
             raise MissingGeneratorOptionsError()
 
         typeElem = typeinfo.elem
-
-        body = ''
+        body = self.deprecationComment(typeElem)
         comment = typeElem.get('comment')
         if comment and self.genOpts.emitComments:
             body += self.makeCComment(comment)
@@ -461,6 +467,7 @@ class COutputGenerator(OutputGenerator):
             targetLen = self.getMaxCParamTypeLength(typeinfo)
             for elem in list(typeElem):
                 if elem.tag == 'member':
+                    body += self.deprecationComment(elem, indent = 4)
                     body += self.makeCParamDecl(elem, targetLen + 4)
                     body += ';\n'
                 elif elem.tag == 'comment' and self.genOpts.emitComments:
@@ -507,7 +514,8 @@ class COutputGenerator(OutputGenerator):
 
         OutputGenerator.genEnum(self, enuminfo, name, alias)
 
-        body = self.buildConstantCDecl(enuminfo, name, alias)
+        body = self.deprecationComment(enuminfo.elem)
+        body += self.buildConstantCDecl(enuminfo, name, alias)
         self.appendSection('enum', body)
 
     def genCmd(self, cmdinfo, name, alias):

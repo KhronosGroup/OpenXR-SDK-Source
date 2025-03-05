@@ -1,4 +1,4 @@
-#!/usr/bin/python3 -i
+#!/usr/bin/env python3 -i
 #
 # Copyright 2013-2025 The Khronos Group Inc.
 #
@@ -197,7 +197,7 @@ class DocOutputGenerator(OutputGenerator):
         # Finish processing in superclass
         OutputGenerator.endFeature(self)
 
-    def genRequirements(self, name, mustBeFound = True):
+    def genRequirements(self, name, mustBeFound = True, indent = 0):
         """Generate text showing what core versions and extensions introduce
         an API. This relies on the map in apimap.py, which may be loaded at
         runtime into self.apidict. If not present, no message is
@@ -285,7 +285,11 @@ class DocOutputGenerator(OutputGenerator):
                 index_term = basename
             write(f'indexterm:[{index_term}]', file=fp)
 
-        write(f'[source,{self.conventions.docgen_language}]', file=fp)
+        source_options = self.conventions.docgen_source_options
+        source_language = self.conventions.docgen_language
+        source_directive = f'[source{source_options},{source_language}]'
+
+        write(source_directive, file=fp)
         write('----', file=fp)
         write(contents, file=fp)
         write('----', file=fp)
@@ -300,7 +304,7 @@ class DocOutputGenerator(OutputGenerator):
             # Asciidoc anchor
             write(self.genOpts.conventions.warning_comment, file=fp)
             write('// Include this no-xref version without cross reference id for multiple includes of same file', file=fp)
-            write(f'[source,{self.conventions.docgen_language}]', file=fp)
+            write(source_directive, file=fp)
             write('----', file=fp)
             write(contents, file=fp)
             write('----', file=fp)
@@ -387,6 +391,7 @@ class DocOutputGenerator(OutputGenerator):
             self.logMsg('diag', f'NOT writing include for {name} category {category}')
         else:
             body = self.genRequirements(name)
+            body += self.deprecationComment(typeElem)
             if alias:
                 # If the type is an alias, just emit a typedef declaration
                 body += f"typedef {alias} {name};\n"
@@ -434,7 +439,8 @@ class DocOutputGenerator(OutputGenerator):
         assert self.registry
         OutputGenerator.genStruct(self, typeinfo, typeName, alias)
 
-        body = self.genRequirements(typeName)
+        body = self.deprecationComment(typeinfo.elem)
+        body += self.genRequirements(typeName)
         if alias:
             if self.conventions.duplicate_aliased_structs:
                 # TODO maybe move this outside the conditional? This would be a visual change.
@@ -591,7 +597,8 @@ class DocOutputGenerator(OutputGenerator):
 
         OutputGenerator.genEnum(self, enuminfo, name, alias)
 
-        body = self.buildConstantCDecl(enuminfo, name, alias)
+        body = self.deprecationComment(enuminfo.elem)
+        body += self.buildConstantCDecl(enuminfo, name, alias)
 
         self.writeInclude('enums', name, body)
 

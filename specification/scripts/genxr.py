@@ -221,6 +221,7 @@ def makeGenOpts(args):
             # create collisions with types defined
             # in main openxr.h
             emitRecursiveRequirements = False,
+            standaloneExtension       = True,
             )
         ]
 

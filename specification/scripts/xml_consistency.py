@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 #
 # Copyright (c) 2019 Collabora, Ltd.
 # Copyright (c) 2018-2025 The Khronos Group Inc.
@@ -21,6 +21,7 @@ from spec_tools.attributes import LengthEntry
 from spec_tools.consistency_tools import XMLChecker
 from spec_tools.util import findNamedElem, getElemName, getElemType
 from apiconventions import APIConventions
+from parse_dependency import dependencyNames
 
 INVALID_HANDLE = "XR_ERROR_HANDLE_INVALID"
 UNSUPPORTED = "XR_ERROR_FUNCTION_UNSUPPORTED"
@@ -45,6 +46,17 @@ _DESTROY_FORBIDDEN_CODES = {
     "XR_ERROR_SESSION_LOST",
     "XR_SESSION_LOSS_PENDING",
     "XR_ERROR_VALIDATION_FAILURE",
+}
+
+
+# These are APIs which can be required by an extension despite not having
+# suffixes matching the vendor ID of that extension.
+# We could make this an (extension name, api name) set to be more specific.
+EXTENSION_API_NAME_EXCEPTIONS = {
+    "xrGetAudioOutputDeviceGuidOculus",
+    "xrGetAudioInputDeviceGuidOculus",
+    "XR_FB_HAND_TRACKING_CAPSULE_POINT_COUNT",
+    "XR_FB_HAND_TRACKING_CAPSULE_COUNT",
 }
 
 
@@ -377,6 +389,74 @@ class Checker(XMLChecker):
         if prefix.endswith('s'):
             self.record_error('"Item name" part of count output parameter name appears to be plural:', prefix)
 
+    def check_type_optional_value(self, name, info):
+        """Check if a struct type's members have disallowed 'optional' attribute values"""
+
+        for member in info.getMembers():
+            # Make sure no members have optional="false" attributes
+            optional = member.get('optional')
+            if optional == 'false':
+                memname = member.findtext('name')
+                message = f'{name} member {memname} has disallowed \'optional="false"\' attribute (remove this attribute)'
+                self.record_error(message, elem=member)
+
+    def check_type_bitmask(self, name, info):
+        """Check bitmask types for consistent name and size"""
+
+        if 'Flags' in name:
+            # The corresponding FlagBits type
+            expected_bits_type = name.replace('Flags', 'FlagBits')
+
+            # Flags types may have either a 'require' or 'bitvalues'
+            # attribute
+            bits_attrib = 'requires'
+            bits_type = info.elem.get(bits_attrib)
+            if bits_type is None:
+                # Might be able to use the 'bitvalues' attribute as a proxy for
+                # 64-bit types
+                bits_attrib = 'bitvalues'
+                bits_type = info.elem.get(bits_attrib)
+
+            if bits_type is not None and expected_bits_type != bits_type:
+                self.record_error(f'{name} has unexpected {bits_attrib} attribute value:'
+                                  f'got {bits_type} but expected {expected_bits_type}')
+
+            # If this is an alias, or a Flags type which does not yet have a
+            # corresponding FlagBits type, skip the size consistency check
+            if info.elem.get('alias') is not None or bits_type is None:
+                return
+
+            # Determine the width of the *Flags type by looking at its
+            # <type>
+            base_type_elem = info.elem.find('.//type')
+            if base_type_elem is None:
+                self.record_error(f'{name} is missing a <type> tag')
+                return
+
+            base_type = base_type_elem.text
+
+            if base_type == 'XrFlags':
+                flags_width = '32'
+            elif base_type == 'XrFlags64':
+                flags_width = '64'
+            else:
+                self.record_error(f'flags type {name} has unexpected base type {base_type}, expected XrFlags or XrFlags64')
+                return
+
+            # Look for the corresponding <enums> tag and ensure its width is
+            # consistent with flags_width
+            enums_elem = self.reg.reg.find(f"enums[@name='{bits_type}']")
+            if enums_elem is None:
+                self.record_error(f'Cannot find <enums name="{bits_type}"> element corresponding to {name}')
+                return
+
+            # <enums bitwidth=> attribute defaults to 64 if not present
+            enums_width = enums_elem.get('bitwidth', '64')
+
+            if flags_width != enums_width:
+                self.record_error(
+                    f'{name} has size {flags_width} bits which does not match corresponding {bits_type} <enums> with (possibly implicit) bitwidth={enums_width}')
+
     def check_two_call_array(self, param_name, param_elem, match):
         """Check a two-call-idiom command's array output parameter."""
         optional = param_elem.get('optional')
@@ -541,7 +621,9 @@ class Checker(XMLChecker):
                 val = type_elt.get('values')
                 if val and val not in self.structure_types:
                     self.record_error("Unknown structure type constant", val)
+
         elif category == "bitmask":
+            self.check_type_bitmask(name, info)
             if 'Flags' in name:
                 expected_bitvalues = name.replace('Flags', 'FlagBits')
                 bitvalues = info.elem.get('bitvalues')
@@ -550,6 +632,85 @@ class Checker(XMLChecker):
                                       "got", bitvalues,
                                       "but expected", expected_bitvalues)
         super().check_type(name, info, category)
+
+    def check_suffixes(self, name, info, supported, name_exceptions):
+        """Check suffixes of new APIs required by an extension, which should
+           match the author ID of the extension.
+
+           Called from check_extension.
+
+           name - extension name
+           info - extdict entry for name
+           supported - True if extension supported by API being checked
+           name_exceptions - set of API names to not check, in addition to
+                             the global exception list."""
+
+        def has_suffix(apiname, author):
+            return apiname[-len(author):] == author
+
+        def has_any_suffixes(apiname, authors):
+            for author in authors:
+                if has_suffix(apiname, author):
+                    return True
+            return False
+
+        def check_names(elems, author, alt_authors, name_exceptions):
+            """Check names in a list of elements for consistency
+
+               elems - list of elements to check
+               author - author ID of the <extension> tag
+               alt_authors - set of other allowed author IDs
+               name_exceptions - additional set of allowed exceptions"""
+
+            for elem in elems:
+                apiname = elem.get('name', 'NO NAME ATTRIBUTE')
+                suffix = apiname[-len(author):]
+
+                if (not has_suffix(apiname, author) and
+                    apiname not in EXTENSION_API_NAME_EXCEPTIONS and
+                        apiname not in name_exceptions):
+
+                    msg = f'Extension {name} <{elem.tag}> {apiname} does not have expected suffix {author}'
+
+                    # Explicit 'aliased' deprecations not matching the
+                    # naming rules are allowed, but warned.
+                    if has_any_suffixes(apiname, alt_authors):
+                        self.record_warning('Allowed alternate author ID:', msg)
+                    elif not supported:
+                        self.record_warning('Allowed inconsistency for disabled extension:', msg)
+                    elif elem.get('deprecated') == 'aliased':
+                        self.record_warning('Allowed aliasing deprecation:', msg)
+                    else:
+                        msg += '\n\
+This may be due to an extension interaction not having the correct <require depends="">\n\
+Other exceptions can be added to xml_consistency.py:EXTENSION_API_NAME_EXCEPTIONS'
+                        self.record_error(msg)
+
+        elem = info.elem
+
+        self.set_error_context(entity=name, elem=elem)
+
+        # Extract author ID from the extension name.
+        author = name.split('_')[1]
+
+        # Loop over each <require> tag checking the API name suffixes in
+        # that tag for consistency.
+        # Names in tags whose 'depends' attribute includes extensions with
+        # different author IDs may be suffixed with those IDs.
+        for req_elem in elem.findall('./require'):
+            depends = req_elem.get('depends', '')
+            alt_authors = set()
+            if len(depends) > 0:
+                for name in dependencyNames(depends):
+                    # Skip core versions and feature dependencies
+                    if not name.startswith('XR_VERSION_') and '::' not in name:
+                        # Extract author ID from extension name
+                        id = name.split('_')[1]
+                        alt_authors.add(id)
+
+            check_names(req_elem.findall('./command'), author, alt_authors, name_exceptions)
+            check_names(req_elem.findall('./type'), author, alt_authors, name_exceptions)
+            check_names(req_elem.findall('./enum'), author, alt_authors, name_exceptions)
 
     def check_extension(self, name, info, supported):
         """Check an extension's XML data for consistency.
@@ -621,6 +782,9 @@ class Checker(XMLChecker):
                 if not item_name.endswith(vendor):
                     self.record_error("Extension-defined name", item_name,
                                       "has wrong or missing vendor tag: expected to end with", vendor)
+
+        # Check suffixes of new APIs required by this extension
+        self.check_suffixes(name, info, supported, {version_name, name_define})
 
 
 if __name__ == "__main__":

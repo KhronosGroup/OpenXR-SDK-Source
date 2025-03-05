@@ -1,4 +1,4 @@
-#!/usr/bin/python3 -i
+#!/usr/bin/env python3 -i
 #
 # Copyright 2013-2025 The Khronos Group Inc.
 #
@@ -588,6 +588,41 @@ class OutputGenerator:
     def misracppstyle(self):
         return False;
 
+    def deprecationComment(self, elem, indent = 0):
+        """If an API element is marked deprecated, return a brief comment
+           describing why.
+           Otherwise, return an empty string.
+
+          - elem - Element of the API.
+            API name is determined depending on the element tag.
+          - indent - number of spaces to indent the comment"""
+
+        reason = elem.get('deprecated')
+
+        # This is almost always the path taken.
+        if reason == None:
+            return ''
+
+        # There is actually a deprecated attribute.
+        padding = indent * ' '
+
+        # Determine the API name.
+        if elem.tag == 'member' or elem.tag == 'param':
+            name = elem.find('.//name').text
+        else:
+            name = elem.get('name')
+
+        if reason == 'aliased':
+            return f'{padding}// {name} is a deprecated alias\n'
+        elif reason == 'ignored':
+            return f'{padding}// {name} is deprecated and should not be used\n'
+        elif reason == 'true':
+            return f'{padding}// {name} is deprecated, but no reason was given in the API XML\n'
+        else:
+            # This can be caught by schema validation
+            self.logMsg('error', f"{name} has an unknown deprecation attribute value '{reason}'")
+            exit(1)
+
     def buildEnumCDecl(self, expand, groupinfo, groupName):
         """Generate the C declaration for an enum"""
         if self.genOpts is None:
@@ -617,6 +652,11 @@ class OutputGenerator:
         # Loop over the nested 'enum' tags.
         for elem in groupElem.findall('enum'):
             if elem.tag == "enum":
+                protect = elem.get('protect')
+                if protect is not None:
+                    body += '#ifdef {}\n'.format(protect)
+
+                body += self.deprecationComment(elem, indent = 0)
                 # Convert the value to an integer and use that to track min/max.
                 # Values of form -(number) are accepted but nothing more complex.
                 # Should catch exceptions here for more complex constructs. Not yet.
@@ -633,6 +673,9 @@ class OutputGenerator:
                 body += "\n"
             elif elem.tag == "comment" and self.genOpts.emitComments:
                 body += self.makeCComment(elem.text)
+
+                if protect is not None:
+                    body += '#endif\n'
 
         # Postfix
 
@@ -924,7 +967,7 @@ class OutputGenerator:
         self.featureName = None
         self.featureExtraProtect = None
 
-    def genRequirements(self, name, mustBeFound = True):
+    def genRequirements(self, name, mustBeFound = True, indent = 0):
         """Generate text showing what core versions and extensions introduce
         an API. This exists in the base Generator class because it is used by
         the shared enumerant-generating interfaces (buildEnumCDecl, etc.).
