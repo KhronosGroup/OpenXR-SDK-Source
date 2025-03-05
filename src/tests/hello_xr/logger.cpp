@@ -10,6 +10,7 @@
 #include "android_logging.h"
 #endif
 
+#include <chrono>
 #include <sstream>
 
 namespace {
