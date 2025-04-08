@@ -37,6 +37,10 @@
 #define LOGI(...) printf(__VA_ARGS__)
 #endif  // defined(XR_USE_PLATFORM_ANDROID)
 
+#if defined(XR_USE_PLATFORM_ANDROID)
+static struct android_app* g_app = nullptr;
+#endif
+
 // The equivalent of C++17 std::size. A helper to get the dimension for an array.
 template <typename T, std::size_t Size>
 constexpr std::size_t ArraySize(const T (&unused)[Size]) noexcept {
@@ -132,6 +136,17 @@ static int main_body() {
     strncpy(instanceCreateInfo.applicationInfo.applicationName, "OpenXR-Inventory List", XR_MAX_APPLICATION_NAME_SIZE);
     // Current version is 1.1.x, but this app only requires 1.0.x
     instanceCreateInfo.applicationInfo.apiVersion = XR_API_VERSION_1_0;
+
+#ifdef XR_USE_PLATFORM_ANDROID
+    XrInstanceCreateInfoAndroidKHR iciAndroid = {XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
+    iciAndroid.applicationActivity = g_app->activity->clazz;
+    iciAndroid.applicationVM = g_app->activity->vm;
+
+    const char* platformExts[] = {XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME};
+    instanceCreateInfo.enabledExtensionNames = platformExts;
+    instanceCreateInfo.enabledExtensionCount = 1;
+    instanceCreateInfo.next = &iciAndroid;
+#endif
 
     XrInstance instance = XR_NULL_HANDLE;
 
@@ -320,7 +335,11 @@ void android_main(struct android_app* app) {
         initializeLoader(reinterpret_cast<const XrLoaderInitInfoBaseHeaderKHR*>(&loaderInitInfoAndroid));
     }
 
+    g_app = app;
+
     main_body();
+
+    g_app = nullptr;
 
     ANativeActivity_finish(app->activity);
     app->activity->vm->DetachCurrentThread();

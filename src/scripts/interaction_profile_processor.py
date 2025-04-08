@@ -281,8 +281,13 @@ def _process_depends_string(s: Optional[str]) -> Availability:
 class InteractionProfileComponent:
     """A component of an interaction profile"""
 
-    valid_user_paths: Set[str]
-    """The set of user paths where this component is available."""
+    valid_user_paths: Dict[str, Availability]
+    """
+    The set of user paths (with their corresponding availability) where this component is available.
+
+    For most components, this is a reference to the interaction profile's own valid_user_paths member.
+    It is an independent dict when a component is limited to just one user path.
+    """
 
     subpath: str
     """Starts with /, normally appended to valid user paths."""
@@ -309,8 +314,8 @@ class InteractionProfileComponent:
 class InteractionProfile:
     """A component of an interaction profile"""
 
-    valid_user_paths: Set[str]
-    """The set of user paths where this interaction profile is available."""
+    valid_user_paths: Dict[str, Availability]
+    """The set of user paths (with their corresponding availability) where this interaction profile is available."""
 
     name: str
     """Starts with /interaction_profiles."""
@@ -335,7 +340,7 @@ class InteractionProfile:
                       ) -> InteractionProfileComponent:
 
         if limit_to_user_path:
-            user_paths = {limit_to_user_path}
+            user_paths = {limit_to_user_path: avail}
         else:
             user_paths = self.valid_user_paths
         component = self.components.get(subpath)
@@ -343,9 +348,7 @@ class InteractionProfile:
             if action_type != component.action_type:
                 raise RuntimeError(f"{self.name}: Add {subpath} again: Action type mismatch")
             if system != component.system:
-                raise RuntimeError(f"{self.name}: Add {subpath} again: System mismatch")
-            if user_paths != component.valid_user_paths:
-                raise RuntimeError(f"{self.name}: Add {subpath} again: Valid user paths mismatch")
+                raise RuntimeError(f"{self.name}: Add {subpath} again from {avail}: System mismatch, {system} vs {component.system}")
 
             # Just extend the availability. Not caring about return value (whether the avail is redundant)
             component.availability.merge(avail)
@@ -363,13 +366,44 @@ class InteractionProfile:
         self.components[subpath] = ret
         return ret
 
+    def add_user_path(self,
+                      path: str,
+                      avail: Availability,
+                      inherit: Optional[str] = None):
+        combined_avail = avail.anded(self.availability)
+        if path in self.valid_user_paths.keys():
+            redundant = self.valid_user_paths[path].merge(combined_avail)
+            if redundant:
+                raise RuntimeError(f"{self.name}: Redundant addition of user path {path}!")
+        else:
+            self.valid_user_paths[path] = combined_avail
+
+        if not inherit:
+            return
+
+        for component in self.components.values():
+            inherited_avail = component.valid_user_paths.get(inherit)
+            if inherited_avail is None:
+                # The path we inherit is never valid for this component
+                continue
+
+            if path in component.valid_user_paths:
+                # If the thing we inherit from is valid for this component,
+                # and **we** are already valid for this component somehow, merge our availability.
+                component.valid_user_paths[path].merge(combined_avail.anded(inherited_avail))
+            else:
+
+                # If the thing we inherit from is valid for this component,
+                # and if **we** are not already valid for this component, assign our availability.
+                component.valid_user_paths[path] = combined_avail.anded(inherited_avail)
+
     def yield_user_path_and_component_pairs(self):
         """
         Yield a user path and a component object.
 
         Outer iteration is over user paths.
         """
-        for user_path in sorted(self.valid_user_paths):
+        for user_path in sorted(self.valid_user_paths.keys()):
             for subpath in sorted(self.components.keys()):
                 component = self.components[subpath]
                 if user_path in component.valid_user_paths:
@@ -383,11 +417,47 @@ class InteractionProfile:
         """
         for user_path, component in self.yield_user_path_and_component_pairs():
             yield (f"{user_path}{component.subpath}",
-                   self.compute_component_availability(component),
+                   self.compute_component_availability(user_path, component),
                    component)
 
-    def compute_component_availability(self, component: InteractionProfileComponent) -> Availability:
-        return self.availability.anded(component.availability).cleaned(_version_cleaner)
+    def compute_component_availability(self, user_path: str, component: InteractionProfileComponent) -> Availability:
+        return self.availability.anded(self.valid_user_paths[user_path]).anded(component.availability).cleaned(_version_cleaner)
+
+
+@dataclass
+class InteractionProfileCondition:
+    user_paths: List[str]
+    components: List[Dict[str, str]]
+
+    def match(self, profile: InteractionProfile) -> bool:
+        for user_path in self.user_paths:
+            if user_path not in profile.valid_user_paths:
+                return False
+
+        for component in self.components:
+            subpath = component['subpath']
+            c = profile.components.get(subpath)
+            if not c:
+                return False
+            if c.action_type != component['type']:
+                return False
+
+        return True
+
+    @classmethod
+    def parse_xml(cls, condition_elt: et.Element) -> 'InteractionProfileCondition':
+        user_paths = []
+        components = []
+        for user_path_elt in condition_elt.findall("./user_path"):
+            user_paths.append(user_path_elt.get("path"))
+
+        for component_elt in condition_elt.findall("./component"):
+            subpath = component_elt.get("subpath")
+            component_type = component_elt.get("type")
+            assert subpath
+            assert component_type
+            components.append({"subpath": subpath, "type": component_type})
+        return cls(user_paths=user_paths, components=components)
 
 
 class InteractionProfileProcessor:
@@ -395,6 +465,7 @@ class InteractionProfileProcessor:
 
     def __init__(self):
         self.interaction_profiles: Dict[str, InteractionProfile] = dict()
+        self.extension_dependencies: Dict[str, Availability] = dict()
         self.processed_features: List[et.Element] = []
         self.finished = False
         self.verbose = _VERBOSE_INTERACTION_PROFILE_PROCESSING
@@ -421,7 +492,7 @@ class InteractionProfileProcessor:
         if self.verbose:
             print(f"Handling {interface.tag}: {interface_name} {emit}")
 
-        # Only grab interaction profiles in this first pass
+        # Only grab interaction profiles and extension dependencies in this first pass
         for require in interface.findall('./require[interaction_profile]'):
             avail = self._compute_deps_for_interaction_profile(interface, require)
 
@@ -437,6 +508,12 @@ class InteractionProfileProcessor:
                     print(interface_name, name)
 
                 self._include_interaction_profile(root, name, avail)
+
+        if interface.tag == "extension" and "depends" in interface.attrib:
+            extension_depends = interface.get("depends")
+            assert extension_depends
+            self.extension_dependencies[interface_name] = _process_depends_string(extension_depends)
+
         self.processed_features.append(interface)
 
     def _process_extending_bindings(self, interface: et.Element):
@@ -455,6 +532,27 @@ class InteractionProfileProcessor:
                 profile = self.interaction_profiles[profile_name]
                 self._add_interaction_profile_components(profile, extend, avail)
 
+    def _process_conditional_extends(self, interface: et.Element, desc: str, profile_extender):
+
+        interface_name = interface.get('name')
+        assert interface_name
+
+        if self.verbose:
+            print(f"Handling {interface.tag}: {interface_name}: Pass 3, subpass {desc}")
+
+        for require in interface.findall('./require[extend]'):
+            avail = self._compute_deps_for_interaction_profile(interface, require)
+
+            for extend in require.findall('./extend[@interaction_profile_predicate]'):
+                conditions: List[InteractionProfileCondition] = [
+                    InteractionProfileCondition.parse_xml(condition)
+                    for condition in extend.findall('./condition')]
+
+                assert conditions
+                for profile in self.interaction_profiles.values():
+                    if any(condition.match(profile) for condition in conditions):
+                        profile_extender(profile, extend, avail)
+
     def finish_processing(self):
         """
         Perform the second pass over features and other finish-up work.
@@ -464,11 +562,17 @@ class InteractionProfileProcessor:
         Call it once from `endFile()` if you are using the common
         `Generator` classes.
         """
-        # Second pass: extend binding paths (components)
+        # Pass 2: extend binding paths (components)
         for feature in self.processed_features:
             self._process_extending_bindings(feature)
+        # Pass 3: conditionally extend stuff
+        for feature in self.processed_features:
+            self._process_conditional_extends(feature, "components", self._add_interaction_profile_components)
+        for feature in self.processed_features:
+            self._process_conditional_extends(feature, "top level /user paths", self._add_interaction_profile_user_paths)
 
         self.processed_features.clear()
+        self.extension_dependencies.clear()
 
         self.finished = True
 
@@ -495,7 +599,7 @@ class InteractionProfileProcessor:
         profile_elt = root.findall(f".//interaction_profiles/interaction_profile[@name='{name}']")[0]
 
         raw_user_paths = {user_path.get("path") for user_path in profile_elt.findall("./user_path")}
-        user_paths = {path for path in raw_user_paths if path is not None}
+        user_paths = {path: avail for path in raw_user_paths if path is not None}
 
         title = profile_elt.get("title")
         assert title
@@ -517,7 +621,20 @@ class InteractionProfileProcessor:
         if require_depends:
             deps = deps.anded(_process_depends_string(require_depends))
 
-        return deps.cleaned(_version_cleaner)
+        return self._get_chained_requirements(deps.cleaned(_version_cleaner))
+
+    def _get_chained_requirements(self, requirements: Availability) -> Availability:
+            updated_requirements = Availability([])
+            for conj in requirements.conjunctions:
+                term = Availability([conj])
+                exts = [feat for feat in conj if not feat.startswith('XR_VERSION_')]
+                for ext in exts:
+                    ext_deps = self.extension_dependencies.get(ext)
+                    if ext_deps is not None:
+                        term = term.anded(self._get_chained_requirements(ext_deps))
+                updated_requirements.merge(term)
+
+            return updated_requirements
 
     def _add_interaction_profile_components(self, profile: InteractionProfile, component_parent, avail: Availability, integral: bool = False):
         for component in component_parent.findall("./component"):
@@ -528,3 +645,9 @@ class InteractionProfileProcessor:
                                   action_type=component.get("type"),
                                   limit_to_user_path=component.get("user_path"),
                                   system=system, integral=integral, avail=avail)
+
+    def _add_interaction_profile_user_paths(self, profile: InteractionProfile, user_path_parent, avail: Availability):
+        for user_path in user_path_parent.findall("./user_path"):
+            path = user_path.get("path")
+            inherit = user_path.get("inherit")
+            profile.add_user_path(path, avail=avail, inherit=inherit)

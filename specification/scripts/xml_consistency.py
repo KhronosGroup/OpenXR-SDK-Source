@@ -200,6 +200,10 @@ class Checker(XMLChecker):
                 "Missing expected return code(s) XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST implied because of input of type XrInstance",
                 "Missing expected return code(s) XR_ERROR_INSTANCE_LOST,XR_ERROR_HANDLE_INVALID implied because of input of type XrInstance",
             ),
+            # Some derived structs use two-call idiom
+            "xrGetSpatialEntityComponentDataBD": (
+                "Unexpected return code XR_ERROR_SIZE_INSUFFICIENT - none of these types: {'uint32_t'} found in the set of referenced types ['XrSenseDataSnapshotBD', 'XrSpatialEntityComponentDataBaseHeaderBD', 'XrSpatialEntityComponentGetInfoBD', 'XrSpatialEntityComponentTypeBD', 'XrSpatialEntityIdBD', 'XrStructureType', 'void']",
+            ),
             # XrLoaderInterfaceStructs doesn't match the OpenXR pattern :(
             "XrLoaderInterfaceStructs": (
                 "Got an enum value whose name does not match the pattern: got XR_LOADER_INTERFACE_STRUCT_API_LAYER_CREATE_INFO but expected something that started with XR_LOADER_INTERFACE_STRUCTS_ due to typename being XrLoaderInterfaceStructs",

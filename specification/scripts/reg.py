@@ -1112,6 +1112,9 @@ class Registry:
                 # We will eventually use these `interaction_profile_path`s but for the
                 # moment we just need them to exist so we can run schema validation.
                 pass
+            elif extendElem.get('interaction_profile_predicate'):
+                # These are processed separately.
+                pass
             else:
                 self.gen.logMsg('warn', 'extend type:', extendType, 'IS NOT SUPPORTED')
 
@@ -1127,6 +1130,7 @@ class Registry:
             typeinfo = self.lookupElementInfo(name, dict)
             if not typeinfo:
                 self.gen.logMsg('error', name, 'is not a known name')
+                return None
             alias = typeinfo.elem.get('alias')
 
         return alias

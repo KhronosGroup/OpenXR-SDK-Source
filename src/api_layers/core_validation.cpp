@@ -32,8 +32,10 @@
 
 #include <algorithm>
 #include <cctype>
+#include <chrono>
 #include <cstring>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <inttypes.h>
 #include <memory>
@@ -82,114 +84,117 @@ bool CoreValidationWriteHtmlHeader() {
         std::unique_lock<std::mutex> mlock(g_record_mutex);
         std::ofstream html_file;
         html_file.open(g_record_info.file_name, std::ios::out);
-        html_file
-            << "<!doctype html>\n"
-               "<html>\n"
-               "    <head>\n"
-               "        <title>OpenXR Core Validation</title>\n"
-               "        <style type='text/css'>\n"
-               "        html {\n"
-               "            background-color: #0b1e48;\n"
-               "            background-image: url('https://vulkan.lunarg.com/img/bg-starfield.jpg');\n"
-               "            background-position: center;\n"
-               "            -webkit-background-size: cover;\n"
-               "            -moz-background-size: cover;\n"
-               "            -o-background-size: cover;\n"
-               "            background-size: cover;\n"
-               "            background-attachment: fixed;\n"
-               "            background-repeat: no-repeat;\n"
-               "            height: 100%;\n"
-               "        }\n"
-               "        #header {\n"
-               "            z-index: -1;\n"
-               "        }\n"
-               "        #header>img {\n"
-               "            position: absolute;\n"
-               "            width: 160px;\n"
-               "            margin-left: -280px;\n"
-               "            top: -10px;\n"
-               "            left: 50%;\n"
-               "        }\n"
-               "        #header>h1 {\n"
-               "            font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;\n"
-               "            font-size: 48px;\n"
-               "            font-weight: 200;\n"
-               "            text-shadow: 4px 4px 5px #000;\n"
-               "            color: #eee;\n"
-               "            position: absolute;\n"
-               "            width: 600px;\n"
-               "            margin-left: -80px;\n"
-               "            top: 8px;\n"
-               "            left: 50%;\n"
-               "        }\n"
-               "        body {\n"
-               "            font-family: Consolas, monaco, monospace;\n"
-               "            font-size: 14px;\n"
-               "            line-height: 20px;\n"
-               "            color: #eee;\n"
-               "            height: 100%;\n"
-               "            margin: 0;\n"
-               "            overflow: hidden;\n"
-               "        }\n"
-               "        #wrapper {\n"
-               "            background-color: rgba(0, 0, 0, 0.7);\n"
-               "            border: 1px solid #446;\n"
-               "            box-shadow: 0px 0px 10px #000;\n"
-               "            padding: 8px 12px;\n"
-               "            display: inline-block;\n"
-               "            position: absolute;\n"
-               "            top: 80px;\n"
-               "            bottom: 25px;\n"
-               "            left: 50px;\n"
-               "            right: 50px;\n"
-               "            overflow: auto;\n"
-               "        }\n"
-               "        details>*:not(summary) {\n"
-               "            margin-left: 22px;\n"
-               "        }\n"
-               "        summary:only-child {\n"
-               "            display: block;\n"
-               "            padding-left: 15px;\n"
-               "        }\n"
-               "        details>summary:only-child::-webkit-details-marker {\n"
-               "            display: none;\n"
-               "            padding-left: 15px;\n"
-               "        }\n"
-               "        .headervar, .generalheadertype, .warningheadertype, .errorheadertype, .debugheadertype, .headerval {\n"
-               "            display: inline;\n"
-               "            margin: 0 9px;\n"
-               "        }\n"
-               "        .var, .type, .val {\n"
-               "            display: inline;\n"
-               "            margin: 0 6px;\n"
-               "        }\n"
-               "        .warningheadertype, .type {\n"
-               "            color: #dce22f;\n"
-               "        }\n"
-               "        .errorheadertype, .type {\n"
-               "            color: #ff1616;\n"
-               "        }\n"
-               "        .debugheadertype, .type {\n"
-               "            color: #888;\n"
-               "        }\n"
-               "        .generalheadertype, .type {\n"
-               "            color: #acf;\n"
-               "        }\n"
-               "        .headerval, .val {\n"
-               "            color: #afa;\n"
-               "            text-align: right;\n"
-               "        }\n"
-               "        .thd {\n"
-               "            color: #888;\n"
-               "        }\n"
-               "        </style>\n"
-               "    </head>\n"
-               "    <body>\n"
-               "        <div id='header'>\n"
-               "            <img src='https://lunarg.com/wp-content/uploads/2016/02/LunarG-wReg-150.png' />\n"
-               "            <h1>OpenXR Core Validation</h1>\n"
-               "        </div>\n"
-               "        <div id='wrapper'>\n";
+        html_file << "<!doctype html>\n"
+                     "<html>\n"
+                     "    <head>\n"
+                     "        <title>OpenXR Core Validation</title>\n"
+                     "        <style type='text/css'>\n"
+                     "        html {\n"
+                     "            background-color: #0b1e48;\n"
+                     "            background-image: url('https://vulkan.lunarg.com/img/bg-starfield.jpg');\n"
+                     "            background-position: center;\n"
+                     "            -webkit-background-size: cover;\n"
+                     "            -moz-background-size: cover;\n"
+                     "            -o-background-size: cover;\n"
+                     "            background-size: cover;\n"
+                     "            background-attachment: fixed;\n"
+                     "            background-repeat: no-repeat;\n"
+                     "            height: 100%;\n"
+                     "        }\n"
+                     "        #header {\n"
+                     "            z-index: -1;\n"
+                     "        }\n"
+                     "        #header>img {\n"
+                     "            position: absolute;\n"
+                     "            width: 160px;\n"
+                     "            margin-left: -280px;\n"
+                     "            top: -10px;\n"
+                     "            left: 50%;\n"
+                     "        }\n"
+                     "        #header>h1 {\n"
+                     "            font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;\n"
+                     "            font-size: 48px;\n"
+                     "            font-weight: 200;\n"
+                     "            text-shadow: 4px 4px 5px #000;\n"
+                     "            color: #eee;\n"
+                     "            position: absolute;\n"
+                     "            width: 600px;\n"
+                     "            margin-left: -80px;\n"
+                     "            top: 8px;\n"
+                     "            left: 50%;\n"
+                     "        }\n"
+                     "        body {\n"
+                     "            font-family: Consolas, monaco, monospace;\n"
+                     "            font-size: 14px;\n"
+                     "            line-height: 20px;\n"
+                     "            color: #eee;\n"
+                     "            height: 100%;\n"
+                     "            margin: 0;\n"
+                     "            overflow: hidden;\n"
+                     "        }\n"
+                     "        #wrapper {\n"
+                     "            background-color: rgba(0, 0, 0, 0.7);\n"
+                     "            border: 1px solid #446;\n"
+                     "            box-shadow: 0px 0px 10px #000;\n"
+                     "            padding: 8px 12px;\n"
+                     "            display: inline-block;\n"
+                     "            position: absolute;\n"
+                     "            top: 80px;\n"
+                     "            bottom: 25px;\n"
+                     "            left: 50px;\n"
+                     "            right: 50px;\n"
+                     "            overflow: auto;\n"
+                     "        }\n"
+                     "        details>*:not(summary) {\n"
+                     "            margin-left: 22px;\n"
+                     "        }\n"
+                     "        summary:only-child {\n"
+                     "            display: block;\n"
+                     "            padding-left: 15px;\n"
+                     "        }\n"
+                     "        details>summary:only-child::-webkit-details-marker {\n"
+                     "            display: none;\n"
+                     "            padding-left: 15px;\n"
+                     "        }\n"
+                     "        .headervar, .generalheadertype, .warningheadertype, .errorheadertype, .debugheadertype, .headerval, "
+                     ".timestampval {\n"
+                     "            display: inline;\n"
+                     "            margin: 0 9px;\n"
+                     "        }\n"
+                     "        .var, .type, .val {\n"
+                     "            display: inline;\n"
+                     "            margin: 0 6px;\n"
+                     "        }\n"
+                     "        .warningheadertype, .type {\n"
+                     "            color: #dce22f;\n"
+                     "        }\n"
+                     "        .errorheadertype, .type {\n"
+                     "            color: #ff1616;\n"
+                     "        }\n"
+                     "        .debugheadertype, .type {\n"
+                     "            color: #888;\n"
+                     "        }\n"
+                     "        .generalheadertype, .type {\n"
+                     "            color: #acf;\n"
+                     "        }\n"
+                     "        .headerval, .val {\n"
+                     "            color: #afa;\n"
+                     "            text-align: right;\n"
+                     "        }\n"
+                     "        .timestampval {\n"
+                     "            color: #888;\n"
+                     "        }\n"
+                     "        .thd {\n"
+                     "            color: #888;\n"
+                     "        }\n"
+                     "        </style>\n"
+                     "    </head>\n"
+                     "    <body>\n"
+                     "        <div id='header'>\n"
+                     "            <img src='https://lunarg.com/wp-content/uploads/2016/02/LunarG-wReg-150.png' />\n"
+                     "            <h1>OpenXR Core Validation</h1>\n"
+                     "        </div>\n"
+                     "        <div id='wrapper'>\n";
         return true;
     } catch (...) {
         return false;
@@ -230,12 +235,25 @@ void LogPlatformUtilsError(const std::string &message) {
 #endif
 }
 
+// Get the current time as a string
+std::string GenerateTimestamp() {
+    auto now = std::chrono::system_clock::now();
+    std::time_t now_c = std::chrono::system_clock::to_time_t(now);
+    std::tm local_tm = *std::localtime(&now_c);
+    std::ostringstream oss;
+    oss << std::put_time(&local_tm, "%Y-%m-%d %H:%M:%S");
+    return oss.str();
+}
+
 // Function to record all the core validation information
 void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::string &message_id,
                          GenValidUsageDebugSeverity message_severity, const std::string &command_name,
                          std::vector<GenValidUsageXrObjectInfo> objects_info, const std::string &message) {
     if (g_record_info.initialized) {
         std::unique_lock<std::mutex> mlock(g_record_mutex);
+
+        // Generate a timestamp
+        std::string timestamp = GenerateTimestamp();
 
         // Debug Utils items (in case we need them)
         XrDebugUtilsMessageSeverityFlagsEXT debug_utils_severity = 0;
@@ -309,7 +327,8 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
 #else
 #define ALOGI(...) printf(__VA_ARGS__)
 #endif
-                ALOGI("[%s|%s|%s]: %s \n", severity_string.c_str(), message_id.c_str(), command_name.c_str(), message.c_str());
+                ALOGI("[%s][%s|%s|%s]: %s \n", timestamp.c_str(), severity_string.c_str(), message_id.c_str(), command_name.c_str(),
+                      message.c_str());
                 if (!objects_info.empty()) {
                     ALOGI("  Objects:\n");
                     uint32_t count = 0;
@@ -332,7 +351,8 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
             case RECORD_TEXT_FILE: {
                 std::ofstream text_file;
                 text_file.open(g_record_info.file_name, std::ios::out | std::ios::app);
-                text_file << "[" << severity_string << " | " << message_id << " | " << command_name << "]: " << message
+                text_file << "[" << timestamp << "]"
+                          << "[" << severity_string << " | " << message_id << " | " << command_name << "] : " << message
                           << std::endl;
                 if (!objects_info.empty()) {
                     text_file << "  Objects:" << std::endl;
@@ -381,6 +401,7 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
                         break;
                 }
                 text_file << "   <summary>\n"
+                          << "      <div class='timestampval'>[" << timestamp << "]</div>\n"
                           << "      <div class='" << header_type << "'>" << severity_string << "</div>\n"
                           << "      <div class='headerval'>" << command_name << "</div>\n"
                           << "      <div class='headervar'>" << message_id << "</div>\n"
@@ -542,6 +563,9 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrCreateApiLayerInstance(const XrIn
         std::cerr << "Core Validation output type: " << (export_type.empty() ? "text" : export_type)
                   << ", first time = " << (first_time ? "true" : "false") << std::endl;
 
+        CoreValidLogMessage(nullptr, "VUID-CoreValidation-Initialize", VALID_USAGE_DEBUG_SEVERITY_DEBUG, "xrCreateApiLayerInstance",
+                            std::vector<GenValidUsageXrObjectInfo>(), "Core Validation Layer is initialized");
+
         // Call the generated pre valid usage check.
         validation_result = GenValidUsageInputsXrCreateInstance(info, instance);
 
@@ -620,6 +644,10 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrDestroyInstance(XrInstance instan
             gen_instance_info->debug_messengers.clear();
         }
     }
+
+    CoreValidLogMessage(nullptr, "VUID-CoreValidation-Destroy", VALID_USAGE_DEBUG_SEVERITY_DEBUG, "xrDestroyInstance",
+                        std::vector<GenValidUsageXrObjectInfo>(), "Core Validation Layer will be destroyed");
+
     XrResult result = GenValidUsageNextXrDestroyInstance(instance);
     if (!g_instance_info.empty() && g_record_info.type == RECORD_HTML_FILE) {
         CoreValidationWriteHtmlFooter();

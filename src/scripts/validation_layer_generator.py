@@ -435,7 +435,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             if xr_struct.protect_value:
                 validation_internal_protos += f'#if {xr_struct.protect_string}\n'
             validation_internal_protos += 'XrResult ValidateXrStruct(GenValidUsageXrInstanceInfo *instance_info, const std::string &command_name,\n'
-            validation_internal_protos += '                          std::vector<GenValidUsageXrObjectInfo>& objects_info, bool check_members,\n'
+            validation_internal_protos += '                          std::vector<GenValidUsageXrObjectInfo>& objects_info, bool check_members, bool check_pnext,\n'
             validation_internal_protos += f'                          const {xr_struct.name}* value);\n'
             if xr_struct.protect_value:
                 validation_internal_protos += f'#endif // {xr_struct.protect_string}\n'
@@ -444,6 +444,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
     # Generate C++ functions for validating 'next' chains in a structure.
     #   self            the ValidationSourceOutputGenerator object
     def outputValidationSourceNextChainFunc(self):
+        indent = 1
         next_chain_info = ''
         next_chain_info += 'NextChainResult ValidateNextChain(GenValidUsageXrInstanceInfo *instance_info,\n'
         next_chain_info += '                                  const std::string &command_name,\n'
@@ -452,63 +453,71 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         next_chain_info += '                                  std::vector<XrStructureType>& valid_ext_structs,\n'
         next_chain_info += '                                  std::vector<XrStructureType>& encountered_structs,\n'
         next_chain_info += '                                  std::vector<XrStructureType>& duplicate_structs) {\n'
-        next_chain_info += self.writeIndent(1)
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'NextChainResult return_result = NEXT_CHAIN_RESULT_VALID;\n'
-        next_chain_info += self.writeIndent(1)
-        next_chain_info += '// NULL is valid\n'
-        next_chain_info += self.writeIndent(1)
-        next_chain_info += 'if (nullptr == next) {\n'
-        next_chain_info += self.writeIndent(2)
-        next_chain_info += 'return return_result;\n'
-        next_chain_info += self.writeIndent(1)
-        next_chain_info += '}\n'
-        next_chain_info += self.writeIndent(1)
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += '// Non-NULL is not valid if there is no valid extension structs\n'
-        next_chain_info += self.writeIndent(1)
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'if (nullptr != next && 0 == valid_ext_structs.size()) {\n'
-        next_chain_info += self.writeIndent(2)
+        indent += 1
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'return NEXT_CHAIN_RESULT_ERROR;\n'
-        next_chain_info += self.writeIndent(1)
+        indent -= 1
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += '}\n'
-        next_chain_info += self.writeIndent(1)
+        # When validating structs along the next chain, we do it iteratively and only check the type to make sure it's allowed in the chain
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'const XrBaseInStructure* next_header = reinterpret_cast<const XrBaseInStructure*>(next);\n'
-        next_chain_info += self.writeIndent(1)
+        next_chain_info += self.writeIndent(indent)
+        next_chain_info += 'while (next_header != nullptr) {\n'
+        indent += 1
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'auto valid_ext = std::find(valid_ext_structs.begin(), valid_ext_structs.end(), next_header->type);\n'
-        next_chain_info += self.writeIndent(1)
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'if (valid_ext == valid_ext_structs.end()) {\n'
-        next_chain_info += self.writeIndent(2)
+        indent += 1
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += '// Not a valid extension structure type for this next chain.\n'
-        next_chain_info += self.writeIndent(2)
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'return NEXT_CHAIN_RESULT_ERROR;\n'
-        next_chain_info += self.writeIndent(1)
+        indent -= 1
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += '} else {\n'
-        next_chain_info += self.writeIndent(2)
+        indent += 1
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += '// Check to see if we\'ve already encountered this structure.\n'
-        next_chain_info += self.writeIndent(2)
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'auto already_encountered_ext = std::find(encountered_structs.begin(), encountered_structs.end(), next_header->type);\n'
-        next_chain_info += self.writeIndent(2)
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'if (already_encountered_ext != encountered_structs.end()) {\n'
-        next_chain_info += self.writeIndent(3)
+        indent += 1
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += '// Make sure we only put in unique types into our duplicate list.\n'
-        next_chain_info += self.writeIndent(3)
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'auto already_duplicate = std::find(duplicate_structs.begin(), duplicate_structs.end(), next_header->type);\n'
-        next_chain_info += self.writeIndent(3)
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'if (already_duplicate == duplicate_structs.end()) {\n'
-        next_chain_info += self.writeIndent(4)
+        indent += 1
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'duplicate_structs.push_back(next_header->type);\n'
-        next_chain_info += self.writeIndent(3)
+        indent -= 1
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += '}\n'
-        next_chain_info += self.writeIndent(3)
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'return_result = NEXT_CHAIN_RESULT_DUPLICATE_STRUCT;\n'
-        next_chain_info += self.writeIndent(2)
+        indent -= 1
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += '}\n'
-        next_chain_info += self.writeIndent(1)
+        indent -= 1
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += '}\n'
         # Validate the rest of this struct
-        next_chain_info += self.writeIndent(1)
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'switch (next_header->type) {\n'
         enum_tuple = [x for x in self.api_enums if x.name == 'XrStructureType'][0]
+        pre_switch_indent = indent
         for cur_value in enum_tuple.values:
+            indent = pre_switch_indent
             struct_define_name = self.genXrStructureName(
                 cur_value.name)
             if not struct_define_name:
@@ -527,50 +536,43 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             if struct_tuple and struct_tuple.protect_value:
                 next_chain_info += f'#if {struct_tuple.protect_string}\n'
 
-            next_chain_info += self.writeIndent(2)
+            indent += 1
+            next_chain_info += self.writeIndent(indent)
             next_chain_info += f'case {cur_value.name}:\n'
-            next_chain_info += self.writeIndent(3)
-            next_chain_info += 'if (XR_SUCCESS != ValidateXrStruct(instance_info, command_name, objects_info, false,\n'
-            next_chain_info += self.writeIndent(3)
-            next_chain_info += '                                   reinterpret_cast<const %s*>(next))) {\n' % struct_define_name
-            next_chain_info += self.writeIndent(4)
+            indent += 1
+            next_chain_info += self.writeIndent(indent)
+            next_chain_info += 'if (XR_SUCCESS != ValidateXrStruct(instance_info, command_name, objects_info, true, false,\n'
+            next_chain_info += self.writeIndent(indent)
+            next_chain_info += '                                   reinterpret_cast<const %s*>(next_header))) {\n' % struct_define_name
+            indent += 1
+            next_chain_info += self.writeIndent(indent)
             next_chain_info += 'return NEXT_CHAIN_RESULT_ERROR;\n'
-            next_chain_info += self.writeIndent(3)
+            indent -= 1
+            next_chain_info += self.writeIndent(indent)
             next_chain_info += '}\n'
-            next_chain_info += self.writeIndent(3)
+            next_chain_info += self.writeIndent(indent)
             next_chain_info += 'break;\n'
             if struct_tuple and struct_tuple.protect_value:
                 next_chain_info += f'#endif // {struct_tuple.protect_string}\n'
             if avoid_dupe:
                 next_chain_info += f'#endif // !({avoid_dupe})\n'
 
-        next_chain_info += self.writeIndent(2)
+        indent -= 1
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'default:\n'
-        next_chain_info += self.writeIndent(3)
+        indent += 1
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'return NEXT_CHAIN_RESULT_ERROR;\n'
-        next_chain_info += self.writeIndent(1)
+        indent = pre_switch_indent
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += '}\n'
-        # Validate any chained structs
-        next_chain_info += self.writeIndent(1)
-        next_chain_info += 'NextChainResult next_result = ValidateNextChain(instance_info, command_name,\n'
-        next_chain_info += self.writeIndent(1)
-        next_chain_info += '                                                objects_info, next_header->next,\n'
-        next_chain_info += self.writeIndent(1)
-        next_chain_info += '                                                valid_ext_structs,\n'
-        next_chain_info += self.writeIndent(1)
-        next_chain_info += '                                                encountered_structs,\n'
-        next_chain_info += self.writeIndent(1)
-        next_chain_info += '                                                duplicate_structs);\n'
-        next_chain_info += self.writeIndent(1)
-        next_chain_info += 'if (NEXT_CHAIN_RESULT_VALID == next_result && NEXT_CHAIN_RESULT_VALID != return_result) {\n'
-        next_chain_info += self.writeIndent(2)
+        next_chain_info += self.writeIndent(indent)
+        next_chain_info += 'next_header = reinterpret_cast<const XrBaseInStructure*>(next_header->next);\n'
+        indent -= 1
+        next_chain_info += self.writeIndent(indent)
+        next_chain_info += '}\n'
+        next_chain_info += self.writeIndent(indent)
         next_chain_info += 'return return_result;\n'
-        next_chain_info += self.writeIndent(1)
-        next_chain_info += '} else {\n'
-        next_chain_info += self.writeIndent(2)
-        next_chain_info += 'return next_result;\n'
-        next_chain_info += self.writeIndent(1)
-        next_chain_info += '}\n'
         next_chain_info += '}\n\n'
         return next_chain_info
 
@@ -1013,15 +1015,39 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
     #   indent          the number of "tabs" to space in for the resulting C+ code.
     def writeValidateStructNextCheck(self, struct_type, struct_name, member, indent):
         validate_struct_next = self.writeIndent(indent)
+        validate_struct_next += 'if (check_pnext) {\n'
+        indent += 1
+        validate_struct_next += self.writeIndent(indent)
         validate_struct_next += 'std::vector<XrStructureType> valid_ext_structs;\n'
         validate_struct_next += self.writeIndent(indent)
         validate_struct_next += 'std::vector<XrStructureType> duplicate_ext_structs;\n'
         validate_struct_next += self.writeIndent(indent)
         validate_struct_next += 'std::vector<XrStructureType> encountered_structs;\n'
+        # First add valid extension struct for this struct
         if member.valid_extension_structs:
             for valid_struct in member.valid_extension_structs:
                 validate_struct_next += self.writeIndent(indent)
                 validate_struct_next += f'valid_ext_structs.push_back({self.genXrStructureType(valid_struct)});\n'
+        
+        # Then check if this struct is part of a relation group (extends a base struct) and add the base structs valid extension structs.
+        for xr_struct in self.api_structures:
+            if xr_struct.name in LOADER_STRUCTS:
+                continue
+
+            if xr_struct.name in self.structs_with_no_type:
+                continue
+            
+            relation_group = self.getRelationGroupForBaseStruct(xr_struct.name)
+            if relation_group is not None:
+                if struct_type in relation_group.child_struct_names:
+                    for parent_memeber in xr_struct.members:
+                        if parent_memeber.name == 'next':
+                            if parent_memeber.valid_extension_structs:
+                                for valid_struct in parent_memeber.valid_extension_structs:
+                                    validate_struct_next += self.writeIndent(indent)
+                                    validate_struct_next += f'valid_ext_structs.push_back({self.genXrStructureType(valid_struct)});\n'
+                    break
+
         validate_struct_next += self.writeIndent(indent)
         validate_struct_next += 'NextChainResult next_result = ValidateNextChain(instance_info, command_name, objects_info,\n'
         validate_struct_next += self.writeIndent(indent)
@@ -1064,6 +1090,9 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         validate_struct_next += f'"Multiple structures of the same type(s) in \\"next\\" chain for {struct_type} struct");\n'
         validate_struct_next += self.writeIndent(indent + 1)
         validate_struct_next += 'xr_result = XR_ERROR_VALIDATION_FAILURE;\n'
+        validate_struct_next += self.writeIndent(indent)
+        validate_struct_next += '}\n'
+        indent -= 1
         validate_struct_next += self.writeIndent(indent)
         validate_struct_next += '}\n'
         return validate_struct_next
@@ -1353,6 +1382,18 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             else:
                 inline_validate_handle += self.writeIndent(indent)
             indent = indent + 1
+
+            # This is an exception for xrGetRecommendedLayerResolutionMETA where the XrSwapchain handle can be null.
+            if vuid_name == 'XrSwapchainSubImage':
+                indent -= 1
+                inline_validate_handle += '// Exception for xrGetRecommendedLayerResolutionMETA, the swapchain image handle can be NULL.\n'
+                inline_validate_handle += self.writeIndent(indent)
+                inline_validate_handle += 'if (command_name == "xrGetRecommendedLayerResolutionMETA" && handle_result == VALIDATE_XR_HANDLE_NULL)\n'
+                inline_validate_handle += self.writeIndent(indent + 1)
+                inline_validate_handle += 'return xr_result;\n'
+                inline_validate_handle += self.writeIndent(indent)
+                indent = indent + 1
+                
             if member_param.is_optional:
                 inline_validate_handle += 'if (handle_result == VALIDATE_XR_HANDLE_INVALID) {\n'
                 inline_validate_handle += self.writeIndent(indent)
@@ -1570,6 +1611,44 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             relation_group = self.getRelationGroupForBaseStruct(param_member.type)
             is_relation_group = (relation_group is not None)
 
+
+            if is_array and is_pointer:
+                param_member_contents += self.writeIndent(indent)
+                param_member_contents += f'if ({prefixed_param_member_name} == nullptr) {{\n'
+
+                indent += 1
+                param_member_contents += self.writeIndent(indent)
+                param_member_contents += 'std::string error_message = "'
+                if is_command:
+                    param_member_contents += f'Command {struct_command_name} param {param_member.name}";\n'
+                else:
+                    param_member_contents += f'Structure {struct_command_name} member {param_member.name}";\n'
+                if is_array:
+                    param_member_contents += self.writeIndent(indent)
+                    param_member_contents += 'error_message += "[";\n'
+                    param_member_contents += self.writeIndent(indent)
+                    param_member_contents += f'error_message += std::to_string({loop_param_name});\n'
+                    param_member_contents += self.writeIndent(indent)
+                    param_member_contents += 'error_message += "]";\n'
+                param_member_contents += self.writeIndent(indent)
+                param_member_contents += 'error_message += " is null";\n'
+
+                param_member_contents += self.writeIndent(indent)
+                param_member_contents += 'CoreValidLogMessage(%s, "VUID-%s-%s-parameter",\n' % (
+                    instance_info_variable, struct_command_name, param_member.name)
+                param_member_contents += self.writeIndent(indent)
+                param_member_contents += f'                    VALID_USAGE_DEBUG_SEVERITY_ERROR, {command_name_variable},\n'
+                param_member_contents += self.writeIndent(indent)
+                param_member_contents += '                    objects_info,\n'
+                param_member_contents += self.writeIndent(indent)
+                param_member_contents += '                    error_message);\n'
+                # Sometimes there is a preferred, more specific error here, but we do not know it in general.
+                param_member_contents += self.writeIndent(indent)
+                param_member_contents += 'return XR_ERROR_VALIDATION_FAILURE;\n'
+                indent -= 1
+                param_member_contents += self.writeIndent(indent)
+                param_member_contents += '}\n'
+
             # If this struct is the base of a relation group, check to see if this call really should go to any one of
             # it's children instead of itself.
             if is_relation_group:
@@ -1596,6 +1675,10 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                         new_type_info = new_type_info.replace(
                             param_member.name, "")
                         new_type_info = new_type_info.strip().rstrip()
+                        if param_member.is_optional:
+                            param_member_contents += "if (%s != nullptr) {\n" % pre_loop_prefixed_param_member_name
+                            indent = indent + 1
+                            param_member_contents += self.writeIndent(indent)
                         param_member_contents += '%s new_%s_value = reinterpret_cast<%s>(%s);\n' % (
                             new_type_info, base_child_struct_name, new_type_info, pre_loop_prefixed_param_member_name)
                         param_member_contents += self.writeIndent(indent)
@@ -1627,6 +1710,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                             param_member_contents += ' false,'
                         else:
                             param_member_contents += ' check_members,'
+                        param_member_contents += ' true,'
                         if is_array:
                             if is_pointer:
                                 param_member_contents += f' new_{base_child_struct_name}_value[{loop_param_name}]);\n'
@@ -1644,11 +1728,11 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                             param_member_contents += 'false,'
                         else:
                             param_member_contents += ' check_members,'
+                        param_member_contents += ' true,'
                         if is_array:
                             param_member_contents += f' new_{base_child_struct_name}_value[{loop_param_name}]);\n'
                         else:
                             param_member_contents += f' new_{base_child_struct_name}_value);\n'
-
                     param_member_contents += self.writeIndent(indent)
                     param_member_contents += 'if (XR_SUCCESS != xr_result) {\n'
                     indent = indent + 1
@@ -1691,7 +1775,11 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                         param_member_contents += self.writeIndent(indent)
                         param_member_contents += '}\n'
                         indent = indent - 1
-
+                        if is_pointer or is_array:
+                            param_member_contents += self.writeIndent(indent)
+                            param_member_contents += '}\n'
+                            indent = indent - 1
+                    
                     indent = indent - 1
                     param_member_contents += self.writeIndent(indent)
                     param_member_contents += '}\n'
@@ -1706,7 +1794,6 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
 
                     if child_struct and child_struct.protect_value:
                         param_member_contents += f'#endif // {child_struct.protect_string}\n'
-
             param_member_contents += self.writeIndent(indent)
             if is_relation_group:
                 param_member_contents += f'// Validate that the base-structure {param_member.type} is valid\n'
@@ -1726,6 +1813,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                         param_member_contents += ' false,'
                     else:
                         param_member_contents += ' check_members,'
+                    param_member_contents += ' true,'
                     param_member_contents += f' {prefixed_param_member_name});\n'
                 else:
                     param_member_contents += 'xr_result = ValidateXrStruct(%s, %s, objects_info,\n' % (
@@ -1738,7 +1826,8 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                         else:
                             param_member_contents += 'false,'
                     else:
-                        param_member_contents += 'check_members,'
+                        param_member_contents += ' check_members,'
+                    param_member_contents += ' true,'
                     param_member_contents += f' {prefixed_param_member_name});\n'
             else:
                 param_member_contents += 'xr_result = ValidateXrStruct(%s, %s, objects_info,\n' % (
@@ -1748,9 +1837,9 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 if is_command:
                     param_member_contents += 'true,'
                 else:
-                    param_member_contents += 'check_members,'
+                    param_member_contents += ' check_members,'
+                param_member_contents += ' true,'
                 param_member_contents += f' &{prefixed_param_member_name});\n'
-
             param_member_contents += self.writeIndent(indent)
             param_member_contents += 'if (XR_SUCCESS != xr_result) {\n'
             indent = indent + 1
@@ -1868,7 +1957,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             if xr_struct.protect_value:
                 struct_check += f'#if {xr_struct.protect_string}\n'
             struct_check += 'XrResult ValidateXrStruct(GenValidUsageXrInstanceInfo *instance_info, const std::string &command_name,\n'
-            struct_check += '                          std::vector<GenValidUsageXrObjectInfo>& objects_info, bool check_members,\n'
+            struct_check += '                          std::vector<GenValidUsageXrObjectInfo>& objects_info, bool check_members, bool check_pnext,\n'
             struct_check += '                          const %s* value) {\n' % xr_struct.name
             setup_bail = False
             struct_check += '    XrResult xr_result = XR_SUCCESS;\n'
@@ -1926,7 +2015,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                         struct_check += self.writeIndent(indent)
                         struct_check += '}\n'
                     struct_check += self.writeIndent(indent)
-                    struct_check += 'return ValidateXrStruct(instance_info, command_name, objects_info, check_members, new_value);\n'
+                    struct_check += 'return ValidateXrStruct(instance_info, command_name, objects_info, check_members, false, new_value);\n'
                     indent -= 1
                     struct_check += self.writeIndent(indent)
                     struct_check += '}\n'

@@ -40,6 +40,9 @@ EXTRA_DEFINES = (
 # TODO move permissions into XML eventually
 EXTRA_REFPAGES = (
     'org.khronos.openxr.permission.ext.HAND_TRACKING',
+
+    # Used by multiple XR_BD_spatial_* extensions
+    'com.picovr.permission.SPATIAL_DATA',
 )
 
 # These are marked with the code: macro

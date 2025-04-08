@@ -552,7 +552,7 @@ class XMLChecker:
                                   "- none of these types:",
                                   required_types,
                                   "found in the set of referenced types",
-                                  referenced_types)
+                                  sorted(referenced_types))
 
     ###
     # Utility properties/methods
