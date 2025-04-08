@@ -352,7 +352,7 @@ struct ShaderProgram {
         if (m_vkDevice != nullptr) {
             for (auto& si : shaderInfo) {
                 if (si.module != VK_NULL_HANDLE) {
-                    vkDestroyShaderModule(m_vkDevice, shaderInfo[0].module, nullptr);
+                    vkDestroyShaderModule(m_vkDevice, si.module, nullptr);
                 }
                 si.module = VK_NULL_HANDLE;
             }
@@ -871,7 +871,7 @@ struct Pipeline {
         CHECK_VKCMD(vkCreateGraphicsPipelines(m_vkDevice, VK_NULL_HANDLE, 1, &pipeInfo, nullptr, &pipe));
     }
 
-    void Release() {
+    ~Pipeline() {
         if (m_vkDevice != nullptr) {
             if (pipe != VK_NULL_HANDLE) {
                 vkDestroyPipeline(m_vkDevice, pipe, nullptr);
