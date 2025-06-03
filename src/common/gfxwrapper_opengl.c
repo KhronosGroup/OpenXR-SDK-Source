@@ -7,6 +7,8 @@ SPDX-License-Identifier: Apache-2.0
 */
 
 #include "gfxwrapper_opengl.h"
+#include "EGL/eglplatform.h"
+#include "glad/egl.h"
 
 /*
 ================================================================================================================================
@@ -92,32 +94,20 @@ static void Error(const char *format, ...) {
 /*
 ================================================================================================================================
 
-OpenGL error checking.
+EGL error checking.
 
 ================================================================================================================================
 */
 
-#if !defined(NDEBUG)
-#define GL(func) \
-    func;        \
-    GlCheckErrors(#func);
-#else
-#define GL(func) func;
-#endif
-
-#if !defined(NDEBUG)
-#define EGL(func)                                                  \
-    if (func == EGL_FALSE) {                                       \
-        Error(#func " failed: %s", EglErrorString(eglGetError())); \
-    }
-#else
-#define EGL(func)                                                  \
-    if (func == EGL_FALSE) {                                       \
-        Error(#func " failed: %s", EglErrorString(eglGetError())); \
-    }
-#endif
-
 #if defined(OS_ANDROID) || defined(OS_LINUX_WAYLAND)
+
+#define EGL(func)                                                      \
+    do {                                                               \
+        if (func == EGL_FALSE) {                                       \
+            Error(#func " failed: %s", EglErrorString(eglGetError())); \
+        }                                                              \
+    } while (0)
+
 static const char *EglErrorString(const EGLint error) {
     switch (error) {
         case EGL_SUCCESS:
@@ -154,44 +144,8 @@ static const char *EglErrorString(const EGLint error) {
             return "unknown";
     }
 }
-#endif
 
-#if !defined(NDEBUG)
-static const char *GlErrorString(GLenum error) {
-    switch (error) {
-        case GL_NO_ERROR:
-            return "GL_NO_ERROR";
-        case GL_INVALID_ENUM:
-            return "GL_INVALID_ENUM";
-        case GL_INVALID_VALUE:
-            return "GL_INVALID_VALUE";
-        case GL_INVALID_OPERATION:
-            return "GL_INVALID_OPERATION";
-        case GL_INVALID_FRAMEBUFFER_OPERATION:
-            return "GL_INVALID_FRAMEBUFFER_OPERATION";
-        case GL_OUT_OF_MEMORY:
-            return "GL_OUT_OF_MEMORY";
-#if !defined(OS_APPLE_MACOS) && !defined(OS_ANDROID) && !defined(OS_APPLE_IOS)
-        case GL_STACK_UNDERFLOW:
-            return "GL_STACK_UNDERFLOW";
-        case GL_STACK_OVERFLOW:
-            return "GL_STACK_OVERFLOW";
 #endif
-        default:
-            return "unknown";
-    }
-}
-
-static void GlCheckErrors(const char *function) {
-    for (int i = 0; i < 10; i++) {
-        const GLenum error = glGetError();
-        if (error == GL_NO_ERROR) {
-            break;
-        }
-        Error("GL error: %s: %s", function, GlErrorString(error));
-    }
-}
-#endif  // !defined(NDEBUG)
 
 /*
 ================================================================================================================================
@@ -201,411 +155,7 @@ OpenGL extensions.
 ================================================================================================================================
 */
 
-typedef struct {
-    bool timer_query;                       // GL_ARB_timer_query, GL_EXT_disjoint_timer_query
-    bool texture_clamp_to_border;           // GL_EXT_texture_border_clamp, GL_OES_texture_border_clamp
-    bool buffer_storage;                    // GL_ARB_buffer_storage
-    bool multi_sampled_storage;             // GL_ARB_texture_storage_multisample
-    bool multi_view;                        // GL_OVR_multiview, GL_OVR_multiview2
-    bool multi_sampled_resolve;             // GL_EXT_multisampled_render_to_texture
-    bool multi_view_multi_sampled_resolve;  // GL_OVR_multiview_multisampled_render_to_texture
-
-    int texture_clamp_to_border_id;
-} ksOpenGLExtensions;
-
-ksOpenGLExtensions glExtensions;
-
-/*
-================================
-Get proc address / extensions
-================================
-*/
-
-#if defined(OS_WINDOWS)
-PROC GetExtension(const char *functionName) { return wglGetProcAddress(functionName); }
-#elif defined(OS_APPLE)
-void (*GetExtension(const char *functionName))(void) {
-    (void)functionName;
-    return NULL;
-}
-#elif defined(OS_LINUX_XCB) || defined(OS_LINUX_XLIB) || defined(OS_LINUX_XCB_GLX)
-void (*GetExtension(const char *functionName))(void) { return glXGetProcAddress((const GLubyte *)functionName); }
-#elif defined(OS_ANDROID) || defined(OS_LINUX_WAYLAND)
-void (*GetExtension(const char *functionName))(void) { return eglGetProcAddress(functionName); }
-#endif
-
-GLint glGetInteger(GLenum pname) {
-    GLint i;
-    GL(glGetIntegerv(pname, &i));
-    return i;
-}
-
-static bool GlCheckExtension(const char *extension) {
-#if defined(OS_WINDOWS) || defined(OS_LINUX)
-    PFNGLGETSTRINGIPROC glGetStringi = (PFNGLGETSTRINGIPROC)GetExtension("glGetStringi");
-#endif
-    GL(const GLint numExtensions = glGetInteger(GL_NUM_EXTENSIONS));
-    for (int i = 0; i < numExtensions; i++) {
-        GL(const GLubyte *string = glGetStringi(GL_EXTENSIONS, i));
-        if (strcmp((const char *)string, extension) == 0) {
-            return true;
-        }
-    }
-    return false;
-}
-
-#if defined(OS_WINDOWS) || defined(OS_LINUX)
-
-PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
-PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
-PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
-PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer;
-PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
-PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
-PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
-PFNGLISRENDERBUFFERPROC glIsRenderbuffer;
-PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
-PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC glRenderbufferStorageMultisample;
-PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC glRenderbufferStorageMultisampleEXT;
-PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
-PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
-PFNGLFRAMEBUFFERTEXTURELAYERPROC glFramebufferTextureLayer;
-PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC glFramebufferTexture2DMultisampleEXT;
-PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC glFramebufferTextureMultiviewOVR;
-PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC glFramebufferTextureMultisampleMultiviewOVR;
-PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
-PFNGLCHECKNAMEDFRAMEBUFFERSTATUSPROC glCheckNamedFramebufferStatus;
-
-PFNGLGENBUFFERSPROC glGenBuffers;
-PFNGLDELETEBUFFERSPROC glDeleteBuffers;
-PFNGLBINDBUFFERPROC glBindBuffer;
-PFNGLBINDBUFFERBASEPROC glBindBufferBase;
-PFNGLBUFFERDATAPROC glBufferData;
-PFNGLBUFFERSUBDATAPROC glBufferSubData;
-PFNGLBUFFERSTORAGEPROC glBufferStorage;
-PFNGLMAPBUFFERPROC glMapBuffer;
-PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
-PFNGLUNMAPBUFFERPROC glUnmapBuffer;
-
-PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
-PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
-PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
-PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
-PFNGLVERTEXATTRIBIPOINTERPROC glVertexAttribIPointer;
-PFNGLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
-PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
-PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
-
-#if defined(OS_WINDOWS)
-PFNGLACTIVETEXTUREPROC glActiveTexture;
-PFNGLTEXIMAGE3DPROC glTexImage3D;
-PFNGLCOMPRESSEDTEXIMAGE2DPROC glCompressedTexImage2D;
-PFNGLCOMPRESSEDTEXIMAGE3DPROC glCompressedTexImage3D;
-PFNGLTEXSUBIMAGE3DPROC glTexSubImage3D;
-PFNGLCOMPRESSEDTEXSUBIMAGE2DPROC glCompressedTexSubImage2D;
-PFNGLCOMPRESSEDTEXSUBIMAGE3DPROC glCompressedTexSubImage3D;
-#endif
-PFNGLTEXSTORAGE2DPROC glTexStorage2D;
-PFNGLTEXSTORAGE3DPROC glTexStorage3D;
-PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample;
-PFNGLTEXIMAGE3DMULTISAMPLEPROC glTexImage3DMultisample;
-PFNGLTEXSTORAGE2DMULTISAMPLEPROC glTexStorage2DMultisample;
-PFNGLTEXSTORAGE3DMULTISAMPLEPROC glTexStorage3DMultisample;
-PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
-PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
-
-PFNGLCREATEPROGRAMPROC glCreateProgram;
-PFNGLDELETEPROGRAMPROC glDeleteProgram;
-PFNGLCREATESHADERPROC glCreateShader;
-PFNGLDELETESHADERPROC glDeleteShader;
-PFNGLSHADERSOURCEPROC glShaderSource;
-PFNGLCOMPILESHADERPROC glCompileShader;
-PFNGLGETSHADERIVPROC glGetShaderiv;
-PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
-PFNGLUSEPROGRAMPROC glUseProgram;
-PFNGLATTACHSHADERPROC glAttachShader;
-PFNGLLINKPROGRAMPROC glLinkProgram;
-PFNGLGETPROGRAMIVPROC glGetProgramiv;
-PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
-PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
-PFNGLBINDATTRIBLOCATIONPROC glBindAttribLocation;
-PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
-PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex;
-PFNGLGETPROGRAMRESOURCEINDEXPROC glGetProgramResourceIndex;
-PFNGLUNIFORMBLOCKBINDINGPROC glUniformBlockBinding;
-PFNGLSHADERSTORAGEBLOCKBINDINGPROC glShaderStorageBlockBinding;
-PFNGLPROGRAMUNIFORM1IPROC glProgramUniform1i;
-PFNGLUNIFORM1IPROC glUniform1i;
-PFNGLUNIFORM1IVPROC glUniform1iv;
-PFNGLUNIFORM2IVPROC glUniform2iv;
-PFNGLUNIFORM3IVPROC glUniform3iv;
-PFNGLUNIFORM4IVPROC glUniform4iv;
-PFNGLUNIFORM1FPROC glUniform1f;
-PFNGLUNIFORM1FVPROC glUniform1fv;
-PFNGLUNIFORM2FVPROC glUniform2fv;
-PFNGLUNIFORM3FVPROC glUniform3fv;
-PFNGLUNIFORM4FVPROC glUniform4fv;
-PFNGLUNIFORMMATRIX2FVPROC glUniformMatrix2fv;
-PFNGLUNIFORMMATRIX2X3FVPROC glUniformMatrix2x3fv;
-PFNGLUNIFORMMATRIX2X4FVPROC glUniformMatrix2x4fv;
-PFNGLUNIFORMMATRIX3X2FVPROC glUniformMatrix3x2fv;
-PFNGLUNIFORMMATRIX3FVPROC glUniformMatrix3fv;
-PFNGLUNIFORMMATRIX3X4FVPROC glUniformMatrix3x4fv;
-PFNGLUNIFORMMATRIX4X2FVPROC glUniformMatrix4x2fv;
-PFNGLUNIFORMMATRIX4X3FVPROC glUniformMatrix4x3fv;
-PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
-
-PFNGLDRAWELEMENTSINSTANCEDPROC glDrawElementsInstanced;
-PFNGLDISPATCHCOMPUTEPROC glDispatchCompute;
-PFNGLMEMORYBARRIERPROC glMemoryBarrier;
-
-PFNGLGENQUERIESPROC glGenQueries;
-PFNGLDELETEQUERIESPROC glDeleteQueries;
-PFNGLISQUERYPROC glIsQuery;
-PFNGLBEGINQUERYPROC glBeginQuery;
-PFNGLENDQUERYPROC glEndQuery;
-PFNGLQUERYCOUNTERPROC glQueryCounter;
-PFNGLGETQUERYIVPROC glGetQueryiv;
-PFNGLGETQUERYOBJECTIVPROC glGetQueryObjectiv;
-PFNGLGETQUERYOBJECTUIVPROC glGetQueryObjectuiv;
-PFNGLGETQUERYOBJECTI64VPROC glGetQueryObjecti64v;
-PFNGLGETQUERYOBJECTUI64VPROC glGetQueryObjectui64v;
-
-PFNGLFENCESYNCPROC glFenceSync;
-PFNGLCLIENTWAITSYNCPROC glClientWaitSync;
-PFNGLDELETESYNCPROC glDeleteSync;
-PFNGLISSYNCPROC glIsSync;
-
-PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
-PFNGLBLENDEQUATIONSEPARATEPROC glBlendEquationSeparate;
-
-PFNGLDEBUGMESSAGECONTROLPROC glDebugMessageControl;
-PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback;
-
-#if defined(OS_WINDOWS)
-PFNGLBLENDCOLORPROC glBlendColor;
-PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
-PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
-PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
-PFNWGLDELAYBEFORESWAPNVPROC wglDelayBeforeSwapNV;
-#elif defined(OS_LINUX) && !defined(OS_LINUX_WAYLAND)
-PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB;
-PFNGLXSWAPINTERVALEXTPROC glXSwapIntervalEXT;
-PFNGLXDELAYBEFORESWAPNVPROC glXDelayBeforeSwapNV;
-#endif
-
-PFNGLBINDSAMPLERPROC glBindSampler;
-PFNGLDELETESAMPLERSPROC glDeleteSamplers;
-PFNGLGENSAMPLERSPROC glGenSamplers;
-PFNGLGETSAMPLERPARAMETERIIVPROC glGetSamplerParameterIiv;
-PFNGLGETSAMPLERPARAMETERIUIVPROC glGetSamplerParameterIuiv;
-PFNGLGETSAMPLERPARAMETERFVPROC glGetSamplerParameterfv;
-PFNGLGETSAMPLERPARAMETERIVPROC glGetSamplerParameteriv;
-PFNGLISSAMPLERPROC glIsSampler;
-PFNGLSAMPLERPARAMETERIIVPROC glSamplerParameterIiv;
-PFNGLSAMPLERPARAMETERIUIVPROC glSamplerParameterIuiv;
-PFNGLSAMPLERPARAMETERFPROC glSamplerParameterf;
-PFNGLSAMPLERPARAMETERFVPROC glSamplerParameterfv;
-PFNGLSAMPLERPARAMETERIPROC glSamplerParameteri;
-PFNGLSAMPLERPARAMETERIVPROC glSamplerParameteriv;
-
-void GlBootstrapExtensions() {
-#if defined(OS_WINDOWS)
-    wglChoosePixelFormatARB = (PFNWGLCHOOSEPIXELFORMATARBPROC)GetExtension("wglChoosePixelFormatARB");
-    wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)GetExtension("wglCreateContextAttribsARB");
-    wglSwapIntervalEXT = (PFNWGLSWAPINTERVALEXTPROC)GetExtension("wglSwapIntervalEXT");
-    wglDelayBeforeSwapNV = (PFNWGLDELAYBEFORESWAPNVPROC)GetExtension("wglDelayBeforeSwapNV");
-#elif defined(OS_LINUX) && !defined(OS_LINUX_WAYLAND)
-    glXCreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC)GetExtension("glXCreateContextAttribsARB");
-    glXSwapIntervalEXT = (PFNGLXSWAPINTERVALEXTPROC)GetExtension("glXSwapIntervalEXT");
-    glXDelayBeforeSwapNV = (PFNGLXDELAYBEFORESWAPNVPROC)GetExtension("glXDelayBeforeSwapNV");
-#endif
-}
-
-void GlInitExtensions() {
-    glGenFramebuffers = (PFNGLGENFRAMEBUFFERSPROC)GetExtension("glGenFramebuffers");
-    glDeleteFramebuffers = (PFNGLDELETEFRAMEBUFFERSPROC)GetExtension("glDeleteFramebuffers");
-    glBindFramebuffer = (PFNGLBINDFRAMEBUFFERPROC)GetExtension("glBindFramebuffer");
-    glBlitFramebuffer = (PFNGLBLITFRAMEBUFFERPROC)GetExtension("glBlitFramebuffer");
-    glGenRenderbuffers = (PFNGLGENRENDERBUFFERSPROC)GetExtension("glGenRenderbuffers");
-    glDeleteRenderbuffers = (PFNGLDELETERENDERBUFFERSPROC)GetExtension("glDeleteRenderbuffers");
-    glBindRenderbuffer = (PFNGLBINDRENDERBUFFERPROC)GetExtension("glBindRenderbuffer");
-    glIsRenderbuffer = (PFNGLISRENDERBUFFERPROC)GetExtension("glIsRenderbuffer");
-    glRenderbufferStorage = (PFNGLRENDERBUFFERSTORAGEPROC)GetExtension("glRenderbufferStorage");
-    glRenderbufferStorageMultisample = (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC)GetExtension("glRenderbufferStorageMultisample");
-    glRenderbufferStorageMultisampleEXT =
-        (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC)GetExtension("glRenderbufferStorageMultisampleEXT");
-    glFramebufferRenderbuffer = (PFNGLFRAMEBUFFERRENDERBUFFERPROC)GetExtension("glFramebufferRenderbuffer");
-    glFramebufferTexture2D = (PFNGLFRAMEBUFFERTEXTURE2DPROC)GetExtension("glFramebufferTexture2D");
-    glFramebufferTextureLayer = (PFNGLFRAMEBUFFERTEXTURELAYERPROC)GetExtension("glFramebufferTextureLayer");
-    glFramebufferTexture2DMultisampleEXT =
-        (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC)GetExtension("glFramebufferTexture2DMultisampleEXT");
-    glFramebufferTextureMultiviewOVR = (PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC)GetExtension("glFramebufferTextureMultiviewOVR");
-    glFramebufferTextureMultisampleMultiviewOVR =
-        (PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC)GetExtension("glFramebufferTextureMultisampleMultiviewOVR");
-    glCheckFramebufferStatus = (PFNGLCHECKFRAMEBUFFERSTATUSPROC)GetExtension("glCheckFramebufferStatus");
-    glCheckNamedFramebufferStatus = (PFNGLCHECKNAMEDFRAMEBUFFERSTATUSPROC)GetExtension("glCheckNamedFramebufferStatus");
-
-    glGenBuffers = (PFNGLGENBUFFERSPROC)GetExtension("glGenBuffers");
-    glDeleteBuffers = (PFNGLDELETEBUFFERSPROC)GetExtension("glDeleteBuffers");
-    glBindBuffer = (PFNGLBINDBUFFERPROC)GetExtension("glBindBuffer");
-    glBindBufferBase = (PFNGLBINDBUFFERBASEPROC)GetExtension("glBindBufferBase");
-    glBufferData = (PFNGLBUFFERDATAPROC)GetExtension("glBufferData");
-    glBufferSubData = (PFNGLBUFFERSUBDATAPROC)GetExtension("glBufferSubData");
-    glBufferStorage = (PFNGLBUFFERSTORAGEPROC)GetExtension("glBufferStorage");
-    glMapBuffer = (PFNGLMAPBUFFERPROC)GetExtension("glMapBuffer");
-    glMapBufferRange = (PFNGLMAPBUFFERRANGEPROC)GetExtension("glMapBufferRange");
-    glUnmapBuffer = (PFNGLUNMAPBUFFERPROC)GetExtension("glUnmapBuffer");
-
-    glGenVertexArrays = (PFNGLGENVERTEXARRAYSPROC)GetExtension("glGenVertexArrays");
-    glDeleteVertexArrays = (PFNGLDELETEVERTEXARRAYSPROC)GetExtension("glDeleteVertexArrays");
-    glBindVertexArray = (PFNGLBINDVERTEXARRAYPROC)GetExtension("glBindVertexArray");
-    glVertexAttribPointer = (PFNGLVERTEXATTRIBPOINTERPROC)GetExtension("glVertexAttribPointer");
-    glVertexAttribIPointer = (PFNGLVERTEXATTRIBIPOINTERPROC)GetExtension("glVertexAttribIPointer");
-    glVertexAttribDivisor = (PFNGLVERTEXATTRIBDIVISORPROC)GetExtension("glVertexAttribDivisor");
-    glDisableVertexAttribArray = (PFNGLDISABLEVERTEXATTRIBARRAYPROC)GetExtension("glDisableVertexAttribArray");
-    glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC)GetExtension("glEnableVertexAttribArray");
-
-#if defined(OS_WINDOWS)
-    glActiveTexture = (PFNGLACTIVETEXTUREPROC)GetExtension("glActiveTexture");
-    glTexImage3D = (PFNGLTEXIMAGE3DPROC)GetExtension("glTexImage3D");
-    glCompressedTexImage2D = (PFNGLCOMPRESSEDTEXIMAGE2DPROC)GetExtension("glCompressedTexImage2D");
-    glCompressedTexImage3D = (PFNGLCOMPRESSEDTEXIMAGE3DPROC)GetExtension("glCompressedTexImage3D");
-    glTexSubImage3D = (PFNGLTEXSUBIMAGE3DPROC)GetExtension("glTexSubImage3D");
-    glCompressedTexSubImage2D = (PFNGLCOMPRESSEDTEXSUBIMAGE2DPROC)GetExtension("glCompressedTexSubImage2D");
-    glCompressedTexSubImage3D = (PFNGLCOMPRESSEDTEXSUBIMAGE3DPROC)GetExtension("glCompressedTexSubImage3D");
-#endif
-    glTexStorage2D = (PFNGLTEXSTORAGE2DPROC)GetExtension("glTexStorage2D");
-    glTexStorage3D = (PFNGLTEXSTORAGE3DPROC)GetExtension("glTexStorage3D");
-    glTexImage2DMultisample = (PFNGLTEXIMAGE2DMULTISAMPLEPROC)GetExtension("glTexImage2DMultisample");
-    glTexImage3DMultisample = (PFNGLTEXIMAGE3DMULTISAMPLEPROC)GetExtension("glTexImage3DMultisample");
-    glTexStorage2DMultisample = (PFNGLTEXSTORAGE2DMULTISAMPLEPROC)GetExtension("glTexStorage2DMultisample");
-    glTexStorage3DMultisample = (PFNGLTEXSTORAGE3DMULTISAMPLEPROC)GetExtension("glTexStorage3DMultisample");
-    glGenerateMipmap = (PFNGLGENERATEMIPMAPPROC)GetExtension("glGenerateMipmap");
-    glBindImageTexture = (PFNGLBINDIMAGETEXTUREPROC)GetExtension("glBindImageTexture");
-
-    glCreateProgram = (PFNGLCREATEPROGRAMPROC)GetExtension("glCreateProgram");
-    glDeleteProgram = (PFNGLDELETEPROGRAMPROC)GetExtension("glDeleteProgram");
-    glCreateShader = (PFNGLCREATESHADERPROC)GetExtension("glCreateShader");
-    glDeleteShader = (PFNGLDELETESHADERPROC)GetExtension("glDeleteShader");
-    glShaderSource = (PFNGLSHADERSOURCEPROC)GetExtension("glShaderSource");
-    glCompileShader = (PFNGLCOMPILESHADERPROC)GetExtension("glCompileShader");
-    glGetShaderiv = (PFNGLGETSHADERIVPROC)GetExtension("glGetShaderiv");
-    glGetShaderInfoLog = (PFNGLGETSHADERINFOLOGPROC)GetExtension("glGetShaderInfoLog");
-    glUseProgram = (PFNGLUSEPROGRAMPROC)GetExtension("glUseProgram");
-    glAttachShader = (PFNGLATTACHSHADERPROC)GetExtension("glAttachShader");
-    glLinkProgram = (PFNGLLINKPROGRAMPROC)GetExtension("glLinkProgram");
-    glGetProgramiv = (PFNGLGETPROGRAMIVPROC)GetExtension("glGetProgramiv");
-    glGetProgramInfoLog = (PFNGLGETPROGRAMINFOLOGPROC)GetExtension("glGetProgramInfoLog");
-    glGetAttribLocation = (PFNGLGETATTRIBLOCATIONPROC)GetExtension("glGetAttribLocation");
-    glBindAttribLocation = (PFNGLBINDATTRIBLOCATIONPROC)GetExtension("glBindAttribLocation");
-    glGetUniformLocation = (PFNGLGETUNIFORMLOCATIONPROC)GetExtension("glGetUniformLocation");
-    glGetUniformBlockIndex = (PFNGLGETUNIFORMBLOCKINDEXPROC)GetExtension("glGetUniformBlockIndex");
-    glProgramUniform1i = (PFNGLPROGRAMUNIFORM1IPROC)GetExtension("glProgramUniform1i");
-    glUniform1i = (PFNGLUNIFORM1IPROC)GetExtension("glUniform1i");
-    glUniform1iv = (PFNGLUNIFORM1IVPROC)GetExtension("glUniform1iv");
-    glUniform2iv = (PFNGLUNIFORM2IVPROC)GetExtension("glUniform2iv");
-    glUniform3iv = (PFNGLUNIFORM3IVPROC)GetExtension("glUniform3iv");
-    glUniform4iv = (PFNGLUNIFORM4IVPROC)GetExtension("glUniform4iv");
-    glUniform1f = (PFNGLUNIFORM1FPROC)GetExtension("glUniform1f");
-    glUniform1fv = (PFNGLUNIFORM1FVPROC)GetExtension("glUniform1fv");
-    glUniform2fv = (PFNGLUNIFORM2FVPROC)GetExtension("glUniform2fv");
-    glUniform3fv = (PFNGLUNIFORM3FVPROC)GetExtension("glUniform3fv");
-    glUniform4fv = (PFNGLUNIFORM4FVPROC)GetExtension("glUniform4fv");
-    glUniformMatrix2fv = (PFNGLUNIFORMMATRIX2FVPROC)GetExtension("glUniformMatrix2fv");
-    glUniformMatrix2x3fv = (PFNGLUNIFORMMATRIX2X3FVPROC)GetExtension("glUniformMatrix2x3fv");
-    glUniformMatrix2x4fv = (PFNGLUNIFORMMATRIX2X4FVPROC)GetExtension("glUniformMatrix2x4fv");
-    glUniformMatrix3x2fv = (PFNGLUNIFORMMATRIX3X2FVPROC)GetExtension("glUniformMatrix3x2fv");
-    glUniformMatrix3fv = (PFNGLUNIFORMMATRIX3FVPROC)GetExtension("glUniformMatrix3fv");
-    glUniformMatrix3x4fv = (PFNGLUNIFORMMATRIX3X4FVPROC)GetExtension("glUniformMatrix3x4fv");
-    glUniformMatrix4x2fv = (PFNGLUNIFORMMATRIX4X2FVPROC)GetExtension("glUniformMatrix4x2fv");
-    glUniformMatrix4x3fv = (PFNGLUNIFORMMATRIX4X3FVPROC)GetExtension("glUniformMatrix4x3fv");
-    glUniformMatrix4fv = (PFNGLUNIFORMMATRIX4FVPROC)GetExtension("glUniformMatrix4fv");
-    glGetProgramResourceIndex = (PFNGLGETPROGRAMRESOURCEINDEXPROC)GetExtension("glGetProgramResourceIndex");
-    glUniformBlockBinding = (PFNGLUNIFORMBLOCKBINDINGPROC)GetExtension("glUniformBlockBinding");
-    glShaderStorageBlockBinding = (PFNGLSHADERSTORAGEBLOCKBINDINGPROC)GetExtension("glShaderStorageBlockBinding");
-
-    glDrawElementsInstanced = (PFNGLDRAWELEMENTSINSTANCEDPROC)GetExtension("glDrawElementsInstanced");
-    glDispatchCompute = (PFNGLDISPATCHCOMPUTEPROC)GetExtension("glDispatchCompute");
-    glMemoryBarrier = (PFNGLMEMORYBARRIERPROC)GetExtension("glMemoryBarrier");
-
-    glGenQueries = (PFNGLGENQUERIESPROC)GetExtension("glGenQueries");
-    glDeleteQueries = (PFNGLDELETEQUERIESPROC)GetExtension("glDeleteQueries");
-    glIsQuery = (PFNGLISQUERYPROC)GetExtension("glIsQuery");
-    glBeginQuery = (PFNGLBEGINQUERYPROC)GetExtension("glBeginQuery");
-    glEndQuery = (PFNGLENDQUERYPROC)GetExtension("glEndQuery");
-    glQueryCounter = (PFNGLQUERYCOUNTERPROC)GetExtension("glQueryCounter");
-    glGetQueryiv = (PFNGLGETQUERYIVPROC)GetExtension("glGetQueryiv");
-    glGetQueryObjectiv = (PFNGLGETQUERYOBJECTIVPROC)GetExtension("glGetQueryObjectiv");
-    glGetQueryObjectuiv = (PFNGLGETQUERYOBJECTUIVPROC)GetExtension("glGetQueryObjectuiv");
-    glGetQueryObjecti64v = (PFNGLGETQUERYOBJECTI64VPROC)GetExtension("glGetQueryObjecti64v");
-    glGetQueryObjectui64v = (PFNGLGETQUERYOBJECTUI64VPROC)GetExtension("glGetQueryObjectui64v");
-
-    glFenceSync = (PFNGLFENCESYNCPROC)GetExtension("glFenceSync");
-    glClientWaitSync = (PFNGLCLIENTWAITSYNCPROC)GetExtension("glClientWaitSync");
-    glDeleteSync = (PFNGLDELETESYNCPROC)GetExtension("glDeleteSync");
-    glIsSync = (PFNGLISSYNCPROC)GetExtension("glIsSync");
-
-    glBlendFuncSeparate = (PFNGLBLENDFUNCSEPARATEPROC)GetExtension("glBlendFuncSeparate");
-    glBlendEquationSeparate = (PFNGLBLENDEQUATIONSEPARATEPROC)GetExtension("glBlendEquationSeparate");
-
-#if defined(OS_WINDOWS)
-    glBlendColor = (PFNGLBLENDCOLORPROC)GetExtension("glBlendColor");
-#endif
-
-    glDebugMessageControl = (PFNGLDEBUGMESSAGECONTROLPROC)GetExtension("glDebugMessageControl");
-    glDebugMessageCallback = (PFNGLDEBUGMESSAGECALLBACKPROC)GetExtension("glDebugMessageCallback");
-
-    glBindSampler = (PFNGLBINDSAMPLERPROC)GetExtension("glBindSampler");
-    glDeleteSamplers = (PFNGLDELETESAMPLERSPROC)GetExtension("glDeleteSamplers");
-    glGenSamplers = (PFNGLGENSAMPLERSPROC)GetExtension("glGenSamplers");
-    glGetSamplerParameterIiv = (PFNGLGETSAMPLERPARAMETERIIVPROC)GetExtension("glGetSamplerParameterIiv");
-    glGetSamplerParameterIuiv = (PFNGLGETSAMPLERPARAMETERIUIVPROC)GetExtension("glGetSamplerParameterIuiv");
-    glGetSamplerParameterfv = (PFNGLGETSAMPLERPARAMETERFVPROC)GetExtension("glGetSamplerParameterfv");
-    glGetSamplerParameteriv = (PFNGLGETSAMPLERPARAMETERIVPROC)GetExtension("glGetSamplerParameteriv");
-    glIsSampler = (PFNGLISSAMPLERPROC)GetExtension("glIsSampler");
-    glSamplerParameterIiv = (PFNGLSAMPLERPARAMETERIIVPROC)GetExtension("glSamplerParameterIiv");
-    glSamplerParameterIuiv = (PFNGLSAMPLERPARAMETERIUIVPROC)GetExtension("glSamplerParameterIuiv");
-    glSamplerParameterf = (PFNGLSAMPLERPARAMETERFPROC)GetExtension("glSamplerParameterf");
-    glSamplerParameterfv = (PFNGLSAMPLERPARAMETERFVPROC)GetExtension("glSamplerParameterfv");
-    glSamplerParameteri = (PFNGLSAMPLERPARAMETERIPROC)GetExtension("glSamplerParameteri");
-    glSamplerParameteriv = (PFNGLSAMPLERPARAMETERIVPROC)GetExtension("glSamplerParameteriv");
-
-    glExtensions.timer_query = GlCheckExtension("GL_EXT_timer_query");
-    glExtensions.texture_clamp_to_border = true;  // always available
-    glExtensions.buffer_storage =
-        GlCheckExtension("GL_EXT_buffer_storage") || (OPENGL_VERSION_MAJOR * 10 + OPENGL_VERSION_MINOR >= 44);
-    glExtensions.multi_sampled_storage =
-        GlCheckExtension("GL_ARB_texture_storage_multisample") || (OPENGL_VERSION_MAJOR * 10 + OPENGL_VERSION_MINOR >= 43);
-    glExtensions.multi_view = GlCheckExtension("GL_OVR_multiview2");
-    glExtensions.multi_sampled_resolve = GlCheckExtension("GL_EXT_multisampled_render_to_texture");
-    glExtensions.multi_view_multi_sampled_resolve = GlCheckExtension("GL_OVR_multiview_multisampled_render_to_texture");
-
-    glExtensions.texture_clamp_to_border_id = GL_CLAMP_TO_BORDER;
-}
-
-#elif defined(OS_APPLE_MACOS)
-
-PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC glFramebufferTextureMultiviewOVR;
-PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC glFramebufferTextureMultisampleMultiviewOVR;
-PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC glFramebufferTexture2DMultisampleEXT;
-PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC glRenderbufferStorageMultisampleEXT;
-
-void GlInitExtensions() {
-    glExtensions.timer_query = GlCheckExtension("GL_EXT_timer_query");
-    glExtensions.texture_clamp_to_border = true;  // always available
-    glExtensions.buffer_storage =
-        GlCheckExtension("GL_EXT_buffer_storage") || (OPENGL_VERSION_MAJOR * 10 + OPENGL_VERSION_MINOR >= 44);
-    glExtensions.multi_sampled_storage =
-        GlCheckExtension("GL_ARB_texture_storage_multisample") || (OPENGL_VERSION_MAJOR * 10 + OPENGL_VERSION_MINOR >= 43);
-    glExtensions.multi_view = GlCheckExtension("GL_OVR_multiview2");
-    glExtensions.multi_sampled_resolve = GlCheckExtension("GL_EXT_multisampled_render_to_texture");
-    glExtensions.multi_view_multi_sampled_resolve = GlCheckExtension("GL_OVR_multiview_multisampled_render_to_texture");
-
-    glExtensions.texture_clamp_to_border_id = GL_CLAMP_TO_BORDER;
-}
-
-#elif defined(OS_ANDROID)
+#if defined(OS_ANDROID)
 
 // GL_EXT_disjoint_timer_query without _EXT
 #if !defined(GL_TIMESTAMP)
@@ -626,38 +176,6 @@ void GlInitExtensions() {
 #define GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT 0x00004000  // GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT_EXT
 #define GL_BUFFER_IMMUTABLE_STORAGE 0x821F              // GL_BUFFER_IMMUTABLE_STORAGE_EXT
 #define GL_BUFFER_STORAGE_FLAGS 0x8220                  // GL_BUFFER_STORAGE_FLAGS_EXT
-#endif
-
-typedef void(GL_APIENTRY *PFNGLBUFFERSTORAGEEXTPROC)(GLenum target, GLsizeiptr size, const void *data, GLbitfield flags);
-typedef void(GL_APIENTRY *PFNGLTEXSTORAGE3DMULTISAMPLEPROC)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width,
-                                                            GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
-
-// EGL_KHR_fence_sync, GL_OES_EGL_sync, VG_KHR_EGL_sync
-PFNEGLCREATESYNCKHRPROC eglCreateSyncKHR;
-PFNEGLDESTROYSYNCKHRPROC eglDestroySyncKHR;
-PFNEGLCLIENTWAITSYNCKHRPROC eglClientWaitSyncKHR;
-PFNEGLGETSYNCATTRIBKHRPROC eglGetSyncAttribKHR;
-
-// GL_EXT_disjoint_timer_query
-PFNGLQUERYCOUNTEREXTPROC glQueryCounter;
-PFNGLGETQUERYOBJECTI64VEXTPROC glGetQueryObjecti64v;
-PFNGLGETQUERYOBJECTUI64VEXTPROC glGetQueryObjectui64v;
-
-// GL_EXT_buffer_storage
-PFNGLBUFFERSTORAGEEXTPROC glBufferStorage;
-
-// GL_OVR_multiview
-PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC glFramebufferTextureMultiviewOVR;
-
-// GL_EXT_multisampled_render_to_texture
-PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC glRenderbufferStorageMultisampleEXT;
-PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC glFramebufferTexture2DMultisampleEXT;
-
-// GL_OVR_multiview_multisampled_render_to_texture
-PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC glFramebufferTextureMultisampleMultiviewOVR;
-
-#ifndef GL_ES_VERSION_3_2
-PFNGLTEXSTORAGE3DMULTISAMPLEPROC glTexStorage3DMultisample;
 #endif
 
 #if !defined(EGL_OPENGL_ES3_BIT)
@@ -694,44 +212,6 @@ PFNGLTEXSTORAGE3DMULTISAMPLEPROC glTexStorage3DMultisample;
 #if !defined(GL_TEXTURE_2D_MULTISAMPLE_ARRAY)
 #define GL_TEXTURE_2D_MULTISAMPLE_ARRAY 0x9102
 #endif
-
-void GlInitExtensions() {
-    eglCreateSyncKHR = (PFNEGLCREATESYNCKHRPROC)GetExtension("eglCreateSyncKHR");
-    eglDestroySyncKHR = (PFNEGLDESTROYSYNCKHRPROC)GetExtension("eglDestroySyncKHR");
-    eglClientWaitSyncKHR = (PFNEGLCLIENTWAITSYNCKHRPROC)GetExtension("eglClientWaitSyncKHR");
-    eglGetSyncAttribKHR = (PFNEGLGETSYNCATTRIBKHRPROC)GetExtension("eglGetSyncAttribKHR");
-
-    glQueryCounter = (PFNGLQUERYCOUNTEREXTPROC)GetExtension("glQueryCounterEXT");
-    glGetQueryObjecti64v = (PFNGLGETQUERYOBJECTI64VEXTPROC)GetExtension("glGetQueryObjecti64vEXT");
-    glGetQueryObjectui64v = (PFNGLGETQUERYOBJECTUI64VEXTPROC)GetExtension("glGetQueryObjectui64vEXT");
-
-    glBufferStorage = (PFNGLBUFFERSTORAGEEXTPROC)GetExtension("glBufferStorageEXT");
-
-    glRenderbufferStorageMultisampleEXT =
-        (PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC)GetExtension("glRenderbufferStorageMultisampleEXT");
-    glFramebufferTexture2DMultisampleEXT =
-        (PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC)GetExtension("glFramebufferTexture2DMultisampleEXT");
-    glFramebufferTextureMultiviewOVR = (PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC)GetExtension("glFramebufferTextureMultiviewOVR");
-    glFramebufferTextureMultisampleMultiviewOVR =
-        (PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC)GetExtension("glFramebufferTextureMultisampleMultiviewOVR");
-
-#ifndef GL_ES_VERSION_3_2
-    glTexStorage3DMultisample = (PFNGLTEXSTORAGE3DMULTISAMPLEPROC)GetExtension("glTexStorage3DMultisample");
-#endif
-
-    glExtensions.timer_query = GlCheckExtension("GL_EXT_disjoint_timer_query");
-    glExtensions.texture_clamp_to_border =
-        GlCheckExtension("GL_EXT_texture_border_clamp") || GlCheckExtension("GL_OES_texture_border_clamp");
-    glExtensions.buffer_storage = GlCheckExtension("GL_EXT_buffer_storage");
-    glExtensions.multi_view = GlCheckExtension("GL_OVR_multiview2");
-    glExtensions.multi_sampled_resolve = GlCheckExtension("GL_EXT_multisampled_render_to_texture");
-    glExtensions.multi_view_multi_sampled_resolve = GlCheckExtension("GL_OVR_multiview_multisampled_render_to_texture");
-
-    glExtensions.texture_clamp_to_border_id =
-        (GlCheckExtension("GL_OES_texture_border_clamp")
-             ? GL_CLAMP_TO_BORDER
-             : (GlCheckExtension("GL_EXT_texture_border_clamp") ? GL_CLAMP_TO_BORDER : (GL_CLAMP_TO_EDGE)));
-}
 
 #endif
 
@@ -908,10 +388,11 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
 
     // Now that the pixel format is set, create a temporary context to get the extensions.
     {
+        gladLoaderLoadWGL(localDC);
         HGLRC hGLRC = wglCreateContext(localDC);
         wglMakeCurrent(localDC, hGLRC);
 
-        GlBootstrapExtensions();
+        gladLoaderLoadWGL(localDC);
 
         wglMakeCurrent(NULL, NULL);
         wglDeleteContext(hGLRC);
@@ -979,8 +460,6 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
 
     wglMakeCurrent(hDC, context->hGLRC);
 
-    GlInitExtensions();
-
     return true;
 }
 
@@ -996,6 +475,8 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
                                           const ksGpuSurfaceColorFormat colorFormat, const ksGpuSurfaceDepthFormat depthFormat,
                                           const ksGpuSampleCount sampleCount, Display *xDisplay, int xScreen) {
     UNUSED_PARM(queueIndex);
+
+    gladLoaderLoadGLX(xDisplay, xScreen);
 
     context->device = device;
 
@@ -1082,13 +563,11 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
                      OPENGL_VERSION_MAJOR,
                      GLX_CONTEXT_MINOR_VERSION_ARB,
                      OPENGL_VERSION_MINOR,
-                     GLX_CONTEXT_PROFILE_MASK_ARB,
-                     GLX_CONTEXT_CORE_PROFILE_BIT_ARB,
+                     GL_CONTEXT_PROFILE_MASK,
+                     GL_CONTEXT_CORE_PROFILE_BIT,
                      GLX_CONTEXT_FLAGS_ARB,
                      GLX_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB,
                      0};
-
-    glXCreateContextAttribsARB = (PFNGLXCREATECONTEXTATTRIBSARBPROC)GetExtension("glXCreateContextAttribsARB");
 
     context->glxContext = glXCreateContextAttribsARB(xDisplay,              // Display *	dpy
                                                      context->glxFBConfig,  // GLXFBConfig	config
@@ -1126,8 +605,6 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
     UNUSED_PARM(queueIndex);
 
     context->device = device;
-
-    GlInitExtensions();
 
     xcb_glx_query_version_cookie_t glx_query_version_cookie =
         xcb_glx_query_version(connection, OPENGL_VERSION_MAJOR, OPENGL_VERSION_MINOR);
@@ -1252,29 +729,31 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
 static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevice *device, struct wl_display *native_display) {
     context->device = device;
 
+    if (gladLoaderLoadEGL(NULL) == 0) {
+        return false;
+    }
+
     EGLint numConfigs;
     EGLint majorVersion;
     EGLint minorVersion;
 
-    EGLint fbAttribs[] = {EGL_SURFACE_TYPE,
-                          EGL_WINDOW_BIT,
-                          EGL_RENDERABLE_TYPE,
-                          EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                          EGL_RED_SIZE,
-                          8,
-                          EGL_GREEN_SIZE,
-                          8,
-                          EGL_BLUE_SIZE,
-                          8,
-                          EGL_NONE};
+    // clang-format off
+    EGLint fbAttribs[] = {
+        EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+        EGL_RENDERABLE_TYPE, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+        EGL_RED_SIZE, 8,
+        EGL_GREEN_SIZE, 8,
+        EGL_BLUE_SIZE, 8,
+        EGL_NONE,
+    };
 
-    EGLint contextAttribs[] = {EGL_CONTEXT_OPENGL_PROFILE_MASK,
-                               EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
-                               EGL_CONTEXT_CLIENT_VERSION,
-                               OPENGL_VERSION_MAJOR,
-                               EGL_CONTEXT_MINOR_VERSION,
-                               OPENGL_VERSION_MINOR,
-                               EGL_NONE};
+    EGLint contextAttribs[] = {
+        EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+        EGL_CONTEXT_CLIENT_VERSION, OPENGL_VERSION_MAJOR,
+        EGL_CONTEXT_MINOR_VERSION, OPENGL_VERSION_MINOR,
+        EGL_NONE,
+    };
+    // clang-format on
 
     context->display = eglGetDisplay(native_display);
     if (context->display == EGL_NO_DISPLAY) {
@@ -1288,6 +767,9 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
     }
 
     printf("Initialized EGL context version %d.%d\n", majorVersion, minorVersion);
+    if (gladLoaderLoadEGL(context->display) == 0) {
+        return false;
+    }
 
     EGLBoolean ret = eglGetConfigs(context->display, NULL, 0, &numConfigs);
     if (ret != EGL_TRUE || numConfigs == 0) {
@@ -1319,8 +801,6 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
         Error("Could not make the current context current.");
         return false;
     }
-
-    GlInitExtensions();
 
     return true;
 }
@@ -1367,8 +847,6 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
 
     context->cglContext = [context->nsContext CGLContextObj];
 
-    GlInitExtensions();
-
     return true;
 }
 
@@ -1391,11 +869,19 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
 
     const ksGpuSurfaceBits bits = ksGpuContext_BitsForSurfaceFormat(colorFormat, depthFormat);
 
-    const EGLint configAttribs[] = {EGL_RED_SIZE, bits.greenBits, EGL_GREEN_SIZE, bits.redBits, EGL_BLUE_SIZE, bits.blueBits,
-                                    EGL_ALPHA_SIZE, bits.alphaBits, EGL_DEPTH_SIZE, bits.depthBits,
-                                    // EGL_STENCIL_SIZE,	0,
-                                    EGL_SAMPLE_BUFFERS, (sampleCount > KS_GPU_SAMPLE_COUNT_1), EGL_SAMPLES,
-                                    (sampleCount > KS_GPU_SAMPLE_COUNT_1) ? sampleCount : 0, EGL_NONE};
+    // clang-format off
+    const EGLint configAttribs[] = {
+        EGL_RED_SIZE, bits.redBits,
+        EGL_GREEN_SIZE, bits.greenBits,
+        EGL_BLUE_SIZE, bits.blueBits,
+        EGL_ALPHA_SIZE, bits.alphaBits,
+        EGL_DEPTH_SIZE, bits.depthBits,
+        // EGL_STENCIL_SIZE,	0,
+        EGL_SAMPLE_BUFFERS, (sampleCount > KS_GPU_SAMPLE_COUNT_1),
+        EGL_SAMPLES, (sampleCount > KS_GPU_SAMPLE_COUNT_1) ? sampleCount : 0,
+        EGL_NONE,
+    };
+    // clang-format on
 
     context->config = 0;
     for (int i = 0; i < numConfigs; i++) {
@@ -1535,7 +1021,7 @@ bool ksGpuContext_CreateShared(ksGpuContext *context, const ksGpuContext *other,
 
 #if defined(OS_ANDROID)
     if ((surfaceType & EGL_PBUFFER_BIT) == 0) {
-        Error("Share context config does have EGL_PBUFFER_BIT.");
+        Error("Share context config does not have EGL_PBUFFER_BIT.");
         return false;
     }
 #endif
@@ -1634,12 +1120,6 @@ void ksGpuContext_SetCurrent(ksGpuContext *context) {
     wglMakeCurrent(context->hDC, context->hGLRC);
 #elif defined(OS_LINUX_XLIB) || defined(OS_LINUX_XCB_GLX)
     glXMakeCurrent(context->xDisplay, context->glxDrawable, context->glxContext);
-    static int firstTime = 1;
-    if (firstTime) {
-        GlInitExtensions();
-        firstTime = 0;
-    }
-
 #elif defined(OS_LINUX_XCB)
     xcb_glx_make_current_cookie_t glx_make_current_cookie =
         xcb_glx_make_current(context->connection, context->glxDrawable, context->glxContext, 0);
@@ -1948,6 +1428,8 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
                                   window->hInstance, window->hDC);
     ksGpuContext_SetCurrent(&window->context);
 
+    gladLoaderLoadGL();
+
     ShowWindow(window->hWnd, SW_SHOW);
     SetForegroundWindow(window->hWnd);
     SetFocus(window->hWnd);
@@ -2222,6 +1704,8 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     window->context.glxDrawable = window->xWindow;
 
     ksGpuContext_SetCurrent(&window->context);
+
+    gladLoaderLoadGL();
 
     return true;
 }
@@ -2609,6 +2093,8 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
 
     ksGpuContext_SetCurrent(&window->context);
 
+    gladLoaderLoadGL();
+
     return true;
 }
 
@@ -2862,6 +2348,8 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     ksGpuContext_CreateForSurface(&window->context, &window->device, window->display);
 
     ksGpuContext_SetCurrent(&window->context);
+
+    gladLoaderLoadGL();
 
     return true;
 }
@@ -3193,6 +2681,8 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
 
     ksGpuContext_SetCurrent(&window->context);
 
+    gladLoaderLoadGL();
+
     // The color buffers are not cleared by default.
     for (int i = 0; i < 2; i++) {
         GL(glClearColor(0.0f, 0.0f, 0.0f, 1.0f));
@@ -3343,16 +2833,23 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     window->windowFullscreen = true;
     window->windowActive = false;
     window->windowExit = false;
+    if (0 == gladLoaderLoadEGL(EGL_DEFAULT_DISPLAY)) {
+        return false;
+    }
 
     window->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     EGL(eglInitialize(window->display, &window->majorVersion, &window->minorVersion));
+    // need second load now that EGL is initialized - bootstrapping problem
+    if (0 == gladLoaderLoadEGL(EGL_DEFAULT_DISPLAY)) {
+        return false;
+    }
 
     ksGpuDevice_Create(&window->device, instance, queueInfo);
     ksGpuContext_CreateForSurface(&window->context, &window->device, queueIndex, colorFormat, depthFormat, sampleCount,
                                   window->display);
     ksGpuContext_SetCurrent(&window->context);
 
-    GlInitExtensions();
+    gladLoaderLoadGLES2();
 
     return true;
 }

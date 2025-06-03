@@ -39,6 +39,7 @@
 #include "xr_dependencies.h"
 #include <openxr/openxr.h>
 #include <openxr/openxr_platform.h>
+#include <openxr/openxr_reflection.h>
 
 #include <catch2/catch_message.hpp>
 #include <catch2/catch_session.hpp>
@@ -94,6 +95,13 @@ class ConsoleStream : public std::streambuf {
     std::string m_s;
     const MessageType m_messageType;
 };
+
+void InstanceDeleter(XrInstance* instance) {
+    if (instance != XR_NULL_HANDLE) {
+        xrDestroyInstance(*instance);
+    }
+}
+
 }  // namespace
 
 // We need to redirect catch2 output through the reporting infrastructure.
@@ -230,7 +238,25 @@ bool DetectInstalledRuntime() {
     return runtime_found;
 }
 
+std::string to_string(const XrResult& value) {
+#define XR_ENUM_CASE_STR(name, val) \
+    case val:                       \
+        return #name;
+
+    switch (value) {
+        XR_LIST_ENUM_XrResult(XR_ENUM_CASE_STR)  // nbsp
+            default : {
+            char buffer[XR_MAX_RESULT_STRING_SIZE]{};
+            const char* desc = XR_SUCCEEDED(value) ? "XR_UNKNOWN_SUCCESS_" : "XR_UNKNOWN_FAILURE_";
+            snprintf(buffer, XR_MAX_RESULT_STRING_SIZE, "%s%d", desc, (int)value);
+            return buffer;
+        }
+    }
+#undef XR_ENUM_CASE_STR
+}
+
 namespace Catch {
+
 template <>
 struct StringMaker<XrApiLayerProperties> {
     static std::string convert(XrApiLayerProperties const& value) {
@@ -239,6 +265,12 @@ struct StringMaker<XrApiLayerProperties> {
         return oss.str();
     }
 };
+
+template <>
+struct StringMaker<XrResult> {
+    static std::string convert(XrResult const& value) { return to_string(value); }
+};
+
 }  // namespace Catch
 
 /// Custom matcher for use with ???_THAT() assertions, which takes a user-provided predicate and checks for at least one
@@ -660,6 +692,8 @@ TEST_CASE("TestGetSystem", "") {
     instance_create_info.next = &platform_instance_create;
     instance_create_info.enabledExtensionCount = base_extension_count;
     instance_create_info.enabledExtensionNames = base_extension_names;
+
+    std::unique_ptr<XrInstance, decltype(&InstanceDeleter)> wrapperInstance({&instance, &InstanceDeleter});
 
     TEST_EQUAL(xrCreateInstance(&instance_create_info, &instance), XR_SUCCESS, "Creating instance");
 

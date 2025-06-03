@@ -79,23 +79,23 @@
 
 #ifdef XR_USE_GRAPHICS_API_OPENGL
 #if defined(XR_USE_PLATFORM_XLIB) || defined(XR_USE_PLATFORM_XCB)
-#include <GL/glx.h>
+#include <glad/glx.h>
 #endif
 #ifdef XR_USE_PLATFORM_XCB
 #include <xcb/glx.h>
 #endif
 #ifdef XR_USE_PLATFORM_WIN32
 #include <wingdi.h>  // For HGLRC
-#include <GL/gl.h>
 #endif
+#include <glad/gl.h>
 #endif
 
 #ifdef XR_USE_GRAPHICS_API_OPENGL_ES
-#include <EGL/egl.h>
+#include <glad/egl.h>
 #endif
 
 #ifdef XR_USE_PLATFORM_EGL
-#include <EGL/egl.h>
+#include <glad/egl.h>
 #endif  // XR_USE_PLATFORM_EGL
 
 #ifdef XR_USE_GRAPHICS_API_VULKAN

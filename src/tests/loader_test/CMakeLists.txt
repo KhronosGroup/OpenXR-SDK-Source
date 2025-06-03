@@ -43,16 +43,11 @@ add_dependencies(
     XrApiLayer_api_dump
     test_runtime
 )
-if(TARGET openxr-gfxwrapper)
-    target_link_libraries(loader_test PRIVATE openxr-gfxwrapper)
-endif()
+
 target_include_directories(
     loader_test
-    PRIVATE
-        "${CMAKE_CURRENT_BINARY_DIR}"
-        "${PROJECT_BINARY_DIR}/src"
-        "${PROJECT_SOURCE_DIR}/src/common"
-        "${PROJECT_SOURCE_DIR}/external/include"
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}" "${PROJECT_BINARY_DIR}/src"
+            "${PROJECT_SOURCE_DIR}/src/common"
 )
 if(XR_USE_GRAPHICS_API_VULKAN)
     target_include_directories(loader_test PRIVATE ${Vulkan_INCLUDE_DIRS})

@@ -97,7 +97,7 @@ ENUM_NAMING_EXCEPTIONS = set((
 
 SPECIFICATION_DIR = Path(__file__).parent.parent
 
-EXT_DECOMPOSE_RE = re.compile(r'XR_(?P<tag>[A-Z]+)_(?P<name>[\w_]+)')
+EXT_DECOMPOSE_RE = re.compile(r'XR_(?P<tag>[A-Z]+(X[1-9])?)_(?P<name>[\w_]+)')
 REVISION_RE = re.compile(r' *[*] Revision (?P<num>[1-9][0-9]*),.*')
 
 

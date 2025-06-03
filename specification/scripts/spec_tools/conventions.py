@@ -32,7 +32,7 @@ TYPES_KNOWN_ALWAYS_VALID = set(('char',
                                 ))
 
 # Split an extension name into vendor ID and name portions
-EXT_NAME_DECOMPOSE_RE = re.compile(r'(?P<prefix>[A-Za-z]+)_(?P<vendor>[A-Za-z]+)_(?P<name>[\w_]+)')
+EXT_NAME_DECOMPOSE_RE = re.compile(r'(?P<prefix>[A-Za-z]+)_(?P<vendor>[A-Za-z]+(X[1-9])?)_(?P<name>[\w_]+)')
 
 # Match an API version name.
 # Match object includes API prefix, major, and minor version numbers.

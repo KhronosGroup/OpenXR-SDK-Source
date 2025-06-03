@@ -32,9 +32,8 @@ endif()
 set_target_properties(openxr_c_compile_test PROPERTIES FOLDER ${TESTS_FOLDER})
 
 target_include_directories(
-    openxr_c_compile_test
-    PRIVATE "${PROJECT_SOURCE_DIR}/src" "${PROJECT_SOURCE_DIR}/src/common"
-            "${PROJECT_SOURCE_DIR}/external/include"
+    openxr_c_compile_test PRIVATE "${PROJECT_SOURCE_DIR}/src"
+                                  "${PROJECT_SOURCE_DIR}/src/common"
 )
 if(XR_USE_GRAPHICS_API_VULKAN)
     target_include_directories(

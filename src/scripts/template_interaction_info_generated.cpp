@@ -47,8 +47,9 @@ const std::vector<InteractionProfileAvailMetadata>& GetAllInteractionProfiles() 
             /*{ profile.name | quote_string }*/,
             /*{ profile.name | replace("/interaction_profiles/", "") | quote_string }*/,
             {
-                //# for user_path in profile.valid_user_paths | sort
-                /*{ user_path | quote_string }*/,
+                //# for user_path, avail in profile.valid_user_paths.items() | sort
+                {/*{ user_path | quote_string }*/,
+                    InteractionProfileAvailability::Avail_/*{- avail.as_normalized_symbol() -}*/},
                 //# endfor
             },
             InteractionProfileAvailability::Avail_/*{- profile.availability.as_normalized_symbol() -}*/,

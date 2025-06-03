@@ -111,6 +111,8 @@ WORK ITEMS
 #if !defined(KSGRAPHICSWRAPPER_OPENGL_H)
 #define KSGRAPHICSWRAPPER_OPENGL_H
 
+#include <glad/gl.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -172,11 +174,7 @@ Platform headers / declarations
 #define USE_SYNC_OBJECT 0  // 0 = GLsync, 1 = EGLSyncKHR, 2 = storage buffer
 
 #include <windows.h>
-#include <GL/gl.h>
-#define GL_EXT_color_subtable
-#include <GL/glext.h>
-#include <GL/wglext.h>
-#include <GL/gl_format.h>
+#include <glad/wgl.h>
 
 #define GRAPHICS_API_OPENGL 1
 #define OUTPUT_PATH ""
@@ -204,6 +202,7 @@ Platform headers / declarations
 #endif
 #include <pthread.h>  // for pthread_create() etc.
 #include <malloc.h>   // for memalign
+
 #if defined(OS_LINUX_XLIB)
 #define XR_USE_PLATFORM_XLIB 1
 
@@ -211,7 +210,7 @@ Platform headers / declarations
 #include <X11/Xatom.h>
 #include <X11/extensions/xf86vmode.h>  // for fullscreen video mode
 #include <X11/extensions/Xrandr.h>     // for resolution changes
-#include <GL/glx.h>
+#include <glad/glx.h>
 
 #ifdef Success
 #undef Success
@@ -235,7 +234,7 @@ Platform headers / declarations
 #include <xcb/randr.h>
 #include <xcb/glx.h>
 #include <xcb/dri2.h>
-#include <GL/glx.h>
+#include <glad/glx.h>
 
 #ifdef Success
 #undef Success
@@ -255,17 +254,13 @@ Platform headers / declarations
 #include <wayland-client.h>
 #include <wayland-client-protocol.h>
 #include <wayland-egl.h>
-#include <EGL/egl.h>
-#include <EGL/eglplatform.h>
-#include <GL/gl.h>
+#include <glad/egl.h>
 #include <linux/input.h>
 #include <poll.h>
 #include <unistd.h>
 #include "xdg-shell-unstable-v6.h"
 
 #endif
-
-#include <GL/gl_format.h>
 
 #define GRAPHICS_API_OPENGL 1
 #define OUTPUT_PATH ""
@@ -289,11 +284,7 @@ Platform headers / declarations
 #import <Cocoa/Cocoa.h>
 #endif
 
-#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
-#include <OpenGL/OpenGL.h>
-#include <OpenGL/gl3.h>
-#include <OpenGL/gl3ext.h>
-#include <GL/gl_format.h>
+#include <glad/gl.h>
 
 #undef MAX
 #undef MIN
@@ -323,8 +314,7 @@ CGLError CGLUpdateContext(CGLContextObj ctx);
 #import <Foundation/Foundation.h>
 #import <QuartzCore/QuartzCore.h>
 #import <UIKit/UIKit.h>
-#import <OpenGLES/ES3/gl.h>
-#import <OpenGLES/ES3/glext.h>
+#include <glad/gl.h>
 #include <sys/sysctl.h>
 
 #define GRAPHICS_API_OPENGL_ES 1
@@ -350,20 +340,7 @@ CGLError CGLUpdateContext(CGLContextObj ctx);
 #include <android/input.h>              // for AKEYCODE_ etc.
 #include <android/window.h>             // for AWINDOW_FLAG_KEEP_SCREEN_ON
 #include <android/native_window_jni.h>  // for native window JNI
-#include <EGL/egl.h>
-#include <EGL/eglext.h>
-#include <GLES2/gl2.h>
-#include <GLES2/gl2ext.h>
-#include <GLES3/gl3.h>
-#if OPENGL_VERSION_MAJOR == 3
-#if OPENGL_VERSION_MINOR == 1
-#include <GLES3/gl31.h>
-#elif OPENGL_VERSION_MINOR == 2
-#include <GLES3/gl32.h>
-#endif
-#endif
-#include <GLES3/gl3ext.h>
-#include <GL/gl_format.h>
+#include <glad/egl.h>
 
 #define GRAPHICS_API_OPENGL_ES 1
 #define OUTPUT_PATH "/sdcard/"
@@ -428,308 +405,6 @@ Common defines
 #define ES_HIGHP "highp"  // GLSL "310 es" requires a precision qualifier on a image2D
 #else
 #define ES_HIGHP ""  // GLSL "430" disallows a precision qualifier on a image2D
-#endif
-
-void GlInitExtensions(void);
-
-/*
-================================================================================================================================
-
-OpenGL extensions.
-
-================================================================================================================================
-*/
-
-/*
-================================
-Multi-view support
-================================
-*/
-
-#if !defined(GL_OVR_multiview)
-#define GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_NUM_VIEWS_OVR 0x9630
-#define GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_BASE_VIEW_INDEX_OVR 0x9632
-#define GL_MAX_VIEWS_OVR 0x9631
-
-typedef void (*PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC)(GLenum target, GLenum attachment, GLuint texture, GLint level,
-                                                        GLint baseViewIndex, GLsizei numViews);
-#endif
-
-/*
-================================
-Multi-sampling support
-================================
-*/
-
-#if !defined(GL_EXT_framebuffer_multisample)
-typedef void (*PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width,
-                                                           GLsizei height);
-#endif
-
-#if !defined(GL_EXT_multisampled_render_to_texture)
-typedef void (*PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC)(GLenum target, GLenum attachment, GLenum textarget, GLuint texture,
-                                                            GLint level, GLsizei samples);
-#endif
-
-#if !defined(GL_OVR_multiview_multisampled_render_to_texture)
-typedef void (*PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC)(GLenum target, GLenum attachment, GLuint texture, GLint level,
-                                                                   GLsizei samples, GLint baseViewIndex, GLsizei numViews);
-#endif
-
-#if defined(OS_WINDOWS) || defined(OS_LINUX)
-
-extern PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
-extern PFNGLDELETEFRAMEBUFFERSPROC glDeleteFramebuffers;
-extern PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
-extern PFNGLBLITFRAMEBUFFERPROC glBlitFramebuffer;
-extern PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
-extern PFNGLDELETERENDERBUFFERSPROC glDeleteRenderbuffers;
-extern PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
-extern PFNGLISRENDERBUFFERPROC glIsRenderbuffer;
-extern PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
-extern PFNGLRENDERBUFFERSTORAGEMULTISAMPLEPROC glRenderbufferStorageMultisample;
-extern PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC glRenderbufferStorageMultisampleEXT;
-extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
-extern PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
-extern PFNGLFRAMEBUFFERTEXTURELAYERPROC glFramebufferTextureLayer;
-extern PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC glFramebufferTexture2DMultisampleEXT;
-extern PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC glFramebufferTextureMultiviewOVR;
-extern PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC glFramebufferTextureMultisampleMultiviewOVR;
-extern PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
-extern PFNGLCHECKNAMEDFRAMEBUFFERSTATUSPROC glCheckNamedFramebufferStatus;
-
-extern PFNGLGENBUFFERSPROC glGenBuffers;
-extern PFNGLDELETEBUFFERSPROC glDeleteBuffers;
-extern PFNGLBINDBUFFERPROC glBindBuffer;
-extern PFNGLBINDBUFFERBASEPROC glBindBufferBase;
-extern PFNGLBUFFERDATAPROC glBufferData;
-extern PFNGLBUFFERSUBDATAPROC glBufferSubData;
-extern PFNGLBUFFERSTORAGEPROC glBufferStorage;
-extern PFNGLMAPBUFFERPROC glMapBuffer;
-extern PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
-extern PFNGLUNMAPBUFFERPROC glUnmapBuffer;
-
-extern PFNGLGENVERTEXARRAYSPROC glGenVertexArrays;
-extern PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
-extern PFNGLBINDVERTEXARRAYPROC glBindVertexArray;
-extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
-extern PFNGLVERTEXATTRIBIPOINTERPROC glVertexAttribIPointer;
-extern PFNGLVERTEXATTRIBDIVISORPROC glVertexAttribDivisor;
-extern PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
-extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
-
-#if defined(OS_WINDOWS)
-extern PFNGLACTIVETEXTUREPROC glActiveTexture;
-extern PFNGLTEXIMAGE3DPROC glTexImage3D;
-extern PFNGLCOMPRESSEDTEXIMAGE2DPROC glCompressedTexImage2D;
-extern PFNGLCOMPRESSEDTEXIMAGE3DPROC glCompressedTexImage3D;
-extern PFNGLTEXSUBIMAGE3DPROC glTexSubImage3D;
-extern PFNGLCOMPRESSEDTEXSUBIMAGE2DPROC glCompressedTexSubImage2D;
-extern PFNGLCOMPRESSEDTEXSUBIMAGE3DPROC glCompressedTexSubImage3D;
-#endif
-extern PFNGLTEXSTORAGE2DPROC glTexStorage2D;
-extern PFNGLTEXSTORAGE3DPROC glTexStorage3D;
-extern PFNGLTEXIMAGE2DMULTISAMPLEPROC glTexImage2DMultisample;
-extern PFNGLTEXIMAGE3DMULTISAMPLEPROC glTexImage3DMultisample;
-extern PFNGLTEXSTORAGE2DMULTISAMPLEPROC glTexStorage2DMultisample;
-extern PFNGLTEXSTORAGE3DMULTISAMPLEPROC glTexStorage3DMultisample;
-extern PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
-extern PFNGLBINDIMAGETEXTUREPROC glBindImageTexture;
-
-extern PFNGLCREATEPROGRAMPROC glCreateProgram;
-extern PFNGLDELETEPROGRAMPROC glDeleteProgram;
-extern PFNGLCREATESHADERPROC glCreateShader;
-extern PFNGLDELETESHADERPROC glDeleteShader;
-extern PFNGLSHADERSOURCEPROC glShaderSource;
-extern PFNGLCOMPILESHADERPROC glCompileShader;
-extern PFNGLGETSHADERIVPROC glGetShaderiv;
-extern PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
-extern PFNGLUSEPROGRAMPROC glUseProgram;
-extern PFNGLATTACHSHADERPROC glAttachShader;
-extern PFNGLLINKPROGRAMPROC glLinkProgram;
-extern PFNGLGETPROGRAMIVPROC glGetProgramiv;
-extern PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
-extern PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
-extern PFNGLBINDATTRIBLOCATIONPROC glBindAttribLocation;
-extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
-extern PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex;
-extern PFNGLGETPROGRAMRESOURCEINDEXPROC glGetProgramResourceIndex;
-extern PFNGLUNIFORMBLOCKBINDINGPROC glUniformBlockBinding;
-extern PFNGLSHADERSTORAGEBLOCKBINDINGPROC glShaderStorageBlockBinding;
-extern PFNGLPROGRAMUNIFORM1IPROC glProgramUniform1i;
-extern PFNGLUNIFORM1IPROC glUniform1i;
-extern PFNGLUNIFORM1IVPROC glUniform1iv;
-extern PFNGLUNIFORM2IVPROC glUniform2iv;
-extern PFNGLUNIFORM3IVPROC glUniform3iv;
-extern PFNGLUNIFORM4IVPROC glUniform4iv;
-extern PFNGLUNIFORM1FPROC glUniform1f;
-extern PFNGLUNIFORM1FVPROC glUniform1fv;
-extern PFNGLUNIFORM2FVPROC glUniform2fv;
-extern PFNGLUNIFORM3FVPROC glUniform3fv;
-extern PFNGLUNIFORM4FVPROC glUniform4fv;
-extern PFNGLUNIFORMMATRIX2FVPROC glUniformMatrix2fv;
-extern PFNGLUNIFORMMATRIX2X3FVPROC glUniformMatrix2x3fv;
-extern PFNGLUNIFORMMATRIX2X4FVPROC glUniformMatrix2x4fv;
-extern PFNGLUNIFORMMATRIX3X2FVPROC glUniformMatrix3x2fv;
-extern PFNGLUNIFORMMATRIX3FVPROC glUniformMatrix3fv;
-extern PFNGLUNIFORMMATRIX3X4FVPROC glUniformMatrix3x4fv;
-extern PFNGLUNIFORMMATRIX4X2FVPROC glUniformMatrix4x2fv;
-extern PFNGLUNIFORMMATRIX4X3FVPROC glUniformMatrix4x3fv;
-extern PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
-
-extern PFNGLDRAWELEMENTSINSTANCEDPROC glDrawElementsInstanced;
-extern PFNGLDISPATCHCOMPUTEPROC glDispatchCompute;
-extern PFNGLMEMORYBARRIERPROC glMemoryBarrier;
-
-extern PFNGLGENQUERIESPROC glGenQueries;
-extern PFNGLDELETEQUERIESPROC glDeleteQueries;
-extern PFNGLISQUERYPROC glIsQuery;
-extern PFNGLBEGINQUERYPROC glBeginQuery;
-extern PFNGLENDQUERYPROC glEndQuery;
-extern PFNGLQUERYCOUNTERPROC glQueryCounter;
-extern PFNGLGETQUERYIVPROC glGetQueryiv;
-extern PFNGLGETQUERYOBJECTIVPROC glGetQueryObjectiv;
-extern PFNGLGETQUERYOBJECTUIVPROC glGetQueryObjectuiv;
-extern PFNGLGETQUERYOBJECTI64VPROC glGetQueryObjecti64v;
-extern PFNGLGETQUERYOBJECTUI64VPROC glGetQueryObjectui64v;
-
-extern PFNGLFENCESYNCPROC glFenceSync;
-extern PFNGLCLIENTWAITSYNCPROC glClientWaitSync;
-extern PFNGLDELETESYNCPROC glDeleteSync;
-extern PFNGLISSYNCPROC glIsSync;
-
-extern PFNGLBLENDFUNCSEPARATEPROC glBlendFuncSeparate;
-extern PFNGLBLENDEQUATIONSEPARATEPROC glBlendEquationSeparate;
-
-extern PFNGLDEBUGMESSAGECONTROLPROC glDebugMessageControl;
-extern PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback;
-
-#if defined(OS_WINDOWS)
-extern PFNGLBLENDCOLORPROC glBlendColor;
-extern PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB;
-extern PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
-extern PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT;
-extern PFNWGLDELAYBEFORESWAPNVPROC wglDelayBeforeSwapNV;
-#elif defined(OS_LINUX) && !defined(OS_LINUX_WAYLAND)
-extern PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB;
-extern PFNGLXSWAPINTERVALEXTPROC glXSwapIntervalEXT;
-extern PFNGLXDELAYBEFORESWAPNVPROC glXDelayBeforeSwapNV;
-#endif
-
-extern PFNGLBINDSAMPLERPROC glBindSampler;
-extern PFNGLDELETESAMPLERSPROC glDeleteSamplers;
-extern PFNGLGENSAMPLERSPROC glGenSamplers;
-extern PFNGLGETSAMPLERPARAMETERIIVPROC glGetSamplerParameterIiv;
-extern PFNGLGETSAMPLERPARAMETERIUIVPROC glGetSamplerParameterIuiv;
-extern PFNGLGETSAMPLERPARAMETERFVPROC glGetSamplerParameterfv;
-extern PFNGLGETSAMPLERPARAMETERIVPROC glGetSamplerParameteriv;
-extern PFNGLISSAMPLERPROC glIsSampler;
-extern PFNGLSAMPLERPARAMETERIIVPROC glSamplerParameterIiv;
-extern PFNGLSAMPLERPARAMETERIUIVPROC glSamplerParameterIuiv;
-extern PFNGLSAMPLERPARAMETERFPROC glSamplerParameterf;
-extern PFNGLSAMPLERPARAMETERFVPROC glSamplerParameterfv;
-extern PFNGLSAMPLERPARAMETERIPROC glSamplerParameteri;
-extern PFNGLSAMPLERPARAMETERIVPROC glSamplerParameteriv;
-
-#elif defined(OS_APPLE_MACOS)
-
-#ifdef GL_GLEXT_FUNCTION_POINTERS
-extern PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC glFramebufferTextureMultiviewOVR;
-extern PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC glFramebufferTextureMultisampleMultiviewOVR;
-extern PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC glFramebufferTexture2DMultisampleEXT;
-extern PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC glRenderbufferStorageMultisampleEXT;
-#endif  // def GL_GLEXT_FUNCTION_POINTERS
-
-#elif defined(OS_ANDROID)
-
-// GL_EXT_disjoint_timer_query without _EXT
-#if !defined(GL_TIMESTAMP)
-#define GL_QUERY_COUNTER_BITS GL_QUERY_COUNTER_BITS_EXT
-#define GL_TIME_ELAPSED GL_TIME_ELAPSED_EXT
-#define GL_TIMESTAMP GL_TIMESTAMP_EXT
-#define GL_GPU_DISJOINT GL_GPU_DISJOINT_EXT
-#endif
-
-// GL_EXT_buffer_storage without _EXT
-#if !defined(GL_BUFFER_STORAGE_FLAGS)
-#define GL_MAP_READ_BIT 0x0001                          // GL_MAP_READ_BIT_EXT
-#define GL_MAP_WRITE_BIT 0x0002                         // GL_MAP_WRITE_BIT_EXT
-#define GL_MAP_PERSISTENT_BIT 0x0040                    // GL_MAP_PERSISTENT_BIT_EXT
-#define GL_MAP_COHERENT_BIT 0x0080                      // GL_MAP_COHERENT_BIT_EXT
-#define GL_DYNAMIC_STORAGE_BIT 0x0100                   // GL_DYNAMIC_STORAGE_BIT_EXT
-#define GL_CLIENT_STORAGE_BIT 0x0200                    // GL_CLIENT_STORAGE_BIT_EXT
-#define GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT 0x00004000  // GL_CLIENT_MAPPED_BUFFER_BARRIER_BIT_EXT
-#define GL_BUFFER_IMMUTABLE_STORAGE 0x821F              // GL_BUFFER_IMMUTABLE_STORAGE_EXT
-#define GL_BUFFER_STORAGE_FLAGS 0x8220                  // GL_BUFFER_STORAGE_FLAGS_EXT
-#endif
-
-typedef void(GL_APIENTRY *PFNGLBUFFERSTORAGEEXTPROC)(GLenum target, GLsizeiptr size, const void *data, GLbitfield flags);
-typedef void(GL_APIENTRY *PFNGLTEXSTORAGE3DMULTISAMPLEPROC)(GLenum target, GLsizei samples, GLenum internalformat, GLsizei width,
-                                                            GLsizei height, GLsizei depth, GLboolean fixedsamplelocations);
-
-// EGL_KHR_fence_sync, GL_OES_EGL_sync, VG_KHR_EGL_sync
-extern PFNEGLCREATESYNCKHRPROC eglCreateSyncKHR;
-extern PFNEGLDESTROYSYNCKHRPROC eglDestroySyncKHR;
-extern PFNEGLCLIENTWAITSYNCKHRPROC eglClientWaitSyncKHR;
-extern PFNEGLGETSYNCATTRIBKHRPROC eglGetSyncAttribKHR;
-
-// GL_EXT_disjoint_timer_query
-extern PFNGLQUERYCOUNTEREXTPROC glQueryCounter;
-extern PFNGLGETQUERYOBJECTI64VEXTPROC glGetQueryObjecti64v;
-extern PFNGLGETQUERYOBJECTUI64VEXTPROC glGetQueryObjectui64v;
-
-// GL_EXT_buffer_storage
-extern PFNGLBUFFERSTORAGEEXTPROC glBufferStorage;
-
-// GL_OVR_multiview
-extern PFNGLFRAMEBUFFERTEXTUREMULTIVIEWOVRPROC glFramebufferTextureMultiviewOVR;
-
-// GL_EXT_multisampled_render_to_texture
-extern PFNGLRENDERBUFFERSTORAGEMULTISAMPLEEXTPROC glRenderbufferStorageMultisampleEXT;
-extern PFNGLFRAMEBUFFERTEXTURE2DMULTISAMPLEEXTPROC glFramebufferTexture2DMultisampleEXT;
-
-// GL_OVR_multiview_multisampled_render_to_texture
-extern PFNGLFRAMEBUFFERTEXTUREMULTISAMPLEMULTIVIEWOVRPROC glFramebufferTextureMultisampleMultiviewOVR;
-
-#ifndef GL_ES_VERSION_3_2
-extern PFNGLTEXSTORAGE3DMULTISAMPLEPROC glTexStorage3DMultisample;
-#endif
-
-#if !defined(EGL_OPENGL_ES3_BIT)
-#define EGL_OPENGL_ES3_BIT 0x0040
-#endif
-
-// GL_EXT_texture_cube_map_array
-#if !defined(GL_TEXTURE_CUBE_MAP_ARRAY)
-#define GL_TEXTURE_CUBE_MAP_ARRAY 0x9009
-#endif
-
-// GL_EXT_texture_filter_anisotropic
-#if !defined(GL_TEXTURE_MAX_ANISOTROPY_EXT)
-#define GL_TEXTURE_MAX_ANISOTROPY_EXT 0x84FE
-#define GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT 0x84FF
-#endif
-
-// GL_EXT_texture_border_clamp or GL_OES_texture_border_clamp
-#if !defined(GL_CLAMP_TO_BORDER)
-#define GL_CLAMP_TO_BORDER 0x812D
-#endif
-
-// No 1D textures in OpenGL ES.
-#if !defined(GL_TEXTURE_1D)
-#define GL_TEXTURE_1D 0x0DE0
-#endif
-
-// No 1D texture arrays in OpenGL ES.
-#if !defined(GL_TEXTURE_1D_ARRAY)
-#define GL_TEXTURE_1D_ARRAY 0x8C18
-#endif
-
-// No multi-sampled texture arrays in OpenGL ES.
-#if !defined(GL_TEXTURE_2D_MULTISAMPLE_ARRAY)
-#define GL_TEXTURE_2D_MULTISAMPLE_ARRAY 0x9102
-#endif
-
 #endif
 
 /*

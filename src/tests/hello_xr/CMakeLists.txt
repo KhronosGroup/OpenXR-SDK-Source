@@ -112,9 +112,6 @@ target_include_directories(
         "${PROJECT_SOURCE_DIR}/src"
         "${PROJECT_SOURCE_DIR}/src/common"
         "${PROJECT_SOURCE_DIR}/src/external/metal-cpp"
-        "${PROJECT_SOURCE_DIR}/src/tests/hello_xr/vulkan_shaders"
-        # for helper headers
-        "${PROJECT_SOURCE_DIR}/external/include"
         # For including compiled shaders
         "${CMAKE_CURRENT_BINARY_DIR}"
 )

@@ -7,12 +7,12 @@
             "news_filename": "CHANGELOG.SDK.md",
             "template": "changes/template.md",
             "sections": {
-                "Registry": {
-                    "directory": "changes/registry",
-                    "sort_by_prefix": true
-                },
                 "SDK": {
                     "directory": "changes/sdk",
+                    "sort_by_prefix": true
+                },
+                "Registry": {
+                    "directory": "changes/registry",
                     "sort_by_prefix": true
                 }
             }
@@ -22,12 +22,12 @@
             "news_filename": "CHANGELOG.Docs.md",
             "template": "changes/template.md",
             "sections": {
-                "Registry": {
-                    "directory": "changes/registry",
-                    "sort_by_prefix": true
-                },
                 "Specification": {
                     "directory": "changes/specification",
+                    "sort_by_prefix": true
+                },
+                "Registry": {
+                    "directory": "changes/registry",
                     "sort_by_prefix": true
                 }
             }

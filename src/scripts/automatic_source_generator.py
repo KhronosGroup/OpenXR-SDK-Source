@@ -848,11 +848,6 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                     (protect_value, protect_string) = self.genProtectInfo(
                         self.featureExtraProtect, elem.get('protect'))
                     if item_name is not None:
-                        if len(item_name) + 1 > self.max_structure_type_length:
-                            self.printCodeGenErrorMessage('StructureType %s length %d in XML (for'
-                                                          ' extension %s) is greater than allowable'
-                                                          ' space of %d when null-terminator is added' % (
-                                                              item_name, len(item_name), self.currentExtension, self.max_structure_type_length))
                         if is_extension and not item_name.endswith(self.current_vendor_tag):
                             self.printCodeGenErrorMessage('StructureType %s in XML (for extension'
                                                           ' %s) does not end with the expected'
