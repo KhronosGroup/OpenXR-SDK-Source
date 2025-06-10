@@ -382,7 +382,6 @@ Common defines
 #define OFFSETOF_MEMBER(type, member) (size_t) & ((type *)0)->member
 #define SIZEOF_MEMBER(type, member) sizeof(((type *)0)->member)
 #define BIT(x) (1 << (x))
-#define ROUNDUP(x, granularity) (((x) + (granularity)-1) & ~((granularity)-1))
 #ifndef MAX
 #define MAX(x, y) ((x > y) ? (x) : (y))
 #endif

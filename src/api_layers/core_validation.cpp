@@ -289,7 +289,7 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
                 objects.reserve(objects_info.size());
                 std::transform(objects_info.begin(), objects_info.end(), std::back_inserter(objects),
                                [](GenValidUsageXrObjectInfo const &info) {
-                                   return XrSdkLogObjectInfo{info.handle, info.type};
+                                   return XrSdkLogObjectInfo{info.handle, info.type};  // force code wrap
                                });
 
                 // Setup our callback data once
@@ -351,9 +351,10 @@ void CoreValidLogMessage(GenValidUsageXrInstanceInfo *instance_info, const std::
             case RECORD_TEXT_FILE: {
                 std::ofstream text_file;
                 text_file.open(g_record_info.file_name, std::ios::out | std::ios::app);
-                text_file << "[" << timestamp << "]"
+                text_file << "[" << timestamp << "]"  // force code wrap
                           << "[" << severity_string << " | " << message_id << " | " << command_name << "] : " << message
                           << std::endl;
+
                 if (!objects_info.empty()) {
                     text_file << "  Objects:" << std::endl;
                     uint32_t count = 0;

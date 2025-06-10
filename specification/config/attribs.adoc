@@ -104,6 +104,8 @@ endif::doctype-manpage[]
 // glTF URIs
 :uri-gltf2: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html
 :uri-gltf2-basisu: https://github.com/KhronosGroup/glTF/tree/main/extensions/2.0/Khronos/KHR_texture_basisu
+:uri-gltf2-glb: https://registry.khronos.org/glTF/specs/2.0/glTF-2.0.html#glb-file-format-specification
+:uri-gltf-validator: https://github.com/KhronosGroup/glTF-Validator
 
 // Vulkan URIs
 :uri-vk-ref-page-root: https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html

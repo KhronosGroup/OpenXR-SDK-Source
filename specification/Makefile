@@ -39,7 +39,7 @@ endif
 VERSIONS := XR_VERSION_1_0 XR_VERSION_1_1 XR_LOADER_VERSION_1_0
 VERSIONOPTIONS := $(foreach version,$(VERSIONS),-feature $(version))
 
-SPECREVISION = 1.1.48
+SPECREVISION = 1.1.49
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -674,12 +674,12 @@ release: release-htmlpdf manhtmlpages loader styleguide extprocess | $(REGISTRYO
 
 # Files to clean up
 PYDIRT = diag.txt dumpReg.txt errwarn.txt *.pyc regdump.txt
-MANDIRT = $(MANGENERATED)
+MANDIRT = $(REFPATH)/
 DIRT = $(PYDIRT) $(MANDIRT) ERRS \#*
 
 # Clean intermediate files
 clean_dirt:
-	$(RM) $(DIRT)
+	$(RMRF) $(DIRT)
 
 # Generated directories and files to remove
 CLEAN_GEN_PATHS := \

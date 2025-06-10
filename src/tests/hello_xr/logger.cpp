@@ -44,7 +44,7 @@ void Write(Level severity, const std::string& msg) {
     std::ostringstream out;
     out.fill('0');
     out << "[" << std::setw(2) << now_tm.tm_hour << ":" << std::setw(2) << now_tm.tm_min << ":" << std::setw(2) << now_tm.tm_sec
-        << "." << std::setw(3) << milliseconds << "]"
+        << "." << std::setw(3) << milliseconds << "]"  // force code wrap
         << "[" << severityName[severity] << "] " << msg << std::endl;
 
     std::lock_guard<std::mutex> lock(g_logLock);  // Ensure output is serialized
