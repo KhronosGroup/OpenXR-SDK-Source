@@ -258,7 +258,7 @@ Platform headers / declarations
 #include <linux/input.h>
 #include <poll.h>
 #include <unistd.h>
-#include "xdg-shell-unstable-v6.h"
+#include <xdg-shell.h>
 
 #endif
 
@@ -671,8 +671,8 @@ typedef struct {
 
     struct wl_registry *registry;
     struct wl_compositor *compositor;
-    struct zxdg_shell_v6 *shell;
-    struct zxdg_surface_v6 *shell_surface;
+    struct xdg_wm_base *shell;
+    struct xdg_surface *shell_surface;
 
     struct wl_keyboard *keyboard;
     struct wl_pointer *pointer;
