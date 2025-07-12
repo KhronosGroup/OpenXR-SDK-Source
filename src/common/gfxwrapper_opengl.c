@@ -2226,8 +2226,10 @@ static void _xdg_toplevel_configure_cb(void *data, struct xdg_toplevel *toplevel
             case XDG_TOPLEVEL_STATE_TILED_TOP:
             case XDG_TOPLEVEL_STATE_TILED_BOTTOM:
                 break;
+#ifdef XDG_TOPLEVEL_STATE_SUSPENDED
             case XDG_TOPLEVEL_STATE_SUSPENDED:
                 break;
+#endif
         }
     }
 }
