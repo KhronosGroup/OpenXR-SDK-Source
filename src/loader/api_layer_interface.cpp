@@ -19,6 +19,7 @@
 #include <openxr/openxr_loader_negotiation.h>
 
 #include <cstring>
+#include <iterator>
 #include <memory>
 #include <sstream>
 #include <string>
