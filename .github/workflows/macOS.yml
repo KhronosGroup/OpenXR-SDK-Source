@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: "Get modern CMake and Ninja"
-        uses: "lukka/get-cmake@v3.31.6"
+        uses: "lukka/get-cmake@v4.0.3"
       - name: Prepare Vulkan SDK
         uses: humbletim/setup-vulkan-sdk@v1.2.1
         with:

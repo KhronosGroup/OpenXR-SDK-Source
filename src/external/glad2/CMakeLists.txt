@@ -41,3 +41,10 @@ if(NOT WIN32
         openxr-glad-loader PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/glx.c
     )
 endif()
+
+file(GLOB_RECURSE EXTERNAL_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
+# cmake-format: off
+set_source_files_properties(${EXTERNAL_SOURCES}
+    PROPERTIES SKIP_LINTING ON
+)
+# cmake-format: on

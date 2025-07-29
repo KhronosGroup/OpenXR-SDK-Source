@@ -11,7 +11,7 @@ import re
 from collections import OrderedDict, namedtuple
 from enum import Enum
 from inspect import currentframe
-from typing import Set
+from typing import Set, Union
 
 from .shared import (AUTO_FIX_STRING, CATEGORIES_WITH_VALIDITY,
                      EXTENSION_CATEGORY, NON_EXISTENT_MACROS, EntityData,
@@ -244,7 +244,7 @@ class MacroCheckerFile:
         self.in_code_block = False
         self.in_ref_page = False
         self.prev_line_ref_page_tag = None
-        self.current_ref_page = None
+        self.current_ref_page: Union[None, str, EntityData] = None
 
         # Stack of block-starting delimiters.
         self.block_stack = []
@@ -718,7 +718,7 @@ class MacroCheckerFile:
             if scope:
                 # Yes there is, check it out.
                 self.checkPname(scope.group('entity_name'), fully_qualified=True)
-            elif self.current_ref_page is not None:
+            elif self.current_ref_page is not None and not isinstance(self.current_ref_page, str):
                 # No, but there is a current ref page: very reliable
                 self.checkPnameImpliedContext(self.current_ref_page)
             elif self.pname_data is not None:

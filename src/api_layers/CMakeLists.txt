@@ -61,11 +61,6 @@ gen_xr_layer_json(
     ""
 )
 
-# Flag generated files that aren't generated in this directory.
-set_source_files_properties(
-    ${COMMON_GENERATED_OUTPUT} PROPERTIES GENERATED TRUE
-)
-
 set(GENERATED_OUTPUT)
 set(GENERATED_DEPENDS)
 run_xr_xml_generate(
@@ -80,6 +75,16 @@ set(API_DUMP_GENERATED_OUTPUT ${GENERATED_OUTPUT})
 set(API_DUMP_GENERATED_DEPENDS ${GENERATED_DEPENDS})
 unset(GENERATED_OUTPUT)
 unset(GENERATED_DEPENDS)
+
+# Flag generated files that aren't generated in this directory.
+# cmake-format: off
+set_source_files_properties(
+    ${COMMON_GENERATED_OUTPUT} ${API_DUMP_GENERATED_OUTPUT}
+    PROPERTIES
+        GENERATED TRUE
+        SKIP_LINTING ON
+)
+# cmake-format: on
 
 add_library(
     XrApiLayer_api_dump MODULE
@@ -100,9 +105,7 @@ target_link_libraries(
     XrApiLayer_api_dump PRIVATE Threads::Threads OpenXR::headers
 )
 if(ANDROID)
-    target_link_libraries(
-        XrApiLayer_api_dump PRIVATE ${ANDROID_LOG_LIBRARY}
-    )
+    target_link_libraries(XrApiLayer_api_dump PRIVATE ${ANDROID_LOG_LIBRARY})
 endif()
 target_compile_definitions(
     XrApiLayer_api_dump PRIVATE ${OPENXR_ALL_SUPPORTED_DEFINES}

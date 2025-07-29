@@ -29,6 +29,7 @@ if(ANDROID)
     )
 else()
     add_executable(openxr_runtime_list_json list_json.cpp)
+    add_sanitizers(openxr_runtime_list_json)
 endif()
 
 set_target_properties(

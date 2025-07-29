@@ -116,6 +116,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             preamble += '#include <sstream>\n'
             preamble += '#include <string>\n'
             preamble += '#include <unordered_map>\n'
+            preamble += '#include <unordered_set>\n'
             preamble += '#include <utility>\n'
             preamble += '#include <vector>\n'
             preamble += '\n'
@@ -208,16 +209,16 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         next_chain_info += 'enum NextChainResult {\n'
         next_chain_info += '    NEXT_CHAIN_RESULT_VALID = 0,\n'
         next_chain_info += '    NEXT_CHAIN_RESULT_ERROR = -1,\n'
-        next_chain_info += '    NEXT_CHAIN_RESULT_DUPLICATE_STRUCT = -2,\n'
         next_chain_info += '};\n\n'
         next_chain_info += '// Prototype for validateNextChain command (it uses the validate structure commands so add it after\n'
         next_chain_info += 'NextChainResult ValidateNextChain(GenValidUsageXrInstanceInfo *instance_info,\n'
         next_chain_info += '                                  const std::string &command_name,\n'
         next_chain_info += '                                  std::vector<GenValidUsageXrObjectInfo>& objects_info,\n'
         next_chain_info += '                                  const void* next,\n'
-        next_chain_info += '                                  std::vector<XrStructureType>& valid_ext_structs,\n'
-        next_chain_info += '                                  std::vector<XrStructureType>& encountered_structs,\n'
-        next_chain_info += '                                  std::vector<XrStructureType>& duplicate_structs);\n\n'
+        next_chain_info += '                                  std::unordered_set<XrStructureType>& valid_ext_structs,\n'
+        next_chain_info += '                                  std::unordered_set<XrStructureType>& encountered_structs,\n'
+        next_chain_info += '                                  std::unordered_set<XrStructureType>& unknown_structs,\n'
+        next_chain_info += '                                  std::unordered_set<XrStructureType>& duplicate_structs);\n\n'
         return next_chain_info
 
     # Generate C++ enum and utility function prototypes for validating
@@ -450,21 +451,12 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         next_chain_info += '                                  const std::string &command_name,\n'
         next_chain_info += '                                  std::vector<GenValidUsageXrObjectInfo>& objects_info,\n'
         next_chain_info += '                                  const void* next,\n'
-        next_chain_info += '                                  std::vector<XrStructureType>& valid_ext_structs,\n'
-        next_chain_info += '                                  std::vector<XrStructureType>& encountered_structs,\n'
-        next_chain_info += '                                  std::vector<XrStructureType>& duplicate_structs) {\n'
+        next_chain_info += '                                  std::unordered_set<XrStructureType>& valid_ext_structs,\n'
+        next_chain_info += '                                  std::unordered_set<XrStructureType>& encountered_structs,\n'
+        next_chain_info += '                                  std::unordered_set<XrStructureType>& unknown_structs,\n'
+        next_chain_info += '                                  std::unordered_set<XrStructureType>& duplicate_structs) {\n'
         next_chain_info += self.writeIndent(indent)
         next_chain_info += 'NextChainResult return_result = NEXT_CHAIN_RESULT_VALID;\n'
-        next_chain_info += self.writeIndent(indent)
-        next_chain_info += '// Non-NULL is not valid if there is no valid extension structs\n'
-        next_chain_info += self.writeIndent(indent)
-        next_chain_info += 'if (nullptr != next && 0 == valid_ext_structs.size()) {\n'
-        indent += 1
-        next_chain_info += self.writeIndent(indent)
-        next_chain_info += 'return NEXT_CHAIN_RESULT_ERROR;\n'
-        indent -= 1
-        next_chain_info += self.writeIndent(indent)
-        next_chain_info += '}\n'
         # When validating structs along the next chain, we do it iteratively and only check the type to make sure it's allowed in the chain
         next_chain_info += self.writeIndent(indent)
         next_chain_info += 'const XrBaseInStructure* next_header = reinterpret_cast<const XrBaseInStructure*>(next);\n'
@@ -472,14 +464,26 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         next_chain_info += 'while (next_header != nullptr) {\n'
         indent += 1
         next_chain_info += self.writeIndent(indent)
-        next_chain_info += 'auto valid_ext = std::find(valid_ext_structs.begin(), valid_ext_structs.end(), next_header->type);\n'
+        next_chain_info += 'bool valid_ext = valid_ext_structs.count(next_header->type) > 0;\n'
         next_chain_info += self.writeIndent(indent)
-        next_chain_info += 'if (valid_ext == valid_ext_structs.end()) {\n'
+        next_chain_info += 'if (!valid_ext) {\n'
         indent += 1
         next_chain_info += self.writeIndent(indent)
-        next_chain_info += '// Not a valid extension structure type for this next chain.\n'
+        next_chain_info += '// Not a known valid extension structure type for this next chain.\n'
         next_chain_info += self.writeIndent(indent)
-        next_chain_info += 'return NEXT_CHAIN_RESULT_ERROR;\n'
+        next_chain_info += 'if (unknown_structs.count(next_header->type) > 0) {\n'
+        indent += 1
+        next_chain_info += self.writeIndent(indent)
+        next_chain_info += 'duplicate_structs.insert(next_header->type);\n'
+        indent -= 1
+        next_chain_info += self.writeIndent(indent)
+        next_chain_info += '} else {\n'
+        indent += 1
+        next_chain_info += self.writeIndent(indent)
+        next_chain_info += 'unknown_structs.insert(next_header->type);\n'
+        indent -= 1
+        next_chain_info += self.writeIndent(indent)
+        next_chain_info += '}\n'
         indent -= 1
         next_chain_info += self.writeIndent(indent)
         next_chain_info += '} else {\n'
@@ -487,24 +491,18 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         next_chain_info += self.writeIndent(indent)
         next_chain_info += '// Check to see if we\'ve already encountered this structure.\n'
         next_chain_info += self.writeIndent(indent)
-        next_chain_info += 'auto already_encountered_ext = std::find(encountered_structs.begin(), encountered_structs.end(), next_header->type);\n'
+        next_chain_info += 'bool already_encountered_ext = encountered_structs.count(next_header->type) > 0;\n'
         next_chain_info += self.writeIndent(indent)
-        next_chain_info += 'if (already_encountered_ext != encountered_structs.end()) {\n'
+        next_chain_info += 'if (already_encountered_ext) {\n'
         indent += 1
         next_chain_info += self.writeIndent(indent)
-        next_chain_info += '// Make sure we only put in unique types into our duplicate list.\n'
-        next_chain_info += self.writeIndent(indent)
-        next_chain_info += 'auto already_duplicate = std::find(duplicate_structs.begin(), duplicate_structs.end(), next_header->type);\n'
-        next_chain_info += self.writeIndent(indent)
-        next_chain_info += 'if (already_duplicate == duplicate_structs.end()) {\n'
-        indent += 1
-        next_chain_info += self.writeIndent(indent)
-        next_chain_info += 'duplicate_structs.push_back(next_header->type);\n'
+        next_chain_info += 'duplicate_structs.insert(next_header->type);\n'
         indent -= 1
         next_chain_info += self.writeIndent(indent)
-        next_chain_info += '}\n'
+        next_chain_info += '} else {\n'
+        indent += 1
         next_chain_info += self.writeIndent(indent)
-        next_chain_info += 'return_result = NEXT_CHAIN_RESULT_DUPLICATE_STRUCT;\n'
+        next_chain_info += 'encountered_structs.insert(next_header->type);\n'
         indent -= 1
         next_chain_info += self.writeIndent(indent)
         next_chain_info += '}\n'
@@ -562,7 +560,9 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         next_chain_info += 'default:\n'
         indent += 1
         next_chain_info += self.writeIndent(indent)
-        next_chain_info += 'return NEXT_CHAIN_RESULT_ERROR;\n'
+        next_chain_info += '// ignore the next_header structure\n'
+        next_chain_info += self.writeIndent(indent)
+        next_chain_info += 'break;\n'
         indent = pre_switch_indent
         next_chain_info += self.writeIndent(indent)
         next_chain_info += '}\n'
@@ -1018,16 +1018,18 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         validate_struct_next += 'if (check_pnext) {\n'
         indent += 1
         validate_struct_next += self.writeIndent(indent)
-        validate_struct_next += 'std::vector<XrStructureType> valid_ext_structs;\n'
+        validate_struct_next += 'std::unordered_set<XrStructureType> valid_ext_structs;\n'
         validate_struct_next += self.writeIndent(indent)
-        validate_struct_next += 'std::vector<XrStructureType> duplicate_ext_structs;\n'
+        validate_struct_next += 'std::unordered_set<XrStructureType> unknown_structs;\n'
         validate_struct_next += self.writeIndent(indent)
-        validate_struct_next += 'std::vector<XrStructureType> encountered_structs;\n'
+        validate_struct_next += 'std::unordered_set<XrStructureType> duplicate_ext_structs;\n'
+        validate_struct_next += self.writeIndent(indent)
+        validate_struct_next += 'std::unordered_set<XrStructureType> encountered_structs;\n'
         # First add valid extension struct for this struct
         if member.valid_extension_structs:
             for valid_struct in member.valid_extension_structs:
                 validate_struct_next += self.writeIndent(indent)
-                validate_struct_next += f'valid_ext_structs.push_back({self.genXrStructureType(valid_struct)});\n'
+                validate_struct_next += f'valid_ext_structs.insert({self.genXrStructureType(valid_struct)});\n'
         
         # Then check if this struct is part of a relation group (extends a base struct) and add the base structs valid extension structs.
         for xr_struct in self.api_structures:
@@ -1045,7 +1047,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                             if parent_memeber.valid_extension_structs:
                                 for valid_struct in parent_memeber.valid_extension_structs:
                                     validate_struct_next += self.writeIndent(indent)
-                                    validate_struct_next += f'valid_ext_structs.push_back({self.genXrStructureType(valid_struct)});\n'
+                                    validate_struct_next += f'valid_ext_structs.insert({self.genXrStructureType(valid_struct)});\n'
                     break
 
         validate_struct_next += self.writeIndent(indent)
@@ -1055,6 +1057,8 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             struct_name, member.name)
         validate_struct_next += self.writeIndent(indent)
         validate_struct_next += '                                                 encountered_structs,\n'
+        validate_struct_next += self.writeIndent(indent)
+        validate_struct_next += '                                                 unknown_structs,\n'
         validate_struct_next += self.writeIndent(indent)
         validate_struct_next += '                                                 duplicate_ext_structs);\n'
         validate_struct_next += self.writeIndent(indent)
@@ -1073,7 +1077,33 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         validate_struct_next += self.writeIndent(indent + 1)
         validate_struct_next += 'xr_result = XR_ERROR_VALIDATION_FAILURE;\n'
         validate_struct_next += self.writeIndent(indent)
-        validate_struct_next += '} else if (NEXT_CHAIN_RESULT_DUPLICATE_STRUCT == next_result) {\n'
+        validate_struct_next += '}\n'
+
+        validate_struct_next += self.writeIndent(indent)
+        validate_struct_next += 'if (unknown_structs.size() > 0) {\n'
+        validate_struct_next += self.writeIndent(indent + 1)
+        validate_struct_next += 'std::string error_message = "Unknown structures type(s) in \\"next\\" chain for ";\n'
+        validate_struct_next += self.writeIndent(indent + 1)
+        validate_struct_next += f'error_message += "{struct_type} : ";\n'
+        validate_struct_next += self.writeIndent(indent + 1)
+        validate_struct_next += 'error_message += StructTypesToString(instance_info, unknown_structs);\n'
+        validate_struct_next += self.writeIndent(indent + 1)
+        validate_struct_next += 'error_message += ", the valid structure type(s) are ";\n'
+        validate_struct_next += self.writeIndent(indent + 1)
+        validate_struct_next += 'error_message += StructTypesToString(instance_info, valid_ext_structs);\n'
+        validate_struct_next += self.writeIndent(indent + 1)
+        validate_struct_next += f'CoreValidLogMessage(instance_info, "VUID-{struct_type}-next-unknown",\n'
+        validate_struct_next += self.writeIndent(indent + 1)
+        validate_struct_next += '                    VALID_USAGE_DEBUG_SEVERITY_DEBUG, command_name,\n'
+        validate_struct_next += self.writeIndent(indent + 1)
+        validate_struct_next += '                    objects_info,\n'
+        validate_struct_next += self.writeIndent(indent + 1)
+        validate_struct_next += '                    error_message);\n'
+        validate_struct_next += self.writeIndent(indent)
+        validate_struct_next += '}\n'
+
+        validate_struct_next += self.writeIndent(indent)
+        validate_struct_next += 'if (duplicate_ext_structs.size() > 0) {\n'
         validate_struct_next += self.writeIndent(indent + 1)
         validate_struct_next += 'std::string error_message = "Multiple structures of the same type(s) in \\"next\\" chain for ";\n'
         validate_struct_next += self.writeIndent(indent + 1)
@@ -1083,13 +1113,11 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         validate_struct_next += self.writeIndent(indent + 1)
         validate_struct_next += f'CoreValidLogMessage(instance_info, "VUID-{struct_type}-next-unique",\n'
         validate_struct_next += self.writeIndent(indent + 1)
-        validate_struct_next += '                    VALID_USAGE_DEBUG_SEVERITY_ERROR, command_name,\n'
+        validate_struct_next += '                    VALID_USAGE_DEBUG_SEVERITY_DEBUG, command_name,\n'
         validate_struct_next += self.writeIndent(indent + 1)
         validate_struct_next += '                    objects_info,\n'
         validate_struct_next += self.writeIndent(indent + 1)
-        validate_struct_next += f'"Multiple structures of the same type(s) in \\"next\\" chain for {struct_type} struct");\n'
-        validate_struct_next += self.writeIndent(indent + 1)
-        validate_struct_next += 'xr_result = XR_ERROR_VALIDATION_FAILURE;\n'
+        validate_struct_next += '                    error_message);\n'
         validate_struct_next += self.writeIndent(indent)
         validate_struct_next += '}\n'
         indent -= 1

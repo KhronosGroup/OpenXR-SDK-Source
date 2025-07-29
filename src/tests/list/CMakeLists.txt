@@ -16,6 +16,8 @@
 #
 
 add_executable(openxr_runtime_list list.cpp)
+add_sanitizers(openxr_runtime_list)
+
 target_include_directories(
     openxr_runtime_list
     PRIVATE "${PROJECT_SOURCE_DIR}/src" "${PROJECT_SOURCE_DIR}/src/common"

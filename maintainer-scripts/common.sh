@@ -215,6 +215,7 @@ getSDKSourceFilenames() {
         src/external/jsoncpp \
         src/external/catch2 \
         src/external/metal-cpp \
+        src/external/sanitizers-cmake \
         src/loader \
         src/scripts \
         src/tests \

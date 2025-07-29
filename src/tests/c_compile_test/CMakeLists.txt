@@ -28,7 +28,9 @@ if(ANDROID)
     )
 else()
     add_executable(openxr_c_compile_test main.c)
+    add_sanitizers(openxr_c_compile_test)
 endif()
+
 set_target_properties(openxr_c_compile_test PROPERTIES FOLDER ${TESTS_FOLDER})
 
 target_include_directories(

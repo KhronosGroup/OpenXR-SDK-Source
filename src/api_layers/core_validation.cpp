@@ -473,7 +473,7 @@ void InvalidStructureType(GenValidUsageXrInstanceInfo *instance_info, const std:
     }
 }
 
-std::string StructTypesToString(GenValidUsageXrInstanceInfo *instance_info, const std::vector<XrStructureType> &structs) {
+std::string StructTypesToString(GenValidUsageXrInstanceInfo *instance_info, const std::unordered_set<XrStructureType> &structs) {
     char struct_type_buffer[XR_MAX_STRUCTURE_NAME_SIZE];
     std::string error_message;
     if (nullptr == instance_info) {

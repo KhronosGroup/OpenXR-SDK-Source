@@ -151,7 +151,7 @@ static JavaVM* AndroidApplicationVM = NULL;
 static jobject AndroidApplicationActivity = NULL;
 #endif  // defined(XR_USE_PLATFORM_ANDROID)
 
-#if defined(XR_KHR_LOADER_INIT_SUPPORT)
+#if defined(XR_KHR_LOADER_INIT_SUPPORT) && defined(XR_USE_PLATFORM_ANDROID)
 static void InitLoader() {
     // TODO: we should validate that xrCreateInstance, xrEnumerateInstanceExtensionProperties and xrEnumApiLayers
     //       all return XR_ERROR_INITIALIZATION_FAILED if XR_KHR_LOADER_INIT_SUPPORT but xrInitializeLoaderKHR
@@ -756,6 +756,123 @@ TEST_CASE("TestCreateDestroyAction", "") {
     CleanupEnvironmentVariables();
 }
 
+TEST_CASE("TestLoaderInitialize") {
+    if (!g_has_installed_runtime) {
+        SKIP("Skipped - no runtime installed");
+    }
+    XrApplicationInfo application_info = {};
+    strcpy(application_info.applicationName, "Loader Test");
+    application_info.applicationVersion = 688;
+    strcpy(application_info.engineName, "Infinite Improbability Drive");
+    application_info.engineVersion = 42;
+    application_info.apiVersion = XR_CURRENT_API_VERSION;
+
+    XrInstanceCreateInfo instance_create_info = {XR_TYPE_INSTANCE_CREATE_INFO};
+    instance_create_info.applicationInfo = application_info;
+    instance_create_info.enabledExtensionCount = base_extension_count;
+
+    auto platform_instance_create = GetPlatformInstanceCreateExtension();
+    if (platform_instance_create.type != XR_TYPE_UNKNOWN) {
+        // The core validation layer will reject XR_TYPE_UNKNOWN in the next chain.
+        instance_create_info.next = &platform_instance_create;
+    }
+    instance_create_info.enabledExtensionNames = base_extension_names;
+    std::string current_path;
+
+    // Ensure API layer environment variable is not set so we can be sure the loader initialization property mechanism is
+    // working.
+    LoaderTestUnsetEnvironmentVariable("XR_API_LAYER_PATH");
+
+    // Convert relative test layer path to absolute, set envar
+    std::string layer_path;
+    FileSysUtilsGetCurrentPath(layer_path);
+    layer_path = layer_path + TEST_DIRECTORY_SYMBOL + ".." + TEST_DIRECTORY_SYMBOL + ".." + TEST_DIRECTORY_SYMBOL + "api_layers";
+
+    PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
+    TEST_EQUAL(
+        xrGetInstanceProcAddr(XR_NULL_HANDLE, "xrInitializeLoaderKHR", reinterpret_cast<PFN_xrVoidFunction*>(&initializeLoader)),
+        XR_SUCCESS, "TestLoaderInitialize get xrInitializeLoaderKHR function pointer");
+    // XR_APILAYER_LUNARG_api_dump not used to avoid stdout spam
+    const char* const valid_layer_name_array[1] = {"XR_APILAYER_LUNARG_core_validation"};
+
+    instance_create_info.enabledApiLayerCount = 1;
+    instance_create_info.enabledApiLayerNames = valid_layer_name_array;
+    XrInstance instance = XR_NULL_HANDLE;
+
+    std::vector<XrLoaderInitPropertyValueEXT> propertyList;
+    XrLoaderInitInfoPropertiesEXT loaderProperties{XR_TYPE_LOADER_INIT_INFO_PROPERTIES_EXT};
+
+    XrResult create_result = XR_SUCCESS;
+
+    SECTION("Rejected values") {
+        XrLoaderInitPropertyValueEXT pair{};
+        loaderProperties.propertyValueCount = 1;
+        loaderProperties.propertyValues = &pair;
+
+        // Make sure Hello is accepted.
+        pair.name = "Hello";
+        pair.value = "Hello";
+        TEST_EQUAL(initializeLoader((XrLoaderInitInfoBaseHeaderKHR*)&loaderProperties), XR_SUCCESS,
+                   "Validate Hello name and value are accepted");
+
+        // Make sure Hello and zero length are accepted.
+        pair.name = "Hello";
+        pair.value = "";
+        TEST_EQUAL(initializeLoader((XrLoaderInitInfoBaseHeaderKHR*)&loaderProperties), XR_SUCCESS,
+                   "Validate Hello name and zero length value are accepted");
+
+        // Null name not allowed.
+        pair.name = nullptr;
+        pair.value = "Hello";
+        TEST_EQUAL(initializeLoader((XrLoaderInitInfoBaseHeaderKHR*)&loaderProperties), XR_ERROR_VALIDATION_FAILURE,
+                   "Validate rejection of NULL name");
+
+        // Empty name not allowed.
+        pair.name = "";
+        pair.value = "Hello";
+        TEST_EQUAL(initializeLoader((XrLoaderInitInfoBaseHeaderKHR*)&loaderProperties), XR_ERROR_VALIDATION_FAILURE,
+                   "Validate rejection of zero length name");
+
+        // Null value not allowed.
+        pair.name = "Hello";
+        pair.value = nullptr;
+        TEST_EQUAL(initializeLoader((XrLoaderInitInfoBaseHeaderKHR*)&loaderProperties), XR_ERROR_VALIDATION_FAILURE,
+                   "Validate rejection of NULL value");
+
+        // The code below expects us to either create a instance or fail
+        // creating an instance, because the environment is broken by this test,
+        // pretend we failed to create an instance.
+        create_result = XR_ERROR_VALIDATION_FAILURE;
+    }
+
+    SECTION("No layer override") {
+        loaderProperties.propertyValueCount = (uint32_t)propertyList.size();
+        loaderProperties.propertyValues = propertyList.data();
+
+        TEST_EQUAL(initializeLoader((XrLoaderInitInfoBaseHeaderKHR*)&loaderProperties), XR_SUCCESS,
+                   "TestLoaderInitialize call xrInitializeLoaderKHR");
+        CHECK(XR_ERROR_API_LAYER_NOT_PRESENT == (create_result = xrCreateInstance(&instance_create_info, &instance)));
+    }
+
+    SECTION("Loader initialized with layer path property override") {
+        propertyList.push_back(XrLoaderInitPropertyValueEXT{"XR_API_LAYER_PATH", layer_path.c_str()});
+        loaderProperties.propertyValueCount = (uint32_t)propertyList.size();
+        loaderProperties.propertyValues = propertyList.data();
+
+        TEST_EQUAL(initializeLoader((XrLoaderInitInfoBaseHeaderKHR*)&loaderProperties), XR_SUCCESS,
+                   "TestLoaderInitialize call xrInitializeLoaderKHR");
+        CHECK(XR_SUCCESS == (create_result = xrCreateInstance(&instance_create_info, &instance)));
+    }
+
+    // If the expected return was a success, clean up the created instance
+    if (XR_SUCCEEDED(create_result)) {
+        CHECK(XR_SUCCESS == xrDestroyInstance(instance));
+    }
+
+    // Cleanup
+    CleanupEnvironmentVariables();
+}
+
 #if defined(XR_USE_PLATFORM_ANDROID)
 static void app_handle_cmd(struct android_app* app, int32_t cmd) {
     (void)app;
@@ -802,4 +919,5 @@ int main(int /*argc*/, char* /*argv*/[]) {
 
     return result;
 }
+
 #endif  // defined(XR_USE_PLATFORM_ANDROID)

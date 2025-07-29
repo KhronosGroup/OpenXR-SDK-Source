@@ -34,6 +34,7 @@
 
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 #include <string>
 #include <mutex>
 #include <memory>
@@ -208,7 +209,7 @@ void InvalidStructureType(GenValidUsageXrInstanceInfo *instance_info, const std:
                           const char *vuid = nullptr, XrStructureType expected = XrStructureType(0),
                           const char *expected_name = "");
 
-std::string StructTypesToString(GenValidUsageXrInstanceInfo *instance_info, const std::vector<XrStructureType> &structs);
+std::string StructTypesToString(GenValidUsageXrInstanceInfo *instance_info, const std::unordered_set<XrStructureType> &structs);
 
 // -- Only implementations of templates follow --//
 

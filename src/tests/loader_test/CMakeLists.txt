@@ -24,11 +24,13 @@ if(ANDROID)
         loader_test PRIVATE ${ANDROID_LIBRARY} ${ANDROID_LOG_LIBRARY}
     )
     target_include_directories(loader_test PRIVATE ${ANDROID_NATIVE_APP_GLUE})
-
-    target_compile_definitions(loader_test PRIVATE XR_KHR_LOADER_INIT_SUPPORT=1)
 else()
     add_executable(loader_test loader_test_utils.cpp loader_test.cpp)
+    add_sanitizers(loader_test)
 endif()
+
+# All platforms can now do something with the XR_KHR_loader_init extension.
+target_compile_definitions(loader_test PRIVATE XR_KHR_LOADER_INIT_SUPPORT=1)
 
 openxr_add_filesystem_utils(loader_test)
 set_target_properties(loader_test PROPERTIES FOLDER ${LOADER_TESTS_FOLDER})
@@ -41,6 +43,7 @@ add_dependencies(
     loader_test
     XrApiLayer_test
     XrApiLayer_api_dump
+    XrApiLayer_core_validation
     test_runtime
 )
 

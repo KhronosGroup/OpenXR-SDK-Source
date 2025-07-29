@@ -992,11 +992,12 @@ struct SwapchainImageContext {
     DepthBuffer depthBuffer{};
     RenderPass rp{};
     Pipeline pipe{};
+    CmdBuffer cmdBuffer{};
     XrStructureType swapchainImageType;
 
     SwapchainImageContext() = default;
 
-    std::vector<XrSwapchainImageBaseHeader*> Create(const VulkanDebugObjectNamer& namer, VkDevice device,
+    std::vector<XrSwapchainImageBaseHeader*> Create(const VulkanDebugObjectNamer& namer, VkDevice device, uint32_t queueFamilyIndex,
                                                     MemoryAllocator* memAllocator, uint32_t capacity,
                                                     const XrSwapchainCreateInfo& swapchainCreateInfo, const PipelineLayout& layout,
                                                     const ShaderProgram& sp, const VertexBuffer<Geometry::Vertex>& vb) {
@@ -1018,6 +1019,10 @@ struct SwapchainImageContext {
         for (uint32_t i = 0; i < capacity; ++i) {
             swapchainImages[i] = {swapchainImageType};
             bases[i] = reinterpret_cast<XrSwapchainImageBaseHeader*>(&swapchainImages[i]);
+        }
+
+        if (!cmdBuffer.Init(namer, device, queueFamilyIndex)) {
+            THROW("Failed to create command buffer");
         }
 
         return bases;
@@ -1579,8 +1584,9 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         m_swapchainImageContexts.emplace_back(GetSwapchainImageType());
         SwapchainImageContext& swapchainImageContext = m_swapchainImageContexts.back();
 
-        std::vector<XrSwapchainImageBaseHeader*> bases = swapchainImageContext.Create(
-            m_namer, m_vkDevice, &m_memAllocator, capacity, swapchainCreateInfo, m_pipelineLayout, m_shaderProgram, m_drawBuffer);
+        std::vector<XrSwapchainImageBaseHeader*> bases =
+            swapchainImageContext.Create(m_namer, m_vkDevice, m_queueFamilyIndex, &m_memAllocator, capacity, swapchainCreateInfo,
+                                         m_pipelineLayout, m_shaderProgram, m_drawBuffer);
 
         // Map every swapchainImage base pointer to this context
         for (auto& base : bases) {
@@ -1597,13 +1603,15 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         auto swapchainContext = m_swapchainImageContextMap[swapchainImage];
         uint32_t imageIndex = swapchainContext->ImageIndex(swapchainImage);
 
-        // XXX Should double-buffer the command buffers, for now just flush
-        m_cmdBuffer.Wait();
-        m_cmdBuffer.Reset();
-        m_cmdBuffer.Begin();
+        // Note: this needs to be modified to avoid blocking on the CmdBuffer fence between multiple views of the same frame, if
+        // Texture arrays are supported.
+        CmdBuffer& cmdBuffer = swapchainContext->cmdBuffer;
+        cmdBuffer.Wait();
+        cmdBuffer.Reset();
+        cmdBuffer.Begin();
 
         // Ensure depth is in the right layout
-        swapchainContext->depthBuffer.TransitionLayout(&m_cmdBuffer, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+        swapchainContext->depthBuffer.TransitionLayout(&cmdBuffer, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
         // Bind and clear eye render target
         static std::array<VkClearValue, 2> clearValues;
@@ -1619,14 +1627,14 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 
         swapchainContext->BindRenderTarget(imageIndex, &renderPassBeginInfo);
 
-        vkCmdBeginRenderPass(m_cmdBuffer.buf, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(cmdBuffer.buf, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdBindPipeline(m_cmdBuffer.buf, VK_PIPELINE_BIND_POINT_GRAPHICS, swapchainContext->pipe.pipe);
+        vkCmdBindPipeline(cmdBuffer.buf, VK_PIPELINE_BIND_POINT_GRAPHICS, swapchainContext->pipe.pipe);
 
         // Bind index and vertex buffers
-        vkCmdBindIndexBuffer(m_cmdBuffer.buf, m_drawBuffer.idxBuf, 0, VK_INDEX_TYPE_UINT16);
+        vkCmdBindIndexBuffer(cmdBuffer.buf, m_drawBuffer.idxBuf, 0, VK_INDEX_TYPE_UINT16);
         VkDeviceSize offset = 0;
-        vkCmdBindVertexBuffers(m_cmdBuffer.buf, 0, 1, &m_drawBuffer.vtxBuf, &offset);
+        vkCmdBindVertexBuffers(cmdBuffer.buf, 0, 1, &m_drawBuffer.vtxBuf, &offset);
 
         // Compute the view-projection transform.
         // Note all matrixes (including OpenXR's) are column-major, right-handed.
@@ -1647,16 +1655,16 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
             XrMatrix4x4f_CreateTranslationRotationScale(&model, &cube.Pose.position, &cube.Pose.orientation, &cube.Scale);
             XrMatrix4x4f mvp;
             XrMatrix4x4f_Multiply(&mvp, &vp, &model);
-            vkCmdPushConstants(m_cmdBuffer.buf, m_pipelineLayout.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp.m), &mvp.m[0]);
+            vkCmdPushConstants(cmdBuffer.buf, m_pipelineLayout.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(mvp.m), &mvp.m[0]);
 
             // Draw the cube.
-            vkCmdDrawIndexed(m_cmdBuffer.buf, m_drawBuffer.count.idx, 1, 0, 0, 0);
+            vkCmdDrawIndexed(cmdBuffer.buf, m_drawBuffer.count.idx, 1, 0, 0, 0);
         }
 
-        vkCmdEndRenderPass(m_cmdBuffer.buf);
+        vkCmdEndRenderPass(cmdBuffer.buf);
 
-        m_cmdBuffer.End();
-        m_cmdBuffer.Exec(m_vkQueue);
+        cmdBuffer.End();
+        cmdBuffer.Exec(m_vkQueue);
 
 #if defined(USE_MIRROR_WINDOW)
         // Cycle the window's swapchain on the last view rendered
