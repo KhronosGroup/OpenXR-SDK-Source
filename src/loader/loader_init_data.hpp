@@ -16,6 +16,7 @@
 #include <json/value.h>
 #include <android/asset_manager_jni.h>
 #include "android_utilities.h"
+#include "manifest_file.hpp"
 #endif  // XR_USE_PLATFORM_ANDROID
 
 /*!
@@ -115,7 +116,13 @@ class LoaderInitData {
 XrResult InitializeLoaderInitData(const XrLoaderInitInfoBaseHeaderKHR* loaderInitInfo);
 
 #ifdef XR_USE_PLATFORM_ANDROID
-XrResult GetPlatformRuntimeVirtualManifest(Json::Value& out_manifest);
+
+//! Modifies @p out_manifest and @p out_runtime_source only if returning successfully
+XrResult GetPlatformRuntimeVirtualManifest(Json::Value& out_manifest, ManifestFileSource& out_runtime_source);
+
+//! Modifies @p out_manifest only if returning successfully
+XrResult GetPlatformApiLayerVirtualManifests(bool is_implicit, bool system_broker, std::vector<Json::Value>& out_manifest);
+
 std::string GetAndroidNativeLibraryDir();
 void* GetAndroidAssetManager();
 #endif  // XR_USE_PLATFORM_ANDROID
