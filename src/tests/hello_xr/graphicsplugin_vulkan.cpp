@@ -871,7 +871,7 @@ struct Pipeline {
         CHECK_VKCMD(vkCreateGraphicsPipelines(m_vkDevice, VK_NULL_HANDLE, 1, &pipeInfo, nullptr, &pipe));
     }
 
-    ~Pipeline() {
+    void Release() {
         if (m_vkDevice != nullptr) {
             if (pipe != VK_NULL_HANDLE) {
                 vkDestroyPipeline(m_vkDevice, pipe, nullptr);
@@ -880,6 +880,8 @@ struct Pipeline {
         pipe = VK_NULL_HANDLE;
         m_vkDevice = nullptr;
     }
+
+    ~Pipeline() { Release(); }
 
    private:
     VkDevice m_vkDevice{VK_NULL_HANDLE};
