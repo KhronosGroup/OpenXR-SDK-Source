@@ -639,10 +639,10 @@ void RuntimeManifestFile::CreateIfValid(const Json::Value &root_node, const std:
     }
 
     // Add this runtime manifest file
-    manifest_files.emplace_back(new RuntimeManifestFile(filename, lib_path));
+    std::unique_ptr<RuntimeManifestFile> manifest{new RuntimeManifestFile(filename, lib_path)};
+    manifest_files.emplace_back(std::move(manifest));
 
-    // Add any extensions to it after the fact.
-    // Handle any renamed functions
+    // Add any extensions to it after the fact, while handling any renamed functions
     manifest_files.back()->ParseCommon(runtime_root_node);
 }
 
@@ -683,7 +683,8 @@ XrResult RuntimeManifestFile::FindManifestFiles(const std::string &openxr_comman
 
 #if defined(XR_KHR_LOADER_INIT_SUPPORT) && defined(XR_USE_PLATFORM_ANDROID)
         Json::Value virtualManifest;
-        result = GetPlatformRuntimeVirtualManifest(virtualManifest);
+        ManifestFileSource runtimeSource = ManifestFileSource::FROM_JSON_MANIFEST;
+        result = GetPlatformRuntimeVirtualManifest(virtualManifest, runtimeSource);
         if (XR_SUCCESS == result) {
             RuntimeManifestFile::CreateIfValid(virtualManifest, "", manifest_files);
             return result;
@@ -779,22 +780,10 @@ void ApiLayerManifestFile::AddManifestFilesAndroid(const std::string &openxr_com
 }
 #endif  // defined(XR_USE_PLATFORM_ANDROID) && defined(XR_KHR_LOADER_INIT_SUPPORT)
 
-void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::string &filename, std::istream &json_stream,
+void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::string &filename, const Json::Value &root_node,
                                          LibraryLocator locate_library,
                                          std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files) {
     std::ostringstream error_ss("ApiLayerManifestFile::CreateIfValid ");
-    Json::CharReaderBuilder builder;
-    std::string errors;
-    Json::Value root_node = Json::nullValue;
-    if (!Json::parseFromStream(builder, json_stream, &root_node, &errors) || !root_node.isObject()) {
-        error_ss << "failed to parse " << filename << ".";
-        if (!errors.empty()) {
-            error_ss << " (Error message: " << errors << ")";
-        }
-        error_ss << " Is it a valid layer manifest file?";
-        LoaderLogger::LogErrorMessage("", error_ss.str());
-        return;
-    }
     JsonVersion file_version = {};
     if (!ManifestFile::IsValidJson(root_node, file_version)) {
         error_ss << "isValidJson indicates " << filename << " is not a valid manifest file.";
@@ -814,28 +803,71 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
         LoaderLogger::LogErrorMessage("", error_ss.str());
         return;
     }
+
+    // Figure out enabled state of implicit layers
     if (MANIFEST_TYPE_IMPLICIT_API_LAYER == type) {
         bool enabled = true;
         // Implicit layers require the disable environment variable.
-        if (layer_root_node["disable_environment"].isNull() || !layer_root_node["disable_environment"].isString()) {
+        auto &disable_env_node = layer_root_node["disable_environment"];
+        if (disable_env_node.isNull() || !disable_env_node.isString()) {
             error_ss << "Implicit layer " << filename << " is missing \"disable_environment\"";
             LoaderLogger::LogErrorMessage("", error_ss.str());
             return;
         }
-        // Check if there's an enable environment variable provided
-        if (!layer_root_node["enable_environment"].isNull() && layer_root_node["enable_environment"].isString()) {
-            std::string env_var = layer_root_node["enable_environment"].asString();
+        // Check if there's an enable environment variable provided: If so, it must be set in the environment.
+        auto &enable_env_node = layer_root_node["enable_environment"];
+        if (!enable_env_node.isNull() && enable_env_node.isString()) {
+            std::string env_var = enable_env_node.asString();
             // If it's not set in the environment, disable the layer
             if (!LoaderProperty::IsSet(env_var)) {
                 enabled = false;
             }
         }
+
         // Check for the disable environment variable, which must be provided in the JSON
-        std::string env_var = layer_root_node["disable_environment"].asString();
+        std::string env_var = disable_env_node.asString();
         // If the env var is set, disable the layer. Disable env var overrides enable above
         if (LoaderProperty::IsSet(env_var)) {
             enabled = false;
         }
+
+#if defined(XR_OS_ANDROID)
+
+        // Implicit layers require the disable system property on Android.
+        auto &disable_prop_node = layer_root_node["disable_sys_prop"];
+        if (disable_prop_node.isNull() || !disable_prop_node.isString()) {
+            error_ss << "Implicit layer " << filename << " is missing \"disable_sys_prop\"";
+            LoaderLogger::LogErrorMessage("", error_ss.str());
+            return;
+        }
+
+        // Check if there's an system property to enable this API layer
+        auto &enable_prop_node = layer_root_node["enable_sys_prop"];
+        if (!enable_prop_node.isNull() && enable_prop_node.isString()) {
+            std::string enable_sys_prop = enable_prop_node.asString();
+            if (enable_sys_prop.empty()) {
+                error_ss << "Implicit layer " << filename << " has a present but empty \"enable_sys_prop\"";
+                LoaderLogger::LogErrorMessage("", error_ss.str());
+                return;
+            }
+            // TODO other validation on the enable_sys_prop?
+            // If it's not set to true, disable this layer
+            if (!PlatformUtilsGetBoolSysProp(enable_sys_prop.c_str(), true)) {
+                enabled = false;
+            }
+        }
+
+        std::string disable_sys_prop = disable_prop_node.asString();
+        if (disable_sys_prop.empty()) {
+            error_ss << "Implicit layer " << filename << " has a present but empty \"disable_sys_prop\"";
+            LoaderLogger::LogErrorMessage("", error_ss.str());
+            return;
+        }
+        // TODO other validation on the disable_sys_prop?
+        if (PlatformUtilsGetBoolSysProp(disable_sys_prop.c_str(), false)) {
+            enabled = false;
+        }
+#endif
 
         // Not enabled, so pretend like it isn't even there.
         if (!enabled) {
@@ -857,7 +889,16 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
         return;
     }
 
-    uint32_t implementation_version = atoi(layer_root_node["implementation_version"].asString().c_str());
+    uint32_t implementation_version = 0;
+    {
+        char *end_ptr;
+        implementation_version = strtol(layer_root_node["implementation_version"].asString().c_str(), &end_ptr, 10);
+        if (*end_ptr != '\0') {
+            std::ostringstream oss(error_ss.str());
+            oss << "layer " << filename << " has invalid implementation version.";
+            LoaderLogger::LogWarningMessage("", oss.str());
+        }
+    }
     std::string library_path = layer_root_node["library_path"].asString();
 
     // If the library_path variable has no directory symbol, it's just a file name and should be accessible on the
@@ -888,11 +929,32 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
     }
 
     // Add this layer manifest file
-    manifest_files.emplace_back(
-        new ApiLayerManifestFile(type, filename, layer_name, description, api_version, implementation_version, library_path));
+    std::unique_ptr<ApiLayerManifestFile> manifest{
+        new ApiLayerManifestFile(type, filename, layer_name, description, api_version, implementation_version, library_path)};
+    manifest_files.emplace_back(std::move(manifest));
 
-    // Add any extensions to it after the fact.
+    // Add any extensions to it after the fact, while handling any renamed functions
     manifest_files.back()->ParseCommon(layer_root_node);
+}
+
+void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::string &filename, std::istream &json_stream,
+                                         LibraryLocator locate_library,
+                                         std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files) {
+    std::ostringstream error_ss("ApiLayerManifestFile::CreateIfValid ");
+    Json::CharReaderBuilder builder;
+    std::string errors;
+    Json::Value root_node = Json::nullValue;
+    if (!Json::parseFromStream(builder, json_stream, &root_node, &errors) || !root_node.isObject()) {
+        error_ss << "failed to parse " << filename << ".";
+        if (!errors.empty()) {
+            error_ss << " (Error message: " << errors << ")";
+        }
+        error_ss << " Is it a valid layer manifest file?";
+        LoaderLogger::LogErrorMessage("", error_ss.str());
+        return;
+    }
+
+    CreateIfValid(type, filename, root_node, locate_library, manifest_files);
 }
 
 void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::string &filename,
@@ -951,6 +1013,24 @@ void ApiLayerManifestFile::PopulateApiLayerProperties(XrApiLayerProperties &prop
 // Find all layer manifest files in the appropriate search paths/registries for the given type.
 XrResult ApiLayerManifestFile::FindManifestFiles(const std::string &openxr_command, ManifestFileType type,
                                                  std::vector<std::unique_ptr<ApiLayerManifestFile>> &manifest_files) {
+    bool search_json_layer = true;
+    bool search_broker_layer = true;
+
+#if defined(XR_KHR_LOADER_INIT_SUPPORT) && defined(XR_USE_PLATFORM_ANDROID)
+    Json::Value virtual_manifest;
+    bool system_broker = true;
+    ManifestFileSource runtime_source = ManifestFileSource::FROM_JSON_MANIFEST;
+    XrResult result = GetPlatformRuntimeVirtualManifest(virtual_manifest, runtime_source);
+    if (XR_SUCCESS == result) {
+        if (runtime_source == ManifestFileSource::FROM_INSTALLABLE_BROKER) {
+            system_broker = false;
+            search_json_layer = false;
+        }
+    } else {
+        search_broker_layer = false;
+    }
+#endif  // defined(XR_USE_PLATFORM_ANDROID) && defined(XR_KHR_LOADER_INIT_SUPPORT)
+
     std::string relative_path;
     std::string override_env_var;
     std::string registry_location;
@@ -983,7 +1063,9 @@ XrResult ApiLayerManifestFile::FindManifestFiles(const std::string &openxr_comma
 
     bool override_active = false;
     std::vector<std::string> filenames;
-    ReadDataFilesInSearchPaths(override_env_var, relative_path, override_active, filenames);
+    if (search_json_layer) {
+        ReadDataFilesInSearchPaths(override_env_var, relative_path, override_active, filenames);
+    }
 
 #ifdef XR_OS_WINDOWS
     // Read the registry if the override wasn't active.
@@ -997,6 +1079,38 @@ XrResult ApiLayerManifestFile::FindManifestFiles(const std::string &openxr_comma
     }
 
 #if defined(XR_KHR_LOADER_INIT_SUPPORT) && defined(XR_USE_PLATFORM_ANDROID)
+    if (search_broker_layer) {
+        std::vector<Json::Value> virtual_manifests;
+        result = GetPlatformApiLayerVirtualManifests(type == ManifestFileType::MANIFEST_TYPE_IMPLICIT_API_LAYER, system_broker,
+                                                     virtual_manifests);
+        if (XR_SUCCESS == result) {
+            std::string fnBase;
+            {
+                std::ostringstream oss{"_virtualManifest_"};
+                if (system_broker) {
+                    oss << "systemBroker_";
+                } else {
+                    oss << "installableBroker_";
+                }
+                if (type == ManifestFileType::MANIFEST_TYPE_IMPLICIT_API_LAYER) {
+                    oss << "implicit.json";
+                } else {
+                    oss << "explicit.json";
+                }
+                fnBase = oss.str();
+            }
+            const size_t n = virtual_manifests.size();
+            for (size_t i = 0; i < n; ++i) {
+                ApiLayerManifestFile::CreateIfValid(type, std::to_string(i) + fnBase, virtual_manifests[i],
+                                                    &ApiLayerManifestFile::LocateLibraryInAssets, manifest_files);
+            }
+        } else {
+            LoaderLogger::LogInfoMessage(openxr_command,
+                                         "ApiLayerManifestFile::FindManifestFiles - failed to get virtual manifest files from "
+                                         "system/installable broker, likely not supported by current broker version.");
+        }
+    }
+
     ApiLayerManifestFile::AddManifestFilesAndroid(openxr_command, type, manifest_files);
 #endif  // defined(XR_USE_PLATFORM_ANDROID) && defined(XR_KHR_LOADER_INIT_SUPPORT)
 
