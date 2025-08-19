@@ -26,7 +26,20 @@ using wrap::android::content::Context;
  *
  * @return 0 on success, something else on failure.
  */
-int getActiveRuntimeVirtualManifest(wrap::android::content::Context const &context, Json::Value &virtualManifest);
+int getActiveRuntimeVirtualManifest(wrap::android::content::Context const &context, Json::Value &virtualManifest,
+                                    bool &systemBroker);
+
+/*!
+ * Find the implicit/explicit API layers on the system, and return a constructed JSON object representing it.
+ *
+ * @param type An String to indicate layer type of API layers, implicit or explicit.
+ * @param context An Android context, preferably an Activity Context.
+ * @param[out] virtualManifest The Json::Value to fill with the virtual manifest.
+ *
+ * @return 0 on success, something else on failure.
+ */
+int getApiLayerVirtualManifests(std::string layerType, wrap::android::content::Context const &context,
+                                std::vector<Json::Value> &virtualManifests, bool systemBroker);
 }  // namespace openxr_android
 
 #endif  // __ANDROID__
