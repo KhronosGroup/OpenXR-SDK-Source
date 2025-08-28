@@ -14,4 +14,4 @@ touch "${ROOT}/SNAPSHOT"
 
 # Publish AAR using Gradle
 cd "${MAINT_SCRIPTS}/publish-aar"
-./gradlew publishMavenPublicationToBuildDirRepository publishMavenPublicationToOSSRH-SnapshotsRepository
+./gradlew publishMavenPublicationToBuildDirRepository publishMavenPublicationToMavenCentralRepository

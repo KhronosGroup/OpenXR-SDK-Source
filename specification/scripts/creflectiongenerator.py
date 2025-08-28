@@ -169,9 +169,6 @@ class CReflectionOutputGenerator(OutputGenerator):
     def genCmd(self, cmdinfo, name, alias):
         OutputGenerator.genCmd(self, cmdinfo, name, alias)
 
-        if alias:
-            return
-
         self.commands.append(CommandData(name, self.featureName))
 
     def genStruct(self, typeinfo, typeName, alias):

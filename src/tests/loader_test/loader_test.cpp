@@ -431,7 +431,6 @@ TEST_CASE("TestEnumInstanceExtensions", "") {
 #endif  // !defined(XR_USE_PLATFORM_ANDROID) || !defined(XR_KHR_LOADER_INIT_SUPPORT)
 
         std::string subtest_name;
-        std::string valid_runtime_path;
 
         switch (test) {
             // No Explicit layers set
@@ -574,7 +573,6 @@ TEST_CASE("TestCreateDestroyInstance", "") {
     application_info.engineVersion = 42;
     application_info.apiVersion = XR_CURRENT_API_VERSION;
 
-    std::string current_path;
     std::string layer_path;
 
 #if !defined(XR_USE_PLATFORM_ANDROID)

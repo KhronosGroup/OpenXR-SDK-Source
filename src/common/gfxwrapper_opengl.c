@@ -1112,6 +1112,8 @@ void ksGpuContext_Destroy(ksGpuContext *context) {
     context->config = 0;
     context->mainSurface = EGL_NO_SURFACE;
     context->context = EGL_NO_CONTEXT;
+#else
+    UNUSED_PARM(context);
 #endif
 }
 
@@ -1131,6 +1133,8 @@ void ksGpuContext_SetCurrent(ksGpuContext *context) {
     CGLSetCurrentContext(context->cglContext);
 #elif defined(OS_ANDROID) || defined(OS_LINUX_WAYLAND)
     EGL(eglMakeCurrent(context->display, context->mainSurface, context->mainSurface, context->context));
+#else
+    UNUSED_PARM(context);
 #endif
 }
 
@@ -1146,6 +1150,8 @@ void ksGpuContext_UnsetCurrent(ksGpuContext *context) {
     CGLSetCurrentContext(NULL);
 #elif defined(OS_ANDROID) || defined(OS_LINUX_WAYLAND)
     EGL(eglMakeCurrent(context->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
+#else
+    UNUSED_PARM(context);
 #endif
 }
 
@@ -1162,6 +1168,9 @@ bool ksGpuContext_CheckCurrent(ksGpuContext *context) {
     return (false);  // TODO: pick current context off the UIView
 #elif defined(OS_ANDROID) || defined(OS_LINUX_WAYLAND)
     return (eglGetCurrentContext() == context->context);
+#else
+    UNUSED_PARM(context);
+    return false;
 #endif
 }
 

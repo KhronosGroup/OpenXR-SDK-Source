@@ -1,9 +1,10 @@
+// Copyright 2025 The Khronos Group Inc.
 // Copyright 2021-2022, Collabora, Ltd.
 // SPDX-License-Identifier: BSL-1.0
 plugins {
     id("maven-publish")
     signing
-    id("io.codearte.nexus-staging").version("0.30.0")
+    id("com.vanniktech.maven.publish.base") version "0.34.0"
 }
 
 // These next few lines are just to make the version match the OpenXR release.
@@ -14,7 +15,7 @@ apply(file(File(root, "src/version.gradle")))
 version = project.ext["versionOpenXR"].toString() + project.ext["versionQualifier"]
 
 val siteUrl = "https://github.com/KhronosGroup/OpenXR-SDK-Source"
-val gitUrl = "scm:git:https://github.com/KhronosGroup/OpenXR-SDK-Source.git"
+val gitUrl = "scm:git:git@github.com:KhronosGroup/OpenXR-SDK-Source.git"
 
 signing {
     val signingKeyId: String? by project
@@ -35,18 +36,24 @@ publishing {
 
             artifactId = "openxr_loader_for_android"
 
-            artifact(loaderAar) {
-                extension = "aar"
-            }
+            artifacts {
+                artifact(loaderAar) {
+                    extension = "aar"
+                }
 
-            artifact(loaderSourcesJar) {
-                extension = "jar"
-                classifier = "sources"
+                artifact(loaderSourcesJar) {
+                    extension = "jar"
+                    classifier = "sources"
+                }
             }
 
             pom {
                 name.set("OpenXR Loader for Android")
-                description.set("The AAR for the OpenXR Loader as used on Android.")
+                description.set(
+                    """
+                    |The AAR for the OpenXR Loader as used on Android, along with required global manifest entries.
+                    |You still need to apply changes to the application tag and the activity tag corresponding to your OpenXR experience.""".trimMargin()
+                )
                 url.set(siteUrl)
                 licenses {
                     license {
@@ -67,7 +74,7 @@ publishing {
                     }
                 }
                 scm {
-                    connection.set(gitUrl)
+                    connection.set("scm:git:${siteUrl}.git")
                     developerConnection.set(gitUrl)
                     url.set(siteUrl)
                 }
@@ -82,27 +89,24 @@ publishing {
                 name = "BuildDir"
                 url = uri(layout.buildDirectory.dir("repo"))
             }
-            maven {
-                name = "OSSRH"
-                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-                credentials {
-                    username = System.getenv("OSSRH_USER") ?: return@credentials
-                    password = System.getenv("OSSRH_PASSWORD") ?: return@credentials
+
+            if (version.toString().endsWith("SNAPSHOT")) {
+                maven {
+                    name = "Snapshots"
+                    url = uri("https://central.sonatype.com/repository/maven-snapshots")
+                    credentials {
+
+                        val mavenCentralUsername: String? by project
+                        val mavenCentralPassword: String? by project
+                        username = mavenCentralUsername
+                        password = mavenCentralPassword
+                    }
                 }
             }
-            maven {
-                name = "OSSRH-Snapshots"
-                url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
-                credentials {
-                    username = System.getenv("OSSRH_USER") ?: return@credentials
-                    password = System.getenv("OSSRH_PASSWORD") ?: return@credentials
-                }
-            }
+
         }
     }
 }
-nexusStaging {
-    serverUrl = "https://s01.oss.sonatype.org/service/local/"
-    username = System.getenv("OSSRH_USER") ?: return@nexusStaging
-    password = System.getenv("OSSRH_PASSWORD") ?: return@nexusStaging
+mavenPublishing {
+    publishToMavenCentral()
 }

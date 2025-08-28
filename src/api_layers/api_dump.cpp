@@ -441,8 +441,6 @@ XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrCreateInstance(const XrInstanceCrea
 XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrGetInstanceProcAddr(XrInstance instance, const char *name,
                                                                  PFN_xrVoidFunction *function) {
     try {
-        std::string func_name = name;
-
         // Generate output for this command
         std::vector<std::tuple<std::string, std::string, std::string>> contents;
         contents.emplace_back("XrResult", "xrGetInstanceProcAddr", "");
