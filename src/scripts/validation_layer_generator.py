@@ -1030,7 +1030,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             for valid_struct in member.valid_extension_structs:
                 validate_struct_next += self.writeIndent(indent)
                 validate_struct_next += f'valid_ext_structs.insert({self.genXrStructureType(valid_struct)});\n'
-        
+
         # Then check if this struct is part of a relation group (extends a base struct) and add the base structs valid extension structs.
         for xr_struct in self.api_structures:
             if xr_struct.name in LOADER_STRUCTS:
@@ -1038,7 +1038,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
 
             if xr_struct.name in self.structs_with_no_type:
                 continue
-            
+
             relation_group = self.getRelationGroupForBaseStruct(xr_struct.name)
             if relation_group is not None:
                 if struct_type in relation_group.child_struct_names:
@@ -1421,7 +1421,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 inline_validate_handle += 'return xr_result;\n'
                 inline_validate_handle += self.writeIndent(indent)
                 indent = indent + 1
-                
+
             if member_param.is_optional:
                 inline_validate_handle += 'if (handle_result == VALIDATE_XR_HANDLE_INVALID) {\n'
                 inline_validate_handle += self.writeIndent(indent)
@@ -1807,7 +1807,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                             param_member_contents += self.writeIndent(indent)
                             param_member_contents += '}\n'
                             indent = indent - 1
-                    
+
                     indent = indent - 1
                     param_member_contents += self.writeIndent(indent)
                     param_member_contents += '}\n'
@@ -2093,6 +2093,10 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 elif member.name == 'next':
                     struct_check += self.writeValidateStructNextCheck(
                         xr_struct.name, 'value', member, indent)
+                elif xr_struct.returned_only:
+                    struct_check += self.writeIndent(indent)
+                    struct_check += '// Skip checking member "%s" because this struct is returned only.\n' % member.name
+                    continue
                 elif member.name == 'enabledExtensionCount':
                     has_enable_extension_count = True
                 elif member.name == 'enabledExtensionNames':

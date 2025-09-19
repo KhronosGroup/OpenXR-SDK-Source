@@ -385,7 +385,6 @@ XRAPI_ATTR XrResult XRAPI_CALL BestPracticesLayerXrLocateViews(XrSession session
 XRAPI_ATTR XrResult XRAPI_CALL BestPracticesValidationLayerXrGetInstanceProcAddr(XrInstance instance, const char *name,
                                                                                  PFN_xrVoidFunction *function) {
     try {
-        std::string func_name = name;
         *function = BestPracticesLayerInnerGetInstanceProcAddr(name);
 
         if (*function != nullptr) {
@@ -417,7 +416,7 @@ XRAPI_ATTR XrResult XRAPI_CALL BestPracticesXrCreateApiLayerInstance(const XrIns
             XR_LOADER_INTERFACE_STRUCT_API_LAYER_NEXT_INFO != apiLayerInfo->nextInfo->structType ||
             XR_API_LAYER_NEXT_INFO_STRUCT_VERSION > apiLayerInfo->nextInfo->structVersion ||
             sizeof(XrApiLayerNextInfo) > apiLayerInfo->nextInfo->structSize ||
-            0 != strcmp("XR_APILAYER_KHR_best_practices_validation", apiLayerInfo->nextInfo->layerName) ||
+            0 != strcmp("XR_APILAYER_KHRONOS_best_practices_validation", apiLayerInfo->nextInfo->layerName) ||
             nullptr == apiLayerInfo->nextInfo->nextGetInstanceProcAddr ||
             nullptr == apiLayerInfo->nextInfo->nextCreateApiLayerInstance) {
             return XR_ERROR_INITIALIZATION_FAILED;

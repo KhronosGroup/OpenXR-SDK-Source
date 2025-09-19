@@ -151,29 +151,25 @@ static JavaVM* AndroidApplicationVM = NULL;
 static jobject AndroidApplicationActivity = NULL;
 #endif  // defined(XR_USE_PLATFORM_ANDROID)
 
-#if defined(XR_KHR_LOADER_INIT_SUPPORT) && defined(XR_USE_PLATFORM_ANDROID)
+#if defined(XR_USE_PLATFORM_ANDROID)
 static void InitLoader() {
     // TODO: we should validate that xrCreateInstance, xrEnumerateInstanceExtensionProperties and xrEnumApiLayers
-    //       all return XR_ERROR_INITIALIZATION_FAILED if XR_KHR_LOADER_INIT_SUPPORT but xrInitializeLoaderKHR
+    //       all return XR_ERROR_INITIALIZATION_FAILED if XR_USE_PLATFORM_ANDROID but xrInitializeLoaderKHR
     //       has not been called.
 
     PFN_xrInitializeLoaderKHR xrInitializeLoaderKHR;
     if (XR_SUCCEEDED(
             xrGetInstanceProcAddr(XR_NULL_HANDLE, "xrInitializeLoaderKHR", (PFN_xrVoidFunction*)(&xrInitializeLoaderKHR))) &&
         xrInitializeLoaderKHR != NULL) {
-#if defined(XR_USE_PLATFORM_ANDROID)
         XrLoaderInitInfoAndroidKHR loaderInitializeInfoAndroid = {XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR};
         loaderInitializeInfoAndroid.applicationVM = AndroidApplicationVM;
         loaderInitializeInfoAndroid.applicationContext = AndroidApplicationActivity;
         xrInitializeLoaderKHR((XrLoaderInitInfoBaseHeaderKHR*)&loaderInitializeInfoAndroid);
-#else
-#error "Platform needs implementation of KHR_loader_init functionality"
-#endif
     }
 }
-#endif  // defined(XR_KHR_LOADER_INIT_SUPPORT)
+#endif  // defined(XR_USE_PLATFORM_ANDROID)
 
-#if defined(XR_USE_PLATFORM_ANDROID) && defined(XR_KHR_LOADER_INIT_SUPPORT)
+#if defined(XR_USE_PLATFORM_ANDROID)
 static XrInstanceCreateInfoAndroidKHR GetPlatformInstanceCreateExtension() {
     XrInstanceCreateInfoAndroidKHR instanceCreateInfoAndroid{XR_TYPE_INSTANCE_CREATE_INFO_ANDROID_KHR};
     instanceCreateInfoAndroid.applicationVM = AndroidApplicationVM;
@@ -189,7 +185,7 @@ static XrBaseInStructure GetPlatformInstanceCreateExtension() {
 }
 static const char* const* base_extension_names = nullptr;
 static const uint32_t base_extension_count = 0;
-#endif  // defined(XR_USE_PLATFORM_ANDROID) && defined(XR_KHR_LOADER_INIT_SUPPORT)
+#endif  // defined(XR_USE_PLATFORM_ANDROID)
 
 void CleanupEnvironmentVariables() {
 #if defined(XR_USE_PLATFORM_ANDROID)
@@ -305,15 +301,12 @@ TEST_CASE("TestEnumLayers", "") {
     uint32_t in_layer_value = 0;
     uint32_t out_layer_value = 0;
 
-#if !defined(XR_USE_PLATFORM_ANDROID) || !defined(XR_KHR_LOADER_INIT_SUPPORT)
-
 #if !defined(XR_USE_PLATFORM_ANDROID)
+    // XR_API_LAYER_PATH override not available on Android
+
     // Tests with no explicit layers set
     // NOTE: Implicit layers will still be present, need to figure out what to do here.
     LoaderTestUnsetEnvironmentVariable("XR_API_LAYER_PATH");
-#else
-    // XR_API_LAYER_PATH override not available on Android
-#endif  // !defined(XR_USE_PLATFORM_ANDROID)
 
     // Test number query
     {
@@ -332,17 +325,12 @@ TEST_CASE("TestEnumLayers", "") {
 #else
     // XR_API_LAYER_PATH override not supported on Android
     TESTLOG("Cannot test no explicit layers on Android if using KHR_LOADER_INIT");
-#endif  // !defined(XR_USE_PLATFORM_ANDROID) || !defined(XR_KHR_LOADER_INIT_SUPPORT)
+#endif  // !defined(XR_USE_PLATFORM_ANDROID)
 
     // Tests with some explicit layers instead
     in_layer_value = 0;
     out_layer_value = 0;
     uint32_t num_valid_jsons = 6;
-
-#if defined(XR_USE_PLATFORM_ANDROID) && !defined(XR_KHR_LOADER_INIT_SUPPORT)
-    // Android API layer loading from apk is only supported when using XR_KHR_LOADER_INIT_SUPPORT
-    TEST_HEADER("     Cannot test loading API layer from apk on Android without XR_KHR_LOADER_INIT_SUPPORT");
-#else
 
 #if defined(XR_USE_PLATFORM_ANDROID)
     // API layers from apk on Android are always available and do not require override.
@@ -410,7 +398,6 @@ TEST_CASE("TestEnumLayers", "") {
                                         "layer name mentions _badjson"));
         }
     }
-#endif  // defined(XR_USE_PLATFORM_ANDROID) && !defined(XR_KHR_LOADER_INIT_SUPPORT)
 
     // Cleanup
     CleanupEnvironmentVariables();
@@ -423,12 +410,12 @@ TEST_CASE("TestEnumInstanceExtensions", "") {
     uint32_t out_extension_value;
 
     for (uint32_t test = 0; test < 2; ++test) {
-#if defined(XR_USE_PLATFORM_ANDROID) && defined(XR_KHR_LOADER_INIT_SUPPORT)
+#if defined(XR_USE_PLATFORM_ANDROID)
         if (test == 0) {
             TEST_HEADER("     Cannot test with no explicit API layers on Android");
             continue;
         }
-#endif  // !defined(XR_USE_PLATFORM_ANDROID) || !defined(XR_KHR_LOADER_INIT_SUPPORT)
+#endif  // defined(XR_USE_PLATFORM_ANDROID)
 
         std::string subtest_name;
 
@@ -775,7 +762,6 @@ TEST_CASE("TestLoaderInitialize") {
         instance_create_info.next = &platform_instance_create;
     }
     instance_create_info.enabledExtensionNames = base_extension_names;
-    std::string current_path;
 
     // Ensure API layer environment variable is not set so we can be sure the loader initialization property mechanism is
     // working.
