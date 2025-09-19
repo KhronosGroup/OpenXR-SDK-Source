@@ -115,7 +115,7 @@ class SwapchainImageContext {
             depthDesc.DepthOrArraySize = colorDesc.DepthOrArraySize;
             depthDesc.MipLevels = 1;
             depthDesc.Format = DXGI_FORMAT_R32_TYPELESS;
-            depthDesc.SampleDesc.Count = 1;
+            depthDesc.SampleDesc.Count = colorDesc.SampleDesc.Count;
             depthDesc.Layout = colorDesc.Layout;
             depthDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
