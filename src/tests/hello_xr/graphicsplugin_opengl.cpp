@@ -138,9 +138,7 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
         m_graphicsBinding.glxDrawable = window.context.glxDrawable;
         // m_graphicsBinding.glxContext = window.context.glxContext;
 #elif defined(XR_USE_PLATFORM_WAYLAND)
-        // TODO: Just need something other than NULL here for now (for validation).  Eventually need
-        //       to correctly put in a valid pointer to an wl_display
-        m_graphicsBinding.display = reinterpret_cast<wl_display*>(0xFFFFFFFF);
+        m_graphicsBinding.display = window.display;
 #elif defined(XR_USE_PLATFORM_MACOS)
 #error OpenGL bindings for Mac have not been implemented
 #else
