@@ -16,11 +16,6 @@
 #include <shaderc/shaderc.hpp>
 #endif
 
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
-// Define USE_MIRROR_WINDOW to open a otherwise-unused window for e.g. RenderDoc
-#define USE_MIRROR_WINDOW
-#endif
-
 // glslangValidator doesn't wrap its output in brackets if you don't have it define the whole array.
 #if defined(USE_GLSLANGVALIDATOR)
 #define SPV_PREFIX {
@@ -1050,7 +1045,7 @@ struct SwapchainImageContext {
     VulkanDebugObjectNamer m_namer;
 };
 
-#if defined(USE_MIRROR_WINDOW)
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
 // Swapchain
 struct Swapchain {
     VkFormat format{VK_FORMAT_B8G8R8A8_SRGB};
@@ -1287,7 +1282,7 @@ void Swapchain::Present(VkQueue queue, VkSemaphore drawComplete) {
     }
     CHECK_VKRESULT(res, "vkQueuePresentKHR");
 }
-#endif  // defined(USE_MIRROR_WINDOW)
+#endif  // defined(VK_USE_PLATFORM_WIN32_KHR)
 
 struct VulkanGraphicsPlugin : public IGraphicsPlugin {
     VulkanGraphicsPlugin(const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> /*unused*/)
@@ -1376,14 +1371,12 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
             }
             // TODO add back VK_EXT_debug_report code for compatibility with older systems? (Android)
         }
-#if defined(USE_MIRROR_WINDOW)
-        extensions.push_back("VK_KHR_surface");
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
-        extensions.push_back("VK_KHR_win32_surface");
-#else
-#error CreateSurface not supported on this OS
+        if (m_enableMirrorWindow) {
+            extensions.push_back("VK_KHR_surface");
+            extensions.push_back("VK_KHR_win32_surface");
+        }
 #endif  // defined(VK_USE_PLATFORM_WIN32_KHR)
-#endif  // defined(USE_MIRROR_WINDOW)
 
         VkDebugUtilsMessengerCreateInfoEXT debugInfo{VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT};
         debugInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT;
@@ -1453,8 +1446,10 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         VkPhysicalDeviceFeatures features{};
         // features.samplerAnisotropy = VK_TRUE;
 
-#if defined(USE_MIRROR_WINDOW)
-        deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+        if (m_enableMirrorWindow) {
+            deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+        }
 #endif
 
         VkDeviceCreateInfo deviceInfo{VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO};
@@ -1547,15 +1542,17 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         m_drawBuffer.UpdateIndices(Geometry::c_cubeIndices, numCubeIdicies, 0);
         m_drawBuffer.UpdateVertices(Geometry::c_cubeVertices, numCubeVerticies, 0);
 
-#if defined(USE_MIRROR_WINDOW)
-        m_swapchain.Create(m_vkInstance, m_vkPhysicalDevice, m_vkDevice, m_graphicsBinding.queueFamilyIndex);
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+        if (m_enableMirrorWindow) {
+            m_swapchain.Create(m_vkInstance, m_vkPhysicalDevice, m_vkDevice, m_graphicsBinding.queueFamilyIndex);
 
-        m_cmdBuffer.Reset();
-        m_cmdBuffer.Begin();
-        m_swapchain.Prepare(m_cmdBuffer.buf);
-        m_cmdBuffer.End();
-        m_cmdBuffer.Exec(m_vkQueue);
-        m_cmdBuffer.Wait();
+            m_cmdBuffer.Reset();
+            m_cmdBuffer.Begin();
+            m_swapchain.Prepare(m_cmdBuffer.buf);
+            m_cmdBuffer.End();
+            m_cmdBuffer.Exec(m_vkQueue);
+            m_cmdBuffer.Wait();
+        }
 #endif
     }
 
@@ -1668,9 +1665,9 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
         cmdBuffer.End();
         cmdBuffer.Exec(m_vkQueue);
 
-#if defined(USE_MIRROR_WINDOW)
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
         // Cycle the window's swapchain on the last view rendered
-        if (swapchainContext == &m_swapchainImageContexts.back()) {
+        if (m_enableMirrorWindow && swapchainContext == &m_swapchainImageContexts.back()) {
             m_swapchain.Acquire();
             m_swapchain.Wait();
             m_swapchain.Present(m_vkQueue);
@@ -1680,7 +1677,10 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return VK_SAMPLE_COUNT_1_BIT; }
 
-    void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
+    void UpdateOptions(const std::shared_ptr<Options>& options) override {
+        m_clearColor = options->GetBackgroundClearColor();
+        m_enableMirrorWindow = options->EnableMirrorWindow;
+    }
 
    protected:
     XrGraphicsBindingVulkan2KHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
@@ -1701,8 +1701,9 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
     PipelineLayout m_pipelineLayout{};
     VertexBuffer<Geometry::Vertex> m_drawBuffer{};
     std::array<float, 4> m_clearColor;
+    bool m_enableMirrorWindow = false;
 
-#if defined(USE_MIRROR_WINDOW)
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
     Swapchain m_swapchain{};
 #endif
 
