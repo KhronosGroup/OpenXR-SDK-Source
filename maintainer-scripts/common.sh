@@ -323,6 +323,8 @@ getConformanceFilenames() {
         src/external \
         src/loader \
         src/scripts \
+        src/tests/CMakeLists.txt \
+        src/tests/test_runtimes \
         src/version.cmake \
         src/version.gradle \
         | grep -E -v "${COMMON_EXCLUDE_PATTERN}" \

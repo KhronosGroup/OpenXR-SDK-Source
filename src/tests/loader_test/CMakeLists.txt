@@ -81,4 +81,3 @@ file(
 )
 
 add_subdirectory(test_layers)
-add_subdirectory(test_runtimes)

@@ -98,15 +98,32 @@ else()
     )
 endif()
 
-gen_xr_runtime_json(
-    "${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/runtimes/test_runtime.json"
-    "${CMAKE_CURRENT_BINARY_DIR}/$<TARGET_FILE_NAME:test_runtime>"
-    -b
-)
-
-# Add generated file to our sources so we depend on it, and thus trigger generation.
-target_sources(
-    test_runtime
-    PRIVATE
+if(BUILD_LOADER AND BUILD_API_LAYERS)
+    gen_xr_runtime_json(
         "${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/runtimes/test_runtime.json"
-)
+        "${CMAKE_CURRENT_BINARY_DIR}/$<TARGET_FILE_NAME:test_runtime>"
+        -b
+    )
+
+    # Add generated file to our sources so we depend on it, and thus trigger generation.
+    target_sources(
+        test_runtime
+        PRIVATE
+            "${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/runtimes/test_runtime.json"
+    )
+endif()
+
+if(BUILD_CONFORMANCE_TESTS)
+    gen_xr_runtime_json(
+        "${PROJECT_BINARY_DIR}/src/conformance/conformance_cli/test_runtime.json"
+        "${CMAKE_CURRENT_BINARY_DIR}/$<TARGET_FILE_NAME:test_runtime>"
+        -b
+    )
+
+    # Add generated file to our sources so we depend on it, and thus trigger generation.
+    target_sources(
+        test_runtime
+        PRIVATE
+            "${PROJECT_BINARY_DIR}/src/conformance/conformance_cli/test_runtime.json"
+    )
+endif()

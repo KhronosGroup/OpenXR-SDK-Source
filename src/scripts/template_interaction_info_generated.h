@@ -53,11 +53,11 @@ enum class InteractionProfileAvailability {
 /// These are the actual generated availability expressions used by interaction profiles,
 /// indexed by InteractionProfileAvailability, so that repeated work identifying satisfied availability expressions
 /// can be minimized.
-static const std::array<Availability, /*{ availabilities | length }*/> kInteractionAvailabilities{
+static const std::array<Availability, /*{ availabilities | length }*/> kInteractionAvailabilities{{
 //# for sym, conjunctions in availabilities
      /*{ make_avail(conjunctions) | collapse_whitespace }*/,
 //# endfor
-};
+}};
 
 /// This is a generated list of all interaction profiles in the order returned by GetAllInteractionProfiles.
 enum class InteractionProfileIndex {

@@ -78,9 +78,9 @@ struct Options {
     }
 
     std::array<float, 4> GetBackgroundClearColor() const {
-        static const std::array<float, 4> SlateGrey{0.184313729f, 0.309803933f, 0.309803933f, 1.0f};
-        static const std::array<float, 4> TransparentBlack{0.0f, 0.0f, 0.0f, 0.0f};
-        static const std::array<float, 4> Black{0.0f, 0.0f, 0.0f, 1.0f};
+        static const std::array<float, 4> SlateGrey{{0.184313729f, 0.309803933f, 0.309803933f, 1.0f}};
+        static const std::array<float, 4> TransparentBlack{{0.0f, 0.0f, 0.0f, 0.0f}};
+        static const std::array<float, 4> Black{{0.0f, 0.0f, 0.0f, 1.0f}};
 
         switch (Parsed.EnvironmentBlendMode) {
             case XR_ENVIRONMENT_BLEND_MODE_OPAQUE:

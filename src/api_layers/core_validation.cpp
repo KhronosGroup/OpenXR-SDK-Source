@@ -674,35 +674,25 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrCreateSession(XrInstance instance
                 default:
                     break;
                 case XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR:
-                    num_graphics_bindings_found++;
-                    break;
 #ifdef XR_USE_PLATFORM_WIN32
                 case XR_TYPE_GRAPHICS_BINDING_OPENGL_WIN32_KHR:
                 case XR_TYPE_GRAPHICS_BINDING_D3D11_KHR:
                 case XR_TYPE_GRAPHICS_BINDING_D3D12_KHR:
-                    num_graphics_bindings_found++;
-                    break;
 #endif
 #if defined(XR_USE_PLATFORM_ANDROID)
                 case XR_TYPE_GRAPHICS_BINDING_OPENGL_ES_ANDROID_KHR:
-                    num_graphics_bindings_found++;
-                    break;
 #endif
 #ifdef XR_USE_PLATFORM_XLIB
                 case XR_TYPE_GRAPHICS_BINDING_OPENGL_XLIB_KHR:
-                    num_graphics_bindings_found++;
-                    break;
 #endif
 #ifdef XR_USE_PLATFORM_XCB
                 case XR_TYPE_GRAPHICS_BINDING_OPENGL_XCB_KHR:
-                    num_graphics_bindings_found++;
-                    break;
 #endif
 #ifdef XR_USE_PLATFORM_WAYLAND
                 case XR_TYPE_GRAPHICS_BINDING_OPENGL_WAYLAND_KHR:
+#endif
                     num_graphics_bindings_found++;
                     break;
-#endif
             }
             cur_ptr = reinterpret_cast<const XrBaseInStructure *>(cur_ptr->next);
         }

@@ -814,7 +814,7 @@ struct OpenXrProgram : IOpenXrProgram {
     bool IsSessionFocused() const override { return m_sessionState == XR_SESSION_STATE_FOCUSED; }
 
     void PollActions() override {
-        m_input.handActive = {XR_FALSE, XR_FALSE};
+        m_input.handActive = {{XR_FALSE, XR_FALSE}};
 
         // Sync actions
         const XrActiveActionSet activeActionSet{m_input.actionSet, XR_NULL_PATH};

@@ -36,10 +36,10 @@ new to building CMake-based projects. The instructions below can mostly be skimm
 ### Windows
 
 Building the OpenXR components in this tree on Windows is supported using Visual
-Studio 2013 and newer. If you are using Visual Studio 2019, you can simply "Open
+Studio 2017 and newer. If you are using Visual Studio 2019+, you can simply "Open
 folder" and use the built-in CMake support. Other environments, such as VS Code,
 that can have CMake support installed and use the Visual Studio toolchains,
-should also work:
+should also work.
 
 When generating the
 solutions/projects using CMake, be sure to use the correct compiler version
@@ -47,8 +47,6 @@ number. The following table is provided to help you:
 
 | Visual Studio        | Version Number |
 | -------------------- |:--------------:|
-| Visual Studio 2013   |       12       |
-| Visual Studio 2015   |       14       |
 | Visual Studio 2017   |       15       |
 | Visual Studio 2019   |       16       |
 | Visual Studio 2022   |       17       |
@@ -65,9 +63,9 @@ cmake -G "Visual Studio [Version Number] Win64" ../..
 
 Finally, open the build\win64\OPENXR.sln in the Visual Studio to build the samples.
 
-#### VS2019
+#### VS2019+
 
-For VS2019 the above may complain and say to split out the arch into `-A '[arch]'`.  This `-A` parameter must be set to `x64`, *not* `Win64`:
+For VS2019+ the above may complain and say to split out the arch into `-A '[arch]'`.  This `-A` parameter must be set to `x64`, *not* `Win64`:
 
 ```cmd
 mkdir build\win64

@@ -314,12 +314,6 @@ GLenum ksGpuContext_InternalSurfaceColorFormat(const ksGpuSurfaceColorFormat col
                               : ((colorFormat == KS_GPU_SURFACE_COLOR_FORMAT_B5G6R5) ? GL_RGB565 : GL_RGBA8))));
 }
 
-GLenum ksGpuContext_InternalSurfaceDepthFormat(const ksGpuSurfaceDepthFormat depthFormat) {
-    return ((depthFormat == KS_GPU_SURFACE_DEPTH_FORMAT_D16)
-                ? GL_DEPTH_COMPONENT16
-                : ((depthFormat == KS_GPU_SURFACE_DEPTH_FORMAT_D24) ? GL_DEPTH_COMPONENT24 : GL_DEPTH_COMPONENT24));
-}
-
 #if defined(OS_WINDOWS)
 
 static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevice *device, const int queueIndex,
