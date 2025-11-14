@@ -94,6 +94,7 @@ struct OpenXrProgram : IOpenXrProgram {
         : m_options(options),
           m_platformPlugin(platformPlugin),
           m_graphicsPlugin(graphicsPlugin),
+          m_ViewConfigType(m_options->Parsed.ViewConfigType),
           m_acceptableBlendModes{XR_ENVIRONMENT_BLEND_MODE_OPAQUE, XR_ENVIRONMENT_BLEND_MODE_ADDITIVE,
                                  XR_ENVIRONMENT_BLEND_MODE_ALPHA_BLEND} {}
 
@@ -222,7 +223,7 @@ struct OpenXrProgram : IOpenXrProgram {
         Log::Write(Log::Level::Info, Fmt("Available View Configuration Types: (%d)", viewConfigTypeCount));
         for (XrViewConfigurationType viewConfigType : viewConfigTypes) {
             Log::Write(Log::Level::Verbose, Fmt("  View Configuration Type: %s %s", to_string(viewConfigType),
-                                                viewConfigType == m_options->Parsed.ViewConfigType ? "(Selected)" : ""));
+                                                viewConfigType == m_ViewConfigType ? "(Selected)" : ""));
 
             XrViewConfigurationProperties viewConfigProperties{XR_TYPE_VIEW_CONFIGURATION_PROPERTIES};
             CHECK_XRCMD(xrGetViewConfigurationProperties(m_instance, m_systemId, viewConfigType, &viewConfigProperties));
@@ -280,12 +281,11 @@ struct OpenXrProgram : IOpenXrProgram {
 
     XrEnvironmentBlendMode GetPreferredBlendMode() const override {
         uint32_t count;
-        CHECK_XRCMD(xrEnumerateEnvironmentBlendModes(m_instance, m_systemId, m_options->Parsed.ViewConfigType, 0, &count, nullptr));
+        CHECK_XRCMD(xrEnumerateEnvironmentBlendModes(m_instance, m_systemId, m_ViewConfigType, 0, &count, nullptr));
         CHECK(count > 0);
 
         std::vector<XrEnvironmentBlendMode> blendModes(count);
-        CHECK_XRCMD(xrEnumerateEnvironmentBlendModes(m_instance, m_systemId, m_options->Parsed.ViewConfigType, count, &count,
-                                                     blendModes.data()));
+        CHECK_XRCMD(xrEnumerateEnvironmentBlendModes(m_instance, m_systemId, m_ViewConfigType, count, &count, blendModes.data()));
         for (const auto& blendMode : blendModes) {
             if (m_acceptableBlendModes.count(blendMode)) return blendMode;
         }
@@ -304,6 +304,8 @@ struct OpenXrProgram : IOpenXrProgram {
                    Fmt("Using system %d for form factor %s", m_systemId, to_string(m_options->Parsed.FormFactor)));
         CHECK(m_instance != XR_NULL_HANDLE);
         CHECK(m_systemId != XR_NULL_SYSTEM_ID);
+
+        determineFinalViewConfigurationType();
     }
 
     void InitializeDevice() override {
@@ -592,19 +594,12 @@ struct OpenXrProgram : IOpenXrProgram {
                                          systemProperties.trackingProperties.orientationTracking == XR_TRUE ? "True" : "False",
                                          systemProperties.trackingProperties.positionTracking == XR_TRUE ? "True" : "False"));
 
-        // Note: No other view configurations exist at the time this code was written. If this
-        // condition is not met, the project will need to be audited to see how support should be
-        // added.
-        CHECK_MSG(m_options->Parsed.ViewConfigType == XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO,
-                  "Unsupported view configuration type");
-
         // Query and cache view configuration views.
         uint32_t viewCount;
-        CHECK_XRCMD(
-            xrEnumerateViewConfigurationViews(m_instance, m_systemId, m_options->Parsed.ViewConfigType, 0, &viewCount, nullptr));
+        CHECK_XRCMD(xrEnumerateViewConfigurationViews(m_instance, m_systemId, m_ViewConfigType, 0, &viewCount, nullptr));
         m_configViews.resize(viewCount, {XR_TYPE_VIEW_CONFIGURATION_VIEW});
-        CHECK_XRCMD(xrEnumerateViewConfigurationViews(m_instance, m_systemId, m_options->Parsed.ViewConfigType, viewCount,
-                                                      &viewCount, m_configViews.data()));
+        CHECK_XRCMD(xrEnumerateViewConfigurationViews(m_instance, m_systemId, m_ViewConfigType, viewCount, &viewCount,
+                                                      m_configViews.data()));
 
         // Create and cache view buffer for xrLocateViews later.
         m_views.resize(viewCount, {XR_TYPE_VIEW});
@@ -744,7 +739,7 @@ struct OpenXrProgram : IOpenXrProgram {
             case XR_SESSION_STATE_READY: {
                 CHECK(m_session != XR_NULL_HANDLE);
                 XrSessionBeginInfo sessionBeginInfo{XR_TYPE_SESSION_BEGIN_INFO};
-                sessionBeginInfo.primaryViewConfigurationType = m_options->Parsed.ViewConfigType;
+                sessionBeginInfo.primaryViewConfigurationType = m_ViewConfigType;
                 CHECK_XRCMD(xrBeginSession(m_session, &sessionBeginInfo));
                 m_sessionRunning = true;
                 break;
@@ -898,7 +893,7 @@ struct OpenXrProgram : IOpenXrProgram {
         uint32_t viewCountOutput;
 
         XrViewLocateInfo viewLocateInfo{XR_TYPE_VIEW_LOCATE_INFO};
-        viewLocateInfo.viewConfigurationType = m_options->Parsed.ViewConfigType;
+        viewLocateInfo.viewConfigurationType = m_ViewConfigType;
         viewLocateInfo.displayTime = predictedDisplayTime;
         viewLocateInfo.space = m_appSpace;
 
@@ -994,6 +989,27 @@ struct OpenXrProgram : IOpenXrProgram {
     }
 
    private:
+    void determineFinalViewConfigurationType() {
+        CHECK(m_instance != XR_NULL_HANDLE);
+        CHECK(m_systemId != 0);
+
+        uint32_t viewConfigTypeCount;
+        CHECK_XRCMD(xrEnumerateViewConfigurations(m_instance, m_systemId, 0, &viewConfigTypeCount, nullptr));
+        std::vector<XrViewConfigurationType> viewConfigTypes(viewConfigTypeCount);
+        CHECK_XRCMD(xrEnumerateViewConfigurations(m_instance, m_systemId, viewConfigTypeCount, &viewConfigTypeCount,
+                                                  viewConfigTypes.data()));
+        CHECK((uint32_t)viewConfigTypes.size() == viewConfigTypeCount);
+
+        auto it = find(viewConfigTypes.begin(), viewConfigTypes.end(), m_ViewConfigType);
+        if (it == viewConfigTypes.end()) {
+            Log::Write(Log::Level::Warning, Fmt("Runtime not support xrViewConfigurationType(%d) which app expected, change to the "
+                                                "one the runtime prefers the application to use ",
+                                                m_ViewConfigType, viewConfigTypes.at(0)));
+            m_ViewConfigType = viewConfigTypes.at(0);
+        }
+    }
+
+   private:
     const std::shared_ptr<const Options> m_options;
     std::shared_ptr<IPlatformPlugin> m_platformPlugin;
     std::shared_ptr<IGraphicsPlugin> m_graphicsPlugin;
@@ -1001,6 +1017,8 @@ struct OpenXrProgram : IOpenXrProgram {
     XrSession m_session{XR_NULL_HANDLE};
     XrSpace m_appSpace{XR_NULL_HANDLE};
     XrSystemId m_systemId{XR_NULL_SYSTEM_ID};
+
+    XrViewConfigurationType m_ViewConfigType{XR_VIEW_CONFIGURATION_TYPE_PRIMARY_STEREO};
 
     std::vector<XrViewConfigurationView> m_configViews;
     std::vector<Swapchain> m_swapchains;
