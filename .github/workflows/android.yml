@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Get modern CMake and Ninja
-        uses: "lukka/get-cmake@v4.1.2"
+        uses: "lukka/get-cmake@v4.2.0"
 
       # Do this before building aar since it affects the version
       - name: Touch SNAPSHOT marker file
@@ -47,7 +47,7 @@ jobs:
     steps:
       - uses: "actions/checkout@v5"
       - name: "Get modern CMake and Ninja"
-        uses: "lukka/get-cmake@v4.1.2"
+        uses: "lukka/get-cmake@v4.2.0"
       - name: "set up JDK"
         uses: "actions/setup-java@v5"
         with:
