@@ -75,7 +75,7 @@ if(NOT ANDROID)
                 COMPONENT openxr_runtime_list_json
     )
 endif()
-if(NOT WIN32)
+if(NOT WIN32 AND NOT ANDROID)
     install(
         FILES openxr_runtime_list_json.1
         DESTINATION ${CMAKE_INSTALL_MANDIR}/man1/
