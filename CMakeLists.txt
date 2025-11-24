@@ -128,7 +128,7 @@ elseif(ANDROID AND INSTALL_TO_ARCHITECTURE_PREFIXES)
         )
     endif()
 
-elseif(NOT ANDROID)
+else()
     include(GNUInstallDirs)
 endif()
 
