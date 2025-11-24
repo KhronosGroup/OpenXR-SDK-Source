@@ -50,7 +50,7 @@ install(
     TARGETS openxr_runtime_list RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
                                         COMPONENT openxr_runtime_list
 )
-if(NOT WIN32)
+if(NOT WIN32 AND NOT ANDROID)
     install(
         FILES openxr_runtime_list.1
         DESTINATION ${CMAKE_INSTALL_MANDIR}/man1/
