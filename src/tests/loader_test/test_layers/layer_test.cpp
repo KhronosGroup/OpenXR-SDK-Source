@@ -105,6 +105,21 @@ static XRAPI_ATTR XrResult XRAPI_CALL LayerTestXrCreateApiLayerInstance(const Xr
 
 extern "C" {
 
+// forward decl
+LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoaderInfo *loaderInfo,
+                                                                               const char *layerName,
+                                                                               XrNegotiateApiLayerRequest *layerRequest);
+LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerAlwaysFailNegotiateLoaderApiLayerInterface(
+    const XrNegotiateLoaderInfo *loaderInfo, const char *layerName, XrNegotiateApiLayerRequest *layerRequest);
+LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerNullGipaNegotiateLoaderApiLayerInterface(
+    const XrNegotiateLoaderInfo *loaderInfo, const char *layerName, XrNegotiateApiLayerRequest *layerRequest);
+LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerInvalidInterfaceNegotiateLoaderApiLayerInterface(
+    const XrNegotiateLoaderInfo *loaderInfo, const char *layerName, XrNegotiateApiLayerRequest *layerRequest);
+LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerInvalidApiNegotiateLoaderApiLayerInterface(
+    const XrNegotiateLoaderInfo *loaderInfo, const char *layerName, XrNegotiateApiLayerRequest *layerRequest);
+LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerInvalidInterfaceNegotiateLoaderApiLayerInterface(
+    const XrNegotiateLoaderInfo *loaderInfo, const char *layerName, XrNegotiateApiLayerRequest *layerRequest);
+
 // Function used to negotiate an interface betewen the loader and a layer.  Each library exposing one or
 // more layers needs to expose at least this function.
 LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoaderInfo *loaderInfo,

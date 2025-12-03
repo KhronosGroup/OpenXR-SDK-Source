@@ -20,9 +20,12 @@ include(CheckCCompilerFlag)
 # vendors often have stricter compiler settings
 check_c_compiler_flag(-Wimplicit-fallthrough HAVE_IMPLICIT_FALLTHROUGH)
 check_c_compiler_flag(-Wundef HAVE_UNDEF)
-check_c_compiler_flag(-Wtautological-type-limit-compare HAVE_TAUTOLOGICAL_TYPE_LIMIT)
+check_c_compiler_flag(
+    -Wtautological-type-limit-compare HAVE_TAUTOLOGICAL_TYPE_LIMIT
+)
 check_c_compiler_flag(-Wmissing-braces HAVE_MISSING_BRACES)
 check_c_compiler_flag(-Wunreachable-code HAVE_UNREACHABLE_CODE)
+check_c_compiler_flag(-Wmissing-prototypes HAVE_MISSING_PROTOTYPES)
 
 if(HAVE_IMPLICIT_FALLTHROUGH)
     add_compile_options(-Werror=implicit-fallthrough)
@@ -39,8 +42,11 @@ endif()
 if(HAVE_UNREACHABLE_CODE)
     add_compile_options(-Werror=unreachable-code)
 endif()
+if(HAVE_MISSING_PROTOTYPES)
+    add_compile_options($<IF:$<COMPILE_LANGUAGE:C>,-Werror=missing-prototypes,>)
+endif()
 
-if (BUILD_SDK_TESTS)
+if(BUILD_SDK_TESTS)
     add_subdirectory(c_compile_test)
     add_subdirectory(hello_xr)
     add_subdirectory(list_json)

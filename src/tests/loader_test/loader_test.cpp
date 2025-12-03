@@ -46,7 +46,8 @@
 #include <catch2/catch_test_case_info.hpp>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_predicate.hpp>
-#include <catch2/internal/catch_clara.hpp>  // for customizing arg parsing
+#include <catch2/internal/catch_clara.hpp>       // for customizing arg parsing
+#include <catch2/internal/catch_stdstreams.hpp>  // for cout override
 #include <catch2/reporters/catch_reporter_event_listener.hpp>
 #include <catch2/reporters/catch_reporter_registrars.hpp>
 
@@ -187,7 +188,7 @@ static const char* const* base_extension_names = nullptr;
 static const uint32_t base_extension_count = 0;
 #endif  // defined(XR_USE_PLATFORM_ANDROID)
 
-void CleanupEnvironmentVariables() {
+static void CleanupEnvironmentVariables() {
 #if defined(XR_USE_PLATFORM_ANDROID)
     // env var override is not available on Android.
 #else
@@ -198,7 +199,7 @@ void CleanupEnvironmentVariables() {
 
 // The loader will keep a runtime loaded after a successful xrEnumerateInstanceExtensionProperties call until an instance is created
 // and destroyed.
-void ForceLoaderUnloadRuntime() {
+static void ForceLoaderUnloadRuntime() {
     XrInstance instance;
     XrInstanceCreateInfo instance_create_info{XR_TYPE_INSTANCE_CREATE_INFO};
     strcpy(instance_create_info.applicationInfo.applicationName, "Force Unload");
@@ -212,7 +213,7 @@ void ForceLoaderUnloadRuntime() {
     }
 }
 
-bool DetectInstalledRuntime() {
+static bool DetectInstalledRuntime() {
     bool runtime_found = false;
     uint32_t ext_count = 0;
 
@@ -234,7 +235,7 @@ bool DetectInstalledRuntime() {
     return runtime_found;
 }
 
-std::string to_string(const XrResult& value) {
+static std::string to_string(const XrResult& value) {
 #define XR_ENUM_CASE_STR(name, val) \
     case val:                       \
         return #name;

@@ -216,6 +216,7 @@ getSDKSourceFilenames() {
         src/external/catch2 \
         src/external/metal-cpp \
         src/external/sanitizers-cmake \
+        src/external/span-lite \
         src/loader \
         src/scripts \
         src/tests \
@@ -298,7 +299,6 @@ getConformanceFilenames() {
         changes/README.md \
         changes/template.md \
         changes/.markdownlint.yaml \
-        changes/registry \
         changes/conformance \
         external/ \
         github/conformance/ \

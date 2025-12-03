@@ -19,6 +19,7 @@ set(LOCAL_HEADERS
     check.h
     common.h
     d3d_common.h
+    d3d12_utils.h
     geometry.h
     graphicsapi.h
     graphicsplugin.h
@@ -28,9 +29,12 @@ set(LOCAL_HEADERS
     pch.h
     platformdata.h
     platformplugin.h
+    swapchain_image_data.h
+    vulkan_utils.h
 )
 set(LOCAL_SOURCE
     d3d_common.cpp
+    d3d12_utils.cpp
     graphicsplugin_d3d11.cpp
     graphicsplugin_d3d12.cpp
     graphicsplugin_factory.cpp
@@ -46,6 +50,7 @@ set(LOCAL_SOURCE
     platformplugin_factory.cpp
     platformplugin_posix.cpp
     platformplugin_win32.cpp
+    swapchain_image_data.cpp
 )
 set(VULKAN_SHADERS vulkan_shaders/frag.glsl vulkan_shaders/vert.glsl)
 
@@ -115,6 +120,8 @@ target_include_directories(
         "${PROJECT_SOURCE_DIR}/src/external/metal-cpp"
         # For including compiled shaders
         "${CMAKE_CURRENT_BINARY_DIR}"
+        # Backport of std::span functionality to pre-C++17
+        ${PROJECT_SOURCE_DIR}/src/external/span-lite/include
 )
 
 target_link_libraries(hello_xr PRIVATE OpenXR::openxr_loader)

@@ -13,7 +13,7 @@ jobs:
       image: khronosgroup/docker-images:openxr.20240924@sha256:3d595e68d21b2bba12cb7bbfa8cb135f66a2d9b97efeda6de3c6c8412163c4b7
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           lfs: true
 
@@ -28,7 +28,7 @@ jobs:
         if: ${{ failure() }}
       - name: Publish diff
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           path: ${{ runner.temp }}/clang-format.patch
           name: clang-format-changes

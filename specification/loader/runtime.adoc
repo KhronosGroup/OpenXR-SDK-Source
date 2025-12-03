@@ -139,8 +139,6 @@ authorities:
   This should not be installed or modified by vendors: it will be
   distributed through typical end-user channels for application packages and
   is intended for user-controlled installable (e.g. plug-in) devices.
-  Read access is guarded by a permission of "normal" protection level named
-  `org.khronos.openxr.permission.OPENXR`.
 * `org.khronos.openxr.system_runtime_broker` - This may be provided by
   vendors in system-installed packages.
   Read access is guarded by a permission of "normal" protection level named

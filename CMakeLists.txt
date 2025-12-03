@@ -48,6 +48,14 @@ if(BUILD_FORCE_GENERATION AND NOT Python3_EXECUTABLE)
     message(FATAL_ERROR "BUILD_FORCE_GENERATION requires Python")
 endif()
 
+if(MSVC)
+    option(
+        INSTALL_SYMBOLS
+        "Install the .pdb debug symbols, if applicable, when installing binaries"
+        ON
+    )
+endif()
+
 string(TOUPPER "${CMAKE_GENERATOR_PLATFORM}" CMAKE_GENERATOR_PLATFORM_UPPER)
 
 # Artifact organization

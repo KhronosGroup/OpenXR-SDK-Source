@@ -70,3 +70,11 @@ inline HRESULT CheckHResult(HRESULT hr, const char* originator = nullptr, const 
 #define CHECK_HRESULT(res, cmdStr) CheckHResult(res, cmdStr, FILE_AND_LINE);
 
 #endif
+
+// Compatibility defines to keep code similar to CTS code
+#define XRC_FILE_AND_LINE FILE_AND_LINE
+#define XRC_THROW THROW
+#define XRC_CHECK_THROW CHECK
+#define XRC_CHECK_THROW_MSG CHECK_MSG
+#define XRC_CHECK_THROW_XRCMD CHECK_XRCMD
+#define XRC_CHECK_THROW_HRCMD CHECK_HRCMD

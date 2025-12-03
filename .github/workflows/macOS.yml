@@ -24,9 +24,9 @@ jobs:
     runs-on: ${{ matrix.device }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: "Get modern CMake and Ninja"
-        uses: "lukka/get-cmake@v4.1.2"
+        uses: "lukka/get-cmake@v4.2.0"
       - name: Prepare Vulkan SDK
         uses: humbletim/setup-vulkan-sdk@v1.2.1
         with:

@@ -8,16 +8,6 @@
 #define UNUSED_PARM(x) \
     { (void)(x); }
 
-// Implementation in platformplugin_win32.cpp
-std::shared_ptr<IPlatformPlugin> CreatePlatformPlugin_Win32(const std::shared_ptr<Options>& options);
-
-// Implementation in platformplugin_posix.cpp
-std::shared_ptr<IPlatformPlugin> CreatePlatformPlugin_Posix(const std::shared_ptr<Options>& options);
-
-// Implementation in platformplugin_android.cpp
-std::shared_ptr<IPlatformPlugin> CreatePlatformPlugin_Android(const std::shared_ptr<Options>& /*unused*/,
-                                                              const std::shared_ptr<PlatformData>& /*unused*/);
-
 std::shared_ptr<IPlatformPlugin> CreatePlatformPlugin(const std::shared_ptr<Options>& options,
                                                       const std::shared_ptr<PlatformData>& data) {
 #if !defined(XR_USE_PLATFORM_ANDROID)

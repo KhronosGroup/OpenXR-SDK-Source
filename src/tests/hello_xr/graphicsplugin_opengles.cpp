@@ -6,12 +6,26 @@
 #include "common.h"
 #include "geometry.h"
 #include "graphicsplugin.h"
+#include "graphics_plugin_impl_helpers.h"
 #include "options.h"
 
 #ifdef XR_USE_GRAPHICS_API_OPENGL_ES
 
 #include "common/gfxwrapper_opengl.h"
 #include <common/xr_linear.h>
+
+#define GL(glcmd)                                                                                                    \
+    {                                                                                                                \
+        GLint err = glGetError();                                                                                    \
+        if (err != GL_NO_ERROR) {                                                                                    \
+            Log::Write(Log::Level::Error, Fmt("GLES error=%d, %s:%d", err, __FUNCTION__, __LINE__));                 \
+        }                                                                                                            \
+        glcmd;                                                                                                       \
+        err = glGetError();                                                                                          \
+        if (err != GL_NO_ERROR) {                                                                                    \
+            Log::Write(Log::Level::Error, Fmt("GLES error=%d, cmd=%s, %s:%d", err, #glcmd, __FUNCTION__, __LINE__)); \
+        }                                                                                                            \
+    }
 
 namespace {
 
@@ -205,43 +219,126 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         }
     }
 
-    int64_t SelectColorSwapchainFormat(const std::vector<int64_t>& runtimeFormats) const override {
+    // Select the preferred swapchain format from the list of available formats.
+    int64_t SelectColorSwapchainFormat(bool throwIfNotFound, span<const int64_t> imageFormatArray) const override {
         // List of supported color swapchain formats.
-        std::vector<int64_t> supportedColorSwapchainFormats{GL_RGBA8, GL_RGBA8_SNORM};
+        // The order of this list does not effect the priority of selecting formats, the runtime list defines that.
+        return SelectSwapchainFormat(  //
+            throwIfNotFound, imageFormatArray,
+            {
+                GL_RGB10_A2,
+                GL_RGBA16,
+                GL_RGBA16F,
+                GL_RGBA32F,
 
-        // In OpenGLES 3.0+, the R, G, and B values after blending are converted into the non-linear
-        // sRGB automatically.
-        if (m_contextApiMajorVersion >= 3) {
-            supportedColorSwapchainFormats.push_back(GL_SRGB8_ALPHA8);
-        }
+                // The two below should only be used as a fallback, as they are linear color formats without enough bits for color
+                // depth, thus leading to banding.
+                GL_RGBA8,
+                GL_SRGB8_ALPHA8,
+            });
+    }
 
-        auto swapchainFormatIt = std::find_first_of(runtimeFormats.begin(), runtimeFormats.end(),
-                                                    supportedColorSwapchainFormats.begin(), supportedColorSwapchainFormats.end());
-        if (swapchainFormatIt == runtimeFormats.end()) {
-            THROW("No runtime swapchain format supported for color swapchain");
-        }
-
-        return *swapchainFormatIt;
+    int64_t SelectDepthSwapchainFormat(bool throwIfNotFound, span<const int64_t> imageFormatArray) const override {
+        // List of supported depth swapchain formats.
+        return SelectSwapchainFormat(  //
+            throwIfNotFound, imageFormatArray,
+            {
+                GL_DEPTH24_STENCIL8,
+                GL_DEPTH_COMPONENT24,
+                GL_DEPTH_COMPONENT16,
+                GL_DEPTH_COMPONENT32F,
+            });
     }
 
     const XrBaseInStructure* GetGraphicsBinding() const override {
         return reinterpret_cast<const XrBaseInStructure*>(&m_graphicsBinding);
     }
 
-    std::vector<XrSwapchainImageBaseHeader*> AllocateSwapchainImageStructs(
-        uint32_t capacity, const XrSwapchainCreateInfo& /*swapchainCreateInfo*/) override {
-        // Allocate and initialize the buffer of image structs (must be sequential in memory for xrEnumerateSwapchainImages).
-        // Return back an array of pointers to each swapchain image struct so the consumer doesn't need to know the type/size.
-        std::vector<XrSwapchainImageOpenGLESKHR> swapchainImageBuffer(capacity, {XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR});
-        std::vector<XrSwapchainImageBaseHeader*> swapchainImageBase;
-        for (XrSwapchainImageOpenGLESKHR& image : swapchainImageBuffer) {
-            swapchainImageBase.push_back(reinterpret_cast<XrSwapchainImageBaseHeader*>(&image));
+    struct OpenGLESFallbackDepthTexture {
+       public:
+        OpenGLESFallbackDepthTexture() = default;
+        ~OpenGLESFallbackDepthTexture() { Reset(); }
+        void Reset() {
+            if (Allocated()) {
+                GL(glDeleteTextures(1, &m_texture));
+            }
+            m_texture = 0;
+            m_xrImage.image = 0;
+        }
+        bool Allocated() const { return m_texture != 0; }
+
+        void Allocate(GLuint width, GLuint height, uint32_t arraySize) {
+            Reset();
+            const bool isArray = arraySize > 1;
+            GLenum target = isArray ? GL_TEXTURE_2D_ARRAY : GL_TEXTURE_2D;
+            GL(glGenTextures(1, &m_texture));
+            GL(glBindTexture(target, m_texture));
+            GL(glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+            GL(glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+            GL(glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+            GL(glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+            if (isArray) {
+                GL(glTexImage3D(target, 0, GL_DEPTH_COMPONENT24, width, height, arraySize, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT,
+                                nullptr));
+            } else {
+                GL(glTexImage2D(target, 0, GL_DEPTH_COMPONENT24, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr));
+            }
+            m_xrImage.image = m_texture;
+        }
+        const XrSwapchainImageOpenGLESKHR& GetTexture() const { return m_xrImage; }
+
+       private:
+        uint32_t m_texture{0};
+        XrSwapchainImageOpenGLESKHR m_xrImage{XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR, NULL, 0};
+    };
+
+    class OpenGLESSwapchainImageData : public SwapchainImageDataBase<XrSwapchainImageOpenGLESKHR> {
+       public:
+        OpenGLESSwapchainImageData(uint32_t capacity, const XrSwapchainCreateInfo& createInfo)
+            : SwapchainImageDataBase(XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR, capacity, createInfo),
+              m_internalDepthTextures(capacity) {}
+
+        OpenGLESSwapchainImageData(uint32_t capacity, const XrSwapchainCreateInfo& createInfo, XrSwapchain depthSwapchain,
+                                   const XrSwapchainCreateInfo& depthCreateInfo)
+            : SwapchainImageDataBase(XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_ES_KHR, capacity, createInfo, depthSwapchain, depthCreateInfo) {
         }
 
-        // Keep the buffer alive by moving it into the list of buffers.
-        m_swapchainImageBuffers.push_back(std::move(swapchainImageBuffer));
+       protected:
+        const XrSwapchainImageOpenGLESKHR& GetFallbackDepthSwapchainImage(uint32_t i) override {
+            if (!m_internalDepthTextures[i].Allocated()) {
+                m_internalDepthTextures[i].Allocate(this->Width(), this->Height(), this->ArraySize());
+            }
 
-        return swapchainImageBase;
+            return m_internalDepthTextures[i].GetTexture();
+        }
+
+       private:
+        std::vector<OpenGLESFallbackDepthTexture> m_internalDepthTextures;
+    };
+
+    ISwapchainImageData* AllocateSwapchainImageData(size_t size, const XrSwapchainCreateInfo& swapchainCreateInfo) override {
+        auto typedResult = std::make_unique<OpenGLESSwapchainImageData>(uint32_t(size), swapchainCreateInfo);
+
+        // Cast our derived type to the caller-expected type.
+        auto ret = static_cast<ISwapchainImageData*>(typedResult.get());
+
+        m_swapchainImageDataMap.Adopt(std::move(typedResult));
+
+        return ret;
+    }
+
+    inline ISwapchainImageData* AllocateSwapchainImageDataWithDepthSwapchain(
+        size_t size, const XrSwapchainCreateInfo& colorSwapchainCreateInfo, XrSwapchain depthSwapchain,
+        const XrSwapchainCreateInfo& depthSwapchainCreateInfo) override {
+        auto typedResult = std::make_unique<OpenGLESSwapchainImageData>(uint32_t(size), colorSwapchainCreateInfo, depthSwapchain,
+                                                                        depthSwapchainCreateInfo);
+
+        // Cast our derived type to the caller-expected type.
+        auto ret = static_cast<ISwapchainImageData*>(typedResult.get());
+
+        m_swapchainImageDataMap.Adopt(std::move(typedResult));
+
+        return ret;
     }
 
     uint32_t GetDepthTexture(uint32_t colorTexture) {
@@ -345,7 +442,7 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
     XrGraphicsBindingOpenGLESAndroidKHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_OPENGL_ES_ANDROID_KHR};
 #endif
 
-    std::list<std::vector<XrSwapchainImageOpenGLESKHR>> m_swapchainImageBuffers;
+    SwapchainImageDataMap<OpenGLESSwapchainImageData> m_swapchainImageDataMap;
     GLuint m_swapchainFramebuffer{0};
     GLuint m_program{0};
     GLint m_modelViewProjectionUniformLocation{0};

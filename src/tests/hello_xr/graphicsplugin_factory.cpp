@@ -10,35 +10,6 @@
 #include "platformdata.h"
 #include "graphicsplugin.h"
 
-// Graphics API factories are forward declared here.
-#ifdef XR_USE_GRAPHICS_API_OPENGL_ES
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_OpenGLES(const std::shared_ptr<Options>& options,
-                                                               std::shared_ptr<IPlatformPlugin> platformPlugin);
-#endif
-#ifdef XR_USE_GRAPHICS_API_OPENGL
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_OpenGL(const std::shared_ptr<Options>& options,
-                                                             std::shared_ptr<IPlatformPlugin> platformPlugin);
-#endif
-#ifdef XR_USE_GRAPHICS_API_VULKAN
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_VulkanLegacy(const std::shared_ptr<Options>& options,
-                                                                   std::shared_ptr<IPlatformPlugin> platformPlugin);
-
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Vulkan(const std::shared_ptr<Options>& options,
-                                                             std::shared_ptr<IPlatformPlugin> platformPlugin);
-#endif
-#ifdef XR_USE_GRAPHICS_API_D3D11
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_D3D11(const std::shared_ptr<Options>& options,
-                                                            std::shared_ptr<IPlatformPlugin> platformPlugin);
-#endif
-#ifdef XR_USE_GRAPHICS_API_D3D12
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_D3D12(const std::shared_ptr<Options>& options,
-                                                            std::shared_ptr<IPlatformPlugin> platformPlugin);
-#endif
-#ifdef XR_USE_GRAPHICS_API_METAL
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Metal(const std::shared_ptr<Options>& options,
-                                                            std::shared_ptr<IPlatformPlugin> platformPlugin);
-#endif
-
 namespace {
 using GraphicsPluginFactory = std::function<std::shared_ptr<IGraphicsPlugin>(const std::shared_ptr<Options>& options,
                                                                              std::shared_ptr<IPlatformPlugin> platformPlugin)>;

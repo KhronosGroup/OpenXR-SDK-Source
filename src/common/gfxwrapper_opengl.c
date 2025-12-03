@@ -267,8 +267,8 @@ GPU Context.
 ================================================================================================================================
 */
 
-ksGpuSurfaceBits ksGpuContext_BitsForSurfaceFormat(const ksGpuSurfaceColorFormat colorFormat,
-                                                   const ksGpuSurfaceDepthFormat depthFormat) {
+static ksGpuSurfaceBits ksGpuContext_BitsForSurfaceFormat(const ksGpuSurfaceColorFormat colorFormat,
+                                                          const ksGpuSurfaceDepthFormat depthFormat) {
     ksGpuSurfaceBits bits;
     bits.redBits = ((colorFormat == KS_GPU_SURFACE_COLOR_FORMAT_R8G8B8A8)
                         ? 8
@@ -302,16 +302,6 @@ ksGpuSurfaceBits ksGpuContext_BitsForSurfaceFormat(const ksGpuSurfaceColorFormat
     bits.depthBits =
         ((depthFormat == KS_GPU_SURFACE_DEPTH_FORMAT_D16) ? 16 : ((depthFormat == KS_GPU_SURFACE_DEPTH_FORMAT_D24) ? 24 : 0));
     return bits;
-}
-
-GLenum ksGpuContext_InternalSurfaceColorFormat(const ksGpuSurfaceColorFormat colorFormat) {
-    return ((colorFormat == KS_GPU_SURFACE_COLOR_FORMAT_R8G8B8A8)
-                ? GL_RGBA8
-                : ((colorFormat == KS_GPU_SURFACE_COLOR_FORMAT_B8G8R8A8)
-                       ? GL_RGBA8
-                       : ((colorFormat == KS_GPU_SURFACE_COLOR_FORMAT_R5G6B5)
-                              ? GL_RGB565
-                              : ((colorFormat == KS_GPU_SURFACE_COLOR_FORMAT_B5G6R5) ? GL_RGB565 : GL_RGBA8))));
 }
 
 #if defined(OS_WINDOWS)
@@ -1219,7 +1209,7 @@ typedef enum {
 
 typedef enum { MOUSE_LEFT = 0, MOUSE_RIGHT = 1 } ksMouseButton;
 
-LRESULT APIENTRY WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
+static LRESULT APIENTRY WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
     ksGpuWindow *window = (ksGpuWindow *)GetWindowLongPtrA(hWnd, GWLP_USERDATA);
 
     switch (message) {

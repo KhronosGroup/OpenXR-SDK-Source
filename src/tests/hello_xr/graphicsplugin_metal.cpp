@@ -6,6 +6,7 @@
 #include "common.h"
 #include "geometry.h"
 #include "graphicsplugin.h"
+#include "graphics_plugin_impl_helpers.h"
 #include "options.h"
 
 #if defined(XR_USE_GRAPHICS_API_METAL)
@@ -138,55 +139,180 @@ struct MetalGraphicsPlugin : public IGraphicsPlugin {
     }
 
     void DestroyBuffers() {
-        m_swapchainContextMap.clear();
+        m_swapchainImageDataMap.Clear();  // XXX CHECK IF THIS IS RIGHT
         m_cubeVerticesBuffer.reset();
         m_cubeIndicesBuffer.reset();
     }
 
-    int64_t SelectColorSwapchainFormat(const std::vector<int64_t>& runtimeFormats) const override {
+    int64_t SelectColorSwapchainFormat(bool throwIfNotFound, span<const int64_t> imageFormatArray) const override {
         // List of supported color swapchain formats.
-        constexpr MTL::PixelFormat SupportedColorSwapchainFormats[] = {MTL::PixelFormatRGBA8Unorm_sRGB, MTL::PixelFormatRGBA8Unorm};
+        return SelectSwapchainFormat(  //
+            throwIfNotFound, imageFormatArray,
+            {
+                MTL::PixelFormatRGBA8Unorm_sRGB,
+                MTL::PixelFormatBGRA8Unorm_sRGB,
+                MTL::PixelFormatRGBA8Unorm,
+                MTL::PixelFormatBGRA8Unorm,
+            });
+    }
 
-        auto swapchainFormatIt =
-            std::find_first_of(runtimeFormats.begin(), runtimeFormats.end(), std::begin(SupportedColorSwapchainFormats),
-                               std::end(SupportedColorSwapchainFormats));
-        if (swapchainFormatIt == runtimeFormats.end()) {
-            THROW("No runtime swapchain format supported for color swapchain");
-        }
-
-        return *swapchainFormatIt;
+    int64_t SelectDepthSwapchainFormat(bool throwIfNotFound, span<const int64_t> imageFormatArray) const override {
+        // List of supported depth swapchain formats.
+        return SelectSwapchainFormat(  //
+            throwIfNotFound, imageFormatArray,
+            {
+                MTL::PixelFormatDepth32Float,
+                MTL::PixelFormatDepth24Unorm_Stencil8,
+                MTL::PixelFormatDepth16Unorm,
+                MTL::PixelFormatDepth32Float_Stencil8,
+            });
     }
 
     const XrBaseInStructure* GetGraphicsBinding() const override {
         return reinterpret_cast<const XrBaseInStructure*>(&m_graphicsBinding);
     }
 
-    std::vector<XrSwapchainImageBaseHeader*> AllocateSwapchainImageStructs(
-        uint32_t capacity, const XrSwapchainCreateInfo& /*swapchainCreateInfo*/) override {
-        // Allocate and initialize the buffer of image structs (must be sequential in memory for xrEnumerateSwapchainImages).
-        // Return back an array of pointers to each swapchain image struct so the consumer doesn't need to know the type/size.
-        std::vector<XrSwapchainImageMetalKHR> swapchainImageBuffer(capacity);
-        std::vector<XrSwapchainImageBaseHeader*> swapchainImageBase;
-        for (XrSwapchainImageMetalKHR& image : swapchainImageBuffer) {
-            image.type = XR_TYPE_SWAPCHAIN_IMAGE_METAL_KHR;
-            swapchainImageBase.push_back(reinterpret_cast<XrSwapchainImageBaseHeader*>(&image));
+    struct MetalFallbackDepthTexture {
+       public:
+        MetalFallbackDepthTexture() = default;
+
+        void Reset() {
+            m_texture.reset();
+            m_xrImage.texture = nullptr;
+        }
+        bool Allocated() const { return m_texture.operator bool(); }
+
+        void Allocate(MTL::Device* metalDevice, uint32_t width, uint32_t height, uint32_t arraySize, uint32_t sampleCount) {
+            Reset();
+
+            MTL::TextureDescriptor* desc =
+                MTL::TextureDescriptor::texture2DDescriptor(GetDefaultDepthFormat(), width, height, false);
+            if (sampleCount > 1) {
+                if (arraySize > 1) {
+                    desc->setTextureType(MTL::TextureType2DMultisampleArray);
+                    desc->setArrayLength(arraySize);
+                } else {
+                    desc->setTextureType(MTL::TextureType2DMultisample);
+                }
+                desc->setSampleCount(sampleCount);
+            } else {
+                if (arraySize > 1) {
+                    desc->setTextureType(MTL::TextureType2DArray);
+                    desc->setArrayLength(arraySize);
+                } else {
+                    desc->setTextureType(MTL::TextureType2D);
+                }
+            }
+            desc->setUsage(MTL::TextureUsageRenderTarget);
+            desc->setStorageMode(MTL::StorageModePrivate);  // to be compatible with Intel-based Mac
+            m_texture = NS::TransferPtr(metalDevice->newTexture(desc));
+            XRC_CHECK_THROW(m_texture);
+            m_xrImage.texture = m_texture.get();
         }
 
-        // Keep the buffer alive by moving it into the list of buffers.
-        m_swapchainImageBuffers.push_back(std::move(swapchainImageBuffer));
+        const XrSwapchainImageMetalKHR& GetTexture() const { return m_xrImage; }
 
-        for (auto imageBaseHeader : swapchainImageBase) {
-            m_swapchainContextMap.insert({imageBaseHeader, SwapchainContext()});
+        static MTL::PixelFormat GetDefaultDepthFormat() { return MTL::PixelFormatDepth32Float; }
+
+       private:
+        NS::SharedPtr<MTL::Texture> m_texture{};
+        XrSwapchainImageMetalKHR m_xrImage{XR_TYPE_SWAPCHAIN_IMAGE_METAL_KHR, NULL, nullptr};
+    };
+
+    struct SwapchainContext {
+        NS::SharedPtr<MTL::Buffer> m_cubeMatricesBuffer;
+    };
+
+    class MetalSwapchainImageData : public SwapchainImageDataBase<XrSwapchainImageMetalKHR> {
+       public:
+        MetalSwapchainImageData(NS::SharedPtr<MTL::Device> device, uint32_t capacity, const XrSwapchainCreateInfo& createInfo,
+                                XrSwapchain depthSwapchain, const XrSwapchainCreateInfo& depthCreateInfo)
+            : SwapchainImageDataBase(XR_TYPE_SWAPCHAIN_IMAGE_METAL_KHR, capacity, createInfo, depthSwapchain, depthCreateInfo),
+              m_device(device) {}
+        MetalSwapchainImageData(NS::SharedPtr<MTL::Device> device, uint32_t capacity, const XrSwapchainCreateInfo& createInfo)
+            : SwapchainImageDataBase(XR_TYPE_SWAPCHAIN_IMAGE_METAL_KHR, capacity, createInfo),
+              m_device(device),
+              m_internalDepthTextures(capacity) {}
+
+        void Reset() override {
+            m_pipelineStateObject.reset();
+            m_internalDepthTextures.clear();
+            m_device.reset();
+            SwapchainImageDataBase::Reset();
         }
 
-        return swapchainImageBase;
+        const XrSwapchainImageMetalKHR& GetFallbackDepthSwapchainImage(uint32_t i) override {
+            if (!m_internalDepthTextures[i].Allocated()) {
+                m_internalDepthTextures[i].Allocate(m_device.get(), this->Width(), this->Height(), this->ArraySize(),
+                                                    this->DepthSampleCount());
+            }
+
+            return m_internalDepthTextures[i].GetTexture();
+        }
+
+        NS::SharedPtr<MTL::RenderPipelineState> GetPipelineStateObject(NS::SharedPtr<MTL::Function> vertexFunction,
+                                                                       NS::SharedPtr<MTL::Function> fragmentFunction) {
+            if (!m_pipelineStateObject || vertexFunction != m_cachedVertexFunction ||
+                fragmentFunction != m_cachedFragmentFunction) {
+                auto pDesc = NS::TransferPtr(MTL::RenderPipelineDescriptor::alloc()->init());
+                pDesc->setVertexFunction(vertexFunction.get());
+                pDesc->setFragmentFunction(fragmentFunction.get());
+                pDesc->colorAttachments()->object(0)->setPixelFormat((MTL::PixelFormat)GetCreateInfo().format);
+                pDesc->setDepthAttachmentPixelFormat(GetDepthCreateInfo() ? (MTL::PixelFormat)GetDepthCreateInfo()->format
+                                                                          : MetalFallbackDepthTexture::GetDefaultDepthFormat());
+
+                NS::Error* pError = nullptr;
+                m_pipelineStateObject = NS::TransferPtr(m_device->newRenderPipelineState(pDesc.get(), &pError));
+                XRC_CHECK_THROW(m_pipelineStateObject);
+                m_cachedVertexFunction = vertexFunction;
+                m_cachedFragmentFunction = fragmentFunction;
+            }
+            return m_pipelineStateObject;
+        }
+
+        SwapchainContext swapchainContext;
+
+       private:
+        NS::SharedPtr<MTL::Device> m_device;
+        std::vector<MetalFallbackDepthTexture> m_internalDepthTextures;
+        NS::SharedPtr<MTL::Function> m_cachedVertexFunction;
+        NS::SharedPtr<MTL::Function> m_cachedFragmentFunction;
+        NS::SharedPtr<MTL::RenderPipelineState> m_pipelineStateObject;
+    };
+
+    ISwapchainImageData* AllocateSwapchainImageData(size_t size, const XrSwapchainCreateInfo& swapchainCreateInfo) override {
+        auto typedResult = std::make_unique<MetalSwapchainImageData>(m_device, uint32_t(size), swapchainCreateInfo);
+
+        // XXX TODO DOES SWAPCHAINCONTEXT need to be initialized?
+
+        // Cast our derived type to the caller-expected type.
+        auto ret = static_cast<ISwapchainImageData*>(typedResult.get());
+
+        m_swapchainImageDataMap.Adopt(std::move(typedResult));
+
+        return ret;
+    }
+
+    ISwapchainImageData* AllocateSwapchainImageDataWithDepthSwapchain(
+        size_t size, const XrSwapchainCreateInfo& colorSwapchainCreateInfo, XrSwapchain depthSwapchain,
+        const XrSwapchainCreateInfo& depthSwapchainCreateInfo) override {
+        auto typedResult = std::make_unique<MetalSwapchainImageData>(m_device, uint32_t(size), colorSwapchainCreateInfo,
+                                                                     depthSwapchain, depthSwapchainCreateInfo);
+
+        // Cast our derived type to the caller-expected type.
+        auto ret = static_cast<ISwapchainImageData*>(typedResult.get());
+
+        m_swapchainImageDataMap.Adopt(std::move(typedResult));
+
+        return ret;
     }
 
     void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
                     int64_t swapchainFormat, const std::vector<Cube>& cubes) override {
         auto pAutoReleasePool = NS::TransferPtr(NS::AutoreleasePool::alloc()->init());
 
-        SwapchainContext& swapchainContext = m_swapchainContextMap[swapchainImage];
+        SwapchainContext& swapchainContext =
+            m_swapchainImageDataMap.GetDataAndIndexFromBasePointer(swapchainImage).first->swapchainContext;
 
         auto mtlSwapchainFormat = (MTL::PixelFormat)swapchainFormat;
         if (mtlSwapchainFormat != m_colorAttachmentFormat) {
@@ -308,10 +434,7 @@ struct MetalGraphicsPlugin : public IGraphicsPlugin {
     XrGraphicsBindingMetalKHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_METAL_KHR};
     std::list<std::vector<XrSwapchainImageMetalKHR>> m_swapchainImageBuffers;
 
-    struct SwapchainContext {
-        NS::SharedPtr<MTL::Buffer> m_cubeMatricesBuffer;
-    };
-    std::map<const XrSwapchainImageBaseHeader*, SwapchainContext> m_swapchainContextMap;
+    SwapchainImageDataMap<MetalSwapchainImageData> m_swapchainImageDataMap;
 
     NS::SharedPtr<MTL::Texture> m_depthStencilTexture;
 

@@ -7,6 +7,8 @@
 #include "geometry.h"
 #include "graphicsplugin.h"
 #include "options.h"
+#include "graphics_plugin_impl_helpers.h"
+#include "check.h"
 
 #if defined(XR_USE_GRAPHICS_API_D3D12)
 
@@ -15,6 +17,7 @@
 #include <D3Dcompiler.h>
 
 #include "d3d_common.h"
+#include "d3d12_utils.h"
 
 using namespace Microsoft::WRL;
 using namespace DirectX;
@@ -284,45 +287,180 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         WaitForGpu();
     }
 
-    int64_t SelectColorSwapchainFormat(const std::vector<int64_t>& runtimeFormats) const override {
+    // Select the preferred swapchain format from the list of available formats.
+    int64_t SelectColorSwapchainFormat(bool throwIfNotFound, span<const int64_t> imageFormatArray) const override {
         // List of supported color swapchain formats.
-        constexpr DXGI_FORMAT SupportedColorSwapchainFormats[] = {
-            DXGI_FORMAT_R8G8B8A8_UNORM,
-            DXGI_FORMAT_B8G8R8A8_UNORM,
-            DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
-            DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
-        };
+        return SelectSwapchainFormat(  //
+            throwIfNotFound, imageFormatArray,
+            {
+                DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
+                DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
+                DXGI_FORMAT_R8G8B8A8_UNORM,
+                DXGI_FORMAT_B8G8R8A8_UNORM,
+            });
+    }
 
-        auto swapchainFormatIt =
-            std::find_first_of(runtimeFormats.begin(), runtimeFormats.end(), std::begin(SupportedColorSwapchainFormats),
-                               std::end(SupportedColorSwapchainFormats));
-        if (swapchainFormatIt == runtimeFormats.end()) {
-            THROW("No runtime swapchain format supported for color swapchain");
-        }
-
-        return *swapchainFormatIt;
+    // Select the preferred swapchain format from the list of available formats.
+    int64_t SelectDepthSwapchainFormat(bool throwIfNotFound, span<const int64_t> imageFormatArray) const override {
+        // List of supported depth swapchain formats.
+        return SelectSwapchainFormat(  //
+            throwIfNotFound, imageFormatArray,
+            {
+                DXGI_FORMAT_D32_FLOAT,
+                DXGI_FORMAT_D24_UNORM_S8_UINT,
+                DXGI_FORMAT_D16_UNORM,
+                DXGI_FORMAT_D32_FLOAT_S8X24_UINT,
+            });
     }
 
     const XrBaseInStructure* GetGraphicsBinding() const override {
         return reinterpret_cast<const XrBaseInStructure*>(&m_graphicsBinding);
     }
 
-    std::vector<XrSwapchainImageBaseHeader*> AllocateSwapchainImageStructs(
-        uint32_t capacity, const XrSwapchainCreateInfo& /*swapchainCreateInfo*/) override {
-        // Allocate and initialize the buffer of image structs (must be sequential in memory for xrEnumerateSwapchainImages).
-        // Return back an array of pointers to each swapchain image struct so the consumer doesn't need to know the type/size.
+    struct D3D12FallbackDepthTexture {
+       public:
+        D3D12FallbackDepthTexture() = default;
 
-        m_swapchainImageContexts.emplace_back();
-        SwapchainImageContext& swapchainImageContext = m_swapchainImageContexts.back();
+        void Reset() {
+            m_texture = nullptr;
+            m_xrImage.texture = nullptr;
+        }
+        bool Allocated() const { return m_texture != nullptr; }
 
-        std::vector<XrSwapchainImageBaseHeader*> bases = swapchainImageContext.Create(m_device.Get(), capacity);
+        void Allocate(ID3D12Device* d3d12Device, UINT width, UINT height, uint16_t arraySize, UINT sampleCount,
+                      D3D12_RESOURCE_DIMENSION dimension, uint64_t alignment, D3D12_TEXTURE_LAYOUT layout) {
+            Reset();
 
-        // Map every swapchainImage base pointer to this context
-        for (auto& base : bases) {
-            m_swapchainImageContextMap[base] = &swapchainImageContext;
+            D3D12_HEAP_PROPERTIES heapProp{};
+            heapProp.Type = D3D12_HEAP_TYPE_DEFAULT;
+            heapProp.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+            heapProp.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+
+            D3D12_RESOURCE_DESC depthDesc{};
+            depthDesc.Dimension = dimension;
+            depthDesc.Alignment = alignment;
+            depthDesc.Width = width;
+            depthDesc.Height = height;
+            depthDesc.DepthOrArraySize = arraySize;
+            depthDesc.MipLevels = 1;
+            depthDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+            depthDesc.SampleDesc.Count = sampleCount;
+            depthDesc.Layout = layout;
+            depthDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+
+            D3D12_CLEAR_VALUE clearValue{};
+            clearValue.DepthStencil.Depth = 1.0f;
+            clearValue.Format = DXGI_FORMAT_D32_FLOAT;
+
+            XRC_CHECK_THROW_HRCMD(d3d12Device->CreateCommittedResource(
+                &heapProp, D3D12_HEAP_FLAG_NONE, &depthDesc, D3D12_RESOURCE_STATE_DEPTH_WRITE, &clearValue,
+                __uuidof(ID3D12Resource), reinterpret_cast<void**>(m_texture.ReleaseAndGetAddressOf())));
+            XRC_CHECK_THROW_HRCMD(m_texture->SetName(L"hello_xr fallback depth tex"));
+            m_xrImage.texture = m_texture.Get();
         }
 
-        return bases;
+        const XrSwapchainImageD3D12KHR& GetTexture() const { return m_xrImage; }
+
+       private:
+        ComPtr<ID3D12Resource> m_texture{};
+        XrSwapchainImageD3D12KHR m_xrImage{XR_TYPE_SWAPCHAIN_IMAGE_D3D11_KHR};
+    };
+
+    class D3D12SwapchainImageData : public SwapchainImageDataBase<XrSwapchainImageD3D12KHR> {
+        void init() {
+            XRC_CHECK_THROW_HRCMD(
+                m_d3d12Device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, __uuidof(ID3D12CommandAllocator),
+                                                      reinterpret_cast<void**>(commandAllocator.ReleaseAndGetAddressOf())));
+            XRC_CHECK_THROW_HRCMD(commandAllocator->SetName(L"hello_xr swapchain command allocator"));
+
+            viewProjectionCBuffer =
+                D3D12CreateBuffer(m_d3d12Device.Get(), sizeof(ViewProjectionConstantBuffer), D3D12_HEAP_TYPE_UPLOAD);
+            XRC_CHECK_THROW_HRCMD(viewProjectionCBuffer->SetName(L"hello_xr view proj cbuffer"));
+        }
+
+       public:
+        D3D12SwapchainImageData(ComPtr<ID3D12Device> d3d12Device, uint32_t capacity, const XrSwapchainCreateInfo& createInfo)
+            : SwapchainImageDataBase(XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR, capacity, createInfo),
+              m_d3d12Device(std::move(d3d12Device)),
+              m_internalDepthTextures(capacity) {
+            init();
+        }
+
+        D3D12SwapchainImageData(ComPtr<ID3D12Device> d3d12Device, uint32_t capacity, const XrSwapchainCreateInfo& createInfo,
+                                XrSwapchain depthSwapchain, const XrSwapchainCreateInfo& depthCreateInfo)
+            : SwapchainImageDataBase(XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR, capacity, createInfo, depthSwapchain, depthCreateInfo),
+              m_d3d12Device(std::move(d3d12Device)),
+              m_internalDepthTextures(capacity) {
+            init();
+        }
+
+        void Reset() override {
+            m_internalDepthTextures.clear();
+            m_d3d12Device = nullptr;
+            SwapchainImageDataBase::Reset();
+        }
+
+        const XrSwapchainImageD3D12KHR& GetFallbackDepthSwapchainImage(uint32_t i) override {
+            if (!m_internalDepthTextures[i].Allocated()) {
+                XRC_CHECK_THROW(GetTypedImage(i).texture != nullptr);
+                /// @todo we should not need to do this introspection, I think
+                D3D12_RESOURCE_DESC colorDesc = GetTypedImage(i).texture->GetDesc();
+                m_internalDepthTextures[i].Allocate(m_d3d12Device.Get(), this->Width(), this->Height(), (uint16_t)this->ArraySize(),
+                                                    this->SampleCount(), colorDesc.Dimension, colorDesc.Alignment,
+                                                    colorDesc.Layout);
+            }
+
+            return m_internalDepthTextures[i].GetTexture();
+        }
+
+        ID3D12CommandAllocator* GetCommandAllocator() const { return commandAllocator.Get(); }
+
+        void ResetCommandAllocator() { XRC_CHECK_THROW_HRCMD(commandAllocator->Reset()); }
+
+        void RequestModelCBuffer(uint32_t requiredSize) {
+            if (!modelCBuffer || (requiredSize > modelCBuffer->GetDesc().Width)) {
+                modelCBuffer = D3D12CreateBuffer(m_d3d12Device.Get(), requiredSize, D3D12_HEAP_TYPE_UPLOAD);
+                XRC_CHECK_THROW_HRCMD(modelCBuffer->SetName(L"hello_xr model cbuffer"));
+            }
+        }
+
+        ID3D12Resource* GetModelCBuffer() const { return modelCBuffer.Get(); }
+
+        ID3D12Resource* GetViewProjectionCBuffer() const { return viewProjectionCBuffer.Get(); }
+
+       private:
+        ComPtr<ID3D12Device> m_d3d12Device;
+        ComPtr<ID3D12CommandAllocator> commandAllocator;
+        ComPtr<ID3D12Resource> modelCBuffer;
+        ComPtr<ID3D12Resource> viewProjectionCBuffer;
+        std::vector<D3D12FallbackDepthTexture> m_internalDepthTextures;
+    };
+
+    ISwapchainImageData* AllocateSwapchainImageData(size_t size, const XrSwapchainCreateInfo& swapchainCreateInfo) override {
+        auto d3d12Device = m_device;
+        auto typedResult = std::make_unique<D3D12SwapchainImageData>(d3d12Device.Get(), uint32_t(size), swapchainCreateInfo);
+
+        // Cast our derived type to the caller-expected type.
+        auto ret = static_cast<ISwapchainImageData*>(typedResult.get());
+
+        m_swapchainImageDataMap.Adopt(std::move(typedResult));
+
+        return ret;
+    }
+
+    ISwapchainImageData* AllocateSwapchainImageDataWithDepthSwapchain(
+        size_t size, const XrSwapchainCreateInfo& colorSwapchainCreateInfo, XrSwapchain depthSwapchain,
+        const XrSwapchainCreateInfo& depthSwapchainCreateInfo) override {
+        auto d3d12Device = m_device;
+        auto typedResult = std::make_unique<D3D12SwapchainImageData>(d3d12Device.Get(), uint32_t(size), colorSwapchainCreateInfo,
+                                                                     depthSwapchain, depthSwapchainCreateInfo);
+
+        // Cast our derived type to the caller-expected type.
+        auto ret = static_cast<ISwapchainImageData*>(typedResult.get());
+
+        m_swapchainImageDataMap.Adopt(std::move(typedResult));
+
+        return ret;
     }
 
     ID3D12PipelineState* GetOrCreatePipelineState(DXGI_FORMAT swapchainFormat) {
@@ -413,14 +551,20 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
                     int64_t swapchainFormat, const std::vector<Cube>& cubes) override {
         CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
 
-        auto& swapchainContext = *m_swapchainImageContextMap[swapchainImage];
-        CpuWaitForFence(swapchainContext.GetFrameFenceValue());
-        swapchainContext.ResetCommandAllocator();
+        D3D12SwapchainImageData* swapchainData;
+        uint32_t imageIndex;
+
+        std::tie(swapchainData, imageIndex) = m_swapchainImageDataMap.GetDataAndIndexFromBasePointer(swapchainImage);
+
+        // XXX TODO
+        // CpuWaitForFence(swapchainContext.GetFrameFenceValue());
+
+        auto d3d12Device = m_device;
 
         ComPtr<ID3D12GraphicsCommandList> cmdList;
-        CHECK_HRCMD(m_device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, swapchainContext.GetCommandAllocator(), nullptr,
-                                                __uuidof(ID3D12GraphicsCommandList),
-                                                reinterpret_cast<void**>(cmdList.ReleaseAndGetAddressOf())));
+        XRC_CHECK_THROW_HRCMD(d3d12Device->CreateCommandList(
+            0, D3D12_COMMAND_LIST_TYPE_DIRECT, swapchainData->GetCommandAllocator(), nullptr, __uuidof(ID3D12GraphicsCommandList),
+            reinterpret_cast<void**>(cmdList.ReleaseAndGetAddressOf())));
 
         ID3D12PipelineState* pipelineState = GetOrCreatePipelineState((DXGI_FORMAT)swapchainFormat);
         cmdList->SetPipelineState(pipelineState);
@@ -463,7 +607,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         }
         m_device->CreateRenderTargetView(colorTexture, &renderTargetViewDesc, renderTargetView);
 
-        ID3D12Resource* depthStencilTexture = swapchainContext.GetDepthStencilTexture(colorTexture);
+        ID3D12Resource* depthStencilTexture = swapchainData->GetDepthImageForColorIndex(imageIndex).texture;
         const D3D12_RESOURCE_DESC depthStencilTextureDesc = depthStencilTexture->GetDesc();
         D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
         D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc{};
@@ -497,7 +641,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         XrMatrix4x4f_CreateProjectionFov(&projectionMatrix, GRAPHICS_D3D, layerView.fov, 0.05f, 100.0f);
 
         // Set shaders and constant buffers.
-        ID3D12Resource* viewProjectionCBuffer = swapchainContext.GetViewProjectionCBuffer();
+        ID3D12Resource* viewProjectionCBuffer = swapchainData->GetViewProjectionCBuffer();
         ViewProjectionConstantBuffer viewProjection;
         XMStoreFloat4x4(&viewProjection.ViewProjection, XMMatrixTranspose(spaceToView * LoadXrMatrix(projectionMatrix)));
         {
@@ -522,8 +666,8 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
         constexpr uint32_t cubeCBufferSize = AlignTo<D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT>(sizeof(ModelConstantBuffer));
-        swapchainContext.RequestModelCBuffer(static_cast<uint32_t>(cubeCBufferSize * cubes.size()));
-        ID3D12Resource* modelCBuffer = swapchainContext.GetModelCBuffer();
+        swapchainData->RequestModelCBuffer(static_cast<uint32_t>(cubeCBufferSize * cubes.size()));
+        ID3D12Resource* modelCBuffer = swapchainData->GetModelCBuffer();
 
         // Render each cube
         uint32_t offset = 0;
@@ -554,7 +698,6 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         m_cmdQueue->ExecuteCommandLists((UINT)ArraySize(cmdLists), cmdLists);
 
         SignalFence();
-        swapchainContext.SetFrameFenceValue(m_fenceValue);
     }
 
     void SignalFence() {
@@ -588,7 +731,8 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
     uint64_t m_fenceValue = 0;
     HANDLE m_fenceEvent = INVALID_HANDLE_VALUE;
     std::list<SwapchainImageContext> m_swapchainImageContexts;
-    std::map<const XrSwapchainImageBaseHeader*, SwapchainImageContext*> m_swapchainImageContextMap;
+    // XXX std::map<const XrSwapchainImageBaseHeader*, SwapchainImageContext*> m_swapchainImageContextMap;
+    SwapchainImageDataMap<D3D12SwapchainImageData> m_swapchainImageDataMap;
     XrGraphicsBindingD3D12KHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_D3D12_KHR};
     ComPtr<ID3D12RootSignature> m_rootSignature;
     std::map<DXGI_FORMAT, ComPtr<ID3D12PipelineState>> m_pipelineStates;

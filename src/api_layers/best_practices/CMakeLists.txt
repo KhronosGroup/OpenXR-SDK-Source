@@ -24,7 +24,7 @@ configure_file(
 gen_xr_layer_json(
     "${CMAKE_CURRENT_BINARY_DIR}/../XrApiLayer_best_practices_validation.json"
     KHRONOS_best_practices_validation
-    "$<TARGET_FILE_NAME:XrApiLayer_best_practices_validation>"
+    "${LAYER_MANIFEST_PREFIX}$<TARGET_FILE_NAME:XrApiLayer_best_practices_validation>"
     1
     "API Layer to modify runtime behavior in conformant but perhaps unexpected ways"
     ""

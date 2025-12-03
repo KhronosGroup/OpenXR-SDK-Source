@@ -18,6 +18,16 @@ struct IPlatformPlugin {
     virtual void UpdateOptions(const std::shared_ptr<struct Options>& options) = 0;
 };
 
+// Implementation in platformplugin_win32.cpp
+std::shared_ptr<IPlatformPlugin> CreatePlatformPlugin_Win32(const std::shared_ptr<struct Options>& options);
+
+// Implementation in platformplugin_posix.cpp
+std::shared_ptr<IPlatformPlugin> CreatePlatformPlugin_Posix(const std::shared_ptr<struct Options>& options);
+
+// Implementation in platformplugin_android.cpp
+std::shared_ptr<IPlatformPlugin> CreatePlatformPlugin_Android(const std::shared_ptr<struct Options>& /*unused*/,
+                                                              const std::shared_ptr<struct PlatformData>& /*unused*/);
+
 // Create a platform plugin for the platform specified at compile time.
 std::shared_ptr<IPlatformPlugin> CreatePlatformPlugin(const std::shared_ptr<struct Options>& options,
                                                       const std::shared_ptr<struct PlatformData>& data);

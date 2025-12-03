@@ -93,6 +93,14 @@ ifndef::doctype-manpage[]
 :local_floor_space: <<XR_REFERENCE_SPACE_TYPE_LOCAL_FLOOR,code:LOCAL_FLOOR space>>
 endif::doctype-manpage[]
 
+// Use higher-resolution source images in PDF
+ifdef::backend-pdf[]
+:imagevariant: /hires
+endif::backend-pdf[]
+ifndef::backend-pdf[]
+:imagevariant:
+endif::backend-pdf[]
+
 // URIs used in the spec:
 // If it's in the main spec and extracted to the ref pages, put it here.
 

@@ -303,9 +303,6 @@ if(ANDROID)
         CONFIGURE_DEPENDS
         ${JNIWRAPPER_ROOT}/wrap/*.cpp
     )
-    set_target_properties(
-        openxr_loader PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED TRUE
-    )
     target_sources(
         openxr_loader
         PRIVATE
@@ -392,9 +389,46 @@ if(NOT ANDROID)
     # teams often have stricter compiler settings for the openxr_loader
     if(HAVE_MISSING_PROTOTYPES)
         # apply only for C source files
-        target_compile_options(openxr_loader PRIVATE $<IF:$<COMPILE_LANGUAGE:C>,-Werror=missing-prototypes,>)
+        target_compile_options(
+            openxr_loader
+            PRIVATE $<IF:$<COMPILE_LANGUAGE:C>,-Werror=missing-prototypes,>
+        )
     endif()
 endif()
+
+check_c_compiler_flag(-Wundef HAVE_UNDEF)
+check_c_compiler_flag(-Wtautological-type-limit-compare HAVE_TAUTOLOGICAL_TYPE_LIMIT)
+check_c_compiler_flag(-Wmissing-braces HAVE_MISSING_BRACES)
+check_c_compiler_flag(-Wunreachable-code HAVE_UNREACHABLE_CODE)
+# check_c_compiler_flag(-Wswitch-default HAVE_SWITCH_DEFAULT)
+# check_c_compiler_flag(-Wswitch-enum HAVE_SWITCH_ENUM)
+
+if(HAVE_UNDEF)
+    target_compile_options(
+            openxr_loader PRIVATE -Werror=undef)
+endif()
+if(HAVE_TAUTOLOGICAL_TYPE_LIMIT)
+    target_compile_options(
+            openxr_loader PRIVATE -Werror=tautological-type-limit-compare)
+endif()
+if(HAVE_MISSING_BRACES)
+    target_compile_options(
+            openxr_loader PRIVATE -Werror=missing-braces)
+endif()
+if(HAVE_UNREACHABLE_CODE)
+    target_compile_options(
+            openxr_loader PRIVATE -Werror=unreachable-code)
+endif()
+# json_value.cpp fails this right now
+# if(HAVE_SWITCH_DEFAULT)
+#     target_compile_options(
+#             openxr_loader PRIVATE -Werror=switch-default)
+# endif()
+# json_reader.cpp fails this right now
+# if(HAVE_SWITCH_ENUM)
+#     target_compile_options(
+#             openxr_loader PRIVATE -Werror=switch-enum)
+# endif()
 
 # We will never actually install here, but it's easier to set something than block all install code.
 if(ANDROID AND NOT INSTALL_TO_ARCHITECTURE_PREFIXES)
@@ -455,6 +489,7 @@ install(
 if(WIN32
    AND NOT MINGW
    AND DYNAMIC_LOADER
+   AND INSTALL_SYMBOLS
 )
     install(
         FILES $<TARGET_PDB_FILE:openxr_loader>

@@ -9,6 +9,7 @@
 #include "platformdata.h"
 #include "platformplugin.h"
 #include "graphicsplugin.h"
+#include "swapchain_image_data.h"
 #include "openxr_program.h"
 #include <common/xr_linear.h>
 #include <array>
@@ -33,19 +34,19 @@ inline std::string GetXrVersionString(XrVersion ver) {
 
 namespace Math {
 namespace Pose {
-XrPosef Identity() {
+static XrPosef Identity() {
     XrPosef t{};
     t.orientation.w = 1;
     return t;
 }
 
-XrPosef Translation(const XrVector3f& translation) {
+static XrPosef Translation(const XrVector3f& translation) {
     XrPosef t = Identity();
     t.position = translation;
     return t;
 }
 
-XrPosef RotateCCWAboutYAxis(float radians, XrVector3f translation) {
+static XrPosef RotateCCWAboutYAxis(float radians, XrVector3f translation) {
     XrPosef t = Identity();
     t.orientation.x = 0.f;
     t.orientation.y = std::sin(radians * 0.5f);
@@ -186,6 +187,26 @@ struct OpenXrProgram : IOpenXrProgram {
         const std::vector<std::string> graphicsExtensions = m_graphicsPlugin->GetInstanceExtensions();
         std::transform(graphicsExtensions.begin(), graphicsExtensions.end(), std::back_inserter(extensions),
                        [](const std::string& ext) { return ext.c_str(); });
+
+        uint32_t instanceExtensionCount;
+        CHECK_XRCMD(xrEnumerateInstanceExtensionProperties(nullptr, 0, &instanceExtensionCount, nullptr));
+        std::vector<XrExtensionProperties> extensionProperties =
+            std::vector<XrExtensionProperties>(instanceExtensionCount, {XR_TYPE_EXTENSION_PROPERTIES});
+        CHECK_XRCMD(xrEnumerateInstanceExtensionProperties(nullptr, (uint32_t)extensionProperties.size(), &instanceExtensionCount,
+                                                           extensionProperties.data()));
+
+        // enable depth extension if supported
+        auto depthExtensionProperties =
+            std::find_if(extensionProperties.begin(), extensionProperties.end(), [](const XrExtensionProperties& item) {
+                return 0 == strcmp(item.extensionName, XR_KHR_COMPOSITION_LAYER_DEPTH_EXTENSION_NAME);
+            });
+        if (depthExtensionProperties != extensionProperties.end()) {
+            Log::Write(Log::Level::Info, Fmt("Depth submission supported (%s)", depthExtensionProperties->extensionName));
+            extensions.push_back(depthExtensionProperties->extensionName);
+            m_supportsDepthLayer = true;
+        } else {
+            Log::Write(Log::Level::Info, Fmt("Depth submission NOT supported (%s)", depthExtensionProperties->extensionName));
+        }
 
         XrInstanceCreateInfo createInfo{XR_TYPE_INSTANCE_CREATE_INFO};
         createInfo.next = m_platformPlugin->GetInstanceCreateExtension();
@@ -618,13 +639,22 @@ struct OpenXrProgram : IOpenXrProgram {
             CHECK_XRCMD(xrEnumerateSwapchainFormats(m_session, (uint32_t)swapchainFormats.size(), &swapchainFormatCount,
                                                     swapchainFormats.data()));
             CHECK(swapchainFormatCount == swapchainFormats.size());
-            m_colorSwapchainFormat = m_graphicsPlugin->SelectColorSwapchainFormat(swapchainFormats);
+            m_colorSwapchainFormat = m_graphicsPlugin->SelectColorSwapchainFormat(true, swapchainFormats);
+            m_depthSwapchainFormat = m_graphicsPlugin->SelectDepthSwapchainFormat(false, swapchainFormats);
 
-            // Print swapchain formats and the selected one.
+            if (m_depthSwapchainFormat == -1) {
+                Log::Write(Log::Level::Info,
+                           "Runtime does not support creating swapchains with a suitable depth format. Using our own  fallback "
+                           "depth textures!");
+                // can't submit our own fallback texture
+                m_supportsDepthLayer = false;
+            }
+
+            // Print swapchain formats and the selected ones.
             {
                 std::string swapchainFormatsString;
                 for (int64_t format : swapchainFormats) {
-                    const bool selected = format == m_colorSwapchainFormat;
+                    const bool selected = (format == m_colorSwapchainFormat || format == m_depthSwapchainFormat);
                     swapchainFormatsString += " ";
                     if (selected) {
                         swapchainFormatsString += "[";
@@ -641,8 +671,9 @@ struct OpenXrProgram : IOpenXrProgram {
             for (uint32_t i = 0; i < viewCount; i++) {
                 const XrViewConfigurationView& vp = m_configViews[i];
                 Log::Write(Log::Level::Info,
-                           Fmt("Creating swapchain for view %d with dimensions Width=%d Height=%d SampleCount=%d", i,
-                               vp.recommendedImageRectWidth, vp.recommendedImageRectHeight, vp.recommendedSwapchainSampleCount));
+                           Fmt("Creating color %s swapchain for view %d with dimensions Width=%d Height=%d SampleCount=%d",
+                               m_depthSwapchainFormat == -1 ? "" : "and depth", i, vp.recommendedImageRectWidth,
+                               vp.recommendedImageRectHeight, vp.recommendedSwapchainSampleCount));
 
                 // Create the swapchain.
                 XrSwapchainCreateInfo swapchainCreateInfo{XR_TYPE_SWAPCHAIN_CREATE_INFO};
@@ -663,12 +694,50 @@ struct OpenXrProgram : IOpenXrProgram {
 
                 uint32_t imageCount;
                 CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, 0, &imageCount, nullptr));
-                // XXX This should really just return XrSwapchainImageBaseHeader*
-                std::vector<XrSwapchainImageBaseHeader*> swapchainImages =
-                    m_graphicsPlugin->AllocateSwapchainImageStructs(imageCount, swapchainCreateInfo);
-                CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, imageCount, &imageCount, swapchainImages[0]));
 
-                m_swapchainImages.insert(std::make_pair(swapchain.handle, std::move(swapchainImages)));
+                if (m_depthSwapchainFormat != -1) {
+                    XrSwapchainCreateInfo depthSwapchainCreateInfo{XR_TYPE_SWAPCHAIN_CREATE_INFO};
+                    depthSwapchainCreateInfo.arraySize = 1;
+                    depthSwapchainCreateInfo.format = m_depthSwapchainFormat;
+                    depthSwapchainCreateInfo.width = vp.recommendedImageRectWidth;
+                    depthSwapchainCreateInfo.height = vp.recommendedImageRectHeight;
+                    depthSwapchainCreateInfo.mipCount = 1;
+                    depthSwapchainCreateInfo.faceCount = 1;
+                    depthSwapchainCreateInfo.sampleCount = m_graphicsPlugin->GetSupportedSwapchainSampleCount(vp);
+                    depthSwapchainCreateInfo.usageFlags =
+                        XR_SWAPCHAIN_USAGE_SAMPLED_BIT | XR_SWAPCHAIN_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+                    Swapchain depthSwapchain;
+                    depthSwapchain.width = depthSwapchainCreateInfo.width;
+                    depthSwapchain.height = depthSwapchainCreateInfo.height;
+                    CHECK_XRCMD(xrCreateSwapchain(m_session, &depthSwapchainCreateInfo, &depthSwapchain.handle));
+
+                    m_depthSwapchains.push_back(depthSwapchain);
+
+                    uint32_t depthImageCount;
+                    CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, 0, &depthImageCount, nullptr));
+
+                    // TODO: support this
+                    if (depthImageCount != imageCount) {
+                        THROW("This runtime has different color and depth swapchain lengths");
+                    }
+
+                    ISwapchainImageData* swapchainImages = m_graphicsPlugin->AllocateSwapchainImageDataWithDepthSwapchain(
+                        imageCount, swapchainCreateInfo, depthSwapchain.handle, depthSwapchainCreateInfo);
+                    CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, imageCount, &imageCount,
+                                                           swapchainImages->GetColorImageArray()));
+
+                    CHECK_XRCMD(xrEnumerateSwapchainImages(depthSwapchain.handle, depthImageCount, &depthImageCount,
+                                                           swapchainImages->GetDepthImageArray()));
+
+                    m_swapchainImages.insert(std::make_pair(swapchain.handle, std::move(swapchainImages)));
+                } else {
+                    ISwapchainImageData* swapchainImages =
+                        m_graphicsPlugin->AllocateSwapchainImageData(imageCount, swapchainCreateInfo);
+                    CHECK_XRCMD(xrEnumerateSwapchainImages(swapchain.handle, imageCount, &imageCount,
+                                                           swapchainImages->GetColorImageArray()));
+
+                    m_swapchainImages.insert(std::make_pair(swapchain.handle, std::move(swapchainImages)));
+                }
             }
         }
     }
@@ -875,8 +944,9 @@ struct OpenXrProgram : IOpenXrProgram {
         std::vector<XrCompositionLayerBaseHeader*> layers;
         XrCompositionLayerProjection layer{XR_TYPE_COMPOSITION_LAYER_PROJECTION};
         std::vector<XrCompositionLayerProjectionView> projectionLayerViews;
+        std::vector<XrCompositionLayerDepthInfoKHR> depthInfos;
         if (frameState.shouldRender == XR_TRUE) {
-            if (RenderLayer(frameState.predictedDisplayTime, projectionLayerViews, layer)) {
+            if (RenderLayer(frameState.predictedDisplayTime, projectionLayerViews, depthInfos, layer)) {
                 layers.push_back(reinterpret_cast<XrCompositionLayerBaseHeader*>(&layer));
             }
         }
@@ -890,7 +960,7 @@ struct OpenXrProgram : IOpenXrProgram {
     }
 
     bool RenderLayer(XrTime predictedDisplayTime, std::vector<XrCompositionLayerProjectionView>& projectionLayerViews,
-                     XrCompositionLayerProjection& layer) {
+                     std::vector<XrCompositionLayerDepthInfoKHR>& depthInfos, XrCompositionLayerProjection& layer) {
         XrResult res;
 
         XrViewState viewState{XR_TYPE_VIEW_STATE};
@@ -914,6 +984,9 @@ struct OpenXrProgram : IOpenXrProgram {
         CHECK(viewCountOutput == m_swapchains.size());
 
         projectionLayerViews.resize(viewCountOutput);
+        if (m_supportsDepthLayer) {
+            depthInfos.resize(viewCountOutput);
+        }
 
         // For each locatable space that we want to visualize, render a 25cm cube.
         std::vector<Cube> cubes;
@@ -969,6 +1042,8 @@ struct OpenXrProgram : IOpenXrProgram {
             waitInfo.timeout = XR_INFINITE_DURATION;
             CHECK_XRCMD(xrWaitSwapchainImage(viewSwapchain.handle, &waitInfo));
 
+            m_swapchainImages[viewSwapchain.handle]->AcquireAndWaitDepthSwapchainImage(swapchainImageIndex);
+
             projectionLayerViews[i] = {XR_TYPE_COMPOSITION_LAYER_PROJECTION_VIEW};
             projectionLayerViews[i].pose = m_views[i].pose;
             projectionLayerViews[i].fov = m_views[i].fov;
@@ -976,11 +1051,26 @@ struct OpenXrProgram : IOpenXrProgram {
             projectionLayerViews[i].subImage.imageRect.offset = {0, 0};
             projectionLayerViews[i].subImage.imageRect.extent = {viewSwapchain.width, viewSwapchain.height};
 
-            const XrSwapchainImageBaseHeader* const swapchainImage = m_swapchainImages[viewSwapchain.handle][swapchainImageIndex];
+            if (m_supportsDepthLayer) {
+                projectionLayerViews[i].next = &depthInfos[i];
+                depthInfos[i].type = XR_TYPE_COMPOSITION_LAYER_DEPTH_INFO_KHR;
+                depthInfos[i].subImage.swapchain = m_depthSwapchains[i].handle;
+                depthInfos[i].subImage.imageRect.offset = {0, 0};
+                depthInfos[i].subImage.imageRect.extent = {m_depthSwapchains[i].width, m_depthSwapchains[i].height};
+                depthInfos[i].minDepth = 0;
+                depthInfos[i].maxDepth = 1;
+                depthInfos[i].nearZ = 0.05f;
+                depthInfos[i].farZ = 100.0f;
+            }
+
+            const XrSwapchainImageBaseHeader* const swapchainImage =
+                m_swapchainImages[viewSwapchain.handle]->GetGenericColorImage(swapchainImageIndex);
             m_graphicsPlugin->RenderView(projectionLayerViews[i], swapchainImage, m_colorSwapchainFormat, cubes);
 
             XrSwapchainImageReleaseInfo releaseInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
             CHECK_XRCMD(xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo));
+
+            m_swapchainImages[viewSwapchain.handle]->ReleaseDepthSwapchainImage();
         }
 
         layer.space = m_appSpace;
@@ -1002,11 +1092,16 @@ struct OpenXrProgram : IOpenXrProgram {
     XrSpace m_appSpace{XR_NULL_HANDLE};
     XrSystemId m_systemId{XR_NULL_SYSTEM_ID};
 
+    // We may still use a runtime allocated depth swapchain but not submit depth if false
+    bool m_supportsDepthLayer{false};
+
     std::vector<XrViewConfigurationView> m_configViews;
     std::vector<Swapchain> m_swapchains;
-    std::map<XrSwapchain, std::vector<XrSwapchainImageBaseHeader*>> m_swapchainImages;
+    std::vector<Swapchain> m_depthSwapchains;
+    std::map<XrSwapchain, ISwapchainImageData*> m_swapchainImages;
     std::vector<XrView> m_views;
     int64_t m_colorSwapchainFormat{-1};
+    int64_t m_depthSwapchainFormat{-1};
 
     std::vector<XrSpace> m_visualizedSpaces;
 

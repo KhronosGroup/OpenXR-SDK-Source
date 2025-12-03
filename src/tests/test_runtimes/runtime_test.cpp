@@ -2311,6 +2311,19 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetInstanceProcAddr(XrInstance insta
 
 extern "C" {
 
+// forward decl
+RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderRuntimeInterface(const XrNegotiateLoaderInfo* loaderInfo,
+                                                                                XrNegotiateRuntimeRequest* runtimeRequest);
+RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeAlwaysFailNegotiateLoaderRuntimeInterface(
+    const XrNegotiateLoaderInfo* loaderInfo, XrNegotiateRuntimeRequest* runtimeRequest);
+RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeNullGipaNegotiateLoaderRuntimeInterface(
+    const XrNegotiateLoaderInfo* loaderInfo, XrNegotiateRuntimeRequest* runtimeRequest);
+
+RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeInvalidInterfaceNegotiateLoaderRuntimeInterface(
+    const XrNegotiateLoaderInfo* loaderInfo, XrNegotiateRuntimeRequest* runtimeRequest);
+RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeInvalidApiNegotiateLoaderRuntimeInterface(
+    const XrNegotiateLoaderInfo* loaderInfo, XrNegotiateRuntimeRequest* runtimeRequest);
+
 // Function used to negotiate an interface betewen the loader and a runtime.
 RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderRuntimeInterface(const XrNegotiateLoaderInfo* loaderInfo,
                                                                                 XrNegotiateRuntimeRequest* runtimeRequest) {

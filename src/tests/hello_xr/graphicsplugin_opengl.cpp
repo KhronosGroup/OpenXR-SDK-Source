@@ -6,6 +6,7 @@
 #include "common.h"
 #include "geometry.h"
 #include "graphicsplugin.h"
+#include "graphics_plugin_impl_helpers.h"
 #include "options.h"
 
 #ifdef XR_USE_GRAPHICS_API_OPENGL
@@ -42,6 +43,53 @@ static const char* FragmentShaderGlsl = R"_(
     }
     )_";
 
+std::string glResultString(GLenum err) {
+    switch (err) {
+        case GL_NO_ERROR:
+            return "GL_NO_ERROR";
+        case GL_INVALID_ENUM:
+            return "GL_INVALID_ENUM";
+        case GL_INVALID_VALUE:
+            return "GL_INVALID_VALUE";
+        case GL_INVALID_OPERATION:
+            return "GL_INVALID_OPERATION";
+        case GL_INVALID_FRAMEBUFFER_OPERATION:
+            return "GL_INVALID_FRAMEBUFFER_OPERATION";
+        case GL_OUT_OF_MEMORY:
+            return "GL_OUT_OF_MEMORY";
+        case GL_STACK_UNDERFLOW:
+            return "GL_STACK_UNDERFLOW";
+        case GL_STACK_OVERFLOW:
+            return "GL_STACK_OVERFLOW";
+        default:
+            return "<unknown " + std::to_string(err) + ">";
+    }
+}
+[[noreturn]] inline void ThrowGLResult(GLenum res, const char* originator = nullptr, const char* sourceLocation = nullptr) {
+    Throw("GL failure " + glResultString(res), originator, sourceLocation);
+}
+
+inline GLenum CheckThrowGLResult(GLenum res, const char* originator = nullptr, const char* sourceLocation = nullptr) {
+    if ((res) != GL_NO_ERROR) {
+        ThrowGLResult(res, originator, sourceLocation);
+    }
+
+    return res;
+}
+
+#define CHECK_GLCMD(cmd) CheckThrowGLResult(((cmd), glGetError()), #cmd, FILE_AND_LINE)
+
+inline GLenum TexTarget(bool isArray, bool isMultisample) {
+    if (isArray && isMultisample) {
+        return GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
+    } else if (isMultisample) {
+        return GL_TEXTURE_2D_MULTISAMPLE;
+    } else if (isArray) {
+        return GL_TEXTURE_2D_ARRAY;
+    } else {
+        return GL_TEXTURE_2D;
+    }
+}
 struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
     OpenGLGraphicsPlugin(const std::shared_ptr<Options>& options, const std::shared_ptr<IPlatformPlugin> /*unused*/&)
         : m_clearColor(options->GetBackgroundClearColor()) {}
@@ -228,45 +276,140 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
         }
     }
 
-    int64_t SelectColorSwapchainFormat(const std::vector<int64_t>& runtimeFormats) const override {
-        // List of supported color swapchain formats.
-        constexpr int64_t SupportedColorSwapchainFormats[] = {
-            GL_RGB10_A2,
-            GL_RGBA16F,
-            // The two below should only be used as a fallback, as they are linear color formats without enough bits for color
-            // depth, thus leading to banding.
-            GL_RGBA8,
-            GL_RGBA8_SNORM,
-        };
+    int64_t SelectColorSwapchainFormat(bool throwIfNotFound, span<const int64_t> imageFormatArray) const override {
+        // List of supported color swapchain formats, note sRGB formats skipped due to CTS bug.
+        // The order of this list does not effect the priority of selecting formats, the runtime list defines that.
+        return SelectSwapchainFormat(  //
+            throwIfNotFound, imageFormatArray,
+            {
+                GL_RGB10_A2,
+                GL_RGBA16,
+                GL_RGBA16F,
+                GL_RGBA32F,
+                // The two below should only be used as a fallback, as they are linear color formats without enough bits for color
+                // depth, thus leading to banding.
+                GL_RGBA8,
+                GL_RGBA8_SNORM,
+            });
+    }
 
-        auto swapchainFormatIt =
-            std::find_first_of(runtimeFormats.begin(), runtimeFormats.end(), std::begin(SupportedColorSwapchainFormats),
-                               std::end(SupportedColorSwapchainFormats));
-        if (swapchainFormatIt == runtimeFormats.end()) {
-            THROW("No runtime swapchain format supported for color swapchain");
-        }
-
-        return *swapchainFormatIt;
+    int64_t SelectDepthSwapchainFormat(bool throwIfNotFound, span<const int64_t> imageFormatArray) const override {
+        // List of supported depth swapchain formats.
+        return SelectSwapchainFormat(  //
+            throwIfNotFound, imageFormatArray,
+            {
+                GL_DEPTH24_STENCIL8,
+                GL_DEPTH32F_STENCIL8,
+                GL_DEPTH_COMPONENT24,
+                GL_DEPTH_COMPONENT32F,
+                GL_DEPTH_COMPONENT16,
+            });
     }
 
     const XrBaseInStructure* GetGraphicsBinding() const override {
         return reinterpret_cast<const XrBaseInStructure*>(&m_graphicsBinding);
     }
 
-    std::vector<XrSwapchainImageBaseHeader*> AllocateSwapchainImageStructs(
-        uint32_t capacity, const XrSwapchainCreateInfo& /*swapchainCreateInfo*/) override {
-        // Allocate and initialize the buffer of image structs (must be sequential in memory for xrEnumerateSwapchainImages).
-        // Return back an array of pointers to each swapchain image struct so the consumer doesn't need to know the type/size.
-        std::vector<XrSwapchainImageOpenGLKHR> swapchainImageBuffer(capacity, {XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR});
-        std::vector<XrSwapchainImageBaseHeader*> swapchainImageBase;
-        for (XrSwapchainImageOpenGLKHR& image : swapchainImageBuffer) {
-            swapchainImageBase.push_back(reinterpret_cast<XrSwapchainImageBaseHeader*>(&image));
+    struct OpenGLFallbackDepthTexture {
+       public:
+        OpenGLFallbackDepthTexture() = default;
+        ~OpenGLFallbackDepthTexture() {
+            if (Allocated()) {
+                // As implementation as ::Reset(), but should not throw in destructor
+                glDeleteTextures(1, &m_texture);
+            }
+            m_texture = 0;
+        }
+        void Reset() {
+            if (Allocated()) {
+                CHECK_GLCMD(glDeleteTextures(1, &m_texture));
+            }
+            m_texture = 0;
+        }
+        bool Allocated() const { return m_texture != 0; }
+
+        void Allocate(GLuint width, GLuint height, uint32_t arraySize, uint32_t sampleCount) {
+            Reset();
+            const bool isArray = arraySize > 1;
+            const bool isMultisample = sampleCount > 1;
+            GLenum target = TexTarget(isArray, isMultisample);
+            CHECK_GLCMD(glGenTextures(1, &m_texture));
+            CHECK_GLCMD(glBindTexture(target, m_texture));
+            if (!isMultisample) {
+                CHECK_GLCMD(glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST));
+                CHECK_GLCMD(glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST));
+                CHECK_GLCMD(glTexParameteri(target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE));
+                CHECK_GLCMD(glTexParameteri(target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE));
+            }
+            if (isMultisample) {
+                if (isArray) {
+                    CHECK_GLCMD(glTexImage3DMultisample(target, sampleCount, GL_DEPTH_COMPONENT32, width, height, arraySize, true));
+                } else {
+                    CHECK_GLCMD(glTexImage2DMultisample(target, sampleCount, GL_DEPTH_COMPONENT32, width, height, true));
+                }
+            } else {
+                if (isArray) {
+                    CHECK_GLCMD(glTexImage3D(target, 0, GL_DEPTH_COMPONENT32, width, height, arraySize, 0, GL_DEPTH_COMPONENT,
+                                             GL_FLOAT, nullptr));
+                } else {
+                    CHECK_GLCMD(
+                        glTexImage2D(target, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr));
+                }
+            }
+            m_image.image = m_texture;
+        }
+        const XrSwapchainImageOpenGLKHR& GetTexture() const { return m_image; }
+
+       private:
+        uint32_t m_texture{0};
+        XrSwapchainImageOpenGLKHR m_image{XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR, NULL, 0};
+    };
+    class OpenGLSwapchainImageData : public SwapchainImageDataBase<XrSwapchainImageOpenGLKHR> {
+       public:
+        OpenGLSwapchainImageData(uint32_t capacity, const XrSwapchainCreateInfo& createInfo)
+            : SwapchainImageDataBase(XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR, capacity, createInfo), m_internalDepthTextures(capacity) {}
+
+        OpenGLSwapchainImageData(uint32_t capacity, const XrSwapchainCreateInfo& createInfo, XrSwapchain depthSwapchain,
+                                 const XrSwapchainCreateInfo& depthCreateInfo)
+            : SwapchainImageDataBase(XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR, capacity, createInfo, depthSwapchain, depthCreateInfo),
+              m_internalDepthTextures(capacity) {}
+
+       protected:
+        const XrSwapchainImageOpenGLKHR& GetFallbackDepthSwapchainImage(uint32_t i) override {
+            if (!m_internalDepthTextures[i].Allocated()) {
+                m_internalDepthTextures[i].Allocate(this->Width(), this->Height(), this->ArraySize(), this->SampleCount());
+            }
+
+            return m_internalDepthTextures[i].GetTexture();
         }
 
-        // Keep the buffer alive by moving it into the list of buffers.
-        m_swapchainImageBuffers.push_back(std::move(swapchainImageBuffer));
+       private:
+        std::vector<OpenGLFallbackDepthTexture> m_internalDepthTextures;
+    };
 
-        return swapchainImageBase;
+    ISwapchainImageData* AllocateSwapchainImageData(size_t size, const XrSwapchainCreateInfo& swapchainCreateInfo) override {
+        auto typedResult = std::make_unique<OpenGLSwapchainImageData>(uint32_t(size), swapchainCreateInfo);
+
+        // Cast our derived type to the caller-expected type.
+        auto ret = static_cast<ISwapchainImageData*>(typedResult.get());
+
+        m_swapchainImageDataMap.Adopt(std::move(typedResult));
+
+        return ret;
+    }
+
+    inline ISwapchainImageData* AllocateSwapchainImageDataWithDepthSwapchain(
+        size_t size, const XrSwapchainCreateInfo& colorSwapchainCreateInfo, XrSwapchain depthSwapchain,
+        const XrSwapchainCreateInfo& depthSwapchainCreateInfo) override {
+        auto typedResult = std::make_unique<OpenGLSwapchainImageData>(uint32_t(size), colorSwapchainCreateInfo, depthSwapchain,
+                                                                      depthSwapchainCreateInfo);
+
+        // Cast our derived type to the caller-expected type.
+        auto ret = static_cast<ISwapchainImageData*>(typedResult.get());
+
+        m_swapchainImageDataMap.Adopt(std::move(typedResult));
+
+        return ret;
     }
 
     uint32_t GetDepthTexture(uint32_t colorTexture) {
@@ -303,9 +446,14 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
         CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
         UNUSED_PARM(swapchainFormat);                    // Not used in this function for now.
 
+        OpenGLSwapchainImageData* swapchainData;
+        uint32_t imageIndex;
+        std::tie(swapchainData, imageIndex) = m_swapchainImageDataMap.GetDataAndIndexFromBasePointer(swapchainImage);
+
         glBindFramebuffer(GL_FRAMEBUFFER, m_swapchainFramebuffer);
 
         const uint32_t colorTexture = reinterpret_cast<const XrSwapchainImageOpenGLKHR*>(swapchainImage)->image;
+        const GLuint depthTexture = swapchainData->GetDepthImageForColorIndex(imageIndex).image;
 
         glViewport(static_cast<GLint>(layerView.subImage.imageRect.offset.x),
                    static_cast<GLint>(layerView.subImage.imageRect.offset.y),
@@ -316,8 +464,6 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
         glCullFace(GL_BACK);
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
-
-        const uint32_t depthTexture = GetDepthTexture(colorTexture);
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
@@ -380,7 +526,7 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
 #error Platform not supported
 #endif
 
-    std::list<std::vector<XrSwapchainImageOpenGLKHR>> m_swapchainImageBuffers;
+    SwapchainImageDataMap<OpenGLSwapchainImageData> m_swapchainImageDataMap;
     GLuint m_swapchainFramebuffer{0};
     GLuint m_program{0};
     GLint m_modelViewProjectionUniformLocation{0};

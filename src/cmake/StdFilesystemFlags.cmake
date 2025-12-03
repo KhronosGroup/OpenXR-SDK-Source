@@ -109,7 +109,7 @@ else()
         set(HAVE_FILESYSTEM_IN_STD_17 ON)
         set(HAVE_FILESYSTEM_IN_STD OFF)
     else()
-        set(CMAKE_REQUIRED_FLAGS "-DCMAKE_CXX_STANDARD=14 -DCMAKE_CXX_STANDARD_REQUIRED=TRUE")
+        set(CMAKE_REQUIRED_FLAGS "-DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_STANDARD_REQUIRED=TRUE")
         check_cxx_source_compiles("${_stdfs_source}" HAVE_FILESYSTEM_IN_STD)
         check_cxx_source_compiles("${_stdfs_experimental_source}" HAVE_FILESYSTEM_IN_STDEXPERIMENTAL)
 

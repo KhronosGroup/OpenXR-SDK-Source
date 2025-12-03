@@ -583,6 +583,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     # overridden by a derived class.
     #   self            the AutomaticSourceOutputGenerator object
     def outputCopywriteHeader(self):
+        # REUSE-IgnoreStart
         notice = '// Copyright (c) 2017-2025 The Khronos Group Inc.\n'
         notice += '// Copyright (c) 2017-2019 Valve Corporation\n'
         notice += '// Copyright (c) 2017-2019 LunarG, Inc.\n'
@@ -600,6 +601,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
         notice += '// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n'
         notice += '// See the License for the specific language governing permissions and\n'
         notice += '// limitations under the License.'
+        # REUSE-IgnoreEnd
         write(notice, file=self.outFile)
 
     # Called once at the beginning of each run.  Starts writing to the output
