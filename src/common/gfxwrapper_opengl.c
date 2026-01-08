@@ -2180,50 +2180,59 @@ const struct wl_seat_listener seat_listener = {
     _seat_capabilities_cb,
 };
 
-static void _xdg_surface_configure_cb(void *data, struct zxdg_surface_v6 *surface, uint32_t serial) {
-    zxdg_surface_v6_ack_configure(surface, serial);
+static void _xdg_surface_configure_cb(void *data, struct xdg_surface *surface, uint32_t serial) {
+    xdg_surface_ack_configure(surface, serial);
 }
 
-const struct zxdg_surface_v6_listener xdg_surface_listener = {
+const struct xdg_surface_listener xdg_surface_listener = {
     _xdg_surface_configure_cb,
 };
 
-static void _xdg_shell_ping_cb(void *data, struct zxdg_shell_v6 *shell, uint32_t serial) { zxdg_shell_v6_pong(shell, serial); }
+static void _xdg_shell_ping_cb(void *data, struct xdg_wm_base *shell, uint32_t serial) { xdg_wm_base_pong(shell, serial); }
 
-const struct zxdg_shell_v6_listener xdg_shell_listener = {
+const struct xdg_wm_base_listener xdg_shell_listener = {
     _xdg_shell_ping_cb,
 };
 
-static void _xdg_toplevel_configure_cb(void *data, struct zxdg_toplevel_v6 *toplevel, int32_t width, int32_t height,
+static void _xdg_toplevel_configure_cb(void *data, struct xdg_toplevel *toplevel, int32_t width, int32_t height,
                                        struct wl_array *states) {
     ksGpuWindow *window = (ksGpuWindow *)data;
 
     window->windowActive = false;
 
-    enum zxdg_toplevel_v6_state *state;
+    enum xdg_toplevel_state *state;
     wl_array_for_each(state, states) {
         switch (*state) {
-            case ZXDG_TOPLEVEL_V6_STATE_FULLSCREEN:
+            case XDG_TOPLEVEL_STATE_FULLSCREEN:
                 break;
-            case ZXDG_TOPLEVEL_V6_STATE_RESIZING:
+            case XDG_TOPLEVEL_STATE_RESIZING:
                 window->windowWidth = width;
                 window->windowWidth = height;
                 break;
-            case ZXDG_TOPLEVEL_V6_STATE_MAXIMIZED:
+            case XDG_TOPLEVEL_STATE_MAXIMIZED:
                 break;
-            case ZXDG_TOPLEVEL_V6_STATE_ACTIVATED:
+            case XDG_TOPLEVEL_STATE_ACTIVATED:
                 window->windowActive = true;
                 break;
+            case XDG_TOPLEVEL_STATE_TILED_LEFT:
+            case XDG_TOPLEVEL_STATE_TILED_RIGHT:
+            case XDG_TOPLEVEL_STATE_TILED_TOP:
+            case XDG_TOPLEVEL_STATE_TILED_BOTTOM:
+                break;
+#ifdef XDG_TOPLEVEL_STATE_SUSPENDED
+            case XDG_TOPLEVEL_STATE_SUSPENDED:
+                break;
+#endif
         }
     }
 }
 
-static void _xdg_toplevel_close_cb(void *data, struct zxdg_toplevel_v6 *toplevel) {
+static void _xdg_toplevel_close_cb(void *data, struct xdg_toplevel *toplevel) {
     ksGpuWindow *window = (ksGpuWindow *)data;
     window->windowExit = true;
 }
 
-const struct zxdg_toplevel_v6_listener xdg_toplevel_listener = {
+const struct xdg_toplevel_listener xdg_toplevel_listener = {
     _xdg_toplevel_configure_cb,
     _xdg_toplevel_close_cb,
 };
@@ -2233,9 +2242,9 @@ static void _registry_cb(void *data, struct wl_registry *registry, uint32_t id, 
 
     if (strcmp(interface, "wl_compositor") == 0) {
         window->compositor = wl_registry_bind(registry, id, &wl_compositor_interface, 1);
-    } else if (strcmp(interface, "zxdg_shell_v6") == 0) {
-        window->shell = wl_registry_bind(registry, id, &zxdg_shell_v6_interface, 1);
-        zxdg_shell_v6_add_listener(window->shell, &xdg_shell_listener, NULL);
+    } else if (strcmp(interface, "xdg_wm_base") == 0) {
+        window->shell = wl_registry_bind(registry, id, &xdg_wm_base_interface, 1);
+        xdg_wm_base_add_listener(window->shell, &xdg_shell_listener, NULL);
     } else if (strcmp(interface, "wl_seat") == 0) {
         window->seat = wl_registry_bind(registry, id, &wl_seat_interface, 1);
         wl_seat_add_listener(window->seat, &seat_listener, window);
@@ -2295,7 +2304,7 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     }
 
     if (window->shell == NULL) {
-        Error("Compositor is missing support for zxdg_shell_v6.");
+        Error("Compositor is missing support for xdg_shell.");
         return false;
     }
 
@@ -2305,26 +2314,26 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
         return false;
     }
 
-    window->shell_surface = zxdg_shell_v6_get_xdg_surface(window->shell, window->surface);
+    window->shell_surface = xdg_wm_base_get_xdg_surface(window->shell, window->surface);
     if (window->shell_surface == NULL) {
         Error("Could not get shell surface.");
         return false;
     }
 
-    zxdg_surface_v6_add_listener(window->shell_surface, &xdg_surface_listener, window);
+    xdg_surface_add_listener(window->shell_surface, &xdg_surface_listener, window);
 
-    struct zxdg_toplevel_v6 *toplevel = zxdg_surface_v6_get_toplevel(window->shell_surface);
+    struct xdg_toplevel *toplevel = xdg_surface_get_toplevel(window->shell_surface);
     if (toplevel == NULL) {
         Error("Could not get surface toplevel.");
         return false;
     }
 
-    zxdg_toplevel_v6_add_listener(toplevel, &xdg_toplevel_listener, window);
+    xdg_toplevel_add_listener(toplevel, &xdg_toplevel_listener, window);
 
-    zxdg_toplevel_v6_set_title(toplevel, WINDOW_TITLE);
-    zxdg_toplevel_v6_set_app_id(toplevel, APPLICATION_NAME);
-    zxdg_toplevel_v6_set_min_size(toplevel, width, height);
-    zxdg_toplevel_v6_set_max_size(toplevel, width, height);
+    xdg_toplevel_set_title(toplevel, WINDOW_TITLE);
+    xdg_toplevel_set_app_id(toplevel, APPLICATION_NAME);
+    xdg_toplevel_set_min_size(toplevel, width, height);
+    xdg_toplevel_set_max_size(toplevel, width, height);
 
     wl_surface_commit(window->surface);
 
@@ -2356,8 +2365,8 @@ void ksGpuWindow_Destroy(ksGpuWindow *window) {
 
     if (window->compositor != NULL) wl_compositor_destroy(window->compositor);
     if (window->registry != NULL) wl_registry_destroy(window->registry);
-    if (window->shell_surface != NULL) zxdg_surface_v6_destroy(window->shell_surface);
-    if (window->shell != NULL) zxdg_shell_v6_destroy(window->shell);
+    if (window->shell_surface != NULL) xdg_surface_destroy(window->shell_surface);
+    if (window->shell != NULL) xdg_wm_base_destroy(window->shell);
     if (window->surface != NULL) wl_surface_destroy(window->surface);
     if (window->display != NULL) wl_display_disconnect(window->display);
 
