@@ -36,7 +36,7 @@ jobs:
         run: "./maintainer-scripts/build-aar.sh"
 
       - name: Upload bare AAR
-        uses: "actions/upload-artifact@v4"
+        uses: "actions/upload-artifact@v6"
         with:
           name: AAR and POM
           path: openxr_loader_for_android*
@@ -62,7 +62,7 @@ jobs:
 
       - name: Upload HelloXR OpenGLES (debug) for Android
         if: "!inputs.release"
-        uses: "actions/upload-artifact@v4"
+        uses: "actions/upload-artifact@v6"
         with:
           name: HelloXR OpenGLES Android
           path: "src/tests/hello_xr/build/outputs/apk/OpenGLES/debug/*.apk"
