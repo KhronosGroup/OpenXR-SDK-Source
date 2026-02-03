@@ -352,9 +352,6 @@ struct D3D11GraphicsPlugin : public IGraphicsPlugin {
     ComPtr<ID3D11Buffer> m_viewProjectionCBuffer;
     ComPtr<ID3D11Buffer> m_cubeVertexBuffer;
     ComPtr<ID3D11Buffer> m_cubeIndexBuffer;
-
-    // Map color buffer to associated depth buffer. This map is populated on demand.
-    std::map<ID3D11Texture2D*, ComPtr<ID3D11DepthStencilView>> m_colorToDepthMap;
     std::array<float, 4> m_clearColor;
 };
 }  // namespace
