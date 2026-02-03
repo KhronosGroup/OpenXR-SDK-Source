@@ -363,7 +363,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
 
        private:
         ComPtr<ID3D12Resource> m_texture{};
-        XrSwapchainImageD3D12KHR m_xrImage{XR_TYPE_SWAPCHAIN_IMAGE_D3D11_KHR};
+        XrSwapchainImageD3D12KHR m_xrImage{XR_TYPE_SWAPCHAIN_IMAGE_D3D12_KHR};
     };
 
     class D3D12SwapchainImageData : public SwapchainImageDataBase<XrSwapchainImageD3D12KHR> {
