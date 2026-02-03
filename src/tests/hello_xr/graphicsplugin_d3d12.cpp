@@ -94,11 +94,6 @@ class SwapchainImageContext {
         return bases;
     }
 
-    uint32_t ImageIndex(const XrSwapchainImageBaseHeader* swapchainImageHeader) {
-        auto p = reinterpret_cast<const XrSwapchainImageD3D12KHR*>(swapchainImageHeader);
-        return (uint32_t)(p - &m_swapchainImages[0]);
-    }
-
     ID3D12Resource* GetDepthStencilTexture(ID3D12Resource* colorTexture) {
         if (!m_depthStencilTexture) {
             // This back-buffer has no corresponding depth-stencil texture, so create one with matching dimensions.
