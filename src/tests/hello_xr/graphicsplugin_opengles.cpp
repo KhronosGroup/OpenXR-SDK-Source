@@ -375,9 +375,14 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
         UNUSED_PARM(swapchainFormat);                    // Not used in this function for now.
 
+        OpenGLESSwapchainImageData* swapchainData;
+        uint32_t imageIndex;
+        std::tie(swapchainData, imageIndex) = m_swapchainImageDataMap.GetDataAndIndexFromBasePointer(swapchainImage);
+
         glBindFramebuffer(GL_FRAMEBUFFER, m_swapchainFramebuffer);
 
         const uint32_t colorTexture = reinterpret_cast<const XrSwapchainImageOpenGLESKHR*>(swapchainImage)->image;
+        const uint32_t depthTexture = swapchainData->GetDepthImageForColorIndex(imageIndex).image;
 
         glViewport(static_cast<GLint>(layerView.subImage.imageRect.offset.x),
                    static_cast<GLint>(layerView.subImage.imageRect.offset.y),
@@ -388,8 +393,6 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         glCullFace(GL_BACK);
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
-
-        const uint32_t depthTexture = GetDepthTexture(colorTexture);
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
