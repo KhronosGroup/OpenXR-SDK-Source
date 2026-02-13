@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# Copyright (c) 2018-2025 The Khronos Group Inc.
+# Copyright (c) 2018-2026 The Khronos Group Inc.
 #
 # SPDX-License-Identifier: Apache-2.0
 

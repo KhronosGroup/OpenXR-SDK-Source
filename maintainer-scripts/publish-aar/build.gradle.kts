@@ -1,4 +1,4 @@
-// Copyright 2025 The Khronos Group Inc.
+// Copyright 2025-2026 The Khronos Group Inc.
 // Copyright 2021-2022, Collabora, Ltd.
 // SPDX-License-Identifier: BSL-1.0
 plugins {

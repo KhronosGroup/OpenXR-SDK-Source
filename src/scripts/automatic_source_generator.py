@@ -1,6 +1,6 @@
 #!/usr/bin/env python3 -i
 #
-# Copyright (c) 2017-2025 The Khronos Group Inc.
+# Copyright (c) 2017-2026 The Khronos Group Inc.
 # Copyright (c) 2017-2019 Valve Corporation
 # Copyright (c) 2017-2019 LunarG, Inc.
 #
@@ -584,7 +584,7 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
     #   self            the AutomaticSourceOutputGenerator object
     def outputCopywriteHeader(self):
         # REUSE-IgnoreStart
-        notice = '// Copyright (c) 2017-2025 The Khronos Group Inc.\n'
+        notice = '// Copyright (c) 2017-2026 The Khronos Group Inc.\n'
         notice += '// Copyright (c) 2017-2019 Valve Corporation\n'
         notice += '// Copyright (c) 2017-2019 LunarG, Inc.\n'
         notice += '//\n'

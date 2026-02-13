@@ -1,4 +1,4 @@
-// Copyright (c) 2025 The Khronos Group Inc.
+// Copyright (c) 2025-2026 The Khronos Group Inc.
 // Copyright (c) 2025 Collabora, Ltd.
 //
 // SPDX-License-Identifier: Apache-2.0
