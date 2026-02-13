@@ -214,7 +214,7 @@ struct RowBreak {};
 struct OutputFlush {};
 
 class Duration {
-    enum class Unit {
+    enum class Unit : uint8_t {
         Auto,
         Nanoseconds,
         Microseconds,
@@ -286,7 +286,10 @@ public:
 };
 } // end anon namespace
 
-enum class Justification { Left, Right };
+enum class Justification : uint8_t {
+    Left,
+    Right
+};
 
 struct ColumnInfo {
     std::string name;
@@ -398,7 +401,10 @@ ConsoleReporter::ConsoleReporter(ReporterConfig&& config):
                 { "est run time high mean  high std dev", 14, Justification::Right }
             };
         }
-    }())) {}
+    }())) {
+    m_preferences.shouldReportAllAssertionStarts = false;
+}
+
 ConsoleReporter::~ConsoleReporter() = default;
 
 std::string ConsoleReporter::getDescription() {
@@ -412,8 +418,6 @@ void ConsoleReporter::noMatchingTestCases( StringRef unmatchedSpec ) {
 void ConsoleReporter::reportInvalidTestSpec( StringRef arg ) {
     m_stream << "Invalid Filter: " << arg << '\n';
 }
-
-void ConsoleReporter::assertionStarting(AssertionInfo const&) {}
 
 void ConsoleReporter::assertionEnded(AssertionStats const& _assertionStats) {
     AssertionResult const& result = _assertionStats.assertionResult;
@@ -526,7 +530,8 @@ void ConsoleReporter::testRunStarting(TestRunInfo const& _testRunInfo) {
         m_stream << m_colour->guardColour( Colour::BrightYellow ) << "Filters: "
                  << m_config->testSpec() << '\n';
     }
-    m_stream << "Randomness seeded to: " << getSeed() << '\n';
+    m_stream << "Randomness seeded to: " << getSeed() << '\n'
+             << std::flush;
 }
 
 void ConsoleReporter::lazyPrint() {

@@ -304,7 +304,7 @@ int getActiveRuntimeVirtualManifest(wrap::android::content::Context const &conte
 
     if (cursor.isNull()) {
         // Couldn't find either broker
-        ALOGE("Could access neither the installable nor system runtime broker.");
+        ALOGW("Could access neither the installable nor system runtime broker.");
         return -1;
     }
 
@@ -342,7 +342,7 @@ int getActiveRuntimeVirtualManifest(wrap::android::content::Context const &conte
         ALOGV("Unable to open broker provided runtime at %s, checking for more records...", lib_path.c_str());
     } while (cursor.moveToNext());
 
-    ALOGE("Unable to open any of the broker provided runtimes.");
+    ALOGW("Unable to open any of the broker provided runtimes.");
     cursor.close();
     return -1;
 }

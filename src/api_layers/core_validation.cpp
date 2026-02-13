@@ -691,6 +691,12 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrCreateSession(XrInstance instance
 #ifdef XR_USE_PLATFORM_WAYLAND
                 case XR_TYPE_GRAPHICS_BINDING_OPENGL_WAYLAND_KHR:
 #endif
+#ifdef XR_USE_GRAPHICS_API_METAL
+                case XR_TYPE_GRAPHICS_BINDING_METAL_KHR:
+#endif
+#ifdef XR_USE_PLATFORM_EGL
+                case XR_TYPE_GRAPHICS_BINDING_EGL_MNDX:
+#endif
                     num_graphics_bindings_found++;
                     break;
             }

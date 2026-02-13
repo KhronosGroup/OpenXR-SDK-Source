@@ -138,7 +138,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         updates them automatically by processing a line at a time.
         -->
         <type category="define">// OpenXR current version number.
-#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(1, 1, 54)</type>
+#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(1, 1, 57)</type>
 
         <!--
         Defines for a fixed major.minor version of OpenXR preserving the shared patch version.
@@ -5568,7 +5568,70 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member len="lipsyncExpressionWeightCount"><type>float</type>* <name>lipsyncExpressionWeights</name></member>
         </type>
 
+        <!-- XR_ANDROID_trackables_image -->
+        <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrTrackableImageDatabaseANDROID</name>)</type>
 
+        <type name="XrTrackableImageFormatANDROID" category="enum"/>
+        <type name="XrTrackableImageTrackingModeANDROID" category="enum"/>
+
+        <type category="struct" name="XrSystemImageTrackingPropertiesANDROID" returnedonly="true" structextends="XrSystemProperties">
+            <member values="XR_TYPE_SYSTEM_IMAGE_TRACKING_PROPERTIES_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*    <name>next</name></member>
+            <member><type>XrBool32</type> <name>supportsImageTracking</name></member>
+            <member><type>XrBool32</type> <name>supportsPhysicalSizeEstimation</name></member>
+            <member><type>uint32_t</type> <name>maxTrackedImageCount</name></member>
+            <member><type>uint32_t</type> <name>maxLoadedImageCount</name></member>
+        </type>
+
+        <type category="struct" name="XrTrackableImageDatabaseEntryANDROID">
+            <member values="XR_TYPE_TRACKABLE_IMAGE_DATABASE_ENTRY_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                         <name>next</name></member>
+            <member><type>XrTrackableImageTrackingModeANDROID</type> <name>trackingMode</name></member>
+            <member optional="true"><type>float</type>               <name>physicalWidth</name></member>
+            <member><type>uint32_t</type>                            <name>imageWidth</name></member>
+            <member><type>uint32_t</type>                            <name>imageHeight</name></member>
+            <member><type>XrTrackableImageFormatANDROID</type>       <name>format</name></member>
+            <member><type>uint32_t</type>                            <name>bufferSize</name></member>
+            <member len="bufferSize">const <type>uint8_t</type>*     <name>buffer</name></member>
+        </type>
+
+        <type category="struct" name="XrTrackableImageDatabaseCreateInfoANDROID">
+            <member values="XR_TYPE_TRACKABLE_IMAGE_DATABASE_CREATE_INFO_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                  <name>next</name></member>
+            <member><type>uint32_t</type>                                                     <name>entryCount</name></member>
+            <member len="entryCount">const <type>XrTrackableImageDatabaseEntryANDROID</type>* <name>entries</name></member>
+        </type>
+
+        <type category="struct" name="XrCreateTrackableImageDatabaseCompletionANDROID" parentstruct="XrFutureCompletionBaseHeaderEXT">
+            <member values="XR_TYPE_CREATE_TRACKABLE_IMAGE_DATABASE_COMPLETION_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                           <name>next</name></member>
+            <member><type>XrResult</type>                        <name>futureResult</name></member>
+            <member><type>XrTrackableImageDatabaseANDROID</type> <name>database</name></member>
+        </type>
+
+        <type category="struct" name="XrTrackableImageConfigurationANDROID">
+            <member values="XR_TYPE_TRACKABLE_IMAGE_CONFIGURATION_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                <name>next</name></member>
+            <member><type>uint32_t</type>                                                   <name>databaseCount</name></member>
+            <member len="databaseCount">const <type>XrTrackableImageDatabaseANDROID</type>* <name>databases</name></member>
+        </type>
+
+        <type category="struct" name="XrTrackableImageANDROID">
+            <member values="XR_TYPE_TRACKABLE_IMAGE_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                     <name>next</name></member>
+            <member><type>XrTrackingStateANDROID</type>          <name>trackingState</name></member>
+            <member><type>XrTime</type>                          <name>lastUpdatedTime</name></member>
+            <member><type>XrTrackableImageDatabaseANDROID</type> <name>database</name></member>
+            <member><type>uint32_t</type>                        <name>databaseEntryIndex</name></member>
+            <member><type>XrPosef</type>                         <name>centerPose</name></member>
+            <member><type>XrExtent2Df</type>                     <name>extents</name></member>
+        </type>
+
+        <type category="struct" name="XrEventDataImageTrackingLostANDROID" parentstruct="XrEventDataBaseHeader" returnedonly="true">
+            <member values="XR_TYPE_EVENT_DATA_IMAGE_TRACKING_LOST_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrTime</type>      <name>time</name></member>
+        </type>
     </types>
 
 
@@ -7552,6 +7615,15 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="19"   name="XR_LIP_EXPRESSION_SIL_BD"/>
     </enums>
 
+    <enums name="XrTrackableImageFormatANDROID" type="enum">
+        <enum value="1"   name="XR_TRACKABLE_IMAGE_FORMAT_R8G8B8A8_ANDROID" comment="RGBA image format with 8 bits per channel color and transparency data."/>
+    </enums>
+
+    <enums name="XrTrackableImageTrackingModeANDROID" type="enum">
+        <enum value="1"   name="XR_TRACKABLE_IMAGE_TRACKING_MODE_DYNAMIC_ANDROID" comment="This mode has the highest accuracy and allows low latency tracking of moving images. It has also has the highest power consumption."/>
+        <enum value="2"   name="XR_TRACKABLE_IMAGE_TRACKING_MODE_STATIC_ANDROID"  comment="This mode should be used for images that are known to be static or semi-static. This mode leads to less power consumption in comparison to the dynamic mode. If a static image is being moved, it will be updated with a much higher latency than using the dynamic mode."/>
+    </enums>
+
     <!-- SECTION: OpenXR command definitions -->
     <commands>
         <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE">
@@ -9151,7 +9223,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </command>
 
         <!-- commands for XR_META_spatial_entity_discovery -->
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INITIALIZATION_FAILED,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SESSION_NOT_RUNNING,XR_ERROR_SPACE_RATE_LIMITED_META,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INITIALIZATION_FAILED,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SESSION_NOT_RUNNING,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SPACE_RATE_LIMITED_META,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrDiscoverSpacesMETA</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrSpaceDiscoveryInfoMETA</type>* <name>info</name></param>
@@ -10378,6 +10450,43 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrFacialSimulationModeBD</type>*<name>mode</name></param>
         </command>
 
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_IMAGE_FORMAT_UNSUPPORTED_ANDROID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateTrackableImageDatabaseAsyncANDROID</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrTrackableImageDatabaseCreateInfoANDROID</type>* <name>createInfo</name></param>
+            <param><type>XrFutureEXT</type>* <name>future</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_FUTURE_INVALID_EXT,XR_ERROR_FUTURE_PENDING_EXT,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateTrackableImageDatabaseCompleteANDROID</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param><type>XrFutureEXT</type> <name>future</name></param>
+            <param><type>XrCreateTrackableImageDatabaseCompletionANDROID</type>* <name>completion</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroyTrackableImageDatabaseANDROID</name></proto>
+            <param externsync="true_with_children"><type>XrTrackableImageDatabaseANDROID</type> <name>database</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrAddTrackableImageDatabaseANDROID</name></proto>
+            <param><type>XrTrackableTrackerANDROID</type> <name>tracker</name></param>
+            <param><type>XrTrackableImageDatabaseANDROID</type> <name>database</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrRemoveTrackableImageDatabaseANDROID</name></proto>
+            <param><type>XrTrackableTrackerANDROID</type> <name>tracker</name></param>
+            <param><type>XrTrackableImageDatabaseANDROID</type> <name>database</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_MISMATCHING_TRACKABLE_TYPE_ANDROID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetTrackableImageANDROID</name></proto>
+            <param><type>XrTrackableTrackerANDROID</type> <name>tracker</name></param>
+            <param>const <type>XrTrackableGetInfoANDROID</type>* <name>getInfo</name></param>
+            <param><type>XrTrackableImageANDROID</type>* <name>trackable</name></param>
+        </command>
 
     </commands>
 
@@ -14066,7 +14175,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
 
     <extension name="XR_KHR_extended_struct_name_lengths" number="149" type="instance" supported="openxr" ratified="openxr">
         <require>
-            <enum value="1"                                               name="XR_KHR_extended_struct_name_lengths_SPEC_VERSION"/>
+            <enum value="2"                                               name="XR_KHR_extended_struct_name_lengths_SPEC_VERSION"/>
             <enum value="&quot;XR_KHR_extended_struct_name_lengths&quot;" name="XR_KHR_EXTENDED_STRUCT_NAME_LENGTHS_EXTENSION_NAME"/>
             <command name="xrStructureTypeToString2KHR"/>
             <enum value="256" name="XR_MAX_STRUCTURE_NAME_SIZE_EXTENDED_KHR"/>
@@ -17151,7 +17260,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_EXT_plane_detection" number="430" type="instance" supported="openxr">
+    <extension name="XR_EXT_plane_detection" number="430" type="instance" supported="openxr" deprecatedby="XR_EXT_spatial_plane_tracking">
         <require>
             <enum value="2"                                  name="XR_EXT_plane_detection_SPEC_VERSION"/>
             <enum value="&quot;XR_EXT_plane_detection&quot;" name="XR_EXT_PLANE_DETECTION_EXTENSION_NAME"/>
@@ -19518,10 +19627,44 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_extension_710" number="710" type="instance" supported="disabled">
+    <extension name="XR_ANDROID_trackables_image" number="710" type="instance" supported="openxr" depends="XR_EXT_future+XR_ANDROID_trackables">
         <require>
-            <enum value="1"                                    name="XR_ANDROID_extension_710_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_extension_710&quot;" name="XR_ANDROID_EXTENSION_710_EXTENSION_NAME"/>
+            <enum value="1"                                           name="XR_ANDROID_trackables_image_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_trackables_image&quot;"     name="XR_ANDROID_TRACKABLES_IMAGE_EXTENSION_NAME"/>
+
+            <enum offset="0"         extends="XrStructureType"        name="XR_TYPE_SYSTEM_IMAGE_TRACKING_PROPERTIES_ANDROID"/>
+            <enum offset="1"         extends="XrStructureType"        name="XR_TYPE_TRACKABLE_IMAGE_DATABASE_ENTRY_ANDROID"/>
+            <enum offset="2"         extends="XrStructureType"        name="XR_TYPE_TRACKABLE_IMAGE_DATABASE_CREATE_INFO_ANDROID"/>
+            <enum offset="3"         extends="XrStructureType"        name="XR_TYPE_CREATE_TRACKABLE_IMAGE_DATABASE_COMPLETION_ANDROID"/>
+            <enum offset="4"         extends="XrStructureType"        name="XR_TYPE_TRACKABLE_IMAGE_CONFIGURATION_ANDROID"/>
+            <enum offset="5"         extends="XrStructureType"        name="XR_TYPE_TRACKABLE_IMAGE_ANDROID"/>
+            <enum offset="6"         extends="XrStructureType"        name="XR_TYPE_EVENT_DATA_IMAGE_TRACKING_LOST_ANDROID"/>
+
+            <enum offset="0"         extends="XrObjectType"           name="XR_OBJECT_TYPE_TRACKABLE_IMAGE_DATABASE_ANDROID"            comment="XrTrackableImageDatabaseANDROID"/>
+
+            <enum offset="0" dir="-" extends="XrResult"               name="XR_ERROR_IMAGE_FORMAT_UNSUPPORTED_ANDROID"                  comment="Indicates that the input reference image format is not supported."/>
+
+            <enum offset="0"         extends="XrTrackableTypeANDROID" name="XR_TRACKABLE_TYPE_IMAGE_ANDROID"                            comment="Indicates that the trackable is an image."/>
+
+            <type name="XrTrackableImageDatabaseANDROID"/>
+
+            <type name="XrTrackableImageTrackingModeANDROID"/>
+            <type name="XrTrackableImageFormatANDROID"/>
+
+            <type name="XrSystemImageTrackingPropertiesANDROID"/>
+            <type name="XrTrackableImageDatabaseEntryANDROID"/>
+            <type name="XrTrackableImageDatabaseCreateInfoANDROID"/>
+            <type name="XrCreateTrackableImageDatabaseCompletionANDROID"/>
+            <type name="XrTrackableImageConfigurationANDROID"/>
+            <type name="XrTrackableImageANDROID"/>
+            <type name="XrEventDataImageTrackingLostANDROID"/>
+
+            <command name="xrCreateTrackableImageDatabaseAsyncANDROID"/>
+            <command name="xrCreateTrackableImageDatabaseCompleteANDROID"/>
+            <command name="xrDestroyTrackableImageDatabaseANDROID"/>
+            <command name="xrAddTrackableImageDatabaseANDROID"/>
+            <command name="xrRemoveTrackableImageDatabaseANDROID"/>
+            <command name="xrGetTrackableImageANDROID"/>
         </require>
     </extension>
 
@@ -21017,6 +21160,20 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <require>
             <enum value="1"                                name="XR_EXT_extension_871_SPEC_VERSION"/>
             <enum value="&quot;XR_EXT_extension_871&quot;" name="XR_EXT_EXTENSION_871_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_KHR_extension_872" number="872" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                name="XR_KHR_extension_872_SPEC_VERSION"/>
+            <enum value="&quot;XR_KHR_extension_872&quot;" name="XR_KHR_EXTENSION_872_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_KHR_extension_873" number="873" type="instance" supported="disabled">
+         <require>
+            <enum value="1"                                name="XR_KHR_extension_873_SPEC_VERSION"/>
+            <enum value="&quot;XR_KHR_extension_873&quot;" name="XR_KHR_EXTENSION_873_EXTENSION_NAME"/>
         </require>
     </extension>
 

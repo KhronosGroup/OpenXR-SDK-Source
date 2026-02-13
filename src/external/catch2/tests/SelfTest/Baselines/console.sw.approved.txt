@@ -768,8 +768,25 @@ Generators.tests.cpp:<line number>
 ...............................................................................
 
 Generators.tests.cpp:<line number>: FAILED:
+  {Unknown expression after the reported line}
 due to unexpected exception with message:
   failure to init
+
+-------------------------------------------------------------------------------
+#3001: Enum-based bitfields can be captured
+-------------------------------------------------------------------------------
+Compilation.tests.cpp:<line number>
+...............................................................................
+
+Compilation.tests.cpp:<line number>: PASSED:
+  REQUIRE( bf.e == 1 )
+with expansion:
+  1 == 1
+
+Compilation.tests.cpp:<line number>: PASSED:
+  REQUIRE( 1 == bf.e )
+with expansion:
+  1 == 1
 
 -------------------------------------------------------------------------------
 #748 - captures with unexpected exceptions
@@ -779,8 +796,8 @@ Exception.tests.cpp:<line number>
 ...............................................................................
 
 Exception.tests.cpp:<line number>: FAILED:
-due to unexpected exception with messages:
-  answer := 42
+  {Unknown expression after the reported line}
+due to unexpected exception with message:
   expected exception
 
 -------------------------------------------------------------------------------
@@ -2566,6 +2583,41 @@ with expansion:
   !(Val: 1 ^ Val: 1)
 
 -------------------------------------------------------------------------------
+Assertions can be nested - CHECK
+-------------------------------------------------------------------------------
+AssertionHandler.tests.cpp:<line number>
+...............................................................................
+
+AssertionHandler.tests.cpp:<line number>: FAILED:
+  REQUIRE( i > 10 )
+with expansion:
+  2 > 10
+
+AssertionHandler.tests.cpp:<line number>: FAILED:
+  CHECK( foo( 2 ) == 2 )
+due to unexpected exception with message:
+  { nested assertion failed }
+
+AssertionHandler.tests.cpp:<line number>: PASSED:
+  CHECK( true )
+
+-------------------------------------------------------------------------------
+Assertions can be nested - REQUIRE
+-------------------------------------------------------------------------------
+AssertionHandler.tests.cpp:<line number>
+...............................................................................
+
+AssertionHandler.tests.cpp:<line number>: FAILED:
+  REQUIRE( i > 10 )
+with expansion:
+  2 > 10
+
+AssertionHandler.tests.cpp:<line number>: FAILED:
+  REQUIRE( foo( 2 ) == 2 )
+due to unexpected exception with message:
+  { nested assertion failed }
+
+-------------------------------------------------------------------------------
 Assertions then sections
 -------------------------------------------------------------------------------
 Tricky.tests.cpp:<line number>
@@ -2864,6 +2916,40 @@ ToStringGeneral.tests.cpp:<line number>: PASSED:
   REQUIRE( true )
 with message:
   3
+
+-------------------------------------------------------------------------------
+Captures do not leave block with an exception
+-------------------------------------------------------------------------------
+Message.tests.cpp:<line number>
+...............................................................................
+
+Message.tests.cpp:<line number>: FAILED:
+  REQUIRE( false )
+with message:
+  a := 1
+
+-------------------------------------------------------------------------------
+Captures outlive section end
+  Dummy section
+-------------------------------------------------------------------------------
+Message.tests.cpp:<line number>
+...............................................................................
+
+Message.tests.cpp:<line number>: PASSED:
+  CHECK( true )
+with message:
+  a := 1
+
+-------------------------------------------------------------------------------
+Captures outlive section end
+-------------------------------------------------------------------------------
+Message.tests.cpp:<line number>
+...............................................................................
+
+Message.tests.cpp:<line number>: FAILED:
+  REQUIRE( false )
+with message:
+  a := 1
 
 -------------------------------------------------------------------------------
 CaseInsensitiveEqualsTo is case insensitive
@@ -3468,6 +3554,47 @@ Tricky.tests.cpp:<line number>: PASSED:
   CHECKED_ELSE( std::vector<int>{1, 2} == std::vector<int>{1, 2} )
 with expansion:
   { 1, 2 } == { 1, 2 }
+
+-------------------------------------------------------------------------------
+Comparing (and stringifying) volatile pointers works
+-------------------------------------------------------------------------------
+Misc.tests.cpp:<line number>
+...............................................................................
+
+Misc.tests.cpp:<line number>: PASSED:
+  REQUIRE_FALSE( ptr )
+with expansion:
+  !0
+
+Misc.tests.cpp:<line number>: PASSED:
+  REQUIRE( ptr == ptr )
+with expansion:
+  0 == 0
+
+Misc.tests.cpp:<line number>: PASSED:
+  REQUIRE_FALSE( ptr != ptr )
+with expansion:
+  !(0 != 0)
+
+Misc.tests.cpp:<line number>: PASSED:
+  REQUIRE_FALSE( ptr < ptr )
+with expansion:
+  !(0 < 0)
+
+Misc.tests.cpp:<line number>: PASSED:
+  REQUIRE( ptr <= ptr )
+with expansion:
+  0 <= 0
+
+Misc.tests.cpp:<line number>: PASSED:
+  REQUIRE_FALSE( ptr > ptr )
+with expansion:
+  !(0 > 0)
+
+Misc.tests.cpp:<line number>: PASSED:
+  REQUIRE( ptr >= ptr )
+with expansion:
+  0 >= 0
 
 -------------------------------------------------------------------------------
 Comparing function pointers
@@ -4083,7 +4210,7 @@ with expansion:
   insensitive)
 
 -------------------------------------------------------------------------------
-Enums can quickly have stringification enabled using REGISTER_ENUM
+Enums can quickly have stringification enabled using CATCH_REGISTER_ENUM
 -------------------------------------------------------------------------------
 EnumToString.tests.cpp:<line number>
 ...............................................................................
@@ -4117,7 +4244,7 @@ with expansion:
 
 -------------------------------------------------------------------------------
 Enums in namespaces can quickly have stringification enabled using
-REGISTER_ENUM
+CATCH_REGISTER_ENUM
 -------------------------------------------------------------------------------
 EnumToString.tests.cpp:<line number>
 ...............................................................................
@@ -4471,6 +4598,19 @@ with expansion:
   "expected exception" contains: "except" (case insensitive)
 
 -------------------------------------------------------------------------------
+Exception thrown inside stringify does not fail the test
+-------------------------------------------------------------------------------
+ToString.tests.cpp:<line number>
+...............................................................................
+
+ToString.tests.cpp:<line number>: PASSED:
+  CHECK( tos == tos )
+with expansion:
+  { stringification failed with an exception: "Invalid" }
+  ==
+  { stringification failed with an exception: "Invalid" }
+
+-------------------------------------------------------------------------------
 Exceptions matchers
 -------------------------------------------------------------------------------
 Matchers.tests.cpp:<line number>
@@ -4525,6 +4665,21 @@ Message.tests.cpp:<line number>
 Message.tests.cpp:<line number>: FAILED:
 explicitly with message:
   This is a failure
+
+-------------------------------------------------------------------------------
+FAIL can be nested in assertion
+-------------------------------------------------------------------------------
+AssertionHandler.tests.cpp:<line number>
+...............................................................................
+
+AssertionHandler.tests.cpp:<line number>: FAILED:
+explicitly with message:
+  Throw a Catch::TestFailureException
+
+AssertionHandler.tests.cpp:<line number>: FAILED:
+  CHECK_NOTHROW( do_fail() )
+due to unexpected exception with message:
+  { nested assertion failed }
 
 -------------------------------------------------------------------------------
 FAIL does not require an argument
@@ -5898,6 +6053,34 @@ GeneratorsImpl.tests.cpp:<line number>: PASSED:
 
 GeneratorsImpl.tests.cpp:<line number>: PASSED:
   REQUIRE_THROWS_AS( filter([](int) { return false; }, values({ 1, 2, 3 })), Catch::GeneratorException )
+
+-------------------------------------------------------------------------------
+Generators internals
+  Filter generator
+  Out-of-line predicates are copied into the generator
+-------------------------------------------------------------------------------
+GeneratorsImpl.tests.cpp:<line number>
+...............................................................................
+
+GeneratorsImpl.tests.cpp:<line number>: PASSED:
+  REQUIRE( gen.get() == 1 )
+with expansion:
+  1 == 1
+
+GeneratorsImpl.tests.cpp:<line number>: PASSED:
+  REQUIRE( gen.next() )
+with expansion:
+  true
+
+GeneratorsImpl.tests.cpp:<line number>: PASSED:
+  REQUIRE( gen.get() == 3 )
+with expansion:
+  3 == 3
+
+GeneratorsImpl.tests.cpp:<line number>: PASSED:
+  REQUIRE_FALSE( gen.next() )
+with expansion:
+  !false
 
 -------------------------------------------------------------------------------
 Generators internals
@@ -7652,7 +7835,7 @@ with expansion:
   ""custom"" == ""custom""
 
 -------------------------------------------------------------------------------
-JsonWriter escapes charaters in strings properly
+JsonWriter escapes characters in strings properly
   Quote in a string is escaped
 -------------------------------------------------------------------------------
 Json.tests.cpp:<line number>
@@ -7664,7 +7847,7 @@ with expansion:
   ""\""" == ""\"""
 
 -------------------------------------------------------------------------------
-JsonWriter escapes charaters in strings properly
+JsonWriter escapes characters in strings properly
   Backslash in a string is escaped
 -------------------------------------------------------------------------------
 Json.tests.cpp:<line number>
@@ -7676,7 +7859,7 @@ with expansion:
   ""\\"" == ""\\""
 
 -------------------------------------------------------------------------------
-JsonWriter escapes charaters in strings properly
+JsonWriter escapes characters in strings properly
   Forward slash in a string is **not** escaped
 -------------------------------------------------------------------------------
 Json.tests.cpp:<line number>
@@ -7688,7 +7871,7 @@ with expansion:
   ""/"" == ""/""
 
 -------------------------------------------------------------------------------
-JsonWriter escapes charaters in strings properly
+JsonWriter escapes characters in strings properly
   Backspace in a string is escaped
 -------------------------------------------------------------------------------
 Json.tests.cpp:<line number>
@@ -7700,7 +7883,7 @@ with expansion:
   ""\b"" == ""\b""
 
 -------------------------------------------------------------------------------
-JsonWriter escapes charaters in strings properly
+JsonWriter escapes characters in strings properly
   Formfeed in a string is escaped
 -------------------------------------------------------------------------------
 Json.tests.cpp:<line number>
@@ -7712,7 +7895,7 @@ with expansion:
   ""\f"" == ""\f""
 
 -------------------------------------------------------------------------------
-JsonWriter escapes charaters in strings properly
+JsonWriter escapes characters in strings properly
   linefeed in a string is escaped
 -------------------------------------------------------------------------------
 Json.tests.cpp:<line number>
@@ -7724,7 +7907,7 @@ with expansion:
   ""\n"" == ""\n""
 
 -------------------------------------------------------------------------------
-JsonWriter escapes charaters in strings properly
+JsonWriter escapes characters in strings properly
   carriage return in a string is escaped
 -------------------------------------------------------------------------------
 Json.tests.cpp:<line number>
@@ -7736,7 +7919,7 @@ with expansion:
   ""\r"" == ""\r""
 
 -------------------------------------------------------------------------------
-JsonWriter escapes charaters in strings properly
+JsonWriter escapes characters in strings properly
   tab in a string is escaped
 -------------------------------------------------------------------------------
 Json.tests.cpp:<line number>
@@ -7748,7 +7931,7 @@ with expansion:
   ""\t"" == ""\t""
 
 -------------------------------------------------------------------------------
-JsonWriter escapes charaters in strings properly
+JsonWriter escapes characters in strings properly
   combination of characters is escaped
 -------------------------------------------------------------------------------
 Json.tests.cpp:<line number>
@@ -11024,6 +11207,56 @@ BDD.tests.cpp:<line number>: PASSED:
 with expansion:
   0 == 0
 
+-------------------------------------------------------------------------------
+Scoped message applies to all assertions in scope
+-------------------------------------------------------------------------------
+Message.tests.cpp:<line number>
+...............................................................................
+
+Message.tests.cpp:<line number>: FAILED:
+  CHECK( false )
+with message:
+  This will be reported multiple times
+
+Message.tests.cpp:<line number>: FAILED:
+  CHECK( false )
+with message:
+  This will be reported multiple times
+
+-------------------------------------------------------------------------------
+Scoped messages do not leave block with an exception
+-------------------------------------------------------------------------------
+Message.tests.cpp:<line number>
+...............................................................................
+
+Message.tests.cpp:<line number>: FAILED:
+  REQUIRE( false )
+with message:
+  Should be in scope at the end
+
+-------------------------------------------------------------------------------
+Scoped messages outlive section end
+  Dummy section
+-------------------------------------------------------------------------------
+Message.tests.cpp:<line number>
+...............................................................................
+
+Message.tests.cpp:<line number>: PASSED:
+  CHECK( true )
+with message:
+  Should survive a section end
+
+-------------------------------------------------------------------------------
+Scoped messages outlive section end
+-------------------------------------------------------------------------------
+Message.tests.cpp:<line number>
+...............................................................................
+
+Message.tests.cpp:<line number>: FAILED:
+  REQUIRE( false )
+with message:
+  Should survive a section end
+
 A string sent directly to stdout
 A string sent directly to stderr
 A string sent to stderr via clog
@@ -12525,6 +12758,42 @@ Misc.tests.cpp:<line number>: PASSED:
   REQUIRE( v.capacity() >= 5 )
 with expansion:
   5 >= 5
+
+-------------------------------------------------------------------------------
+TemplateTestSig: compiles with a single int parameter - 1
+-------------------------------------------------------------------------------
+Misc.tests.cpp:<line number>
+...............................................................................
+
+
+No assertions in test case 'TemplateTestSig: compiles with a single int parameter - 1'
+
+-------------------------------------------------------------------------------
+TemplateTestSig: compiles with a single int parameter - 3
+-------------------------------------------------------------------------------
+Misc.tests.cpp:<line number>
+...............................................................................
+
+
+No assertions in test case 'TemplateTestSig: compiles with a single int parameter - 3'
+
+-------------------------------------------------------------------------------
+TemplateTestSig: compiles with a single int parameter - 6
+-------------------------------------------------------------------------------
+Misc.tests.cpp:<line number>
+...............................................................................
+
+
+No assertions in test case 'TemplateTestSig: compiles with a single int parameter - 6'
+
+-------------------------------------------------------------------------------
+TemplateTestSig: compiles with two type parameters - int,int
+-------------------------------------------------------------------------------
+Misc.tests.cpp:<line number>
+...............................................................................
+
+
+No assertions in test case 'TemplateTestSig: compiles with two type parameters - int,int'
 
 -------------------------------------------------------------------------------
 TemplateTestSig: vectors can be sized and resized - (std::tuple<int, float>), 6
@@ -14983,6 +15252,23 @@ with expansion:
 
 -------------------------------------------------------------------------------
 Usage of RangeEquals range matcher
+  Compare against std::initializer_list
+-------------------------------------------------------------------------------
+MatchersRanges.tests.cpp:<line number>
+...............................................................................
+
+MatchersRanges.tests.cpp:<line number>: PASSED:
+  REQUIRE_THAT( array_a, RangeEquals( { 1, 2, 3 } ) )
+with expansion:
+  { 1, 2, 3 } elements are { 1, 2, 3 }
+
+MatchersRanges.tests.cpp:<line number>: PASSED:
+  REQUIRE_THAT( array_a, RangeEquals( { 2, 4, 6 }, []( int l, int r ) { return l * 2 == r; } ) )
+with expansion:
+  { 1, 2, 3 } elements are { 2, 4, 6 }
+
+-------------------------------------------------------------------------------
+Usage of RangeEquals range matcher
   Check short-circuiting behaviour
   Check short-circuits on failure
 -------------------------------------------------------------------------------
@@ -15167,6 +15453,23 @@ MatchersRanges.tests.cpp:<line number>: PASSED:
   REQUIRE_THAT( needs_adl1, UnorderedRangeEquals( needs_adl2 ) )
 with expansion:
   { 1, 2, 3, 4, 5 } unordered elements are { 1, 2, 3, 4, 5 }
+
+-------------------------------------------------------------------------------
+Usage of UnorderedRangeEquals range matcher
+  Compare against std::initializer_list
+-------------------------------------------------------------------------------
+MatchersRanges.tests.cpp:<line number>
+...............................................................................
+
+MatchersRanges.tests.cpp:<line number>: PASSED:
+  REQUIRE_THAT( array_a, UnorderedRangeEquals( { 10, 20, 1 } ) )
+with expansion:
+  { 1, 10, 20 } unordered elements are { 10, 20, 1 }
+
+MatchersRanges.tests.cpp:<line number>: PASSED:
+  REQUIRE_THAT( array_a, UnorderedRangeEquals( { 11, 21, 2 }, []( int l, int r ) { return std::abs( l - r ) <= 1; } ) )
+with expansion:
+  { 1, 10, 20 } unordered elements are { 11, 21, 2 }
 
 -------------------------------------------------------------------------------
 Usage of the SizeIs range matcher
@@ -15713,6 +16016,7 @@ Exception.tests.cpp:<line number>
 ...............................................................................
 
 Exception.tests.cpp:<line number>: FAILED:
+  {Unknown expression after the reported line}
 due to unexpected exception with message:
   unexpected exception
 
@@ -16634,51 +16938,51 @@ Clara.tests.cpp:<line number>
 
 Clara.tests.cpp:<line number>: PASSED:
 with message:
-  Catch::Clara::Detail::is_unary_function<decltype(unary1)>::value
+  Catch::Clara::Detail::is_unary_function_v<decltype(unary1)>
 
 Clara.tests.cpp:<line number>: PASSED:
 with message:
-  Catch::Clara::Detail::is_unary_function<decltype(unary2)>::value
+  Catch::Clara::Detail::is_unary_function_v<decltype(unary2)>
 
 Clara.tests.cpp:<line number>: PASSED:
 with message:
-  Catch::Clara::Detail::is_unary_function<decltype(unary3)>::value
+  Catch::Clara::Detail::is_unary_function_v<decltype(unary3)>
 
 Clara.tests.cpp:<line number>: PASSED:
 with message:
-  Catch::Clara::Detail::is_unary_function<decltype(unary4)>::value
+  Catch::Clara::Detail::is_unary_function_v<decltype(unary4)>
 
 Clara.tests.cpp:<line number>: PASSED:
 with message:
-  Catch::Clara::Detail::is_unary_function<decltype(unary5)>::value
+  Catch::Clara::Detail::is_unary_function_v<decltype(unary5)>
 
 Clara.tests.cpp:<line number>: PASSED:
 with message:
-  Catch::Clara::Detail::is_unary_function<decltype(unary6)>::value
+  Catch::Clara::Detail::is_unary_function_v<decltype(unary6)>
 
 Clara.tests.cpp:<line number>: PASSED:
 with message:
-  !(Catch::Clara::Detail::is_unary_function<decltype(binary1)>::value)
+  !(Catch::Clara::Detail::is_unary_function_v<decltype(binary1)>)
 
 Clara.tests.cpp:<line number>: PASSED:
 with message:
-  !(Catch::Clara::Detail::is_unary_function<decltype(binary2)>::value)
+  !(Catch::Clara::Detail::is_unary_function_v<decltype(binary2)>)
 
 Clara.tests.cpp:<line number>: PASSED:
 with message:
-  !(Catch::Clara::Detail::is_unary_function<decltype(nullary1)>::value)
+  !(Catch::Clara::Detail::is_unary_function_v<decltype(nullary1)>)
 
 Clara.tests.cpp:<line number>: PASSED:
 with message:
-  !(Catch::Clara::Detail::is_unary_function<decltype(nullary2)>::value)
+  !(Catch::Clara::Detail::is_unary_function_v<decltype(nullary2)>)
 
 Clara.tests.cpp:<line number>: PASSED:
 with message:
-  !(Catch::Clara::Detail::is_unary_function<int>::value)
+  !(Catch::Clara::Detail::is_unary_function_v<int>)
 
 Clara.tests.cpp:<line number>: PASSED:
 with message:
-  !(Catch::Clara::Detail::is_unary_function<std::string const&>::value)
+  !(Catch::Clara::Detail::is_unary_function_v<std::string const&>)
 
 -------------------------------------------------------------------------------
 just failure
@@ -18188,6 +18492,19 @@ with expansion:
   4 == 4
 
 -------------------------------------------------------------------------------
+system_clock timepoint with non-default duration
+-------------------------------------------------------------------------------
+ToStringChrono.tests.cpp:<line number>
+...............................................................................
+
+ToStringChrono.tests.cpp:<line number>: PASSED:
+  CHECK( tp1 == tp2 )
+with expansion:
+  {iso8601-timestamp}
+  ==
+  {iso8601-timestamp}
+
+-------------------------------------------------------------------------------
 tables
 -------------------------------------------------------------------------------
 Generators.tests.cpp:<line number>
@@ -18978,6 +19295,6 @@ Misc.tests.cpp:<line number>
 Misc.tests.cpp:<line number>: PASSED:
 
 ===============================================================================
-test cases:  419 |  313 passed |  86 failed | 6 skipped | 14 failed as expected
-assertions: 2265 | 2083 passed | 147 failed | 35 failed as expected
+test cases:  435 |  317 passed |  95 failed | 6 skipped | 17 failed as expected
+assertions: 2303 | 2105 passed | 157 failed | 41 failed as expected
 

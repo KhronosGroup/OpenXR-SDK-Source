@@ -189,7 +189,9 @@ def makeGenOpts(args):
                 emitExtensions=emitExtensionsPat,
                 apicall='XRAPI_ATTR ',
                 apientry='XRAPI_CALL ',
-                apientryp='XRAPI_PTR *',)
+                apientryp='XRAPI_PTR *',
+                combineExtendedReturnCodes=False,
+            )
         ]
 
         genOpts['gen_dispatch.h'] = [

@@ -8,6 +8,7 @@ from collections import OrderedDict, namedtuple
 from enum import Enum
 from functools import reduce
 from pathlib import Path
+from typing import List
 
 from generator import OutputGenerator, write
 from spec_tools.attributes import (ExternSyncEntry, LengthEntry,
@@ -18,6 +19,7 @@ from spec_tools.data_structures import DictOfStringSets
 from spec_tools.util import (findNamedElem, findTypedElem, getElemName,
                              getElemType)
 from spec_tools.validity import ValidityCollection, ValidityEntry
+import schema
 
 
 class UnhandledCaseError(NotImplementedError):
@@ -1495,25 +1497,39 @@ class ValidityOutputGenerator(OutputGenerator):
         attrib is either 'successcodes' or 'errorcodes'.
         """
         assert self.registry
-        return_lines = []
-        RETURN_CODE_FORMAT = '* ename:{}'
+        return_lines: List[str] = []
+        if attrib == schema.CommandAttrs.SUCCESSCODES:
+            ext_codes = self.registry.commandextensionsuccesses
+        elif attrib == schema.CommandAttrs.ERRORCODES:
+            ext_codes = self.registry.commandextensionerrors
+        else:
+            raise ValueError("attrib is neither succescodes nor errorcodes")
+
+        # more than one extension might add the same return code
+        applicable_ext_codes = [ext_code
+                                for ext_code in ext_codes
+                                if ext_code.command == name]
+
+        # Behavior here relies on this option being True
+        assert self.genOpts
+        assert self.genOpts.combineExtendedReturnCodes
 
         codes_attr = cmd.get(attrib)
-        if codes_attr:
-            codes = self.findRequiredEnums(codes_attr.split(','))
-            if codes:
-                return_lines.extend((RETURN_CODE_FORMAT.format(code)
-                                     for code in codes))
+        if not codes_attr:
+            return None
 
-        applicable_ext_codes = (ext_code
-                                for ext_code in self.registry.commandextensionsuccesses
-                                if ext_code.command == name)
-        for ext_code in applicable_ext_codes:
-            line = RETURN_CODE_FORMAT.format(ext_code.value)
-            if ext_code.extension:
-                line += f' [only if {self.conventions.formatExtension(ext_code.extension)} is enabled]'
+        codes: List[str] = self.findRequiredEnums(codes_attr.split(','))
+        for code in codes:
+            exts_for_code = [ext_code.extension for ext_code in applicable_ext_codes if ext_code.value == code]
+            basic_line = f"* ename:{code}"
 
-            return_lines.append(line)
+            if exts_for_code:
+                formatted_exts = [self.conventions.formatExtension(ext) for ext in exts_for_code]
+                merged = self.conventions.makeProseList(formatted_exts, fmt=plf.ANY_OR, with_verb=True)
+                return_lines.append(f'{basic_line} (if {merged} enabled)')
+            else:
+                return_lines.append(basic_line)
+
         if return_lines:
             return '\n'.join(return_lines)
 

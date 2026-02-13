@@ -57,13 +57,12 @@ namespace Catch {
         ScopedMessage( ScopedMessage&& old ) noexcept;
         ~ScopedMessage();
 
-        MessageInfo m_info;
+        unsigned int m_messageId;
         bool m_moved = false;
     };
 
     class Capturer {
         std::vector<MessageInfo> m_messages;
-        IResultCapture& m_resultCapture;
         size_t m_captured = 0;
     public:
         Capturer( StringRef macroName, SourceLineInfo const& lineInfo, ResultWas::OfType resultType, StringRef names );
@@ -111,7 +110,7 @@ namespace Catch {
 
 ///////////////////////////////////////////////////////////////////////////////
 #define INTERNAL_CATCH_UNSCOPED_INFO( macroName, log ) \
-    Catch::getResultCapture().emplaceUnscopedMessage( Catch::MessageBuilder( macroName##_catch_sr, CATCH_INTERNAL_LINEINFO, Catch::ResultWas::Info ) << log )
+    Catch::IResultCapture::emplaceUnscopedMessage( Catch::MessageBuilder( macroName##_catch_sr, CATCH_INTERNAL_LINEINFO, Catch::ResultWas::Info ) << log )
 
 
 #if defined(CATCH_CONFIG_PREFIX_MESSAGES) && !defined(CATCH_CONFIG_DISABLE)

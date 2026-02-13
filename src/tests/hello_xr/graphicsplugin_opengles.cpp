@@ -135,9 +135,9 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         m_contextApiMajorVersion = major;
 
 #if defined(XR_USE_PLATFORM_ANDROID)
-        m_graphicsBinding.display = window.display;
+        m_graphicsBinding.display = window.context.dpy;
         m_graphicsBinding.config = (EGLConfig)0;
-        m_graphicsBinding.context = window.context.context;
+        m_graphicsBinding.context = window.context.ctx;
 #endif
 
         glEnable(GL_DEBUG_OUTPUT);

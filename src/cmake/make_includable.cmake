@@ -19,7 +19,7 @@ function(make_includable input_file output_file)
         list(LENGTH MAKE_INCLUDABLE_REPLACE length)
     endwhile()
 
-    file(WRITE "${output_file}" "R\"raw_text(\n${content})raw_text\"")
+    file(WRITE "${output_file}" "R\"raw_text(${content})raw_text\"")
     # using https://stackoverflow.com/a/65945763
     # see https://stackoverflow.com/a/56828572 for a different approach
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${input_file}")

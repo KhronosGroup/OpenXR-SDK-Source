@@ -38,7 +38,7 @@ macro](skipping-passing-failing.md#top).
 
 ### Non-const function for `TEST_CASE_METHOD`
 
-> Deprecated in Catch2 vX.Y.Z
+> Deprecated in Catch2 3.7.0
 
 Currently, the member function generated for `TEST_CASE_METHOD` is
 not `const` qualified. In the future, the generated member function will

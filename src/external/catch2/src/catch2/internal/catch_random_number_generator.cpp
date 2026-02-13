@@ -7,6 +7,12 @@
 // SPDX-License-Identifier: BSL-1.0
 #include <catch2/internal/catch_random_number_generator.hpp>
 
+#if defined( __clang__ )
+#    define CATCH2_CLANG_NO_SANITIZE_INTEGER \
+        __attribute__( ( no_sanitize( "unsigned-integer-overflow" ) ) )
+#else
+#    define CATCH2_CLANG_NO_SANITIZE_INTEGER
+#endif
 namespace Catch {
 
 namespace {
@@ -16,6 +22,7 @@ namespace {
 #pragma warning(disable:4146) // we negate uint32 during the rotate
 #endif
         // Safe rotr implementation thanks to John Regehr
+        CATCH2_CLANG_NO_SANITIZE_INTEGER
         uint32_t rotate_right(uint32_t val, uint32_t count) {
             const uint32_t mask = 31;
             count &= mask;
@@ -49,10 +56,11 @@ namespace {
         }
     }
 
+    CATCH2_CLANG_NO_SANITIZE_INTEGER
     SimplePcg32::result_type SimplePcg32::operator()() {
         // prepare the output value
         const uint32_t xorshifted = static_cast<uint32_t>(((m_state >> 18u) ^ m_state) >> 27u);
-        const auto output = rotate_right(xorshifted, m_state >> 59u);
+        const auto output = rotate_right(xorshifted, static_cast<uint32_t>(m_state >> 59u));
 
         // advance state
         m_state = m_state * 6364136223846793005ULL + s_inc;

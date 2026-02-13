@@ -161,7 +161,11 @@ namespace {
 #endif // Windows/ ANSI/ None
 
 
-#if defined( CATCH_PLATFORM_LINUX ) || defined( CATCH_PLATFORM_MAC )
+#if defined( CATCH_PLATFORM_LINUX ) \
+ || defined( CATCH_PLATFORM_MAC ) \
+ || defined( __GLIBC__ ) \
+ || defined( __FreeBSD__ ) \
+ || defined( CATCH_PLATFORM_QNX )
 #    define CATCH_INTERNAL_HAS_ISATTY
 #    include <unistd.h>
 #endif

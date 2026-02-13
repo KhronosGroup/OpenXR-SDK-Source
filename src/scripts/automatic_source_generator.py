@@ -75,7 +75,8 @@ class AutomaticSourceGeneratorOptions(GeneratorOptions):
                  indentFuncProto=True,
                  indentFuncPointer=False,
                  alignFuncParam=0,
-                 genEnumBeginEndRange=False):
+                 genEnumBeginEndRange=False,
+                 **kwargs):
         GeneratorOptions.__init__(self,
                                   conventions=conventions,
                                   filename=filename,
@@ -88,7 +89,8 @@ class AutomaticSourceGeneratorOptions(GeneratorOptions):
                                   addExtensions=addExtensions,
                                   removeExtensions=removeExtensions,
                                   emitExtensions=emitExtensions,
-                                  sortProcedure=sortProcedure)
+                                  sortProcedure=sortProcedure,
+                                  **kwargs)
         # Instead of using prefixText, we write our own
         self.prefixText = None
         self.genFuncPointers = genFuncPointers

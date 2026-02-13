@@ -171,6 +171,7 @@ class GeneratorOptions:
                  requireCommandAliases=False,
                  redefineEnumExtends=False,
                  requireDepends=True,
+                 combineExtendedReturnCodes=True,
                 ):
         """Constructor.
 
@@ -231,6 +232,9 @@ class GeneratorOptions:
         with <extends="EnumType" offset="0"> to be redefined in the current header
         as a constant cast to the right type. This only makes sense if you're
         generating a standalone header which won't include the actual enum type
+        - combineExtendedReturnCodes - Update the declared list of return codes
+        per command when extended by an extension/feature, in addition to
+        storing those separately.
         """
         self.conventions = conventions
         """may be mandatory for some generators:
@@ -329,6 +333,9 @@ class GeneratorOptions:
 
         self.requireDepends = requireDepends
         """True if dependencies of API tags are transitively required."""
+
+        self.combineExtendedReturnCodes = combineExtendedReturnCodes
+        """True to combine return codes from extensions with the original declaration."""
 
     def emptyRegex(self, pat):
         """Substitute a regular expression which matches no version

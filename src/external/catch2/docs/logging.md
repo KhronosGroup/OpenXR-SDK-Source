@@ -1,32 +1,30 @@
 <a id="top"></a>
 # Logging macros
 
-Additional messages can be logged during a test case. Note that the messages logged with `INFO` are scoped and thus will not be reported if failure occurs in scope preceding the message declaration. An example:
+Catch2 provides various macros for logging extra information when
+running a test. These macros default to being scoped, and associate with
+all assertions in the scope, regardless of whether they pass or fail.
 
+**example**
 ```cpp
-TEST_CASE("Foo") {
+TEST_CASE("Simple info") {
     INFO("Test case start");
-    for (int i = 0; i < 2; ++i) {
-        INFO("The number is " << i);
-        CHECK(i == 0);
+    SECTION("A") {
+        INFO("Section A");
+        CHECK(false);        // 1
     }
+    SECTION("B") {
+        INFO("Section B");
+        CHECK(false);        // 2
+    }
+    CHECK(false);            // 3
 }
+```
+The first assertion will report messages "Test case start", and "Section A"
+as extra information. The second one will report messages "Test case
+started" and "Section B", while the third one will only report "Test case
+started" as the extra info.
 
-TEST_CASE("Bar") {
-    INFO("Test case start");
-    for (int i = 0; i < 2; ++i) {
-        INFO("The number is " << i);
-        CHECK(i == i);
-    }
-    CHECK(false);
-}
-```
-When the `CHECK` fails in the "Foo" test case, then two messages will be printed.
-```
-Test case start
-The number is 1
-```
-When the last `CHECK` fails in the "Bar" test case, then only one message will be printed: `Test case start`.
 
 ## Logging without local scope
 

@@ -16,6 +16,7 @@ configure_file(
   format: 'cmake@',
   install_dir: get_option('includedir') / 'catch2',
   configuration: conf_data,
+  install: get_option('install')
 )
 
 fs = import('fs')
@@ -91,6 +92,7 @@ internal_headers = [
   'internal/catch_debug_console.hpp',
   'internal/catch_debugger.hpp',
   'internal/catch_decomposer.hpp',
+  'internal/catch_deprecation_macro.hpp',
   'internal/catch_enforce.hpp',
   'internal/catch_enum_values_registry.hpp',
   'internal/catch_errno_guard.hpp',
@@ -143,15 +145,16 @@ internal_headers = [
   'internal/catch_test_failure_exception.hpp',
   'internal/catch_test_macro_impl.hpp',
   'internal/catch_test_registry.hpp',
-  'internal/catch_test_run_info.hpp',
   'internal/catch_test_spec_parser.hpp',
   'internal/catch_textflow.hpp',
+  'internal/catch_thread_support.hpp',
   'internal/catch_to_string.hpp',
   'internal/catch_uncaught_exceptions.hpp',
   'internal/catch_uniform_floating_point_distribution.hpp',
   'internal/catch_uniform_integer_distribution.hpp',
   'internal/catch_unique_name.hpp',
   'internal/catch_unique_ptr.hpp',
+  'internal/catch_unreachable.hpp',
   'internal/catch_void_type.hpp',
   'internal/catch_wildcard_pattern.hpp',
   'internal/catch_windows_h_proxy.hpp',
@@ -184,6 +187,7 @@ internal_headers = [
   'catch_template_test_macros.hpp',
   'catch_test_case_info.hpp',
   'catch_test_macros.hpp',
+  'catch_test_run_info.hpp',
   'catch_test_spec.hpp',
   'catch_timer.hpp',
   'catch_tostring.hpp',
@@ -339,7 +343,9 @@ foreach file : headers
     endif
   endforeach
 
-  install_headers(file, subdir: join_paths(include_subdir, folder))
+  if get_option('install')
+    install_headers(file, subdir: join_paths(include_subdir, folder))
+  endif
 endforeach
 
 catch2_dependencies = []
@@ -356,7 +362,7 @@ catch2 = static_library(
   sources,
   dependencies: catch2_dependencies,
   include_directories: '..',
-  install: true,
+  install: get_option('install'),
 )
 
 catch2_dep = declare_dependency(
@@ -364,19 +370,21 @@ catch2_dep = declare_dependency(
   include_directories: '..',
 )
 
-pkg.generate(
-  catch2,
-  filebase: 'catch2',
-  description: 'A modern, C++-native, test framework for C++14 and above',
-  url: 'https://github.com/catchorg/Catch2',
-)
+if get_option('install')
+  pkg.generate(
+    catch2,
+    filebase: 'catch2',
+    description: 'A modern, C++-native, test framework for C++14 and above',
+    url: 'https://github.com/catchorg/Catch2',
+  )
+endif
 
 catch2_with_main = static_library(
   'Catch2Main',
   'internal/catch_main.cpp',
   link_with: catch2,
   include_directories: '..',
-  install: true,
+  install: get_option('install'),
 )
 
 catch2_with_main_dep = declare_dependency(
@@ -384,9 +392,11 @@ catch2_with_main_dep = declare_dependency(
   include_directories: '..',
 )
 
-pkg.generate(
-  catch2_with_main,
-  filebase: 'catch2-with-main',
-  description: 'A modern, C++-native, test framework for C++14 and above (links in default main)',
-  requires: 'catch2 = ' + meson.project_version(),
-)
+if get_option('install')
+  pkg.generate(
+    catch2_with_main,
+    filebase: 'catch2-with-main',
+    description: 'A modern, C++-native, test framework for C++14 and above (links in default main)',
+    requires: 'catch2 = ' + meson.project_version(),
+  )
+endif

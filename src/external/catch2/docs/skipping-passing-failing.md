@@ -52,6 +52,20 @@ TEST_CASE("failing test") {
 }
 ```
 
+Same applies for a `SKIP` nested inside an assertion:
+
+```cpp
+static bool do_skip() {
+    SKIP();
+    return true;
+}
+
+TEST_CASE("Another failing test") {
+    CHECK(do_skip());
+}
+```
+
+
 ### Interaction with Sections and Generators
 
 Sections, nested sections as well as specific outputs from [generators](generators.md#top)

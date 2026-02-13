@@ -183,6 +183,7 @@ Platform headers / declarations
 
 #define OPENGL_VERSION_MAJOR 4
 #define OPENGL_VERSION_MINOR 5
+#define OPENGLES_VERSION_MAJOR 3
 #define GLSL_VERSION "430"
 #define SPIRV_VERSION "99"
 #define USE_SYNC_OBJECT 0  // 0 = GLsync, 1 = EGLSyncKHR, 2 = storage buffer
@@ -254,7 +255,6 @@ Platform headers / declarations
 #include <wayland-client.h>
 #include <wayland-client-protocol.h>
 #include <wayland-egl.h>
-#include <glad/egl.h>
 #include <linux/input.h>
 #include <poll.h>
 #include <unistd.h>
@@ -323,6 +323,7 @@ CGLError CGLUpdateContext(CGLContextObj ctx);
 
 #define OPENGL_VERSION_MAJOR 3
 #define OPENGL_VERSION_MINOR 2
+#define OPENGLES_VERSION_MAJOR 3
 #define GLSL_VERSION "320 es"
 #define SPIRV_VERSION "99"
 #define USE_SYNC_OBJECT 1  // 0 = GLsync, 1 = EGLSyncKHR, 2 = storage buffer
@@ -340,7 +341,6 @@ CGLError CGLUpdateContext(CGLContextObj ctx);
 #include <android/input.h>              // for AKEYCODE_ etc.
 #include <android/window.h>             // for AWINDOW_FLAG_KEEP_SCREEN_ON
 #include <android/native_window_jni.h>  // for native window JNI
-#include <glad/egl.h>
 
 #define GRAPHICS_API_OPENGL_ES 1
 #define OUTPUT_PATH "/sdcard/"
@@ -351,6 +351,10 @@ typedef struct {
     jobject activity;  // Java activity object
 } Java_t;
 
+#endif
+
+#ifdef XR_USE_PLATFORM_EGL
+#include <glad/egl.h>
 #endif
 
 /*
@@ -480,7 +484,6 @@ ksGpuSurfaceColorFormat
 ksGpuSurfaceDepthFormat
 ksGpuSampleCount
 
-bool ksGpuContext_CreateShared( ksGpuContext * context, const ksGpuContext * other, const int queueIndex );
 void ksGpuContext_Destroy( ksGpuContext * context );
 void ksGpuContext_SetCurrent( ksGpuContext * context );
 void ksGpuContext_UnsetCurrent( ksGpuContext * context );
@@ -527,6 +530,12 @@ typedef struct ksGpuLimits {
 
 typedef struct {
     const ksGpuDevice *device;
+
+#if defined(XR_USE_PLATFORM_EGL)
+    EGLDisplay dpy;
+    EGLContext ctx;
+#endif
+
 #if defined(OS_WINDOWS)
     HDC hDC;
     HGLRC hGLRC;
@@ -546,10 +555,6 @@ typedef struct {
     xcb_glx_context_tag_t glxContextTag;
 #elif defined(OS_LINUX_WAYLAND)
     EGLNativeWindowType native_window;
-    EGLDisplay display;
-    EGLContext context;
-    EGLConfig config;
-    EGLSurface mainSurface;
 #elif defined(OS_APPLE_MACOS)
 #if defined(__OBJC__)
     NSOpenGLContext *nsContext;
@@ -557,13 +562,8 @@ typedef struct {
     void *nsContext;
 #endif  // defined(__OBJC__)
     CGLContextObj cglContext;
-#elif defined(OS_ANDROID)
-    EGLDisplay display;
-    EGLConfig config;
-    EGLSurface tinySurface;
-    EGLSurface mainSurface;
-    EGLContext context;
 #endif
+
 } ksGpuContext;
 
 typedef struct {
@@ -575,7 +575,6 @@ typedef struct {
     unsigned char depthBits;
 } ksGpuSurfaceBits;
 
-bool ksGpuContext_CreateShared(ksGpuContext *context, const ksGpuContext *other, int queueIndex);
 void ksGpuContext_Destroy(ksGpuContext *context);
 void ksGpuContext_SetCurrent(ksGpuContext *context);
 void ksGpuContext_UnsetCurrent(ksGpuContext *context);
@@ -691,9 +690,6 @@ typedef struct {
     UIWindow *uiWindow;
     UIView *uiView;
 #elif defined(OS_ANDROID)
-    EGLDisplay display;
-    EGLint majorVersion;
-    EGLint minorVersion;
     Java_t java;
 #endif
 } ksGpuWindow;
@@ -701,6 +697,15 @@ typedef struct {
 bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const ksGpuQueueInfo *queueInfo, int queueIndex,
                         ksGpuSurfaceColorFormat colorFormat, ksGpuSurfaceDepthFormat depthFormat, ksGpuSampleCount sampleCount,
                         int width, int height, bool fullscreen);
+
+#if defined(XR_USE_PLATFORM_EGL)
+
+bool ksGpuWindow_CreateEGL(ksGpuWindow *window, ksDriverInstance *instance, const ksGpuQueueInfo *queueInfo, int queueIndex,
+                           ksGpuSurfaceColorFormat colorFormat, ksGpuSurfaceDepthFormat depthFormat, ksGpuSampleCount sampleCount,
+                           int width, int height, bool fullscreen);
+
+#endif  // defined(XR_USE_PLATFORM_EGL)
+
 void ksGpuWindow_Destroy(ksGpuWindow *window);
 
 #ifdef __cplusplus

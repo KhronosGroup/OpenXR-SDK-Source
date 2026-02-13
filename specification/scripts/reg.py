@@ -9,11 +9,13 @@
 import copy
 import re
 import sys
+from typing import List
 import xml.etree.ElementTree as etree
 from collections import defaultdict, deque, namedtuple
 
 from generator import GeneratorOptions, OutputGenerator, noneStr, write
 from apiconventions import APIConventions
+import schema
 
 
 def apiNameMatch(str, supported):
@@ -190,6 +192,19 @@ def stripNonmatchingAPIs(tree, apiName, actuallyDelete = True):
                 # Child does not match requested api. Remove it.
                 if actuallyDelete:
                     parent.remove(child)
+
+
+def compute_extended_return_codes(prev: str, additions: List[str]) -> str:
+    """
+    Return an extended return code string without adding duplicates.
+
+    * prev is the current value of the attribute, comma separate.
+    * additions are the possible codes to add.
+    """
+    prev_set = set(prev.split(","))
+    to_append = [code for code in additions if code not in prev_set]
+    new_val = f"{prev},{','.join(to_append)}"
+    return new_val
 
 
 class BaseInfo:
@@ -1092,27 +1107,39 @@ class Registry:
 
         # Extensions may need to extend existing commands or other items in the future.
         # So, look for extend tags.
-        for extendElem in feature.findall('extend'):
-            extendType = extendElem.get('type')
-            if extendType == 'command':
-                commandName = extendElem.get('name')
-                successExtends = extendElem.get('successcodes')
+        for extendElem in feature.findall(schema.ExtendTag.NAME):
+            extendType = extendElem.get(schema.ExtendTag.TYPE_ATTR)
+            if extendType == schema.ExtendTag.TYPE_VAL_COMMAND:
+                commandName = extendElem.get(schema.ExtendTag.NAME_ATTR)
+                successExtends = extendElem.get(schema.ExtendTag.SUCCESSCODES_ATTR)
                 if successExtends is not None:
-                    for success in successExtends.split(','):
-                        self.commandextensionsuccesses.append(self.commandextensiontuple(command=commandName,
-                                                                                         value=success,
-                                                                                         extension=featurename))
-                errorExtends = extendElem.get('errorcodes')
+                    additions: List[str] = successExtends.split(',')
+                    self.commandextensionsuccesses.extend(
+                        self.commandextensiontuple(command=commandName, value=code, extension=featurename)
+                        for code in additions)
+                    if self.genOpts.combineExtendedReturnCodes:
+                        cmd: CmdInfo = self.cmddict[commandName]
+                        prev = cmd.elem.get(schema.CommandAttrs.SUCCESSCODES)
+                        cmd.elem.set(schema.CommandAttrs.SUCCESSCODES,
+                                     compute_extended_return_codes(prev, additions))
+
+                errorExtends = extendElem.get(schema.ExtendTag.ERRORCODES_ATTR)
                 if errorExtends is not None:
-                    for error in errorExtends.split(','):
-                        self.commandextensionerrors.append(self.commandextensiontuple(command=commandName,
-                                                                                      value=error,
-                                                                                      extension=featurename))
-            elif extendElem.get('interaction_profile_path'):
+                    additions: List[str] = errorExtends.split(',')
+                    self.commandextensionerrors.extend(
+                        self.commandextensiontuple(command=commandName, value=code, extension=featurename)
+                        for code in additions)
+                    if self.genOpts.combineExtendedReturnCodes:
+                        cmd: CmdInfo = self.cmddict[commandName]
+                        prev = cmd.elem.get(schema.CommandAttrs.ERRORCODES)
+                        cmd.elem.set(schema.CommandAttrs.ERRORCODES,
+                                     compute_extended_return_codes(prev, additions))
+
+            elif extendElem.get(schema.ExtendTag.INTERACTION_PROFILE_PATH_ATTR):
                 # We will eventually use these `interaction_profile_path`s but for the
                 # moment we just need them to exist so we can run schema validation.
                 pass
-            elif extendElem.get('interaction_profile_predicate'):
+            elif extendElem.get(schema.ExtendTag.INTERACTION_PROFILE_PREDICATE_ATTR):
                 # These are processed separately.
                 pass
             else:

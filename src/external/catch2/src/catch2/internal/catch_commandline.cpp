@@ -305,6 +305,9 @@ namespace Catch {
             | Opt( config.allowZeroTests )
                 ["--allow-running-no-tests"]
                 ( "Treat 'No tests run' as a success" )
+            | Opt( config.prematureExitGuardFilePath, "path" )
+                ["--premature-exit-guard-file"]
+                ( "create a file before running tests and delete it during clean exit" )
             | Arg( config.testsOrTags, "test name|pattern|tags" )
                 ( "which test or tests to use" );
 

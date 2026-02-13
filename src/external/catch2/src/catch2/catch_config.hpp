@@ -76,7 +76,7 @@ namespace Catch {
         WarnAbout::What warnings = WarnAbout::Nothing;
         ShowDurations showDurations = ShowDurations::DefaultForReporter;
         double minDuration = -1;
-        TestRunOrder runOrder = TestRunOrder::Declared;
+        TestRunOrder runOrder = TestRunOrder::Randomized;
         ColourMode defaultColourMode = ColourMode::PlatformDefault;
         WaitForKeypress::When waitForKeypress = WaitForKeypress::Never;
 
@@ -87,6 +87,8 @@ namespace Catch {
 
         std::vector<std::string> testsOrTags;
         std::vector<std::string> sectionsToRun;
+
+        std::string prematureExitGuardFilePath;
     };
 
 
@@ -113,6 +115,8 @@ namespace Catch {
         bool hasTestFilters() const override;
 
         bool showHelp() const;
+
+        std::string const& getExitGuardFilePath() const;
 
         // IConfig interface
         bool allowThrows() const override;

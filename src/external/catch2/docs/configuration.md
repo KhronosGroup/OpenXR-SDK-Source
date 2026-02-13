@@ -14,8 +14,10 @@
 [Other toggles](#other-toggles)<br>
 [Enabling stringification](#enabling-stringification)<br>
 [Disabling exceptions](#disabling-exceptions)<br>
+[Disabling deprecation warnings](#disabling-deprecation-warnings)<br>
 [Overriding Catch's debug break (`-b`)](#overriding-catchs-debug-break--b)<br>
 [Static analysis support](#static-analysis-support)<br>
+[Experimental thread safety](#experimental-thread-safety)<br>
 
 Catch2 is designed to "just work" as much as possible, and most of the
 configuration options below are changed automatically during compilation,
@@ -158,10 +160,13 @@ by using `_NO_` in the macro, e.g. `CATCH_CONFIG_NO_CPP17_UNCAUGHT_EXCEPTIONS`.
     CATCH_CONFIG_ANDROID_LOGWRITE           // Use android's logging system for debug output
     CATCH_CONFIG_GLOBAL_NEXTAFTER           // Use nextafter{,f,l} instead of std::nextafter
     CATCH_CONFIG_GETENV                     // System has a working `getenv`
+    CATCH_CONFIG_USE_BUILTIN_CONSTANT_P     // Use __builtin_constant_p to trigger warnings
 
 > [`CATCH_CONFIG_ANDROID_LOGWRITE`](https://github.com/catchorg/Catch2/issues/1743) and [`CATCH_CONFIG_GLOBAL_NEXTAFTER`](https://github.com/catchorg/Catch2/pull/1739) were introduced in Catch2 2.10.0
 
 > `CATCH_CONFIG_GETENV` was [introduced](https://github.com/catchorg/Catch2/pull/2562) in Catch2 3.2.0
+
+> `CATCH_CONFIG_USE_BUILTIN_CONSTANT_P` was introduced in Catch2 3.8.0
 
 Currently Catch enables `CATCH_CONFIG_WINDOWS_SEH` only when compiled with MSVC, because some versions of MinGW do not have the necessary Win32 API support.
 
@@ -182,6 +187,12 @@ it is only used in support for DJGPP cross-compiler.
 With the exception of `CATCH_CONFIG_EXPERIMENTAL_REDIRECT`,
 these toggles can be disabled by using `_NO_` form of the toggle,
 e.g. `CATCH_CONFIG_NO_WINDOWS_SEH`.
+
+`CATCH_CONFIG_USE_BUILTIN_CONSTANT_P` is ON by default for Clang and GCC
+(but as far as possible, not for other compilers masquerading for these
+two). However, it can cause bugs where the enclosed code is evaluated, even
+though it should not be, e.g. in [#2925](https://github.com/catchorg/Catch2/issues/2925).
+
 
 ### `CATCH_CONFIG_FAST_COMPILE`
 This compile-time flag speeds up compilation of assertion macros by ~20%,
@@ -254,6 +265,21 @@ namespace Catch {
 }
 ```
 
+
+## Disabling deprecation warnings
+
+> Introduced in Catch2 3.9.0
+
+Catch2 has started using the C++ macro `[[deprecated]]` to mark things
+that are deprecated and should not be used any more. If you need to
+temporarily disable these warnings, use
+
+    CATCH_CONFIG_NO_DEPRECATION_ANNOTATIONS
+
+Catch2 currently does not support more fine-grained deprecation warning
+control, nor do we plan to.
+
+
 ## Overriding Catch's debug break (`-b`)
 
 > [Introduced](https://github.com/catchorg/Catch2/pull/1846) in Catch2 2.11.2.
@@ -289,6 +315,21 @@ no backwards compatibility guarantees._
 **DO NOT ENABLE THIS FOR BUILDS YOU INTEND TO RUN.** The changed internals
 are not meant to be runnable, only "scannable".
 
+
+## Experimental thread safety
+
+> Introduced in Catch2 3.9.0
+
+Catch2 can optionally support thread-safe assertions, that means, multiple
+user-spawned threads can use the assertion macros at the same time. Due
+to the performance cost this imposes even on single-threaded usage, Catch2
+defaults to non-thread-safe assertions.
+
+    CATCH_CONFIG_EXPERIMENTAL_THREAD_SAFE_ASSERTIONS     // enables thread safe assertions
+    CATCH_CONFIG_NO_EXPERIMENTAL_THREAD_SAFE_ASSERTIONS  // force-disables thread safe assertions
+
+See [the documentation on thread safety in Catch2](thread-safety.md#top)
+for details on which macros are safe and other notes.
 
 
 ---

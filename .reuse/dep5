@@ -38,7 +38,7 @@ Comment: Based on a Material Icons asset ("emoji-people") with added text
 Files: src/external/catch2/*
 Copyright: Copyright Catch2 Authors
 License: BSL-1.0
-Comment: Unmodified, vendored copy of Catch2 v3.7.1
+Comment: Unmodified, vendored copy of Catch2 v3.11.0
 
 Files: src/external/jsoncpp/*
 Copyright: 2007-2010 Baptiste Lepilleur and The JsonCpp Authors
@@ -50,13 +50,13 @@ Files: src/external/tinygltf/README.md
   src/external/tinygltf/tiny_gltf.h
 Copyright: 2015-Present, Syoyo Fujita, Aurélien Chatelain and many contributors
 License: MIT
-Comment: Unmodified, vendored copy of a subset of the tiny-gltf repo v2.9.3
+Comment: Unmodified, vendored copy of a subset of the tiny-gltf repo v2.9.6
 
 Files: src/external/d3dx12/*
 Copyright: Copyright (c) Microsoft Corporation.
 License: MIT
 Comment: Unmodified, vendored copy of d3dx12.h from directx-vs-templates commit 86b9c45
-  This repo includes ifdefs to improve compatibility with older Windows SDK verions.
+  This repo includes ifdefs to improve compatibility with older Windows SDK versions.
 
 Files: src/external/mikktspace/*
 Copyright: 2011 by Morten S. Mikkelsen
@@ -66,7 +66,7 @@ Comment: Unmodified, vendored copy of MikkTSpace commit 3e895b4
 Files: src/external/basis_universal/*
 Copyright: 2019-2021 Binomial LLC
 License: Apache-2.0
-Comment: Unmodified, vendored subset of basis_universal commit 1.16.4
+Comment: Unmodified, vendored subset of basis_universal commit v1_50_0
 
 Files: src/external/basis_universal/zstd/*
 Copyright: 2016-2021, Yann Collet, Facebook, Inc.

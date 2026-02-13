@@ -84,7 +84,7 @@
 #include <wayland-client.h>
 #endif  // XR_USE_PLATFORM_WAYLAND
 
-#if defined(XR_USE_PLATFORM_XLIB) || defined(XR_USE_PLATFORM_XCB)
+#if defined(XR_USE_PLATFORM_XLIB) || defined(XR_USE_PLATFORM_XCB) || defined(XR_USE_PLATFORM_EGL)
 #ifdef Success
 #undef Success
 #endif  // Success

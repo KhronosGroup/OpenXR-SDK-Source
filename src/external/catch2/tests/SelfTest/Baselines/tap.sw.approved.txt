@@ -165,9 +165,13 @@ ok {test-number} - smallest_non_zero, WithinULP( -smallest_non_zero, 2 ) for: 0.
 # #2152 - ULP checks between differently signed values were wrong - float
 ok {test-number} - smallest_non_zero, !WithinULP( -smallest_non_zero, 1 ) for: 0.0f not is within 1 ULPs of -1.40129846e-45f ([-2.80259693e-45, -0.00000000e+00])
 # #2615 - Throwing in constructor generator fails test case but does not abort
-not ok {test-number} - unexpected exception with message: 'failure to init'
+not ok {test-number} - unexpected exception with message: 'failure to init'; expression was: {Unknown expression after the reported line}
+# #3001: Enum-based bitfields can be captured
+ok {test-number} - bf.e == 1 for: 1 == 1
+# #3001: Enum-based bitfields can be captured
+ok {test-number} - 1 == bf.e for: 1 == 1
 # #748 - captures with unexpected exceptions
-not ok {test-number} - unexpected exception with message: 'answer := 42' with 1 message: 'expected exception'
+not ok {test-number} - unexpected exception with message: 'expected exception'; expression was: {Unknown expression after the reported line}
 # #748 - captures with unexpected exceptions
 not ok {test-number} - unexpected exception with message: 'answer := 42'; expression was: thisThrows() with 1 message: 'expected exception'
 # #748 - captures with unexpected exceptions
@@ -612,6 +616,16 @@ ok {test-number} - HasBitOperators{ 1 } & HasBitOperators{ 1 } for: Val: 1 & Val
 ok {test-number} - lhs ^ rhs for: Val: 1 ^ Val: 2
 # Assertion macros support bit operators and bool conversions
 ok {test-number} - !(lhs ^ lhs) for: !(Val: 1 ^ Val: 1)
+# Assertions can be nested - CHECK
+not ok {test-number} - i > 10 for: 2 > 10
+# Assertions can be nested - CHECK
+not ok {test-number} - unexpected exception with message: '{ nested assertion failed }'; expression was: foo( 2 ) == 2
+# Assertions can be nested - CHECK
+ok {test-number} - true
+# Assertions can be nested - REQUIRE
+not ok {test-number} - i > 10 for: 2 > 10
+# Assertions can be nested - REQUIRE
+not ok {test-number} - unexpected exception with message: '{ nested assertion failed }'; expression was: foo( 2 ) == 2
 # Assertions then sections
 ok {test-number} - true
 # Assertions then sections
@@ -674,6 +688,12 @@ ok {test-number} - with 11 messages: '("comma, in string", "escaped, \", ") := "
 ok {test-number} - true with 1 message: 'i := 2'
 # Capture and info messages
 ok {test-number} - true with 1 message: '3'
+# Captures do not leave block with an exception
+not ok {test-number} - false with 1 message: 'a := 1'
+# Captures outlive section end
+ok {test-number} - true with 1 message: 'a := 1'
+# Captures outlive section end
+not ok {test-number} - false with 1 message: 'a := 1'
 # CaseInsensitiveEqualsTo is case insensitive
 ok {test-number} - eq( "", "" ) for: true
 # CaseInsensitiveEqualsTo is case insensitive
@@ -846,6 +866,20 @@ ok {test-number} - std::vector<int>{1, 2} == std::vector<int>{1, 2} for: { 1, 2 
 ok {test-number} - true
 # Commas in various macros are allowed
 ok {test-number} - std::vector<int>{1, 2} == std::vector<int>{1, 2} for: { 1, 2 } == { 1, 2 }
+# Comparing (and stringifying) volatile pointers works
+ok {test-number} - !(ptr) for: !0
+# Comparing (and stringifying) volatile pointers works
+ok {test-number} - ptr == ptr for: 0 == 0
+# Comparing (and stringifying) volatile pointers works
+ok {test-number} - !(ptr != ptr) for: !(0 != 0)
+# Comparing (and stringifying) volatile pointers works
+ok {test-number} - !(ptr < ptr) for: !(0 < 0)
+# Comparing (and stringifying) volatile pointers works
+ok {test-number} - ptr <= ptr for: 0 <= 0
+# Comparing (and stringifying) volatile pointers works
+ok {test-number} - !(ptr > ptr) for: !(0 > 0)
+# Comparing (and stringifying) volatile pointers works
+ok {test-number} - ptr >= ptr for: 0 >= 0
 # Comparing function pointers
 ok {test-number} - a for: 0x<hex digits>
 # Comparing function pointers
@@ -1004,19 +1038,19 @@ ok {test-number} - Catch::makeStream( "" )->isConsole() for: true
 not ok {test-number} - testStringForMatching(), EndsWith( "Substring" ) for: "this string contains 'abc' as a substring" ends with: "Substring"
 # EndsWith string matcher
 not ok {test-number} - testStringForMatching(), EndsWith( "this", Catch::CaseSensitive::No ) for: "this string contains 'abc' as a substring" ends with: "this" (case insensitive)
-# Enums can quickly have stringification enabled using REGISTER_ENUM
+# Enums can quickly have stringification enabled using CATCH_REGISTER_ENUM
 ok {test-number} - stringify( EnumClass3::Value1 ) == "Value1" for: "Value1" == "Value1"
-# Enums can quickly have stringification enabled using REGISTER_ENUM
+# Enums can quickly have stringification enabled using CATCH_REGISTER_ENUM
 ok {test-number} - stringify( EnumClass3::Value2 ) == "Value2" for: "Value2" == "Value2"
-# Enums can quickly have stringification enabled using REGISTER_ENUM
+# Enums can quickly have stringification enabled using CATCH_REGISTER_ENUM
 ok {test-number} - stringify( EnumClass3::Value3 ) == "Value3" for: "Value3" == "Value3"
-# Enums can quickly have stringification enabled using REGISTER_ENUM
+# Enums can quickly have stringification enabled using CATCH_REGISTER_ENUM
 ok {test-number} - stringify( EnumClass3::Value4 ) == "{** unexpected enum value **}" for: "{** unexpected enum value **}" == "{** unexpected enum value **}"
-# Enums can quickly have stringification enabled using REGISTER_ENUM
+# Enums can quickly have stringification enabled using CATCH_REGISTER_ENUM
 ok {test-number} - stringify( ec3 ) == "Value2" for: "Value2" == "Value2"
-# Enums in namespaces can quickly have stringification enabled using REGISTER_ENUM
+# Enums in namespaces can quickly have stringification enabled using CATCH_REGISTER_ENUM
 ok {test-number} - stringify( Bikeshed::Colours::Red ) == "Red" for: "Red" == "Red"
-# Enums in namespaces can quickly have stringification enabled using REGISTER_ENUM
+# Enums in namespaces can quickly have stringification enabled using CATCH_REGISTER_ENUM
 ok {test-number} - stringify( Bikeshed::Colours::Blue ) == "Blue" for: "Blue" == "Blue"
 # Epsilon only applies to Approx's value
 ok {test-number} - 101.01 != Approx(100).epsilon(0.01) for: 101.01000000000000512 != Approx( 100.0 )
@@ -1110,6 +1144,8 @@ ok {test-number} - thisThrows(), EndsWith( "exception" ) for: "expected exceptio
 ok {test-number} - thisThrows(), ContainsSubstring( "except" ) for: "expected exception" contains: "except"
 # Exception messages can be tested for
 ok {test-number} - thisThrows(), ContainsSubstring( "exCept", Catch::CaseSensitive::No ) for: "expected exception" contains: "except" (case insensitive)
+# Exception thrown inside stringify does not fail the test
+ok {test-number} - tos == tos for: { stringification failed with an exception: "Invalid" } == { stringification failed with an exception: "Invalid" }
 # Exceptions matchers
 ok {test-number} - throwsDerivedException(), DerivedException, Message( "DerivedException::what" ) for: DerivedException::what exception message matches "DerivedException::what"
 # Exceptions matchers
@@ -1126,6 +1162,10 @@ not ok {test-number} - expected exception, got none; expression was: thisDoesntT
 not ok {test-number} - unexpected exception with message: 'expected exception'; expression was: thisThrows()
 # FAIL aborts the test
 not ok {test-number} - explicitly with 1 message: 'This is a failure'
+# FAIL can be nested in assertion
+not ok {test-number} - explicitly with 1 message: 'Throw a Catch::TestFailureException'
+# FAIL can be nested in assertion
+not ok {test-number} - unexpected exception with message: '{ nested assertion failed }'; expression was: do_fail()
 # FAIL does not require an argument
 not ok {test-number} - explicitly
 # FAIL_CHECK does not abort the test
@@ -1460,6 +1500,14 @@ ok {test-number} - !(gen.next()) for: !false
 ok {test-number} - filter([](int) { return false; }, value(1)), Catch::GeneratorException
 # Generators internals
 ok {test-number} - filter([](int) { return false; }, values({ 1, 2, 3 })), Catch::GeneratorException
+# Generators internals
+ok {test-number} - gen.get() == 1 for: 1 == 1
+# Generators internals
+ok {test-number} - gen.next() for: true
+# Generators internals
+ok {test-number} - gen.get() == 3 for: 3 == 3
+# Generators internals
+ok {test-number} - !(gen.next()) for: !false
 # Generators internals
 ok {test-number} - gen.get() == 1 for: 1 == 1
 # Generators internals
@@ -1904,23 +1952,23 @@ ok {test-number} - stream.str() == "{\n}" for: "{ }" == "{ }"
 ok {test-number} - stream.str() == "[\n]" for: "[ ]" == "[ ]"
 # JsonWriter
 ok {test-number} - stream.str() == "\"custom\"" for: ""custom"" == ""custom""
-# JsonWriter escapes charaters in strings properly
+# JsonWriter escapes characters in strings properly
 ok {test-number} - sstream.str() == "\"\\\"\"" for: ""\""" == ""\"""
-# JsonWriter escapes charaters in strings properly
+# JsonWriter escapes characters in strings properly
 ok {test-number} - sstream.str() == "\"\\\\\"" for: ""\\"" == ""\\""
-# JsonWriter escapes charaters in strings properly
+# JsonWriter escapes characters in strings properly
 ok {test-number} - sstream.str() == "\"/\"" for: ""/"" == ""/""
-# JsonWriter escapes charaters in strings properly
+# JsonWriter escapes characters in strings properly
 ok {test-number} - sstream.str() == "\"\\b\"" for: ""\b"" == ""\b""
-# JsonWriter escapes charaters in strings properly
+# JsonWriter escapes characters in strings properly
 ok {test-number} - sstream.str() == "\"\\f\"" for: ""\f"" == ""\f""
-# JsonWriter escapes charaters in strings properly
+# JsonWriter escapes characters in strings properly
 ok {test-number} - sstream.str() == "\"\\n\"" for: ""\n"" == ""\n""
-# JsonWriter escapes charaters in strings properly
+# JsonWriter escapes characters in strings properly
 ok {test-number} - sstream.str() == "\"\\r\"" for: ""\r"" == ""\r""
-# JsonWriter escapes charaters in strings properly
+# JsonWriter escapes characters in strings properly
 ok {test-number} - sstream.str() == "\"\\t\"" for: ""\t"" == ""\t""
-# JsonWriter escapes charaters in strings properly
+# JsonWriter escapes characters in strings properly
 ok {test-number} - sstream.str() == "\"\\\\/\\t\\r\\n\"" for: ""\\/\t\r\n"" == ""\\/\t\r\n""
 # Lambdas in assertions
 ok {test-number} - []() { return true; }() for: true
@@ -2616,6 +2664,16 @@ ok {test-number} - v.size() == 0 for: 0 == 0
 ok {test-number} - v.capacity() >= 10 for: 10 >= 10
 # Scenario: Vector resizing affects size and capacity
 ok {test-number} - v.size() == 0 for: 0 == 0
+# Scoped message applies to all assertions in scope
+not ok {test-number} - false with 1 message: 'This will be reported multiple times'
+# Scoped message applies to all assertions in scope
+not ok {test-number} - false with 1 message: 'This will be reported multiple times'
+# Scoped messages do not leave block with an exception
+not ok {test-number} - false with 1 message: 'Should be in scope at the end'
+# Scoped messages outlive section end
+ok {test-number} - true with 1 message: 'Should survive a section end'
+# Scoped messages outlive section end
+not ok {test-number} - false with 1 message: 'Should survive a section end'
 A string sent directly to stdout
 A string sent directly to stderr
 A string sent to stderr via clog
@@ -3580,6 +3638,10 @@ ok {test-number} - needs_adl1, RangeEquals( needs_adl2 ) for: { 1, 2, 3, 4, 5 } 
 # Usage of RangeEquals range matcher
 ok {test-number} - needs_adl1, RangeEquals( needs_adl3, []( int l, int r ) { return l + 1 == r; } ) for: { 1, 2, 3, 4, 5 } elements are { 2, 3, 4, 5, 6 }
 # Usage of RangeEquals range matcher
+ok {test-number} - array_a, RangeEquals( { 1, 2, 3 } ) for: { 1, 2, 3 } elements are { 1, 2, 3 }
+# Usage of RangeEquals range matcher
+ok {test-number} - array_a, RangeEquals( { 2, 4, 6 }, []( int l, int r ) { return l * 2 == r; } ) for: { 1, 2, 3 } elements are { 2, 4, 6 }
+# Usage of RangeEquals range matcher
 ok {test-number} - mocked1, !RangeEquals( arr ) for: { 1, 2, 3, 4 } not elements are { 1, 2, 4, 4 }
 # Usage of RangeEquals range matcher
 ok {test-number} - mocked1.m_derefed[0] for: true
@@ -3619,6 +3681,10 @@ ok {test-number} - vector_a, UnorderedRangeEquals( vector_a_plus_1, close_enough
 ok {test-number} - vector_a, !UnorderedRangeEquals( vector_b, close_enough ) for: { 1, 10, 21 } not unordered elements are { 11, 21, 3 }
 # Usage of UnorderedRangeEquals range matcher
 ok {test-number} - needs_adl1, UnorderedRangeEquals( needs_adl2 ) for: { 1, 2, 3, 4, 5 } unordered elements are { 1, 2, 3, 4, 5 }
+# Usage of UnorderedRangeEquals range matcher
+ok {test-number} - array_a, UnorderedRangeEquals( { 10, 20, 1 } ) for: { 1, 10, 20 } unordered elements are { 10, 20, 1 }
+# Usage of UnorderedRangeEquals range matcher
+ok {test-number} - array_a, UnorderedRangeEquals( { 11, 21, 2 }, []( int l, int r ) { return std::abs( l - r ) <= 1; } ) for: { 1, 10, 20 } unordered elements are { 11, 21, 2 }
 # Usage of the SizeIs range matcher
 ok {test-number} - empty_vec, SizeIs(0) for: {  } has size == 0
 # Usage of the SizeIs range matcher
@@ -3764,7 +3830,7 @@ not ok {test-number} - unexpected exception with message: 'expected exception'; 
 # When unchecked exceptions are thrown from functions they are always failures
 not ok {test-number} - unexpected exception with message: 'expected exception'; expression was: thisThrows() == 0
 # When unchecked exceptions are thrown from sections they are always failures
-not ok {test-number} - unexpected exception with message: 'unexpected exception'
+not ok {test-number} - unexpected exception with message: 'unexpected exception'; expression was: {Unknown expression after the reported line}
 # X/level/0/a
 ok {test-number} -
 # X/level/0/b
@@ -4011,29 +4077,29 @@ ok {test-number} -  # SKIP
 not ok {test-number} - explicitly
 loose text artifact
 # is_unary_function
-ok {test-number} - with 1 message: 'Catch::Clara::Detail::is_unary_function<decltype(unary1)>::value'
+ok {test-number} - with 1 message: 'Catch::Clara::Detail::is_unary_function_v<decltype(unary1)>'
 # is_unary_function
-ok {test-number} - with 1 message: 'Catch::Clara::Detail::is_unary_function<decltype(unary2)>::value'
+ok {test-number} - with 1 message: 'Catch::Clara::Detail::is_unary_function_v<decltype(unary2)>'
 # is_unary_function
-ok {test-number} - with 1 message: 'Catch::Clara::Detail::is_unary_function<decltype(unary3)>::value'
+ok {test-number} - with 1 message: 'Catch::Clara::Detail::is_unary_function_v<decltype(unary3)>'
 # is_unary_function
-ok {test-number} - with 1 message: 'Catch::Clara::Detail::is_unary_function<decltype(unary4)>::value'
+ok {test-number} - with 1 message: 'Catch::Clara::Detail::is_unary_function_v<decltype(unary4)>'
 # is_unary_function
-ok {test-number} - with 1 message: 'Catch::Clara::Detail::is_unary_function<decltype(unary5)>::value'
+ok {test-number} - with 1 message: 'Catch::Clara::Detail::is_unary_function_v<decltype(unary5)>'
 # is_unary_function
-ok {test-number} - with 1 message: 'Catch::Clara::Detail::is_unary_function<decltype(unary6)>::value'
+ok {test-number} - with 1 message: 'Catch::Clara::Detail::is_unary_function_v<decltype(unary6)>'
 # is_unary_function
-ok {test-number} - with 1 message: '!(Catch::Clara::Detail::is_unary_function<decltype(binary1)>::value)'
+ok {test-number} - with 1 message: '!(Catch::Clara::Detail::is_unary_function_v<decltype(binary1)>)'
 # is_unary_function
-ok {test-number} - with 1 message: '!(Catch::Clara::Detail::is_unary_function<decltype(binary2)>::value)'
+ok {test-number} - with 1 message: '!(Catch::Clara::Detail::is_unary_function_v<decltype(binary2)>)'
 # is_unary_function
-ok {test-number} - with 1 message: '!(Catch::Clara::Detail::is_unary_function<decltype(nullary1)>::value)'
+ok {test-number} - with 1 message: '!(Catch::Clara::Detail::is_unary_function_v<decltype(nullary1)>)'
 # is_unary_function
-ok {test-number} - with 1 message: '!(Catch::Clara::Detail::is_unary_function<decltype(nullary2)>::value)'
+ok {test-number} - with 1 message: '!(Catch::Clara::Detail::is_unary_function_v<decltype(nullary2)>)'
 # is_unary_function
-ok {test-number} - with 1 message: '!(Catch::Clara::Detail::is_unary_function<int>::value)'
+ok {test-number} - with 1 message: '!(Catch::Clara::Detail::is_unary_function_v<int>)'
 # is_unary_function
-ok {test-number} - with 1 message: '!(Catch::Clara::Detail::is_unary_function<std::string const&>::value)'
+ok {test-number} - with 1 message: '!(Catch::Clara::Detail::is_unary_function_v<std::string const&>)'
 # just failure
 not ok {test-number} - explicitly with 1 message: 'Previous info should not be seen'
 # just failure after unscoped info
@@ -4369,6 +4435,8 @@ ok {test-number} - data.str.size() == data.len for: 3 == 3
 ok {test-number} - data.str.size() == data.len for: 5 == 5
 # strlen3
 ok {test-number} - data.str.size() == data.len for: 4 == 4
+# system_clock timepoint with non-default duration
+ok {test-number} - tp1 == tp2 for: {iso8601-timestamp} == {iso8601-timestamp}
 # tables
 ok {test-number} - strlen(std::get<0>(data)) == static_cast<size_t>(std::get<1>(data)) for: 5 == 5
 # tables
@@ -4559,5 +4627,5 @@ ok {test-number} - q3 == 23. for: 23.0 == 23.0
 ok {test-number} -
 # xmlentitycheck
 ok {test-number} -
-1..2277
+1..2315
 

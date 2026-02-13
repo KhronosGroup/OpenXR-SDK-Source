@@ -21,6 +21,68 @@ along with any public pull requests that have been accepted.
 In this repository in particular, since it is primarily software,
 pull requests may be integrated as they are accepted even between periodic updates.
 
+## OpenXR SDK 1.1.57 (2026-02-12)
+
+This release primarily features several fixes to the SDK as well as tooling
+improvements.
+
+Note that specification releases 1.1.55 and 1.1.56 were skipped to keep up with
+a monthly increment for the patch version component.
+
+- SDK
+  - Fix: Do not attempt to install manpages on Android, and ensure all directory
+    prefixes are populated, fixing CMake install.
+    ([OpenXR-SDK-Source PR 573](https://github.com/KhronosGroup/OpenXR-SDK-Source/pull/573),
+    [OpenXR-SDK-Source issue 568](https://github.com/KhronosGroup/OpenXR-SDK-Source/issues/568),
+    [internal issue 2645](https://gitlab.khronos.org/openxr/openxr/issues/2645))
+  - Loader: Reduce severity of Android loader "broker not found" messages from
+    error to warning.
+    ([internal MR 4134](https://gitlab.khronos.org/openxr/openxr/merge_requests/4134))
+  - Validation Layer: Fix core validation layer validation of `xrCreateSession` to
+    support `XR_TYPE_GRAPHICS_BINDING_METAL_KHR` and
+    `XR_TYPE_GRAPHICS_BINDING_EGL_MNDX`.
+    ([internal MR 4119](https://gitlab.khronos.org/openxr/openxr/merge_requests/4119),
+    [internal issue 2646](https://gitlab.khronos.org/openxr/openxr/issues/2646))
+  - hello_xr: Deduplicate code in internal "gfxwrapper" library used in hello_xr
+    (among other uses) for OpenGL/OpenGL ES. Add an explicit always-EGL path.
+    ([internal MR 2942](https://gitlab.khronos.org/openxr/openxr/merge_requests/2942),
+    [internal issue 1911](https://gitlab.khronos.org/openxr/openxr/issues/1911))
+  - hello_xr: Fix out of bounds read when none of the required depth formats is
+    supported.
+    ([internal MR 4145](https://gitlab.khronos.org/openxr/openxr/merge_requests/4145),
+    [OpenXR-SDK-Source issue 578](https://github.com/KhronosGroup/OpenXR-SDK-Source/issues/578),
+    [internal issue 2663](https://gitlab.khronos.org/openxr/openxr/issues/2663),
+    [internal MR 4023](https://gitlab.khronos.org/openxr/openxr/merge_requests/4023))
+  - loader_test: Update Catch2 test library from 3.7.1 to 3.11.0.
+    ([internal MR 4006](https://gitlab.khronos.org/openxr/openxr/merge_requests/4006),
+    [internal issue 2108](https://gitlab.khronos.org/openxr/openxr/issues/2108))
+- Registry
+  - Change: Update tooling to properly support extending allowable return codes
+    from extensions.
+    ([internal MR 4009](https://gitlab.khronos.org/openxr/openxr/merge_requests/4009),
+    [internal issue 2494](https://gitlab.khronos.org/openxr/openxr/issues/2494))
+  - Chore: Reorder function return codes to alphabetic (with `XR_SUCCESS` pulled to
+    the front).
+    ([internal MR 3979](https://gitlab.khronos.org/openxr/openxr/merge_requests/3979))
+  - Chore: Reserve extensions.
+    ([internal MR 4157](https://gitlab.khronos.org/openxr/openxr/merge_requests/4157),
+    [internal MR 4162](https://gitlab.khronos.org/openxr/openxr/merge_requests/4162))
+  - Fix: `XR_KHR_extended_struct_name_lengths` string length can be up to 256
+    bytes. (The prose has been modified to match the XML specification.)
+    ([internal MR 4126](https://gitlab.khronos.org/openxr/openxr/merge_requests/4126),
+    [internal issue 2654](https://gitlab.khronos.org/openxr/openxr/issues/2654))
+  - New vendor extension: `XR_ANDROID_trackables_image`.
+    ([internal MR 4069](https://gitlab.khronos.org/openxr/openxr/merge_requests/4069))
+  - Schematron: Add validation for return code ordering.
+    ([internal MR 3979](https://gitlab.khronos.org/openxr/openxr/merge_requests/3979))
+  - Schematron: Add validation for semantic label enums defined for the spatial
+    entity framework.
+    ([internal MR 4081](https://gitlab.khronos.org/openxr/openxr/merge_requests/4081))
+  - Update: Mark `XR_EXT_plane_detection` as deprecated by
+    `XR_EXT_spatial_plane_tracking`.
+    ([internal MR 4057](https://gitlab.khronos.org/openxr/openxr/merge_requests/4057),
+    [internal issue 2625](https://gitlab.khronos.org/openxr/openxr/issues/2625))
+
 ## OpenXR SDK 1.1.54 (2025-12-02)
 
 This release updates the C++ standards version used by the package, and includes

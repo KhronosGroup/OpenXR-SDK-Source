@@ -99,7 +99,7 @@ EGL error checking.
 ================================================================================================================================
 */
 
-#if defined(OS_ANDROID) || defined(OS_LINUX_WAYLAND)
+#if defined(XR_USE_PLATFORM_EGL)
 
 #define EGL(func)                                                      \
     do {                                                               \
@@ -739,49 +739,44 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
     };
     // clang-format on
 
-    context->display = eglGetDisplay(native_display);
-    if (context->display == EGL_NO_DISPLAY) {
+    context->dpy = eglGetDisplay(native_display);
+    if (context->dpy == EGL_NO_DISPLAY) {
         Error("Could not create EGL Display.");
         return false;
     }
 
-    if (!eglInitialize(context->display, &majorVersion, &minorVersion)) {
+    if (!eglInitialize(context->dpy, &majorVersion, &minorVersion)) {
         Error("eglInitialize failed.");
         return false;
     }
 
     printf("Initialized EGL context version %d.%d\n", majorVersion, minorVersion);
-    if (gladLoaderLoadEGL(context->display) == 0) {
+    if (gladLoaderLoadEGL(context->dpy) == 0) {
         return false;
     }
 
-    EGLBoolean ret = eglGetConfigs(context->display, NULL, 0, &numConfigs);
+    EGLBoolean ret = eglGetConfigs(context->dpy, NULL, 0, &numConfigs);
     if (ret != EGL_TRUE || numConfigs == 0) {
         Error("eglGetConfigs failed.");
         return false;
     }
 
-    ret = eglChooseConfig(context->display, fbAttribs, &context->config, 1, &numConfigs);
+    EGLConfig config;
+    ret = eglChooseConfig(context->dpy, fbAttribs, &config, 1, &numConfigs);
     if (ret != EGL_TRUE || numConfigs != 1) {
         Error("eglChooseConfig failed.");
         return false;
     }
 
-    context->mainSurface = eglCreateWindowSurface(context->display, context->config, context->native_window, NULL);
-    if (context->mainSurface == EGL_NO_SURFACE) {
-        Error("eglCreateWindowSurface failed");
-        return false;
-    }
-
     eglBindAPI(EGL_OPENGL_API);
 
-    context->context = eglCreateContext(context->display, context->config, EGL_NO_CONTEXT, contextAttribs);
-    if (context->context == EGL_NO_CONTEXT) {
+    context->ctx = eglCreateContext(context->dpy, config, EGL_NO_CONTEXT, contextAttribs);
+    if (context->ctx == EGL_NO_CONTEXT) {
         Error("Could not create OpenGL context.");
         return false;
     }
 
-    if (!eglMakeCurrent(context->display, context->mainSurface, context->mainSurface, context->context)) {
+    if (!eglMakeCurrent(context->dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, context->ctx)) {
         Error("Could not make the current context current.");
         return false;
     }
@@ -833,202 +828,7 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
 
     return true;
 }
-
-#elif defined(OS_ANDROID)
-
-static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevice *device, const int queueIndex,
-                                          const ksGpuSurfaceColorFormat colorFormat, const ksGpuSurfaceDepthFormat depthFormat,
-                                          const ksGpuSampleCount sampleCount, EGLDisplay display) {
-    context->device = device;
-
-    context->display = display;
-
-    // Do NOT use eglChooseConfig, because the Android EGL code pushes in multisample
-    // flags in eglChooseConfig when the user has selected the "force 4x MSAA" option in
-    // settings, and that is completely wasted on the time warped frontbuffer.
-    enum { MAX_CONFIGS = 1024 };
-    EGLConfig configs[MAX_CONFIGS];
-    EGLint numConfigs = 0;
-    EGL(eglGetConfigs(display, configs, MAX_CONFIGS, &numConfigs));
-
-    const ksGpuSurfaceBits bits = ksGpuContext_BitsForSurfaceFormat(colorFormat, depthFormat);
-
-    // clang-format off
-    const EGLint configAttribs[] = {
-        EGL_RED_SIZE, bits.redBits,
-        EGL_GREEN_SIZE, bits.greenBits,
-        EGL_BLUE_SIZE, bits.blueBits,
-        EGL_ALPHA_SIZE, bits.alphaBits,
-        EGL_DEPTH_SIZE, bits.depthBits,
-        // EGL_STENCIL_SIZE,	0,
-        EGL_SAMPLE_BUFFERS, (sampleCount > KS_GPU_SAMPLE_COUNT_1),
-        EGL_SAMPLES, (sampleCount > KS_GPU_SAMPLE_COUNT_1) ? sampleCount : 0,
-        EGL_NONE,
-    };
-    // clang-format on
-
-    context->config = 0;
-    for (int i = 0; i < numConfigs; i++) {
-        EGLint value = 0;
-
-        eglGetConfigAttrib(display, configs[i], EGL_RENDERABLE_TYPE, &value);
-        if ((value & EGL_OPENGL_ES3_BIT) != EGL_OPENGL_ES3_BIT) {
-            continue;
-        }
-
-        // Without EGL_KHR_surfaceless_context, the config needs to support both pbuffers and window surfaces.
-        eglGetConfigAttrib(display, configs[i], EGL_SURFACE_TYPE, &value);
-        if ((value & (EGL_WINDOW_BIT | EGL_PBUFFER_BIT)) != (EGL_WINDOW_BIT | EGL_PBUFFER_BIT)) {
-            continue;
-        }
-
-        int j = 0;
-        for (; configAttribs[j] != EGL_NONE; j += 2) {
-            eglGetConfigAttrib(display, configs[i], configAttribs[j], &value);
-            if (value != configAttribs[j + 1]) {
-                break;
-            }
-        }
-        if (configAttribs[j] == EGL_NONE) {
-            context->config = configs[i];
-            break;
-        }
-    }
-    if (context->config == 0) {
-        Error("Failed to find EGLConfig");
-        return false;
-    }
-
-    EGLint contextAttribs[] = {EGL_CONTEXT_CLIENT_VERSION, OPENGL_VERSION_MAJOR, EGL_NONE, EGL_NONE, EGL_NONE};
-    // Use the default priority if KS_GPU_QUEUE_PRIORITY_MEDIUM is selected.
-    const ksGpuQueuePriority priority = device->queueInfo.queuePriorities[queueIndex];
-    if (priority != KS_GPU_QUEUE_PRIORITY_MEDIUM) {
-        contextAttribs[2] = EGL_CONTEXT_PRIORITY_LEVEL_IMG;
-        contextAttribs[3] = (priority == KS_GPU_QUEUE_PRIORITY_LOW) ? EGL_CONTEXT_PRIORITY_LOW_IMG : EGL_CONTEXT_PRIORITY_HIGH_IMG;
-    }
-    context->context = eglCreateContext(display, context->config, EGL_NO_CONTEXT, contextAttribs);
-    if (context->context == EGL_NO_CONTEXT) {
-        Error("eglCreateContext() failed: %s", EglErrorString(eglGetError()));
-        return false;
-    }
-
-    const EGLint surfaceAttribs[] = {EGL_WIDTH, 16, EGL_HEIGHT, 16, EGL_NONE};
-    context->tinySurface = eglCreatePbufferSurface(display, context->config, surfaceAttribs);
-    if (context->tinySurface == EGL_NO_SURFACE) {
-        Error("eglCreatePbufferSurface() failed: %s", EglErrorString(eglGetError()));
-        eglDestroyContext(display, context->context);
-        context->context = EGL_NO_CONTEXT;
-        return false;
-    }
-    context->mainSurface = context->tinySurface;
-
-    return true;
-}
-
 #endif
-
-bool ksGpuContext_CreateShared(ksGpuContext *context, const ksGpuContext *other, int queueIndex) {
-    UNUSED_PARM(queueIndex);
-
-    memset(context, 0, sizeof(ksGpuContext));
-
-    context->device = other->device;
-
-#if defined(OS_WINDOWS)
-    context->hDC = other->hDC;
-    context->hGLRC = wglCreateContext(other->hDC);
-    if (!wglShareLists(other->hGLRC, context->hGLRC)) {
-        return false;
-    }
-#elif defined(OS_LINUX_XLIB) || defined(OS_LINUX_XCB_GLX)
-    context->xDisplay = other->xDisplay;
-    context->visualid = other->visualid;
-    context->glxFBConfig = other->glxFBConfig;
-    context->glxDrawable = other->glxDrawable;
-    context->glxContext = glXCreateNewContext(other->xDisplay, other->glxFBConfig, GLX_RGBA_TYPE, other->glxContext, True);
-    if (context->glxContext == NULL) {
-        return false;
-    }
-#elif defined(OS_LINUX_XCB)
-    context->connection = other->connection;
-    context->screen_number = other->screen_number;
-    context->fbconfigid = other->fbconfigid;
-    context->visualid = other->visualid;
-    context->glxDrawable = other->glxDrawable;
-    context->glxContext = xcb_generate_id(other->connection);
-    xcb_glx_create_context(other->connection, context->glxContext, other->visualid, other->screen_number, other->glxContext, 1);
-    context->glxContextTag = 0;
-#elif defined(OS_APPLE_MACOS)
-    context->nsContext = NULL;
-    CGLPixelFormatObj pf = CGLGetPixelFormat(other->cglContext);
-    if (CGLCreateContext(pf, other->cglContext, &context->cglContext) != kCGLNoError) {
-        Error("Failed : CGLCreateContext.");
-        return false;
-    }
-    CGSConnectionID cid;
-    CGSWindowID wid;
-    CGSSurfaceID sid;
-    if (CGLGetSurface(other->cglContext, &cid, &wid, &sid) != kCGLNoError) {
-        Error("Failed : CGLGetSurface.");
-        return false;
-    }
-    if (CGLSetSurface(context->cglContext, cid, wid, sid) != kCGLNoError) {
-        Error("Failed : CGLSetSurface.");
-        return false;
-    }
-#elif defined(OS_ANDROID) || defined(OS_LINUX_WAYLAND)
-    context->display = other->display;
-    EGLint configID;
-    if (!eglQueryContext(context->display, other->context, EGL_CONFIG_ID, &configID)) {
-        Error("eglQueryContext EGL_CONFIG_ID failed: %s", EglErrorString(eglGetError()));
-        return false;
-    }
-    enum { MAX_CONFIGS = 1024 };
-    EGLConfig configs[MAX_CONFIGS];
-    EGLint numConfigs = 0;
-    EGL(eglGetConfigs(context->display, configs, MAX_CONFIGS, &numConfigs));
-    context->config = 0;
-    for (int i = 0; i < numConfigs; i++) {
-        EGLint value = 0;
-        eglGetConfigAttrib(context->display, configs[i], EGL_CONFIG_ID, &value);
-        if (value == configID) {
-            context->config = configs[i];
-            break;
-        }
-    }
-    if (context->config == 0) {
-        Error("Failed to find share context config.");
-        return false;
-    }
-    EGLint surfaceType = 0;
-    eglGetConfigAttrib(context->display, context->config, EGL_SURFACE_TYPE, &surfaceType);
-
-#if defined(OS_ANDROID)
-    if ((surfaceType & EGL_PBUFFER_BIT) == 0) {
-        Error("Share context config does not have EGL_PBUFFER_BIT.");
-        return false;
-    }
-#endif
-    EGLint contextAttribs[] = {EGL_CONTEXT_CLIENT_VERSION, OPENGL_VERSION_MAJOR, EGL_NONE};
-    context->context = eglCreateContext(context->display, context->config, other->context, contextAttribs);
-    if (context->context == EGL_NO_CONTEXT) {
-        Error("eglCreateContext() failed: %s", EglErrorString(eglGetError()));
-        return false;
-    }
-#if defined(OS_ANDROID)
-    const EGLint surfaceAttribs[] = {EGL_WIDTH, 16, EGL_HEIGHT, 16, EGL_NONE};
-    context->tinySurface = eglCreatePbufferSurface(context->display, context->config, surfaceAttribs);
-    if (context->tinySurface == EGL_NO_SURFACE) {
-        Error("eglCreatePbufferSurface() failed: %s", EglErrorString(eglGetError()));
-        eglDestroyContext(context->display, context->context);
-        context->context = EGL_NO_CONTEXT;
-        return false;
-    }
-    context->mainSurface = context->tinySurface;
-#endif
-#endif
-    return true;
-}
 
 void ksGpuContext_Destroy(ksGpuContext *context) {
 #if defined(OS_WINDOWS)
@@ -1072,30 +872,17 @@ void ksGpuContext_Destroy(ksGpuContext *context) {
     }
     context->cglContext = nil;
 #elif defined(OS_ANDROID) || defined(OS_LINUX_WAYLAND)
-    if (context->display != 0) {
-        EGL(eglMakeCurrent(context->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
-    }
-    if (context->context != EGL_NO_CONTEXT) {
-        EGL(eglDestroyContext(context->display, context->context));
+    if (context->ctx != EGL_NO_CONTEXT) {
+        EGL(eglDestroyContext(context->dpy, context->ctx));
     }
 
-#if defined(OS_ANDROID)
-    if (context->mainSurface != context->tinySurface) {
-        EGL(eglDestroySurface(context->display, context->mainSurface));
+    if (context->dpy != EGL_NO_DISPLAY) {
+        EGL(eglTerminate(context->dpy));
     }
-    if (context->tinySurface != EGL_NO_SURFACE) {
-        EGL(eglDestroySurface(context->display, context->tinySurface));
-    }
-    context->tinySurface = EGL_NO_SURFACE;
-#elif defined(OS_LINUX_WAYLAND)
-    if (context->mainSurface != EGL_NO_SURFACE) {
-        EGL(eglDestroySurface(context->display, context->mainSurface));
-    }
-#endif
-    context->display = 0;
-    context->config = 0;
-    context->mainSurface = EGL_NO_SURFACE;
-    context->context = EGL_NO_CONTEXT;
+
+    context->dpy = EGL_NO_DISPLAY;
+    context->ctx = EGL_NO_CONTEXT;
+
 #else
     UNUSED_PARM(context);
 #endif
@@ -1116,7 +903,7 @@ void ksGpuContext_SetCurrent(ksGpuContext *context) {
 #elif defined(OS_APPLE_MACOS)
     CGLSetCurrentContext(context->cglContext);
 #elif defined(OS_ANDROID) || defined(OS_LINUX_WAYLAND)
-    EGL(eglMakeCurrent(context->display, context->mainSurface, context->mainSurface, context->context));
+    EGL(eglMakeCurrent(context->dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, context->ctx));
 #else
     UNUSED_PARM(context);
 #endif
@@ -1133,7 +920,7 @@ void ksGpuContext_UnsetCurrent(ksGpuContext *context) {
     (void)context;
     CGLSetCurrentContext(NULL);
 #elif defined(OS_ANDROID) || defined(OS_LINUX_WAYLAND)
-    EGL(eglMakeCurrent(context->display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
+    EGL(eglMakeCurrent(context->dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT));
 #else
     UNUSED_PARM(context);
 #endif
@@ -1151,7 +938,7 @@ bool ksGpuContext_CheckCurrent(ksGpuContext *context) {
 #elif defined(OS_APPLE_IOS)
     return (false);  // TODO: pick current context off the UIView
 #elif defined(OS_ANDROID) || defined(OS_LINUX_WAYLAND)
-    return (eglGetCurrentContext() == context->context);
+    return (eglGetCurrentContext() == context->ctx);
 #else
     UNUSED_PARM(context);
     return false;
@@ -2803,16 +2590,76 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
 void ksGpuWindow_Destroy(ksGpuWindow *window) {
     ksGpuContext_Destroy(&window->context);
     ksGpuDevice_Destroy(&window->device);
-
-    if (window->display != 0) {
-        EGL(eglTerminate(window->display));
-        window->display = 0;
-    }
 }
 
 bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const ksGpuQueueInfo *queueInfo, const int queueIndex,
                         const ksGpuSurfaceColorFormat colorFormat, const ksGpuSurfaceDepthFormat depthFormat,
                         const ksGpuSampleCount sampleCount, const int width, const int height, const bool fullscreen) {
+#ifdef XR_USE_PLATFORM_EGL
+    return ksGpuWindow_CreateEGL(window, instance, queueInfo, queueIndex, colorFormat, depthFormat, sampleCount, width, height,
+                                 fullscreen);
+#else
+    return false;
+#endif
+}
+
+#endif
+
+#ifdef XR_USE_PLATFORM_EGL
+
+static bool ksGpuContext_CreateForSurfaceEGL(ksGpuContext *context, const ksGpuDevice *device, const int queueIndex,
+                                             const ksGpuSurfaceColorFormat colorFormat, const ksGpuSurfaceDepthFormat depthFormat,
+                                             const ksGpuSampleCount sampleCount, EGLDisplay dpy) {
+    (void)sampleCount;
+    context->device = device;
+    context->dpy = dpy;
+
+    // clang-format off
+    EGLint glesContextAttribs[] = {
+        EGL_CONTEXT_CLIENT_VERSION, OPENGLES_VERSION_MAJOR,
+        EGL_CONTEXT_PRIORITY_LEVEL_IMG, EGL_CONTEXT_PRIORITY_MEDIUM_IMG,
+        EGL_NONE,
+    };
+    // clang-format on
+    // Use the default priority if KS_GPU_QUEUE_PRIORITY_MEDIUM is selected.
+    const ksGpuQueuePriority priority = device->queueInfo.queuePriorities[queueIndex];
+    if (priority != KS_GPU_QUEUE_PRIORITY_MEDIUM) {
+        glesContextAttribs[3] =
+            (priority == KS_GPU_QUEUE_PRIORITY_LOW) ? EGL_CONTEXT_PRIORITY_LOW_IMG : EGL_CONTEXT_PRIORITY_HIGH_IMG;
+    }
+
+    const ksGpuSurfaceBits bits = ksGpuContext_BitsForSurfaceFormat(colorFormat, depthFormat);
+
+    // clang-format off
+    const EGLint configAttribs[] = {
+        EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT,
+        EGL_RED_SIZE, bits.redBits,
+        EGL_GREEN_SIZE, bits.greenBits,
+        EGL_BLUE_SIZE, bits.blueBits,
+        EGL_ALPHA_SIZE, bits.alphaBits,
+        EGL_NONE,
+    };
+    // clang-format on
+
+    EGLConfig config = 0;
+    EGLint numConfigs;
+    EGL(eglChooseConfig(context->dpy, configAttribs, &config, 1, &numConfigs));
+
+    context->ctx = eglCreateContext(context->dpy, config, EGL_NO_CONTEXT, glesContextAttribs);
+    if (context->ctx == EGL_NO_CONTEXT) {
+        Error("eglCreateContext() failed: %s", EglErrorString(eglGetError()));
+        return false;
+    }
+
+    EGL(eglBindAPI(EGL_OPENGL_ES_API));
+
+    return true;
+}
+
+bool ksGpuWindow_CreateEGL(ksGpuWindow *window, ksDriverInstance *instance, const ksGpuQueueInfo *queueInfo, int queueIndex,
+                           ksGpuSurfaceColorFormat colorFormat, ksGpuSurfaceDepthFormat depthFormat, ksGpuSampleCount sampleCount,
+                           int width, int height, bool fullscreen) {
     memset(window, 0, sizeof(ksGpuWindow));
     (void)fullscreen;
 
@@ -2826,24 +2673,37 @@ bool ksGpuWindow_Create(ksGpuWindow *window, ksDriverInstance *instance, const k
     window->windowFullscreen = true;
     window->windowActive = false;
     window->windowExit = false;
-    if (0 == gladLoaderLoadEGL(EGL_DEFAULT_DISPLAY)) {
+
+    int eglVersion = gladLoaderLoadEGL(EGL_DEFAULT_DISPLAY);
+    if (!eglVersion) {
+        Error("Failed to load EGL");
         return false;
     }
 
-    window->display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
-    EGL(eglInitialize(window->display, &window->majorVersion, &window->minorVersion));
+    printf("Loaded EGL %d.%d on first load\n", GLAD_VERSION_MAJOR(eglVersion), GLAD_VERSION_MINOR(eglVersion));
+
+    EGLDisplay dpy = eglGetDisplay(EGL_DEFAULT_DISPLAY);
+    EGL(eglInitialize(dpy, NULL, NULL));
+
     // need second load now that EGL is initialized - bootstrapping problem
-    if (0 == gladLoaderLoadEGL(EGL_DEFAULT_DISPLAY)) {
+    eglVersion = gladLoaderLoadEGL(dpy);
+    if (!eglVersion) {
+        Error("Failed to reload EGL\n");
         return false;
     }
+
+    printf("Loaded EGL %d.%d after reload.\n", GLAD_VERSION_MAJOR(eglVersion), GLAD_VERSION_MINOR(eglVersion));
 
     ksGpuDevice_Create(&window->device, instance, queueInfo);
-    ksGpuContext_CreateForSurface(&window->context, &window->device, queueIndex, colorFormat, depthFormat, sampleCount,
-                                  window->display);
+    ksGpuContext_CreateForSurfaceEGL(&window->context, &window->device, queueIndex, colorFormat, depthFormat, sampleCount, dpy);
+
     ksGpuContext_SetCurrent(&window->context);
 
+#if defined(OS_ANDROID)
     gladLoaderLoadGLES2();
-
+#else
+    return false;
+#endif
     return true;
 }
 
