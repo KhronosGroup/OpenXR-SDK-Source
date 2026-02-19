@@ -111,12 +111,12 @@ elseif(PRESENTATION_BACKEND MATCHES "wayland")
         pkg_get_variable(WAYLAND_PROTOCOLS_DATADIR wayland-protocols pkgdatadir)
         pkg_get_variable(WAYLAND_SCANNER wayland-scanner wayland_scanner)
 
-        set(PROTOCOL xdg-shell-unstable-v6)
-        set(PROTOCOL_XML ${WAYLAND_PROTOCOLS_DATADIR}/unstable/xdg-shell/${PROTOCOL}.xml)
+        set(PROTOCOL xdg-shell)
+        set(PROTOCOL_XML ${WAYLAND_PROTOCOLS_DATADIR}/stable/xdg-shell/${PROTOCOL}.xml)
 
-        if(NOT EXISTS ${PROTOCOL_XML})
-            message(FATAL_ERROR "xdg-shell-unstable-v6.xml not found in " ${WAYLAND_PROTOCOLS_DATADIR}
-                                "\nYour wayland-protocols package does not " "contain xdg-shell-unstable-v6."
+	if(NOT EXISTS ${PROTOCOL_XML})
+            message(FATAL_ERROR "xdg-shell.xml not found in " ${WAYLAND_PROTOCOLS_DATADIR}
+                                "\nYour wayland-protocols package does not " "contain xdg-shell."
             )
         endif()
         add_custom_command(
