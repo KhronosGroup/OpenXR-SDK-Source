@@ -82,12 +82,6 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
             glDeleteBuffers(1, &m_cubeIndexBuffer);
         }
 
-        for (auto& colorToDepth : m_colorToDepthMap) {
-            if (colorToDepth.second != 0) {
-                glDeleteTextures(1, &colorToDepth.second);
-            }
-        }
-
         ksGpuWindow_Destroy(&window);
     }
 
@@ -341,43 +335,19 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         return ret;
     }
 
-    uint32_t GetDepthTexture(uint32_t colorTexture) {
-        // If a depth-stencil view has already been created for this back-buffer, use it.
-        auto depthBufferIt = m_colorToDepthMap.find(colorTexture);
-        if (depthBufferIt != m_colorToDepthMap.end()) {
-            return depthBufferIt->second;
-        }
-
-        // This back-buffer has no corresponding depth-stencil texture, so create one with matching dimensions.
-
-        GLint width;
-        GLint height;
-        glBindTexture(GL_TEXTURE_2D, colorTexture);
-        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
-        glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
-
-        uint32_t depthTexture;
-        glGenTextures(1, &depthTexture);
-        glBindTexture(GL_TEXTURE_2D, depthTexture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, width, height, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, nullptr);
-
-        m_colorToDepthMap.insert(std::make_pair(colorTexture, depthTexture));
-
-        return depthTexture;
-    }
-
     void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
                     int64_t swapchainFormat, const std::vector<Cube>& cubes) override {
         CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
         UNUSED_PARM(swapchainFormat);                    // Not used in this function for now.
 
+        OpenGLESSwapchainImageData* swapchainData;
+        uint32_t imageIndex;
+        std::tie(swapchainData, imageIndex) = m_swapchainImageDataMap.GetDataAndIndexFromBasePointer(swapchainImage);
+
         glBindFramebuffer(GL_FRAMEBUFFER, m_swapchainFramebuffer);
 
         const uint32_t colorTexture = reinterpret_cast<const XrSwapchainImageOpenGLESKHR*>(swapchainImage)->image;
+        const uint32_t depthTexture = swapchainData->GetDepthImageForColorIndex(imageIndex).image;
 
         glViewport(static_cast<GLint>(layerView.subImage.imageRect.offset.x),
                    static_cast<GLint>(layerView.subImage.imageRect.offset.y),
@@ -388,8 +358,6 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
         glCullFace(GL_BACK);
         glEnable(GL_CULL_FACE);
         glEnable(GL_DEPTH_TEST);
-
-        const uint32_t depthTexture = GetDepthTexture(colorTexture);
 
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorTexture, 0);
         glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthTexture, 0);
@@ -452,9 +420,6 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
     GLuint m_cubeVertexBuffer{0};
     GLuint m_cubeIndexBuffer{0};
     GLint m_contextApiMajorVersion{0};
-
-    // Map color buffer to associated depth buffer. This map is populated on demand.
-    std::map<uint32_t, uint32_t> m_colorToDepthMap;
     std::array<float, 4> m_clearColor;
 };
 }  // namespace
