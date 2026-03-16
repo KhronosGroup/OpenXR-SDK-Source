@@ -66,7 +66,7 @@ jobs:
       # NuGet stuff now
 
       - name: Setup NuGet
-        uses: "NuGet/setup-nuget@323ab0502cd38fdc493335025a96c8fdb0edc71f"
+        uses: "NuGet/setup-nuget@d105a947828025cd7a980103c35ba2bfae586d0f"
         with:
           nuget-version: "5.x"
 
