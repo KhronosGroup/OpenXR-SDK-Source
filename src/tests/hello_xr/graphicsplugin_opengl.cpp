@@ -407,9 +407,10 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
     }
 
     void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
-                    int64_t swapchainFormat, const std::vector<Cube>& cubes) override {
+                    int64_t colorSwapchainFormat, int64_t depthSwapchainFormat, const std::vector<Cube>& cubes) override {
         CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
-        UNUSED_PARM(swapchainFormat);                    // Not used in this function for now.
+        UNUSED_PARM(colorSwapchainFormat);               // Not used in this function for now.
+        UNUSED_PARM(depthSwapchainFormat);               // Not used in this function for now.
 
         OpenGLSwapchainImageData* swapchainData;
         uint32_t imageIndex;

@@ -1065,7 +1065,8 @@ struct OpenXrProgram : IOpenXrProgram {
 
             const XrSwapchainImageBaseHeader* const swapchainImage =
                 m_swapchainImages[viewSwapchain.handle]->GetGenericColorImage(swapchainImageIndex);
-            m_graphicsPlugin->RenderView(projectionLayerViews[i], swapchainImage, m_colorSwapchainFormat, cubes);
+            m_graphicsPlugin->RenderView(projectionLayerViews[i], swapchainImage, m_colorSwapchainFormat, m_depthSwapchainFormat,
+                                         cubes);
 
             XrSwapchainImageReleaseInfo releaseInfo{XR_TYPE_SWAPCHAIN_IMAGE_RELEASE_INFO};
             CHECK_XRCMD(xrReleaseSwapchainImage(viewSwapchain.handle, &releaseInfo));
