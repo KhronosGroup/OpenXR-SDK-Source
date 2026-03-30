@@ -54,7 +54,7 @@ jobs:
           java-version-file: ".github/.java-version"
           distribution: "temurin"
       # Also performs Gradle wrapper validation
-      - uses: "gradle/actions/setup-gradle@v5"
+      - uses: "gradle/actions/setup-gradle@v6"
 
       # HelloXR OpenGLES version
       - name: Build HelloXR OpenGLES for Android
