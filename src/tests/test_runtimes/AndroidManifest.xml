@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <!--
+    Copyright (c) 2025-2026 The Khronos Group Inc.
+
+    SPDX-License-Identifier: Apache-2.0
+     -->
+
+    <!-- This is for Android's VR mode. -->
+    <uses-feature
+        android:name="android.software.vr.mode"
+        android:required="false" />
+
+    <application
+        android:name="android.app.Application"
+        android:hasCode="false"
+        android:label="OpenXR CTS test runtime">
+
+
+        <!-- VR Listener service, for interop with Android VR mode. -->
+        <service
+            android:name="android.service.vr.VrListenerService"
+            android:exported="true"
+            android:label="OpenXR CTS test runtime"
+            android:permission="android.permission.BIND_VR_LISTENER_SERVICE">
+            <meta-data
+                android:name="org.khronos.openxr.OpenXRRuntime"
+                android:value="libtest_runtime.so" />
+            <intent-filter>
+                <action android:name="android.service.vr.VrListenerService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name="android.app.Application"
+            android:exported="true"
+            android:label="OpenXR CTS test runtime"
+            tools:ignore="ExportedService">
+            <meta-data
+                android:name="org.khronos.openxr.OpenXRRuntime.SoFilename"
+                android:value="libtest_runtime.so" />
+            <meta-data
+                android:name="org.khronos.openxr.OpenXRRuntime.MajorVersion"
+                android:value="1" />
+
+            <intent-filter>
+                <action android:name="org.khronos.openxr.OpenXRRuntimeService" />
+            </intent-filter>
+        </service>
+    </application>
+</manifest>

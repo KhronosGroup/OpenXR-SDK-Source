@@ -7,7 +7,6 @@
 #include "geometry.h"
 #include "graphicsplugin.h"
 #include "graphics_plugin_impl_helpers.h"
-#include "options.h"
 #include <nonstd/span.hpp>
 #include "check.h"
 
@@ -467,10 +466,7 @@ class VulkanSwapchainImageData : public SwapchainImageDataBase<XrSwapchainImageV
 };
 
 struct VulkanGraphicsPlugin : public IGraphicsPlugin {
-    VulkanGraphicsPlugin(const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> /*unused*/)
-        : m_clearColor(options->GetBackgroundClearColor()) {
-        m_graphicsBinding.type = GetGraphicsBindingType();
-    };
+    VulkanGraphicsPlugin() { m_graphicsBinding.type = GetGraphicsBindingType(); };
 
     std::vector<std::string> GetInstanceExtensions() const override { return {XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME}; }
 
@@ -931,7 +927,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return VK_SAMPLE_COUNT_1_BIT; }
 
-    void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
+    void SetClearColor(const std::array<float, 4> clearColor) override { m_clearColor = clearColor; }
 
    protected:
     XrGraphicsBindingVulkan2KHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_VULKAN2_KHR};
@@ -1106,10 +1102,7 @@ struct VulkanGraphicsPlugin : public IGraphicsPlugin {
 
 // A compatibility class that implements the KHR_vulkan_enable2 functionality on top of KHR_vulkan_enable
 struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
-    VulkanGraphicsPluginLegacy(const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin> platformPlugin)
-        : VulkanGraphicsPlugin(options, platformPlugin) {
-        m_graphicsBinding.type = GetGraphicsBindingType();
-    };
+    VulkanGraphicsPluginLegacy() : VulkanGraphicsPlugin() { m_graphicsBinding.type = GetGraphicsBindingType(); };
 
     std::vector<std::string> GetInstanceExtensions() const override { return {XR_KHR_VULKAN_ENABLE_EXTENSION_NAME}; }
     virtual XrStructureType GetGraphicsBindingType() const override { return XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR; }
@@ -1251,14 +1244,8 @@ struct VulkanGraphicsPluginLegacy : public VulkanGraphicsPlugin {
 
 }  // namespace
 
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Vulkan(const std::shared_ptr<Options>& options,
-                                                             std::shared_ptr<IPlatformPlugin> platformPlugin) {
-    return std::make_shared<VulkanGraphicsPlugin>(options, std::move(platformPlugin));
-}
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Vulkan() { return std::make_shared<VulkanGraphicsPlugin>(); }
 
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_VulkanLegacy(const std::shared_ptr<Options>& options,
-                                                                   std::shared_ptr<IPlatformPlugin> platformPlugin) {
-    return std::make_shared<VulkanGraphicsPluginLegacy>(options, std::move(platformPlugin));
-}
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_VulkanLegacy() { return std::make_shared<VulkanGraphicsPluginLegacy>(); }
 
 #endif  // XR_USE_GRAPHICS_API_VULKAN

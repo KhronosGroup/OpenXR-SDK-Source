@@ -388,11 +388,18 @@ if(NOT ANDROID)
     # https://gitlab.khronos.org/openxr/openxr/-/merge_requests/4020 highlighted that
     # teams often have stricter compiler settings for the openxr_loader
     if(HAVE_MISSING_PROTOTYPES)
-        # apply only for C source files
-        target_compile_options(
-            openxr_loader
-            PRIVATE $<IF:$<COMPILE_LANGUAGE:C>,-Werror=missing-prototypes,>
-        )
+        # https://gitlab.khronos.org/openxr/openxr/-/merge_requests/4120
+        # Limit check to clang until this is supported more widely.
+        if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+            target_compile_options(
+                openxr_loader PRIVATE -Werror=missing-prototypes
+            )
+        else()
+            target_compile_options(
+                openxr_loader
+                PRIVATE $<IF:$<COMPILE_LANGUAGE:C>,-Werror=missing-prototypes,>
+            )
+        endif()
     endif()
 endif()
 

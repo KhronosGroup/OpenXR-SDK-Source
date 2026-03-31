@@ -7,7 +7,6 @@
 #include "geometry.h"
 #include "graphicsplugin.h"
 #include "graphics_plugin_impl_helpers.h"
-#include "options.h"
 
 #if defined(XR_USE_GRAPHICS_API_D3D11)
 
@@ -54,8 +53,7 @@ TryAgain:
 }
 
 struct D3D11GraphicsPlugin : public IGraphicsPlugin {
-    D3D11GraphicsPlugin(const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin>)
-        : m_clearColor(options->GetBackgroundClearColor()) {}
+    D3D11GraphicsPlugin() {}
 
     std::vector<std::string> GetInstanceExtensions() const override { return {XR_KHR_D3D11_ENABLE_EXTENSION_NAME}; }
 
@@ -263,7 +261,7 @@ struct D3D11GraphicsPlugin : public IGraphicsPlugin {
         const ComPtr<ID3D11Texture2D> depthStencilTexture = swapchainData.GetDepthImageForColorIndex(imageIndex).texture;
         ComPtr<ID3D11DepthStencilView> depthStencilView;
         const XrSwapchainCreateInfo* depthCreateInfo = swapchainData.GetDepthCreateInfo();
-        DXGI_FORMAT depthSwapchainFormatDX = (DXGI_FORMAT)depthCreateInfo->format;
+        DXGI_FORMAT depthSwapchainFormatDX = GetDepthStencilFormatOrDefault(depthCreateInfo);
         CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(
             (swapchainData.DepthSampleCount() > 1) ? D3D11_DSV_DIMENSION_TEXTURE2DMSARRAY : D3D11_DSV_DIMENSION_TEXTURE2DARRAY,
             depthSwapchainFormatDX, 0 /* mipSlice */, imageArrayIndex, 1 /* arraySize */);
@@ -338,7 +336,7 @@ struct D3D11GraphicsPlugin : public IGraphicsPlugin {
 
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return 1; }
 
-    void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
+    void SetClearColor(const std::array<float, 4> clearColor) override { m_clearColor = clearColor; }
 
    private:
     ComPtr<ID3D11Device> m_device;
@@ -356,9 +354,6 @@ struct D3D11GraphicsPlugin : public IGraphicsPlugin {
 };
 }  // namespace
 
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_D3D11(const std::shared_ptr<Options>& options,
-                                                            std::shared_ptr<IPlatformPlugin> platformPlugin) {
-    return std::make_shared<D3D11GraphicsPlugin>(options, platformPlugin);
-}
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_D3D11() { return std::make_shared<D3D11GraphicsPlugin>(); }
 
 #endif

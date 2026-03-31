@@ -58,6 +58,18 @@ macro(gen_xr_runtime_json filename libfile)
     )
 endmacro()
 
+gen_xr_runtime_json(
+    "${CMAKE_CURRENT_BINARY_DIR}/openxr/1/active_runtime.json"
+    "${CMAKE_CURRENT_BINARY_DIR}/$<TARGET_FILE_NAME:test_runtime>"
+    -b
+)
+
+target_sources(
+    test_runtime
+    PRIVATE
+        "${CMAKE_CURRENT_BINARY_DIR}/openxr/1/active_runtime.json"
+)
+
 if(WIN32)
     target_compile_definitions(test_runtime PRIVATE _CRT_SECURE_NO_WARNINGS)
     # Turn off transitional "changed behavior" warning message for Visual Studio versions prior to 2015.
@@ -95,35 +107,5 @@ else()
     )
     target_sources(
         test_runtime PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/test_runtime.map"
-    )
-endif()
-
-if(BUILD_LOADER AND BUILD_API_LAYERS)
-    gen_xr_runtime_json(
-        "${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/runtimes/test_runtime.json"
-        "${CMAKE_CURRENT_BINARY_DIR}/$<TARGET_FILE_NAME:test_runtime>"
-        -b
-    )
-
-    # Add generated file to our sources so we depend on it, and thus trigger generation.
-    target_sources(
-        test_runtime
-        PRIVATE
-            "${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/runtimes/test_runtime.json"
-    )
-endif()
-
-if(BUILD_CONFORMANCE_TESTS)
-    gen_xr_runtime_json(
-        "${PROJECT_BINARY_DIR}/src/conformance/conformance_cli/test_runtime.json"
-        "${CMAKE_CURRENT_BINARY_DIR}/$<TARGET_FILE_NAME:test_runtime>"
-        -b
-    )
-
-    # Add generated file to our sources so we depend on it, and thus trigger generation.
-    target_sources(
-        test_runtime
-        PRIVATE
-            "${PROJECT_BINARY_DIR}/src/conformance/conformance_cli/test_runtime.json"
     )
 endif()

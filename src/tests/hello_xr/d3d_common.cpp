@@ -68,4 +68,11 @@ ComPtr<IDXGIAdapter1> GetAdapter(LUID adapterId) {
     }
 }
 
+DXGI_FORMAT GetDepthStencilFormatOrDefault(const XrSwapchainCreateInfo* createInfo) {
+    if (createInfo) {
+        return (DXGI_FORMAT)createInfo->format;
+    }
+    return kDefaultDepthFormat;
+}
+
 #endif

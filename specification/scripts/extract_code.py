@@ -27,11 +27,11 @@ GENCODEDIR = CODEDIR / 'generated'
 
 @unique
 class Language(Enum):
-    C = 'C'
-    CPP = 'C++'
-    XML = 'XML'
+    C = 'c'
+    CPP = 'cpp'
+    XML = 'xml'
     ASCIIDOC = 'asciidoc'
-    JSON = 'JSON'
+    JSON = 'json'
     SH = 'sh'
 
     UNKNOWN = 'UNKNOWN'
@@ -46,13 +46,15 @@ class Language(Enum):
                 "Can't get extension for UNKNOWN language")
         if self == Language.ASCIIDOC:
             return 'adoc'
-        return str(self).lower().replace('+', 'p')
+        return str(self)
 
     @classmethod
     def from_string(cls, s):
-        s = s.casefold()
+        s_normalized = s.casefold()
+        if s == "c++":
+            raise RuntimeError("[source,c++] is not recognized by AsciiDoctor, use [source,cpp] instead")
         for val in Language:
-            if s == val.value.casefold():
+            if s_normalized == val.value:
                 return val
         return Language.UNKNOWN
 

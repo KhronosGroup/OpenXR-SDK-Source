@@ -138,7 +138,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         updates them automatically by processing a line at a time.
         -->
         <type category="define">// OpenXR current version number.
-#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(1, 1, 57)</type>
+#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(1, 1, 58)</type>
 
         <!--
         Defines for a fixed major.minor version of OpenXR preserving the shared patch version.
@@ -451,6 +451,9 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <!-- enums for XR_ANDROID_passthrough_camera_state -->
         <type name="XrPassthroughCameraStateANDROID" category="enum"/>
 
+        <!-- Bitmask types for XR_ANDROID_performance_metrics -->
+        <type bitvalues="XrPerformanceMetricsCounterFlagBitsANDROID" category="bitmask">typedef <type>XrFlags64</type> <name>XrPerformanceMetricsCounterFlagsANDROID</name>;</type>
+
         <!-- Bitmask types for XR_ML_frame_end_info -->
         <type bitvalues="XrFrameEndInfoFlagBitsML" category="bitmask">typedef <type>XrFlags64</type> <name>XrFrameEndInfoFlagsML</name>;</type>
 
@@ -473,6 +476,11 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
 
         <!-- XR_ML_world_mesh_detection -->
         <type bitvalues="XrWorldMeshDetectorFlagBitsML" category="bitmask">typedef <type>XrFlags64</type> <name>XrWorldMeshDetectorFlagsML</name>;</type>
+
+        <!-- XR_BD_spatial_audio_rendering -->
+        <type bitvalues="XrSoundObstacleFlagBitsBD" category="bitmask">typedef <type>XrFlags64</type> <name>XrSoundObstacleFlagsBD</name>;</type>
+        <type bitvalues="XrSoundObjectFlagBitsBD"   category="bitmask">typedef <type>XrFlags64</type> <name>XrSoundObjectFlagsBD</name>;</type>
+        <type bitvalues="XrSoundFieldFlagBitsBD"    category="bitmask">typedef <type>XrFlags64</type> <name>XrSoundFieldFlagsBD</name>;</type>
 
         <!-- Bitmask types for XR_ML_facial_expression -->
         <type bitvalues="XrFacialExpressionBlendShapePropertiesFlagBitsML" category="bitmask">typedef <type>XrFlags64</type> <name>XrFacialExpressionBlendShapePropertiesFlagsML</name>;</type>
@@ -528,6 +536,13 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <!-- XR_ANDROID_device_anchor_persistence -->
         <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrDeviceAnchorPersistenceANDROID</name>)</type>
 
+        <!-- XR_ANDROID_composition_layer_passthrough_mesh -->
+        <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrPassthroughLayerANDROID</name>)</type>
+
+        <!-- XR_ANDROID_scene_meshing -->
+        <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrSceneMeshingTrackerANDROID</name>)</type>
+        <type category="handle" parent="XrSceneMeshingTrackerANDROID"><type>XR_DEFINE_HANDLE</type>(<name>XrSceneMeshSnapshotANDROID</name>)</type>
+
         <!-- XR_FB_face_tracking -->
         <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrFaceTrackerFB</name>)</type>
 
@@ -582,6 +597,13 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <!-- XR_ML_world_mesh_detection -->
         <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrWorldMeshDetectorML</name>)</type>
 
+        <!-- XR_BD_spatial_audio_rendering -->
+        <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrSpatialAudioRendererBD</name>)</type>
+        <type category="handle" parent="XrSpatialAudioRendererBD"><type>XR_DEFINE_HANDLE</type>(<name>XrSoundFieldBD</name>)</type>
+        <type category="handle" parent="XrSpatialAudioRendererBD"><type>XR_DEFINE_HANDLE</type>(<name>XrSoundObjectBD</name>)</type>
+        <type category="handle" parent="XrSpatialAudioRendererBD"><type>XR_DEFINE_HANDLE</type>(<name>XrSoundObstacleBD</name>)</type>
+        <type category="handle" parent="XrSpatialAudioRendererBD"><type>XR_DEFINE_HANDLE</type>(<name>XrSoundObstacleMaterialBD</name>)</type>
+
         <!-- XR_BD_body_tracking -->
         <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrBodyTrackerBD</name>)</type>
 
@@ -598,6 +620,8 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <!-- XR_BD_facial_simulation -->
         <type category="handle" parent="XrSession"> <type>XR_DEFINE_HANDLE</type>(<name>XrFaceTrackerBD</name>)</type>
 
+        <!-- XR_META_environment_raycast -->
+        <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrEnvironmentRaycasterMETA</name>)</type>
 
         <!-- Non-handle 64-bit opaque type from XR_EXT_future -->
         <type category="basetype"><type>XR_DEFINE_OPAQUE_64</type>(<name>XrFutureEXT</name>)</type>
@@ -697,6 +721,9 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <type name="XrSpaceStorageLocationFB" category="enum"/>
         <type name="XrSpacePersistenceModeFB" category="enum"/>
 
+        <!-- enums for XR_META_spatial_entity_semantic_label -->
+        <type name="XrSemanticLabelMETA" category="enum"/>
+
         <!-- flag bits for XR_FB_scene -->
         <type name="XrSemanticLabelsSupportFlagBitsFB" category="enum"/>
 
@@ -757,6 +784,21 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <!-- XR_ANDROID_device_anchor_persistence -->
         <type name="XrAnchorPersistStateANDROID" category="enum"/>
 
+        <!-- enum and flag bits for XR_ANDROID_performance_metrics -->
+        <type name="XrPerformanceMetricsCounterUnitANDROID" category="enum"/>
+        <type name="XrPerformanceMetricsCounterFlagBitsANDROID" category="enum"/>
+
+        <!-- XR_ANDROID_trackables_qr_code -->
+        <type name="XrQrCodeTrackingModeANDROID" category="enum"/>
+
+        <!-- XR_ANDROID_composition_layer_passthrough_mesh -->
+        <type name="XrWindingOrderANDROID" category="enum"/>
+
+        <!-- XR_ANDROID_scene_meshing -->
+        <type name="XrSceneMeshSemanticLabelSetANDROID" category="enum"/>
+        <type name="XrSceneMeshSemanticLabelANDROID" category="enum"/>
+        <type name="XrSceneMeshTrackingStateANDROID" category="enum"/>
+
         <!-- XR_META_local_dimming -->
         <type name="XrLocalDimmingModeMETA" category="enum"/>
 
@@ -780,6 +822,9 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
 
         <!-- enums for XR_META_body_tracking_calibration -->
         <type name="XrBodyTrackingCalibrationStateMETA" category="enum"/>
+
+        <!-- enums for XR_META_body_tracking_fidelity -->
+        <type name="XrBodyTrackingFidelityMETA" category="enum" comment="Fidelity options for body tracking expression. The application can: request a desired fidelity, and the runtime will attempt to use that fidelity to provide body tracking for this application."/>
 
         <!-- enum for XR_ML_frame_end_info -->
         <type name="XrFrameEndInfoFlagBitsML" category="enum"/>
@@ -876,6 +921,18 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <type name="XrBodyJointBD" category="enum"/>
         <type name="XrBodyJointSetBD" category="enum"/>
 
+        <!-- XR_BD_spatial_audio_rendering -->
+        <type name="XrAudioSampleRateBD" category="enum"/>
+        <type name="XrAudioBufferChannelLayoutBD" category="enum"/>
+        <type name="XrSoundObstacleMaterialTypeBD" category="enum"/>
+        <type name="XrSoundObstacleFlagBitsBD" category="enum"/>
+        <type name="XrSoundObjectDistanceAttenuationTypeBD" category="enum"/>
+        <type name="XrSoundObjectFlagBitsBD" category="enum"/>
+        <type name="XrSoundFieldChannelMaskSurroundBD" category="enum"/>
+        <type name="XrSoundFieldChannelMaskAmbixBD" category="enum"/>
+        <type name="XrSoundFieldChannelMaskFumaBD" category="enum"/>
+        <type name="XrSoundFieldFlagBitsBD" category="enum"/>
+
         <!-- enums for XR_BD_spatial_sensing -->
         <type name="XrSenseDataProviderTypeBD" category="enum"/>
         <type name="XrSemanticLabelBD" category="enum"/>
@@ -900,6 +957,15 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <type name="XrFacialSimulationModeBD" category="enum"/>
         <type name="XrFaceExpressionBD" category="enum"/>
         <type name="XrLipExpressionBD" category="enum"/>
+
+        <!-- enums for XR_ANDROID_spatial_object_tracking -->
+        <type name="XrSpatialObjectSemanticLabelANDROID" category="enum"/>
+
+        <!-- XR_META_environment_raycast -->
+        <type name="XrEnvironmentRaycastHitStatusMETA" category="enum"/>
+
+        <!-- XR_QCOM_hand_tracking_gesture -->
+        <type name="XrHandGestureTypeQCOM" category="enum"/>
 
         <!-- Struct types -->
         <type category="struct" name="XrVector2f">
@@ -2083,6 +2149,19 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member values="XR_TYPE_SYSTEM_PROPERTIES_BODY_TRACKING_CALIBRATION_META"><type>XrStructureType</type> <name>type</name></member>
             <member><type>void</type>*    <name>next</name></member>
             <member><type>XrBool32</type> <name>supportsHeightOverride</name></member>
+        </type>
+
+        <!-- XR_META_body_tracking_fidelity structs -->
+        <type name="XrBodyTrackingFidelityStatusMETA" category="struct" structextends="XrBodyJointLocationsFB" returnedonly="true">
+            <member values="XR_TYPE_BODY_TRACKING_FIDELITY_STATUS_META"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                      <name>next</name></member>
+            <member><type>XrBodyTrackingFidelityMETA</type> <name>fidelity</name></member>
+        </type>
+
+        <type name="XrSystemPropertiesBodyTrackingFidelityMETA" category="struct" structextends="XrSystemProperties" returnedonly="true">
+            <member values="XR_TYPE_SYSTEM_PROPERTIES_BODY_TRACKING_FIDELITY_META"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*    <name>next</name></member>
+            <member><type>XrBool32</type> <name>supportsBodyTrackingFidelity</name></member>
         </type>
 
         <!-- XR_FB_eye_tracking_social structs -->
@@ -4040,6 +4119,128 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member><type>XrBool32</type> <name>supportsAnchorPersistence</name></member>
         </type>
 
+        <!-- XR_ANDROID_performance_metrics -->
+        <type category="struct" name="XrPerformanceMetricsStateANDROID">
+            <member values="XR_TYPE_PERFORMANCE_METRICS_STATE_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*    <name>next</name></member>
+            <member><type>XrBool32</type> <name>enabled</name></member>
+        </type>
+        <type category="struct" name="XrPerformanceMetricsCounterANDROID" returnedonly="true">
+            <member values="XR_TYPE_PERFORMANCE_METRICS_COUNTER_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                                   <name>next</name></member>
+            <member optional="true"><type>XrPerformanceMetricsCounterFlagsANDROID</type> <name>counterFlags</name></member>
+            <member><type>XrPerformanceMetricsCounterUnitANDROID</type>                  <name>counterUnit</name></member>
+            <member><type>uint32_t</type>                                                <name>uintValue</name></member>
+            <member><type>float</type>                                                   <name>floatValue</name></member>
+        </type>
+
+        <!-- XR_ANDROID_trackables_qr_code -->
+        <type category="struct" name="XrSystemQrCodeTrackingPropertiesANDROID" returnedonly="true" structextends="XrSystemProperties">
+            <member values="XR_TYPE_SYSTEM_QR_CODE_TRACKING_PROPERTIES_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*    <name>next</name></member>
+            <member><type>XrBool32</type> <name>supportsQrCodeTracking</name></member>
+            <member><type>XrBool32</type> <name>supportsQrCodeSizeEstimation</name></member>
+            <member><type>uint16_t</type> <name>maxQrCodeCount</name></member>
+        </type>
+        <type category="struct" name="XrTrackableQrCodeConfigurationANDROID" structextends="XrTrackableTrackerCreateInfoANDROID">
+            <member values="XR_TYPE_TRACKABLE_QR_CODE_CONFIGURATION_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                       <name>next</name></member>
+            <member><type>XrQrCodeTrackingModeANDROID</type> <name>trackingMode</name></member>
+            <member><type>float</type>                       <name>qrCodeEdgeSize</name></member>
+        </type>
+        <type category="struct" name="XrTrackableQrCodeANDROID">
+            <member values="XR_TYPE_TRACKABLE_QR_CODE_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                           <name>next</name></member>
+            <member><type>XrTrackingStateANDROID</type>                          <name>trackingState</name></member>
+            <member><type>XrTime</type>                                          <name>lastUpdatedTime</name></member>
+            <member><type>XrPosef</type>                                         <name>centerPose</name></member>
+            <member><type>XrExtent2Df</type>                                     <name>extents</name></member>
+            <member optional="true"><type>uint32_t</type>                        <name>bufferCapacityInput</name></member>
+            <member optional="true"><type>uint32_t</type>                        <name>bufferCountOutput</name></member>
+            <member len="bufferCapacityInput" optional="true"><type>char</type>* <name>buffer</name></member>
+        </type>
+
+        <!-- XR_ANDROID_composition_layer_passthrough_mesh -->
+        <type category="struct" name="XrSystemPassthroughLayerPropertiesANDROID" returnedonly="true" structextends="XrSystemProperties">
+            <member values="XR_TYPE_SYSTEM_PASSTHROUGH_LAYER_PROPERTIES_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>* <name>next</name></member>
+            <member><type>XrBool32</type> <name>supportsPassthroughLayer</name></member>
+            <member><type>uint32_t</type> <name>maxMeshIndexCount</name></member>
+            <member><type>uint32_t</type> <name>maxMeshVertexCount</name></member>
+        </type>
+        <type category="struct" name="XrPassthroughLayerCreateInfoANDROID">
+            <member values="XR_TYPE_PASSTHROUGH_LAYER_CREATE_INFO_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>uint32_t</type>    <name>vertexCapacity</name></member>
+            <member><type>uint32_t</type>    <name>indexCapacity</name></member>
+        </type>
+        <type category="struct" name="XrPassthroughLayerMeshANDROID" structextends="XrPassthroughLayerCreateInfoANDROID">
+            <member values="XR_TYPE_PASSTHROUGH_LAYER_MESH_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                         <name>next</name></member>
+            <member><type>XrWindingOrderANDROID</type>               <name>windingOrder</name></member>
+            <member optional="true"><type>uint32_t</type>            <name>vertexCount</name></member>
+            <member len="vertexCount">const <type>XrVector3f</type>* <name>vertices</name></member>
+            <member optional="true"><type>uint32_t</type>            <name>indexCount</name></member>
+            <member len="indexCount">const <type>uint16_t</type>*    <name>indices</name></member>
+        </type>
+        <type category="struct" name="XrCompositionLayerPassthroughANDROID" parentstruct="XrCompositionLayerBaseHeader">
+            <member values="XR_TYPE_COMPOSITION_LAYER_PASSTHROUGH_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                             <name>next</name></member>
+            <member optional="true"><type>XrCompositionLayerFlags</type> <name>layerFlags</name></member>
+            <member><type>XrSpace</type>                                 <name>space</name></member>
+            <member><type>XrPosef</type>                                 <name>pose</name></member>
+            <member><type>XrVector3f</type>                              <name>scale</name></member>
+            <member><type>float</type>                                   <name>opacity</name></member>
+            <member><type>XrPassthroughLayerANDROID</type>               <name>layer</name></member>
+        </type>
+
+        <!-- XR_ANDROID_scene_meshing -->
+        <type category="struct" name="XrSystemSceneMeshingPropertiesANDROID" returnedonly="true" structextends="XrSystemProperties">
+            <member values="XR_TYPE_SYSTEM_SCENE_MESHING_PROPERTIES_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*    <name>next</name></member>
+            <member><type>XrBool32</type> <name>supportsSceneMeshing</name></member>
+        </type>
+        <type category="struct" name="XrSceneMeshingTrackerCreateInfoANDROID">
+            <member values="XR_TYPE_SCENE_MESHING_TRACKER_CREATE_INFO_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                        <name>next</name></member>
+            <member><type>XrSceneMeshSemanticLabelSetANDROID</type> <name>semanticLabelSet</name></member>
+            <member><type>XrBool32</type>                           <name>enableNormals</name></member>
+        </type>
+        <type category="struct" name="XrSceneMeshSnapshotCreateInfoANDROID">
+            <member values="XR_TYPE_SCENE_MESH_SNAPSHOT_CREATE_INFO_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrSpace</type>     <name>baseSpace</name></member>
+            <member><type>XrTime</type>      <name>time</name></member>
+            <member><type>XrBoxf</type>      <name>boundingBox</name></member>
+        </type>
+        <type category="struct" name="XrSceneMeshSnapshotCreationResultANDROID">
+            <member values="XR_TYPE_SCENE_MESH_SNAPSHOT_CREATION_RESULT_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                     <name>next</name></member>
+            <member><type>XrSceneMeshSnapshotANDROID</type>      <name>snapshot</name></member>
+            <member><type>XrSceneMeshTrackingStateANDROID</type> <name>trackingState</name></member>
+        </type>
+        <type category="struct" name="XrSceneSubmeshStateANDROID">
+            <member values="XR_TYPE_SCENE_SUBMESH_STATE_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*       <name>next</name></member>
+            <member><type>XrUuid</type>      <name>submeshId</name></member>
+            <member><type>XrTime</type>      <name>lastUpdatedTime</name></member>
+            <member><type>XrPosef</type>     <name>submeshPoseInBaseSpace</name></member>
+            <member><type>XrExtent3Df</type> <name>bounds</name></member>
+        </type>
+        <type category="struct" name="XrSceneSubmeshDataANDROID">
+            <member values="XR_TYPE_SCENE_SUBMESH_DATA_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                           <name>next</name></member>
+            <member><type>XrUuid</type>                                                <name>submeshId</name></member>
+            <member optional="true"><type>uint32_t</type>                              <name>vertexCapacityInput</name></member>
+            <member optional="true"><type>uint32_t</type>                              <name>vertexCountOutput</name></member>
+            <member optional="true" len="vertexCapacityInput"><type>XrVector3f</type>* <name>vertexPositions</name></member>
+            <member optional="true" len="vertexCapacityInput"><type>XrVector3f</type>* <name>vertexNormals</name></member>
+            <member optional="true" len="vertexCapacityInput"><type>uint8_t</type>*    <name>vertexSemantics</name></member>
+            <member optional="true"><type>uint32_t</type>                              <name>indexCapacityInput</name></member>
+            <member optional="true"><type>uint32_t</type>                              <name>indexCountOutput</name></member>
+            <member optional="true" len="indexCapacityInput"><type>uint32_t</type>*    <name>indices</name></member>
+        </type>
+
         <!-- XR_EXT_plane_detection -->
         <type category="struct" name="XrSystemPlaneDetectionPropertiesEXT" returnedonly="true" structextends="XrSystemProperties">
             <member values="XR_TYPE_SYSTEM_PLANE_DETECTION_PROPERTIES_EXT"><type>XrStructureType</type> <name>type</name></member>
@@ -4853,6 +5054,130 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member><type>XrBool32</type>    <name>suppressNotifications</name></member>
         </type>
 
+        <!-- XR_BD_spatial_audio_rendering -->
+        <type category="struct" name="XrSpatialAudioRendererCreateInfoBD">
+            <member values="XR_TYPE_SPATIAL_AUDIO_RENDERER_CREATE_INFO_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*         <name>next</name></member>
+            <member><type>uint32_t</type>            <name>framesPerBuffer</name></member>
+            <member><type>XrAudioSampleRateBD</type> <name>sampleRate</name></member>
+        </type>
+
+        <type category="struct" name="XrAudioBufferBD">
+            <member values="XR_TYPE_AUDIO_BUFFER_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                  <name>next</name></member>
+            <member><type>XrAudioBufferChannelLayoutBD</type> <name>channelLayout</name></member>
+            <member><type>uint32_t</type>                     <name>bufferChannels</name></member>
+            <member><type>uint32_t</type>                     <name>bufferLength</name></member>
+            <member len="bufferLength"><type>float</type>*    <name>buffer</name></member>
+        </type>
+
+        <type category="struct" name="XrSoundObjectDirectivityCardioidBD" structextends="XrSoundObjectConfigBD">
+            <member values="XR_TYPE_SOUND_OBJECT_DIRECTIVITY_CARDIOID_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>float</type>       <name>alpha</name></member>
+            <member><type>float</type>       <name>order</name></member>
+        </type>
+
+        <type category="struct" name="XrSoundObjectShapeSphereBD" structextends="XrSoundObjectConfigBD">
+            <member values="XR_TYPE_SOUND_OBJECT_SHAPE_SPHERE_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>float</type>       <name>radius</name></member>
+        </type>
+
+        <type category="struct" name="XrSoundObjectDistanceAttenuationBD">
+            <member values="XR_TYPE_SOUND_OBJECT_DISTANCE_ATTENUATION_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                              <name>next</name></member>
+            <member><type>XrSoundObjectDistanceAttenuationTypeBD</type>                   <name>distanceAttenuationType</name></member>
+            <member><type>float</type>                                                    <name>minAttenuationRange</name></member>
+            <member><type>float</type>                                                    <name>maxAttenuationRange</name></member>
+            <member><type>float</type>                                                    <name>referenceDistance</name></member>
+            <member><type>float</type>                                                    <name>rolloffFactor</name></member>
+            <member optional="true"><type>XrSoundObjectDistanceAttenuationCurveBD</type>* <name>customDistanceAttenuationCurve</name></member>
+        </type>
+
+        <type category="struct" name="XrAttenuationCurvePointBD">
+            <member><type>float</type> <name>distance</name></member>
+            <member><type>float</type> <name>gain</name></member>
+        </type>
+
+        <type category="struct" name="XrSoundObjectDistanceAttenuationCurveBD">
+            <member values="XR_TYPE_SOUND_OBJECT_DISTANCE_ATTENUATION_CURVE_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                      <name>next</name></member>
+            <member><type>uint32_t</type>                                         <name>curvePointCount</name></member>
+            <member len="curvePointCount"><type>XrAttenuationCurvePointBD</type>* <name>curvePoints</name></member>
+        </type>
+
+        <type category="struct" name="XrSoundObjectConfigBD">
+            <member values="XR_TYPE_SOUND_OBJECT_CONFIG_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                               <name>next</name></member>
+            <member><type>XrBool32</type>                                  <name>enabled</name></member>
+            <member><type>XrPosef</type>                                   <name>pose</name></member>
+            <member><type>XrSpace</type>                                   <name>baseSpace</name></member>
+            <member><type>float</type>                                     <name>mainVolume</name></member>
+            <member><type>float</type>                                     <name>reflectionGain</name></member>
+            <member><type>XrBool32</type>                                  <name>enableDoppler</name></member>
+            <member>const <type>XrSoundObjectDistanceAttenuationBD</type>* <name>directSoundAttenuation</name></member>
+            <member>const <type>XrSoundObjectDistanceAttenuationBD</type>* <name>indirectSoundAttenuation</name></member>
+        </type>
+
+        <type category="struct" name="XrSoundFieldConfigBD">
+            <member values="XR_TYPE_SOUND_FIELD_CONFIG_BD"> <type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*   <name>next</name></member>
+            <member><type>XrBool32</type>      <name>enabled</name></member>
+            <member><type>XrQuaternionf</type> <name>orientation</name></member>
+            <member><type>XrSpace</type>       <name>baseSpace</name></member>
+            <member><type>float</type>         <name>mainVolume</name></member>
+            <member><type>float</type>         <name>lfeGain</name></member>
+        </type>
+
+        <type category="struct" name="XrSoundFieldChannelDefinitionSurroundBD" structextends="XrSoundFieldConfigBD">
+            <member values="XR_TYPE_SOUND_FIELD_CHANNEL_DEFINITION_SURROUND_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                       <name>next</name></member>
+            <member><type>XrSoundFieldChannelMaskSurroundBD</type> <name>channelMask</name></member>
+        </type>
+
+        <type category="struct" name="XrSoundFieldChannelDefinitionAmbixBD" structextends="XrSoundFieldConfigBD">
+            <member values="XR_TYPE_SOUND_FIELD_CHANNEL_DEFINITION_AMBIX_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                    <name>next</name></member>
+            <member><type>XrSoundFieldChannelMaskAmbixBD</type> <name>channelMask</name></member>
+        </type>
+
+        <type category="struct" name="XrSoundFieldChannelDefinitionFumaBD" structextends="XrSoundFieldConfigBD">
+            <member values="XR_TYPE_SOUND_FIELD_CHANNEL_DEFINITION_FUMA_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                   <name>next</name></member>
+            <member><type>XrSoundFieldChannelMaskFumaBD</type> <name>channelMask</name></member>
+        </type>
+
+        <type category="struct" name="XrSoundTriangleMeshBD">
+            <member values="XR_TYPE_SOUND_TRIANGLE_MESH_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                   <name>next</name></member>
+            <member><type>uint32_t</type>                      <name>vertexCount</name></member>
+            <member len="vertexCount"><type>XrVector3f</type>* <name>vertices</name></member>
+            <member><type>uint32_t</type>                      <name>indexCount</name></member>
+            <member len="indexCount"><type>uint32_t</type>*    <name>indices</name></member>
+        </type>
+
+        <type category="struct" name="XrSoundObstacleConfigBD">
+            <member values="XR_TYPE_SOUND_OBSTACLE_CONFIG_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                    <name>next</name></member>
+            <member><type>XrBool32</type>                                       <name>enabled</name></member>
+            <member><type>XrPosef</type>                                        <name>pose</name></member>
+            <member><type>XrSpace</type>                                        <name>baseSpace</name></member>
+            <member><type>uint32_t</type>                                       <name>materialCount</name></member>
+            <member len="materialCount"><type>XrSoundObstacleMaterialBD</type>* <name>materials</name></member>
+        </type>
+
+        <type category="struct" name="XrSoundObstacleMaterialConfigBD">
+            <member values="XR_TYPE_SOUND_OBSTACLE_MATERIAL_CONFIG_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                   <name>next</name></member>
+            <member><type>XrSoundObstacleMaterialTypeBD</type> <name>materialType</name></member>
+            <member><type>uint32_t</type>                      <name>bandCount</name></member>
+            <member len="bandCount"><type>float</type>*        <name>bandFrequencies</name></member>
+            <member len="bandCount"><type>float</type>*        <name>bandAbsorptions</name></member>
+            <member len="bandCount"><type>float</type>*        <name>bandScatterings</name></member>
+            <member len="bandCount"><type>float</type>*        <name>bandTransmissions</name></member>
+        </type>
+
         <!-- XR_ML_spatial_anchors -->
         <type category="struct" name="XrSpatialAnchorsCreateInfoBaseHeaderML">
             <member><type>XrStructureType</type> <name>type</name></member>
@@ -5186,7 +5511,6 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member>const <type>void</type>* <name>next</name></member>
         </type>
 
-
         <!-- XR_BD_spatial_sensing -->
         <type category="struct" name="XrSystemSpatialSensingPropertiesBD" returnedonly="true" structextends="XrSystemProperties">
             <member values="XR_TYPE_SYSTEM_SPATIAL_SENSING_PROPERTIES_BD"><type>XrStructureType</type> <name>type</name></member>
@@ -5472,6 +5796,45 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member len="null-terminated">const <type>char</type>* <name>value</name></member>
         </type>
 
+        <!-- XR_ANDROID_spatial_discovery_raycast -->
+        <type category="struct" name="XrSpatialCapabilityConfigurationDepthRaycastANDROID" parentstruct="XrSpatialCapabilityConfigurationBaseHeaderEXT">
+            <member values="XR_TYPE_SPATIAL_CAPABILITY_CONFIGURATION_DEPTH_RAYCAST_ANDROID"><type>XrStructureType</type>  <name>type</name></member>
+            <member>const <type>void</type>*                                                  <name>next</name></member>
+            <member><type>XrSpatialCapabilityEXT</type>                                       <name>capability</name></member>
+            <member><type>uint32_t</type>                                                     <name>enabledComponentCount</name></member>
+            <member len="enabledComponentCount">const <type>XrSpatialComponentTypeEXT</type>* <name>enabledComponents</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialRaycastInfoANDROID" structextends="XrSpatialDiscoverySnapshotCreateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_RAYCAST_INFO_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*           <name>next</name></member>
+            <member><type>XrSpace</type>               <name>space</name></member>
+            <member><type>XrTime</type>                <name>time</name></member>
+            <member><type>XrVector3f</type>            <name>origin</name></member>
+            <member><type>XrVector3f</type>            <name>direction</name></member>
+            <member optional="true"><type>float</type> <name>maxDistance</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialRaycastResultDataANDROID">
+            <member><type>XrPosef</type> <name>hitPose</name></member>
+            <member><type>float</type>   <name>distanceSquared</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialComponentRaycastResultListANDROID" structextends="XrSpatialComponentDataQueryResultEXT">
+            <member values="XR_TYPE_SPATIAL_COMPONENT_RAYCAST_RESULT_LIST_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                                       <name>next</name></member>
+            <member><type>uint32_t</type>                                                    <name>raycastResultCount</name></member>
+            <member len="raycastResultCount"><type>XrSpatialRaycastResultDataANDROID</type>* <name>raycastResults</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialRaycastSnapshotCreateInfoANDROID">
+            <member values="XR_TYPE_SPATIAL_RAYCAST_SNAPSHOT_CREATE_INFO_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                               <name>next</name></member>
+            <member optional="true"><type>uint32_t</type>                                                  <name>componentTypeCount</name></member>
+            <member optional="true" len="componentTypeCount">const <type>XrSpatialComponentTypeEXT</type>* <name>componentTypes</name></member>
+            <member>const <type>XrSpatialRaycastInfoANDROID</type>*                                        <name>raycastInfo</name></member>
+        </type>
+
         <!-- XR_EXT_spatial_marker_tracking -->
         <type category="struct" name="XrSpatialCapabilityConfigurationArucoMarkerEXT" parentstruct="XrSpatialCapabilityConfigurationBaseHeaderEXT">
             <member values="XR_TYPE_SPATIAL_CAPABILITY_CONFIGURATION_ARUCO_MARKER_EXT"><type>XrStructureType</type> <name>type</name></member>
@@ -5530,6 +5893,26 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member><type>void</type>*                                   <name>next</name></member>
             <member><type>uint32_t</type>                                <name>markerCount</name></member>
             <member len="markerCount"><type>XrSpatialMarkerDataEXT</type>* <name>markers</name></member>
+        </type>
+
+        <!-- XR_META_tile_properties_hint -->
+        <type name="XrExtent3DiMETA" category="struct">
+            <member><type>int32_t</type> <name>width</name></member>
+            <member><type>int32_t</type> <name>height</name></member>
+            <member><type>int32_t</type> <name>depth</name></member>
+        </type>
+        <type name="XrTilePropertiesMETA" category="struct">
+            <member values="XR_TYPE_TILE_PROPERTIES_META"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>* <name>next</name></member>
+            <member><type>XrExtent3DiMETA</type> <name>tileDimensions</name></member>
+            <member><type>XrExtent2Di</type>     <name>apronDimensions</name></member>
+            <member><type>XrOffset2Di</type>     <name>origin</name></member>
+        </type>
+        <type name="XrTilePropertiesHintMETA" category="struct">
+            <member values="XR_TYPE_TILE_PROPERTIES_HINT_META"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                             <name>next</name></member>
+            <member><type>uint32_t</type>                                          <name>propertiesCount</name></member>
+            <member len="propertiesCount">const <type>XrTilePropertiesMETA</type>* <name>properties</name></member>
         </type>
 
         <!-- XR_BD_facial_simulation -->
@@ -5632,6 +6015,127 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member>const <type>void</type>* <name>next</name></member>
             <member><type>XrTime</type>      <name>time</name></member>
         </type>
+
+        <!-- XR_ANDROID_spatial_object_tracking -->
+        <type category="struct" name="XrSpatialCapabilityConfigurationObjectTrackingANDROID" parentstruct="XrSpatialCapabilityConfigurationBaseHeaderEXT">
+            <member values="XR_TYPE_SPATIAL_CAPABILITY_CONFIGURATION_OBJECT_TRACKING_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                               <name>next</name></member>
+            <member><type>XrSpatialCapabilityEXT</type>                                                    <name>capability</name></member>
+            <member><type>uint32_t</type>                                                                  <name>enabledComponentCount</name></member>
+            <member len="enabledComponentCount">const <type>XrSpatialComponentTypeEXT</type>*              <name>enabledComponents</name></member>
+            <member><type>uint32_t</type>                                                                  <name>activeSemanticLabelCount</name></member>
+            <member len="activeSemanticLabelCount">const <type>XrSpatialObjectSemanticLabelANDROID</type>* <name>activeSemanticLabels</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialComponentObjectSemanticLabelListANDROID" structextends="XrSpatialComponentDataQueryResultEXT">
+            <member values="XR_TYPE_SPATIAL_COMPONENT_OBJECT_SEMANTIC_LABEL_LIST_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                                         <name>next</name></member>
+            <member><type>uint32_t</type>                                                      <name>semanticLabelCount</name></member>
+            <member len="semanticLabelCount"><type>XrSpatialObjectSemanticLabelANDROID</type>* <name>semanticLabels</name></member>
+        </type>
+
+        <!-- XR_ANDROID_spatial_entity_bound_anchor -->
+        <type category="struct" name="XrSpatialAnchorParentANDROID" structextends="XrSpatialAnchorCreateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_ANCHOR_PARENT_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*          <name>next</name></member>
+            <member><type>XrSpatialEntityIdEXT</type> <name>parentId</name></member>
+        </type>
+
+        <!-- XR_ANDROID_spatial_anchor_space -->
+        <type category="struct" name="XrSpatialAnchorSpaceFromIdCreateInfoANDROID">
+            <member values="XR_TYPE_SPATIAL_ANCHOR_SPACE_FROM_ID_CREATE_INFO_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*          <name>next</name></member>
+            <member><type>XrSpatialEntityIdEXT</type> <name>anchorEntityId</name></member>
+        </type>
+
+        <!-- XR_ANDROID_spatial_component_subsumed_by -->
+        <type category="struct" name="XrSpatialDiscoveryUniqueEntitiesFilterANDROID" structextends="XrSpatialDiscoverySnapshotCreateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_DISCOVERY_UNIQUE_ENTITIES_FILTER_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialComponentSubsumedByListANDROID" structextends="XrSpatialComponentDataQueryResultEXT">
+            <member values="XR_TYPE_SPATIAL_COMPONENT_SUBSUMED_BY_LIST_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                             <name>next</name></member>
+            <member><type>uint32_t</type>                                          <name>subsumedUniqueIdCount</name></member>
+            <member len="subsumedUniqueIdCount"><type>XrSpatialEntityIdEXT</type>* <name>subsumedUniqueIds</name></member>
+        </type>
+
+        <!-- XR_EXT_view_configuration_views_change -->
+        <type category="struct" name="XrEventDataViewConfigurationViewsChangedEXT" parentstruct="XrEventDataBaseHeader" returnedonly="true">
+            <member values="XR_TYPE_EVENT_DATA_VIEW_CONFIGURATION_VIEWS_CHANGED_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*             <name>next</name></member>
+            <member><type>XrSystemId</type>              <name>systemId</name></member>
+            <member><type>XrViewConfigurationType</type> <name>viewConfigurationType</name></member>
+        </type>
+
+        <!-- XR_EXT_interaction_profile_battery_state_display -->
+        <type bitvalues="XrBatteryStateDisplayStateFlagBitsEXT" category="bitmask">typedef <type>XrFlags64</type> <name>XrBatteryStateDisplayStateFlagsEXT</name>;</type>
+        <type name="XrBatteryStateDisplayStateFlagBitsEXT" category="enum"/>
+
+        <type category="struct" name="XrBatteryStateDisplayEXT" structextends="XrInteractionProfileState">
+            <member values="XR_TYPE_BATTERY_STATE_DISPLAY_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                              <name>next</name></member>
+            <member><type>XrBatteryStateDisplayStateFlagsEXT</type> <name>stateFlags</name></member>
+            <member><type>float</type>                              <name>batteryLevel</name></member>
+        </type>
+
+        <!-- XR_META_environment_raycast -->
+        <type category="struct" name="XrSystemEnvironmentRaycastPropertiesMETA" structextends="XrSystemProperties" returnedonly="true">
+            <member values="XR_TYPE_SYSTEM_ENVIRONMENT_RAYCAST_PROPERTIES_META"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*    <name>next</name></member>
+            <member><type>XrBool32</type> <name>supportsEnvironmentRaycast</name></member>
+        </type>
+
+        <type category="struct" name="XrEnvironmentRaycasterCreateInfoMETA">
+            <member values="XR_TYPE_ENVIRONMENT_RAYCASTER_CREATE_INFO_META"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+
+        <type category="struct" name="XrEnvironmentRaycasterCreateCompletionMETA" parentstruct="XrFutureCompletionBaseHeaderEXT">
+            <member values="XR_TYPE_ENVIRONMENT_RAYCASTER_CREATE_COMPLETION_META"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                      <name>next</name></member>
+            <member><type>XrResult</type>                   <name>futureResult</name></member>
+            <member><type>XrEnvironmentRaycasterMETA</type> <name>environmentRaycaster</name></member>
+        </type>
+
+        <type category="struct" name="XrEnvironmentRaycastFilterBaseHeaderMETA">
+            <member><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*     <name>next</name></member>
+        </type>
+
+        <type category="struct" name="XrEnvironmentRaycastFilterDistanceMETA" parentstruct="XrEnvironmentRaycastFilterBaseHeaderMETA">
+            <member values="XR_TYPE_ENVIRONMENT_RAYCAST_FILTER_DISTANCE_META"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>float</type>       <name>maxDistance</name></member>
+        </type>
+
+        <type category="struct" name="XrEnvironmentRaycastHitGetInfoMETA">
+            <member values="XR_TYPE_ENVIRONMENT_RAYCAST_HIT_GET_INFO_META"><type>XrStructureType</type>                    <name>type</name></member>
+            <member>const <type>void</type>*                                                                               <name>next</name></member>
+            <member><type>XrSpace</type>                                                                                   <name>baseSpace</name></member>
+            <member><type>XrTime</type>                                                                                    <name>time</name></member>
+            <member><type>XrVector3f</type>                                                                                <name>origin</name></member>
+            <member><type>XrVector3f</type>                                                                                <name>direction</name></member>
+            <member optional="true"><type>uint32_t</type>                                                                  <name>filterCount</name></member>
+            <member optional="true" len="filterCount">const <type>XrEnvironmentRaycastFilterBaseHeaderMETA</type>* const * <name>filters</name></member>
+        </type>
+
+        <type category="struct" name="XrEnvironmentRaycastHitMETA">
+            <member values="XR_TYPE_ENVIRONMENT_RAYCAST_HIT_META"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                       <name>next</name></member>
+            <member><type>XrEnvironmentRaycastHitStatusMETA</type> <name>status</name></member>
+            <member><type>XrPosef</type>                           <name>pose</name></member>
+        </type>
+
+        <!-- XR_QCOM_hand_tracking_gesture -->
+        <type category="struct" name="XrHandGestureQCOM">
+            <member><type>XrHandGestureTypeQCOM</type> <name>gesture</name></member>
+            <member><type>float</type>                 <name>gestureRatio</name></member>
+            <member><type>float</type>                 <name>flipRatio</name></member>
+        </type>
+
+
     </types>
 
 
@@ -6269,6 +6773,12 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="3"   name="XR_BODY_TRACKING_CALIBRATION_STATE_INVALID_META"     comment="Calibration is invalid, accessing the body joint poses from ename:XR_FB_body_tracking is defined behavior but their contents are unspecified. Tracking data may: be read but must: not be interpreted as body tracking poses."/>
     </enums>
 
+    <!-- XR_META_body_tracking_fidelity -->
+    <enums name="XrBodyTrackingFidelityMETA" type="enum">
+        <enum value="1"   name="XR_BODY_TRACKING_FIDELITY_LOW_META"  comment="This value indicates that the body tracking runtime uses a simpler algorithm or less input to estimate the body pose in a way that trades off pose quality for system performance. For example, low fidelity may not accurately track a user's elbows."/>
+        <enum value="2"   name="XR_BODY_TRACKING_FIDELITY_HIGH_META" comment="This value indicates that the body tracking runtime uses more advanced algorithms or more inputs to estimate the body pose. For example high fidelity may track a user's elbows."/>
+    </enums>
+
     <!-- XR_FB_eye_tracking_social -->
     <enums name="XrEyePositionFB" type="enum">
         <enum value="0"   name="XR_EYE_POSITION_LEFT_FB"  comment="Specifies the position of the left eye."/>
@@ -6442,6 +6952,14 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="0"   name="XR_MARKER_DETECTOR_STATUS_PENDING_ML" comment="The marker detector is working on a new snapshot."/>
         <enum value="1"   name="XR_MARKER_DETECTOR_STATUS_READY_ML"   comment="The marker detector is ready to be inspected."/>
         <enum value="2"   name="XR_MARKER_DETECTOR_STATUS_ERROR_ML"   comment="The marker detector has encountered a fatal error."/>
+    </enums>
+
+    <!-- XR_ANDROID_spatial_object_tracking -->
+    <enums name="XrSpatialObjectSemanticLabelANDROID" type="enum">
+        <enum value="0"   name="XR_SPATIAL_OBJECT_SEMANTIC_LABEL_UNCATEGORIZED_ANDROID" comment="The runtime was unable to classify this entity."/>
+        <enum value="1"   name="XR_SPATIAL_OBJECT_SEMANTIC_LABEL_KEYBOARD_ANDROID"      comment="The entity is a keyboard."/>
+        <enum value="2"   name="XR_SPATIAL_OBJECT_SEMANTIC_LABEL_MOUSE_ANDROID"         comment="The entity is a mouse."/>
+        <enum value="3"   name="XR_SPATIAL_OBJECT_SEMANTIC_LABEL_LAPTOP_BASE_ANDROID"   comment="The entity is a laptop."/>
     </enums>
 
     <!-- Flags -->
@@ -6698,6 +7216,18 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="1"   name="XR_SPACE_PERSISTENCE_MODE_INDEFINITE_FB" comment="Store slink:XrSpace indefinitely, or until erased"/>
     </enums>
 
+    <!-- enums for XR_META_spatial_entity_semantic_label -->
+    <enums name="XrSemanticLabelMETA" type="enum">
+        <enum value="0"   name="XR_SEMANTIC_LABEL_UNKNOWN_META"             comment="Unknown. This is a valid label that is used when the runtime is not able to classify the entity using another label, or when the application does not recognize the label."/>
+        <enum value="1"   name="XR_SEMANTIC_LABEL_FLOOR_META"               comment="Floor of a room or space."/>
+        <enum value="2"   name="XR_SEMANTIC_LABEL_CEILING_META"             comment="Ceiling of a room or space."/>
+        <enum value="3"   name="XR_SEMANTIC_LABEL_WALL_FACE_META"           comment="Wall face of a room or space. Wall faces, along with invisible wall faces, are used to define the outer boundary of a room."/>
+        <enum value="4"   name="XR_SEMANTIC_LABEL_INNER_WALL_FACE_META"     comment="Inner wall face, which is a wall face that exists inside a room and is not connected to the outer boundary of the room. For example, a pillar that exists at the center of a room may: be represented by using four inner wall faces."/>
+        <enum value="5"   name="XR_SEMANTIC_LABEL_INVISIBLE_WALL_FACE_META" comment="Invisible wall face, which is used to conceptually separate a space (e.g., separate a living space from a kitchen space in an open floor plan house even though there is no real wall between the two spaces)."/>
+        <enum value="6"   name="XR_SEMANTIC_LABEL_DOOR_FRAME_META"          comment="Door frame, which usually exists on a wall face."/>
+        <enum value="7"   name="XR_SEMANTIC_LABEL_WINDOW_FRAME_META"        comment="Window frame, which usually exists on a wall face."/>
+    </enums>
+
     <!-- flags for XR_FB_scene -->
     <enums name="XrSemanticLabelsSupportFlagBitsFB" type="bitmask">
         <enum bitpos="0" name="XR_SEMANTIC_LABELS_SUPPORT_MULTIPLE_SEMANTIC_LABELS_BIT_FB"       comment="If set, and the runtime reports the pname:extensionVersion as 2 or greater, the runtime may: return multiple semantic labels separated by a comma without spaces. Otherwise, the runtime must: return a single semantic label."/>
@@ -6931,6 +7461,20 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="2"   name="XR_BODY_JOINT_CONFIDENCE_HIGH_HTC"/>
     </enums>
 
+    <!-- enums for XR_ANDROID_performance_metrics -->
+    <enums name="XrPerformanceMetricsCounterUnitANDROID" type="enum">
+        <enum value="0"   name="XR_PERFORMANCE_METRICS_COUNTER_UNIT_GENERIC_ANDROID"      comment="The performance counter unit is generic (unspecified)."/>
+        <enum value="1"   name="XR_PERFORMANCE_METRICS_COUNTER_UNIT_PERCENTAGE_ANDROID"   comment="The performance counter unit is percentage (%)."/>
+        <enum value="2"   name="XR_PERFORMANCE_METRICS_COUNTER_UNIT_MILLISECONDS_ANDROID" comment="The performance counter unit is millisecond."/>
+        <enum value="3"   name="XR_PERFORMANCE_METRICS_COUNTER_UNIT_BYTES_ANDROID"        comment="The performance counter unit is byte."/>
+        <enum value="4"   name="XR_PERFORMANCE_METRICS_COUNTER_UNIT_HERTZ_ANDROID"        comment="The performance counter unit is hertz (Hz)."/>
+    </enums>
+    <enums name="XrPerformanceMetricsCounterFlagBitsANDROID" type="bitmask">
+        <enum bitpos="0" name="XR_PERFORMANCE_METRICS_COUNTER_ANY_VALUE_VALID_BIT_ANDROID"   comment="Indicates any of the values in XrPerformanceMetricsCounterANDROID is valid."/>
+        <enum bitpos="1" name="XR_PERFORMANCE_METRICS_COUNTER_UINT_VALUE_VALID_BIT_ANDROID"  comment="Indicates the uintValue in XrPerformanceMetricsCounterANDROID is valid."/>
+        <enum bitpos="2" name="XR_PERFORMANCE_METRICS_COUNTER_FLOAT_VALUE_VALID_BIT_ANDROID" comment="Indicates the floatValue in XrPerformanceMetricsCounterANDROID is valid."/>
+    </enums>
+
     <!-- enums for XR_FB_composition_layer_depth_test -->
     <enums name="XrCompareOpFB" type="enum">
         <enum value="0"   name="XR_COMPARE_OP_NEVER_FB"            comment="Comparison is never true."/>
@@ -7098,6 +7642,38 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="0"   name="XR_ANCHOR_PERSIST_STATE_PERSIST_NOT_REQUESTED_ANDROID" comment="Anchor has not been requested to be persisted by the app."/>
         <enum value="1"   name="XR_ANCHOR_PERSIST_STATE_PERSIST_PENDING_ANDROID"       comment="Anchor has been requested to be persisted but not persisted yet."/>
         <enum value="2"   name="XR_ANCHOR_PERSIST_STATE_PERSISTED_ANDROID"             comment="Anchor has been successfully persisted by the runtime."/>
+    </enums>
+
+    <!-- enums for XR_ANDROID_trackables_qr_code -->
+    <enums name="XrQrCodeTrackingModeANDROID" type="enum">
+        <enum value="0"   name="XR_QR_CODE_TRACKING_MODE_DYNAMIC_ANDROID" comment="Tracking dynamic QR codes. This mode has the highest accuracy and works on moving and static QR codes, but also has the highest power consumption."/>
+        <enum value="1"   name="XR_QR_CODE_TRACKING_MODE_STATIC_ANDROID"  comment="Tracking static QR codes. This mode is primarily useful for QR codes that are known to be static, which leads to less power consumption in comparison to the dynamic mode."/>
+    </enums>
+
+    <!-- enums for XR_ANDROID_composition_layer_passthrough_mesh -->
+    <enums name="XrWindingOrderANDROID" type="enum">
+        <enum value="0"   name="XR_WINDING_ORDER_UNKNOWN_ANDROID" comment="Winding order of the mesh's triangles is not known."/>
+        <enum value="1"   name="XR_WINDING_ORDER_CW_ANDROID"      comment="Winding order of the mesh's triangles is clockwise."/>
+        <enum value="2"   name="XR_WINDING_ORDER_CCW_ANDROID"     comment="Winding order of the mesh's triangles is counter-clockwise."/>
+    </enums>
+
+    <!-- enums for XR_ANDROID_scene_meshing -->
+    <enums name="XrSceneMeshSemanticLabelSetANDROID" type="enum">
+        <enum value="0"   name="XR_SCENE_MESH_SEMANTIC_LABEL_SET_NONE_ANDROID"    comment="This semantic label set represents absence of semantic labels."/>
+        <enum value="1"   name="XR_SCENE_MESH_SEMANTIC_LABEL_SET_DEFAULT_ANDROID" comment="This semantic label set represents XrSceneMeshSemanticLabelANDROID."/>
+    </enums>
+    <enums name="XrSceneMeshSemanticLabelANDROID" type="enum">
+        <enum value="0"   name="XR_SCENE_MESH_SEMANTIC_LABEL_OTHER_ANDROID"   comment="This semantic label indicates that the corresponding mesh element represents an unknown object."/>
+        <enum value="1"   name="XR_SCENE_MESH_SEMANTIC_LABEL_FLOOR_ANDROID"   comment="This semantic label indicates that the corresponding mesh element represents a floor."/>
+        <enum value="2"   name="XR_SCENE_MESH_SEMANTIC_LABEL_CEILING_ANDROID" comment="This semantic label indicates that the corresponding mesh element represents a ceiling."/>
+        <enum value="3"   name="XR_SCENE_MESH_SEMANTIC_LABEL_WALL_ANDROID"    comment="This semantic label indicates that the corresponding mesh element represents a wall."/>
+        <enum value="4"   name="XR_SCENE_MESH_SEMANTIC_LABEL_TABLE_ANDROID"   comment="This semantic label indicates that the corresponding mesh element represents a table."/>
+    </enums>
+    <enums name="XrSceneMeshTrackingStateANDROID" type="enum">
+        <enum value="0"   name="XR_SCENE_MESH_TRACKING_STATE_INITIALIZING_ANDROID" comment="The tracker is not yet ready to provide mesh data."/>
+        <enum value="1"   name="XR_SCENE_MESH_TRACKING_STATE_TRACKING_ANDROID"     comment="The tracker is actively tracking."/>
+        <enum value="2"   name="XR_SCENE_MESH_TRACKING_STATE_WAITING_ANDROID"      comment="The tracker is waiting for valid measurements to integrate since the last mesh update."/>
+        <enum value="3"   name="XR_SCENE_MESH_TRACKING_STATE_ERROR_ANDROID"        comment="The tracker has not received valid measurements for multiple cycles and is in an error state."/>
     </enums>
 
     <!-- enums for XR_ML_frame_end_info -->
@@ -7313,6 +7889,142 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="2"   name="XR_SPATIAL_ANCHOR_CONFIDENCE_HIGH_ML"   comment="High quality, this anchor is stable and suitable for digital content attachment."/>
     </enums>
 
+    <!-- XR_BD_spatial_audio_rendering -->
+    <enums name="XrAudioSampleRateBD" type="enum">
+        <enum value="1"    name="XR_AUDIO_SAMPLE_RATE_192000_HZ_BD" comment="192000 Hz"/>
+        <enum value="2"    name="XR_AUDIO_SAMPLE_RATE_96000_HZ_BD"  comment="96000 Hz"/>
+        <enum value="3"    name="XR_AUDIO_SAMPLE_RATE_48000_HZ_BD"  comment="48000 Hz"/>
+        <enum value="4"    name="XR_AUDIO_SAMPLE_RATE_44100_HZ_BD"  comment="44100 Hz"/>
+        <enum value="5"    name="XR_AUDIO_SAMPLE_RATE_32000_HZ_BD"  comment="32000 Hz"/>
+        <enum value="6"    name="XR_AUDIO_SAMPLE_RATE_24000_HZ_BD"  comment="24000 Hz"/>
+        <enum value="7"    name="XR_AUDIO_SAMPLE_RATE_22050_HZ_BD"  comment="22050 Hz"/>
+        <enum value="8"    name="XR_AUDIO_SAMPLE_RATE_16000_HZ_BD"  comment="16000 Hz"/>
+        <enum value="9"    name="XR_AUDIO_SAMPLE_RATE_12000_HZ_BD"  comment="12000 Hz"/>
+        <enum value="10"   name="XR_AUDIO_SAMPLE_RATE_11025_HZ_BD"  comment="11025 Hz"/>
+        <enum value="11"   name="XR_AUDIO_SAMPLE_RATE_8000_HZ_BD"   comment="8000 Hz"/>
+    </enums>
+
+    <enums name="XrAudioBufferChannelLayoutBD" type="enum">
+        <enum value="0"   name="XR_AUDIO_BUFFER_CHANNEL_LAYOUT_INTERLEAVED_BD" comment="indicates that audio samples from all channels are stored in an interleaved layout, where successive frames contain one sample per channel (e.g. LRLRLR for stereo)"/>
+        <enum value="1"   name="XR_AUDIO_BUFFER_CHANNEL_LAYOUT_PLANAR_BD"      comment="indicates that audio samples are stored in a planar layout, where all samples for one channel are contiguous in memory (e.g. LLL...RRR... for stereo)"/>
+    </enums>
+
+    <enums name="XrSoundObstacleMaterialTypeBD" type="enum">
+        <enum value="0"    name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_ACOUSTIC_TILE_BD"             comment="indicates that the material is acoustic tile"/>
+        <enum value="1"    name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_BRICK_BD"                     comment="indicates that the material resembles brick"/>
+        <enum value="2"    name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_BRICK_PAINTED_BD"             comment="indicates that the material resembles painted brick"/>
+        <enum value="3"    name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_CARPET_BD"                    comment="indicates that the material resembles carpet"/>
+        <enum value="4"    name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_CARPET_HEAVY_BD"              comment="indicates that the material resembles heavy carpet"/>
+        <enum value="5"    name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_CARPET_HEAVY_PADDED_BD"       comment="indicates that the material resembles heavily padded carpet"/>
+        <enum value="6"    name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_CERAMIC_TILE_BD"              comment="indicates that the material resembles ceramic tile"/>
+        <enum value="7"    name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_CONCRETE_BD"                  comment="indicates that the material resembles concrete"/>
+        <enum value="8"    name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_CONCRETE_ROUGH_BD"            comment="indicates that the material resembles rough concrete"/>
+        <enum value="9"    name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_CONCRETE_BLOCK_BD"            comment="indicates that the material resembles concrete block"/>
+        <enum value="10"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_CONCRETE_BLOCK_PAINTED_BD"    comment="indicates that the material resembles painted concrete block"/>
+        <enum value="11"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_CURTAIN_BD"                   comment="indicates that the material resembles curtain"/>
+        <enum value="12"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_FOLIAGE_BD"                   comment="indicates that the material resembles foliage"/>
+        <enum value="13"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_GLASS_BD"                     comment="indicates that the material resembles glass"/>
+        <enum value="14"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_GLASS_HEAVY_BD"               comment="indicates that the material resembles heavy glass"/>
+        <enum value="15"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_GRASS_BD"                     comment="indicates that the material resembles grass"/>
+        <enum value="16"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_GRAVEL_BD"                    comment="indicates that the material resembles gravel"/>
+        <enum value="17"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_GYPSUM_BOARD_BD"              comment="indicates that the material resembles gypsum board"/>
+        <enum value="18"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_PLASTER_ON_BRICK_BD"          comment="indicates that the material resembles plaster on brick"/>
+        <enum value="19"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_PLASTER_ON_CONCRETE_BLOCK_BD" comment="indicates that the material resembles plaster on concrete block"/>
+        <enum value="20"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_SOIL_BD"                      comment="indicates that the material resembles soil"/>
+        <enum value="21"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_SOUND_PROOF_BD"               comment="indicates that the material resembles sound proof"/>
+        <enum value="22"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_SNOW_BD"                      comment="indicates that the material resembles snow"/>
+        <enum value="23"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_STEEL_BD"                     comment="indicates that the material resembles steel"/>
+        <enum value="24"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_WATER_BD"                     comment="indicates that the material resembles water"/>
+        <enum value="25"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_WOOD_THIN_BD"                 comment="indicates that the material resembles thin wood"/>
+        <enum value="26"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_WOOD_THICK_BD"                comment="indicates that the material resembles thick wood"/>
+        <enum value="27"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_WOOD_FLOOR_BD"                comment="indicates that the material resembles floor"/>
+        <enum value="28"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_WOOD_ON_CONCRETE_BD"          comment="indicates that the material resembles wood on concrete"/>
+        <enum value="29"   name="XR_SOUND_OBSTACLE_MATERIAL_TYPE_CUSTOM_BD"                    comment="Customized material described by detailed acoustic surface parameters, for example, absorption, scattering, and transmission."/>
+    </enums>
+
+    <enums name="XrSoundObjectDistanceAttenuationTypeBD" type="enum">
+        <enum value="0"     name="XR_SOUND_OBJECT_DISTANCE_ATTENUATION_TYPE_NONE_BD"           comment="Indicates that no attenuation is applied when source-listener distance varies."/>
+        <enum value="1"     name="XR_SOUND_OBJECT_DISTANCE_ATTENUATION_TYPE_INVERSE_SQUARE_BD" comment="Indicates that attenuation scales proportional to the inverse-squared distance of source-listener distance."/>
+        <enum value="2"     name="XR_SOUND_OBJECT_DISTANCE_ATTENUATION_TYPE_ROLLOFF_BD"        comment="Indicates that attenuation equals pow(distance/refer_distance, -rolloff_factor), in which distance is clamped by minAttenuationRange and maxAttenuationRange."/>
+        <enum value="100"   name="XR_SOUND_OBJECT_DISTANCE_ATTENUATION_TYPE_CUSTOMIZED_BD"     comment="Indicates that the distance attenuation is customized."/>
+    </enums>
+
+    <enums name="XrSoundFieldChannelMaskSurroundBD" type="enum">
+        <enum value="1"       name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_FRONT_LEFT_BD"          comment="Bitmask of ear-level front-left speaker"/>
+        <enum value="2"       name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_FRONT_RIGHT_BD"         comment="Bitmask of ear-level front-right speaker"/>
+        <enum value="4"       name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_FRONT_CENTER_BD"        comment="Bitmask of ear-level front-center speaker"/>
+        <enum value="8"       name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_LOW_FREQUENCY_BD"       comment="Bitmask of LFE speaker"/>
+        <enum value="16"      name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_BACK_LEFT_BD"           comment="Bitmask of ear-level back-left speaker"/>
+        <enum value="32"      name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_BACK_RIGHT_BD"          comment="Bitmask of ear-level back-right speaker"/>
+        <enum value="64"      name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SIDE_LEFT_BD"           comment="Bitmask of ear-level side-left speaker"/>
+        <enum value="128"     name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SIDE_RIGHT_BD"          comment="Bitmask of ear-level side-right speaker"/>
+        <enum value="256"     name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_FRONT_LEFT_BD"      comment="Bitmask of height-channel front-left speaker"/>
+        <enum value="512"     name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_FRONT_RIGHT_BD"     comment="Bitmask of height-channel front-right speaker"/>
+        <enum value="1024"    name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_BACK_LEFT_BD"       comment="Bitmask of height-channel back-left speaker"/>
+        <enum value="2048"    name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_BACK_RIGHT_BD"      comment="Bitmask of height-channel back-right speaker"/>
+        <enum value="4096"    name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_BACK_CENTER_BD"         comment="Bitmask of ear-level back-center speaker"/>
+        <enum value="8192"    name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_SIDE_LEFT_BD"       comment="Bitmask of height-channel side-left speaker"/>
+        <enum value="16384"   name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_SIDE_RIGHT_BD"      comment="Bitmask of height-channel side-right speaker"/>
+        <enum value="3"       name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_STEREO_BD"        comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_FRONT_LEFT_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_FRONT_RIGHT_BD"/>
+        <enum value="11"      name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_2_1_BD"           comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_STEREO_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_LOW_FREQUENCY_BD"/>
+        <enum value="7"       name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_3_0_BD"           comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_STEREO_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_FRONT_CENTER_BD"/>
+        <enum value="4099"    name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_4_0_BD"           comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_3_0_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_BACK_CENTER_BD"/>
+        <enum value="48"      name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_BACK_SURROUND_BD" comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_BACK_LEFT_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_BACK_RIGHT_BD"/>
+        <enum value="51"      name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_QUAD_BD"          comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_STEREO_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_BACK_SURROUND_BD"/>
+        <enum value="15"      name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_3_1_BD"           comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_3_0_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_LOW_FREQUENCY_BD"/>
+        <enum value="55"      name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_5_0_BD"           comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_3_0_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_BACK_SURROUND_BD"/>
+        <enum value="192"     name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_SIDE_SURROUND_BD" comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SIDE_LEFT_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SIDE_RIGHT_BD"/>
+        <enum value="199"     name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_5_0_SIDE_BD"      comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_3_0_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_SIDE_SURROUND_BD"/>
+        <enum value="63"      name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_5_1_BD"           comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_5_0_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_LOW_FREQUENCY_BD"/>
+        <enum value="207"     name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_5_1_SIDE_BD"      comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_5_1_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_SIDE_SURROUND_BD"/>
+        <enum value="247"     name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_7_0_BD"           comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_5_0_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_SIDE_SURROUND_BD"/>
+        <enum value="255"     name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_7_1_BD"           comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_7_0_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_LOW_FREQUENCY_BD"/>
+        <enum value="831"     name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_5_1_2_BD"         comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_5_1_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_FRONT_LEFT_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_FRONT_RIGHT_BD"/>
+        <enum value="3903"    name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_5_1_4_BD"         comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_5_1_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_FRONT_LEFT_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_FRONT_RIGHT_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_BACK_LEFT_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_BACK_RIGHT_BD"/>
+        <enum value="24831"   name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_7_1_2_BD"         comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_7_1_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_SIDE_LEFT_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_SIDE_RIGHT_BD"/>
+        <enum value="4095"    name="XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_7_1_4_BD"         comment="Composition of ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_SETUP_7_1_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_FRONT_LEFT_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_FRONT_RIGHT_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_BACK_LEFT_BD and ename:XR_SOUND_FIELD_CHANNEL_MASK_SURROUND_TOP_BACK_RIGHT_BD"/>
+    </enums>
+
+    <enums name="XrSoundFieldChannelMaskAmbixBD" type="enum">
+        <enum value="1"   name="XR_SOUND_FIELD_CHANNEL_MASK_AMBIX_1ST_ORDER_BD" comment="Indicates 1st-order ambisonics in AmbiX format, which uses ACN (Ambisonic Channel Number) channel ordering and SN3D normalization"/>
+        <enum value="2"   name="XR_SOUND_FIELD_CHANNEL_MASK_AMBIX_2ND_ORDER_BD" comment="Indicates 2nd-order ambisonics in AmbiX format, which uses ACN (Ambisonic Channel Number) channel ordering and SN3D normalization"/>
+        <enum value="3"   name="XR_SOUND_FIELD_CHANNEL_MASK_AMBIX_3RD_ORDER_BD" comment="Indicates 3rd-order ambisonics in AmbiX format, which uses ACN (Ambisonic Channel Number) channel ordering and SN3D normalization"/>
+        <enum value="4"   name="XR_SOUND_FIELD_CHANNEL_MASK_AMBIX_4TH_ORDER_BD" comment="Indicates 4th-order ambisonics in AmbiX format, which uses ACN (Ambisonic Channel Number) channel ordering and SN3D normalization"/>
+        <enum value="5"   name="XR_SOUND_FIELD_CHANNEL_MASK_AMBIX_5TH_ORDER_BD" comment="Indicates 5th-order-ambisonics in AmbiX format, which uses ACN (Ambisonic Channel Number) channel ordering and SN3D normalization"/>
+        <enum value="6"   name="XR_SOUND_FIELD_CHANNEL_MASK_AMBIX_6TH_ORDER_BD" comment="Indicates 6th-order ambisonics in AmbiX format, which uses ACN (Ambisonic Channel Number) channel ordering and SN3D normalization"/>
+        <enum value="7"   name="XR_SOUND_FIELD_CHANNEL_MASK_AMBIX_7TH_ORDER_BD" comment="Indicates 7th-order ambisonics in AmbiX format, which uses ACN (Ambisonic Channel Number) channel ordering and SN3D normalization"/>
+    </enums>
+
+    <enums name="XrSoundFieldChannelMaskFumaBD" type="enum">
+        <enum value="1"   name="XR_SOUND_FIELD_CHANNEL_MASK_FUMA_1ST_ORDER_BD" comment="Indicates the 1st-order ambisonic in FuMA format, which refers to Furse-Malham channel order and maxN normalization"/>
+    </enums>
+
+    <enums name="XrSoundObstacleFlagBitsBD" type="bitmask">
+        <enum bitpos="0" name="XR_SOUND_OBSTACLE_ENABLED_BIT_BD"   comment="to indicate an update of slink:XrSoundObstacleConfigBD::pname:enabled"/>
+        <enum bitpos="1" name="XR_SOUND_OBSTACLE_POSE_BIT_BD"      comment="to indicate an update of slink:XrSoundObstacleConfigBD::pname:pose"/>
+        <enum bitpos="2" name="XR_SOUND_OBSTACLE_MESH_BIT_BD"      comment="to indicate an update of slink:XrSoundObstacleConfigBD::pname:mesh"/>
+        <enum bitpos="3" name="XR_SOUND_OBSTACLE_MATERIALS_BIT_BD" comment="to indicate an update of slink:XrSoundObstacleConfigBD::pname:materials"/>
+    </enums>
+
+    <enums name="XrSoundObjectFlagBitsBD" type="bitmask">
+        <enum bitpos="0" name="XR_SOUND_OBJECT_ENABLED_BIT_BD"                    comment="to indicate an update of slink:XrSoundObjectConfigBD::pname:enabled"/>
+        <enum bitpos="1" name="XR_SOUND_OBJECT_POSE_BIT_BD"                       comment="to indicate an update of slink:XrSoundObjectConfigBD::pname:pose"/>
+        <enum bitpos="2" name="XR_SOUND_OBJECT_DIRECTIVITY_BIT_BD"                comment="to indicate an update of the directivity using an slink:XrSoundObjectDirectivityCardioidBD chained to slink:XrSoundObjectConfigBD::pname:next"/>
+        <enum bitpos="3" name="XR_SOUND_OBJECT_SHAPE_BIT_BD"                      comment="to indicate an update of the shape using an slink:XrSoundObjectShapeSphereBD chained to slink:XrSoundObjectConfigBD::pname:next"/>
+        <enum bitpos="4" name="XR_SOUND_OBJECT_MAIN_VOLUME_BIT_BD"                comment="to indicate an update of slink:XrSoundObjectConfigBD::pname:mainVolume"/>
+        <enum bitpos="5" name="XR_SOUND_OBJECT_REFLECTION_GAIN_BIT_BD"            comment="to indicate an update of slink:XrSoundObjectConfigBD::pname:reflectionGain"/>
+        <enum bitpos="6" name="XR_SOUND_OBJECT_ENABLE_DOPPLER_BIT_BD"             comment="to indicate an update of slink:XrSoundObjectConfigBD::pname:enableDoppler"/>
+        <enum bitpos="7" name="XR_SOUND_OBJECT_DIRECT_SOUND_ATTENUATION_BIT_BD"   comment="to indicate an update of slink:XrSoundObjectConfigBD::pname:directSoundAttenuation"/>
+        <enum bitpos="8" name="XR_SOUND_OBJECT_INDIRECT_SOUND_ATTENUATION_BIT_BD" comment="to indicate an update of slink:XrSoundObjectConfigBD::pname:indirectSoundAttenuation"/>
+    </enums>
+
+    <enums name="XrSoundFieldFlagBitsBD" type="bitmask">
+        <enum bitpos="0" name="XR_SOUND_FIELD_ENABLED_BIT_BD"     comment="to indicate an update of slink:XrSoundFieldConfigBD::pname:enabled"/>
+        <enum bitpos="1" name="XR_SOUND_FIELD_ORIENTATION_BIT_BD" comment="to indicate an update of slink:XrSoundFieldConfigBD::pname:pose and/or slink:XrSoundFieldConfigBD::pname:baseSpace"/>
+        <enum bitpos="2" name="XR_SOUND_FIELD_MAIN_VOLUME_BIT_BD" comment="to indicate an update of slink:XrSoundFieldConfigBD::pname:mainVolume"/>
+        <enum bitpos="3" name="XR_SOUND_FIELD_LFE_GAIN_BIT_BD"    comment="to indicate an update of slink:XrSoundFieldConfigBD::pname:lfeGain"/>
+    </enums>
+
     <!-- enums for XR_BD_spatial_sensing -->
     <enums name="XrSenseDataProviderTypeBD" type="enum">
         <!-- contents from other extensions -->
@@ -7476,6 +8188,24 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="4"   name="XR_SPATIAL_MARKER_APRIL_TAG_DICT_36H11_EXT" comment="6 by 6 bits, minimum Hamming distance between any two codes = 11, 587 codes."/>
     </enums>
 
+    <!-- XR_META_environment_raycast -->
+    <enums name="XrEnvironmentRaycastHitStatusMETA" type="enum">
+        <enum value="1"   name="XR_ENVIRONMENT_RAYCAST_HIT_STATUS_HIT_META"                      comment="The intersection with the environment is found."/>
+        <enum value="2"   name="XR_ENVIRONMENT_RAYCAST_HIT_STATUS_NO_HIT_META"                   comment="The intersection with the environment is not found."/>
+        <enum value="3"   name="XR_ENVIRONMENT_RAYCAST_HIT_STATUS_HIT_POINT_OCCLUDED_META"       comment="The ray intersects with the environment, but the actual hit point is invisible."/>
+        <enum value="4"   name="XR_ENVIRONMENT_RAYCAST_HIT_STATUS_HIT_POINT_OUTSIDE_OF_FOV_META" comment="The hit point can't be determined because it lies outside of the field of view."/>
+        <enum value="5"   name="XR_ENVIRONMENT_RAYCAST_HIT_STATUS_RAY_OCCLUDED_META"             comment="The ray is completely occluded by the environment."/>
+        <enum value="6"   name="XR_ENVIRONMENT_RAYCAST_HIT_STATUS_HIT_INVALID_ORIENTATION_META"  comment="The intersection with the environment is found, but the hit orientation cannot be determined."/>
+    </enums>
+
+    <!-- XR_QCOM_hand_tracking_gesture -->
+    <enums name="XrHandGestureTypeQCOM" type="enum">
+        <enum value="-1"   name="XR_HAND_GESTURE_TYPE_UNKNOWN_QCOM"   comment="Indicates that no gesture can be detected."/>
+        <enum value="0"    name="XR_HAND_GESTURE_TYPE_OPEN_HAND_QCOM" comment="The open hand gesture is a neutral position. It is performed by extending the hand with the fingers opened and the palm away from the user."/>
+        <enum value="2"    name="XR_HAND_GESTURE_TYPE_GRAB_QCOM"      comment="The grab gesture is performed by placing the hand in front of the user and closing the hand into a fist."/>
+        <enum value="7"    name="XR_HAND_GESTURE_TYPE_PINCH_QCOM"     comment="The pinch gesture is performed by touching the tip of the thumb to the tip of the index finger while extending the remaining fingers."/>
+    </enums>
+
     <!-- SECTION: OpenXR loader command definitions -->
     <!-- openxr_loader_negotiation.h -->
     <commands>
@@ -7622,6 +8352,14 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
     <enums name="XrTrackableImageTrackingModeANDROID" type="enum">
         <enum value="1"   name="XR_TRACKABLE_IMAGE_TRACKING_MODE_DYNAMIC_ANDROID" comment="This mode has the highest accuracy and allows low latency tracking of moving images. It has also has the highest power consumption."/>
         <enum value="2"   name="XR_TRACKABLE_IMAGE_TRACKING_MODE_STATIC_ANDROID"  comment="This mode should be used for images that are known to be static or semi-static. This mode leads to less power consumption in comparison to the dynamic mode. If a static image is being moved, it will be updated with a much higher latency than using the dynamic mode."/>
+    </enums>
+
+    <!-- XR_EXT_interaction_profile_battery_state_display -->
+    <enums name="XrBatteryStateDisplayStateFlagBitsEXT" type="bitmask">
+        <enum bitpos="0" name="XR_BATTERY_STATE_DISPLAY_STATE_VALID_BIT_EXT"      comment="Indicates validity of slink:XrBatteryStateDisplayEXT::pname:batteryLevel"/>
+        <enum bitpos="1" name="XR_BATTERY_STATE_DISPLAY_STATE_CHARGING_BIT_EXT"   comment="Indicates that the device associated with the interaction profile is charging."/>
+        <enum bitpos="2" name="XR_BATTERY_STATE_DISPLAY_STATE_PLUGGED_IN_BIT_EXT" comment="Indicates that the device associated with the interaction profile is plugged in to a power source."/>
+        <enum bitpos="3" name="XR_BATTERY_STATE_DISPLAY_STATE_NO_BATTERY_BIT_EXT" comment="Indicates that the device associated with the interaction profile does not have a battery power source."/>
     </enums>
 
     <!-- SECTION: OpenXR command definitions -->
@@ -9073,6 +9811,13 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrSpace</type>* <name>space</name></param>
         </command>
 
+        <!-- XR_META_body_tracking_fidelity -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrRequestBodyTrackingFidelityMETA</name></proto>
+            <param><type>XrBodyTrackerFB</type> <name>bodyTracker</name></param>
+            <param>const <type>XrBodyTrackingFidelityMETA</type> <name>fidelity</name></param>
+        </command>
+
         <!-- commands for XR_ALMALENCE_digital_lens_control -->
         <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST">
             <proto><type>XrResult</type> <name>xrSetDigitalLensControlALMALENCE</name></proto>
@@ -9415,6 +10160,99 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <proto><type>XrResult</type> <name>xrUnpersistAnchorANDROID</name></proto>
             <param><type>XrDeviceAnchorPersistenceANDROID</type> <name>handle</name></param>
             <param>const <type>XrUuidEXT</type>* <name>anchorId</name></param>
+        </command>
+
+        <!-- commands for XR_ANDROID_performance_metrics -->
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumeratePerformanceMetricsCounterPathsANDROID</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param optional="true"><type>uint32_t</type> <name>counterPathCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>counterPathCountOutput</name></param>
+            <param optional="true" len="counterPathCapacityInput"><type>XrPath</type>* <name>counterPaths</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrSetPerformanceMetricsStateANDROID</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrPerformanceMetricsStateANDROID</type>* <name>state</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetPerformanceMetricsStateANDROID</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param><type>XrPerformanceMetricsStateANDROID</type>* <name>state</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrQueryPerformanceMetricsCounterANDROID</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param><type>XrPath</type> <name>counterPath</name></param>
+            <param><type>XrPerformanceMetricsCounterANDROID</type>* <name>counter</name></param>
+        </command>
+
+        <!-- XR_ANDROID_trackables_qr_code -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_MISMATCHING_TRACKABLE_TYPE_ANDROID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetTrackableQrCodeANDROID</name></proto>
+            <param><type>XrTrackableTrackerANDROID</type> <name>tracker</name></param>
+            <param>const <type>XrTrackableGetInfoANDROID</type>* <name>getInfo</name></param>
+            <param><type>XrTrackableQrCodeANDROID</type>* <name>qrCodeOutput</name></param>
+        </command>
+
+        <!-- commands for XR_ANDROID_composition_layer_passthrough_mesh -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_MESH_DATA_LIMIT_EXCEEDED_ANDROID,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreatePassthroughLayerANDROID</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrPassthroughLayerCreateInfoANDROID</type>* <name>createInfo</name></param>
+            <param><type>XrPassthroughLayerANDROID</type>* <name>layer</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroyPassthroughLayerANDROID</name></proto>
+            <param externsync="true_with_children"><type>XrPassthroughLayerANDROID</type> <name>layer</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_MESH_DATA_LIMIT_EXCEEDED_ANDROID,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrSetPassthroughLayerMeshANDROID</name></proto>
+            <param><type>XrPassthroughLayerANDROID</type> <name>layer</name></param>
+            <param>const <type>XrPassthroughLayerMeshANDROID</type>* <name>mesh</name></param>
+        </command>
+
+        <!-- XR_ANDROID_scene_meshing -->
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateSupportedSemanticLabelSetsANDROID</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param><type>XrSystemId</type> <name>systemId</name></param>
+            <param optional="true"><type>uint32_t</type> <name>supportedSemanticLabelSetsInputCapacity</name></param>
+            <param><type>uint32_t</type>* <name>supportedSemanticLabelSetsOutputCount</name></param>
+            <param optional="true" len="supportedSemanticLabelSetsInputCapacity"><type>XrSceneMeshSemanticLabelSetANDROID</type>* <name>supportedSemanticLabelSets</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSceneMeshingTrackerANDROID</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrSceneMeshingTrackerCreateInfoANDROID</type>* <name>createInfo</name></param>
+            <param><type>XrSceneMeshingTrackerANDROID</type>* <name>tracker</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroySceneMeshingTrackerANDROID</name></proto>
+            <param externsync="true_with_children"><type>XrSceneMeshingTrackerANDROID</type> <name>tracker</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID">
+            <proto><type>XrResult</type> <name>xrCreateSceneMeshSnapshotANDROID</name></proto>
+            <param><type>XrSceneMeshingTrackerANDROID</type> <name>tracker</name></param>
+            <param>const <type>XrSceneMeshSnapshotCreateInfoANDROID</type>* <name>createInfo</name></param>
+            <param><type>XrSceneMeshSnapshotCreationResultANDROID</type>* <name>outSnapshotCreationResult</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroySceneMeshSnapshotANDROID</name></proto>
+            <param externsync="true_with_children"><type>XrSceneMeshSnapshotANDROID</type> <name>snapshot</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetAllSubmeshStatesANDROID</name></proto>
+            <param><type>XrSceneMeshSnapshotANDROID</type> <name>snapshot</name></param>
+            <param optional="true"><type>uint32_t</type> <name>submeshStateCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>submeshStateCountOutput</name></param>
+            <param optional="true" len="submeshStateCapacityInput"><type>XrSceneSubmeshStateANDROID</type>* <name>submeshStates</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetSubmeshDataANDROID</name></proto>
+            <param><type>XrSceneMeshSnapshotANDROID</type> <name>snapshot</name></param>
+            <param><type>uint32_t</type> <name>submeshDataCount</name></param>
+            <param len="submeshDataCount"><type>XrSceneSubmeshDataANDROID</type>* <name>inoutSubmeshData</name></param>
         </command>
 
         <!-- XR_EXT_plane_detection -->
@@ -10201,6 +11039,145 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrPath</type>* <name>topLevelUserPath</name></param>
         </command>
 
+        <!-- XR_BD_spatial_audio_rendering -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateSupportedAudioSampleRateBD</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param optional="true"><type>uint32_t</type> <name>sampleRateCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>sampleRateCountOutput</name></param>
+            <param len="sampleRateCapacityInput" optional="true"><type>XrAudioSampleRateBD</type>* <name>sampleRates</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrQueryFramesPerBufferRangeBD</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param><type>XrAudioSampleRateBD</type> <name>sampleRate</name></param>
+            <param><type>uint32_t</type>* <name>min</name></param>
+            <param><type>uint32_t</type>* <name>max</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSpatialAudioRendererBD</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrSpatialAudioRendererCreateInfoBD</type>* <name>createInfo</name></param>
+            <param><type>XrSpatialAudioRendererBD</type>* <name>renderer</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroySpatialAudioRendererBD</name></proto>
+            <param externsync="true_with_children"><type>XrSpatialAudioRendererBD</type> <name>renderer</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSoundObstacleMaterialBD</name></proto>
+            <param><type>XrSpatialAudioRendererBD</type> <name>renderer</name></param>
+            <param>const <type>XrSoundObstacleMaterialConfigBD</type>* <name>config</name></param>
+            <param><type>XrSoundObstacleMaterialBD</type>* <name>material</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrUpdateSoundObstacleMaterialConfigBD</name></proto>
+            <param><type>XrSoundObstacleMaterialBD</type> <name>material</name></param>
+            <param>const <type>XrSoundObstacleMaterialConfigBD</type>* <name>config</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroySoundObstacleMaterialBD</name></proto>
+            <param externsync="true_with_children"><type>XrSoundObstacleMaterialBD</type> <name>material</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSoundObstacleBD</name></proto>
+            <param><type>XrSpatialAudioRendererBD</type> <name>renderer</name></param>
+            <param>const <type>XrSoundObstacleConfigBD</type>* <name>config</name></param>
+            <param>const <type>XrSoundTriangleMeshBD</type>* <name>mesh</name></param>
+            <param><type>XrSoundObstacleBD</type>* <name>soundObstacle</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_POSE_INVALID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrUpdateSoundObstacleConfigBD</name></proto>
+            <param><type>XrSoundObstacleBD</type> <name>soundObstacle</name></param>
+            <param optional="true">const <type>XrSoundObstacleConfigBD</type>* <name>config</name></param>
+            <param optional="true">const <type>XrSoundTriangleMeshBD</type>* <name>mesh</name></param>
+            <param><type>XrSoundObstacleFlagsBD</type> <name>flags</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroySoundObstacleBD</name></proto>
+            <param externsync="true_with_children"><type>XrSoundObstacleBD</type> <name>soundObstacle</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSoundObjectBD</name></proto>
+            <param><type>XrSpatialAudioRendererBD</type> <name>renderer</name></param>
+            <param>const <type>XrSoundObjectConfigBD</type>* <name>config</name></param>
+            <param><type>XrSoundObjectBD</type>* <name>soundObject</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_POSE_INVALID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrUpdateSoundObjectConfigBD</name></proto>
+            <param><type>XrSoundObjectBD</type> <name>soundObject</name></param>
+            <param>const <type>XrSoundObjectConfigBD</type>* <name>config</name></param>
+            <param><type>XrSoundObjectFlagsBD</type> <name>flags</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CALL_ORDER_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrSubmitSoundObjectBufferBD</name></proto>
+            <param><type>XrSoundObjectBD</type> <name>soundObject</name></param>
+            <param>const <type>XrAudioBufferBD</type>* <name>buffer</name></param>
+            <implicitexternsyncparams>
+                <param>pname:soundObject parameter by any other flink:xrSubmitSoundObjectBufferBD call, as well as the pname:renderer parameter by any other flink:xrWaitAudioPeriodBD or flink:xrEndAudioPeriodBD call (if the pname:renderer is the parent of pname:soundObject)</param>
+            </implicitexternsyncparams>
+        </command>
+
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroySoundObjectBD</name></proto>
+            <param externsync="true_with_children"><type>XrSoundObjectBD</type> <name>soundObject</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSoundFieldBD</name></proto>
+            <param><type>XrSpatialAudioRendererBD</type> <name>renderer</name></param>
+            <param>const <type>XrSoundFieldConfigBD</type>* <name>config</name></param>
+            <param><type>XrSoundFieldBD</type>* <name>soundField</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_POSE_INVALID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrUpdateSoundFieldConfigBD</name></proto>
+            <param><type>XrSoundFieldBD</type> <name>soundField</name></param>
+            <param optional="true">const <type>XrSoundFieldConfigBD</type>* <name>config</name></param>
+            <param><type>XrSoundFieldFlagsBD</type> <name>flags</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CALL_ORDER_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrSubmitSoundFieldBufferBD</name></proto>
+            <param><type>XrSoundFieldBD</type> <name>soundField</name></param>
+            <param>const <type>XrAudioBufferBD</type>* <name>buffer</name></param>
+            <implicitexternsyncparams>
+                <param>pname:soundField parameter by any other flink:xrSubmitSoundFieldBufferBD call, as well as the pname:renderer parameter by any other flink:xrWaitAudioPeriodBD or flink:xrEndAudioPeriodBD call (if the pname:renderer is the parent of pname:soundField)</param>
+            </implicitexternsyncparams>
+        </command>
+
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroySoundFieldBD</name></proto>
+            <param externsync="true_with_children"><type>XrSoundFieldBD</type> <name>soundField</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING,XR_TIMEOUT_EXPIRED" errorcodes="XR_ERROR_CALL_ORDER_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST">
+            <proto><type>XrResult</type> <name>xrWaitAudioPeriodBD</name></proto>
+            <param><type>XrSpatialAudioRendererBD</type> <name>renderer</name></param>
+            <param><type>XrDuration</type> <name>timeout</name></param>
+            <implicitexternsyncparams>
+                <param>the pname:renderer parameter by any other flink:xrWaitAudioPeriodBD or flink:xrEndAudioPeriodBD call, pname:soundField parameter by any other flink:xrSubmitSoundFieldBufferBD call (if the pname:soundField is a child of the pname:renderer), and pname:soundObject parameter by any other flink:xrSubmitSoundObjectBufferBD call (if the pname:soundObject is a child of the pname:renderer)</param>
+            </implicitexternsyncparams>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CALL_ORDER_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST">
+            <proto><type>XrResult</type> <name>xrEndAudioPeriodBD</name></proto>
+            <param><type>XrSpatialAudioRendererBD</type> <name>renderer</name></param>
+            <implicitexternsyncparams>
+                <param>the pname:renderer parameter by any other flink:xrWaitAudioPeriodBD or flink:xrEndAudioPeriodBD call, pname:soundField parameter by any other flink:xrSubmitSoundFieldBufferBD call (if the pname:soundField is a child of the pname:renderer), and pname:soundObject parameter by any other flink:xrSubmitSoundObjectBufferBD call (if the pname:soundObject is a child of the pname:renderer)</param>
+            </implicitexternsyncparams>
+        </command>
+
         <!-- commands for XR_BD_spatial_sensing -->
         <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_ENTITY_ID_INVALID_BD,XR_ERROR_SPATIAL_SENSING_SERVICE_UNAVAILABLE_BD,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrGetSpatialEntityUuidBD</name></proto>
@@ -10450,6 +11427,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrFacialSimulationModeBD</type>*<name>mode</name></param>
         </command>
 
+        <!-- XR_ANDROID_trackables_image -->
         <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_IMAGE_FORMAT_UNSUPPORTED_ANDROID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrCreateTrackableImageDatabaseAsyncANDROID</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
@@ -10486,6 +11464,84 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrTrackableTrackerANDROID</type> <name>tracker</name></param>
             <param>const <type>XrTrackableGetInfoANDROID</type>* <name>getInfo</name></param>
             <param><type>XrTrackableImageANDROID</type>* <name>trackable</name></param>
+        </command>
+
+        <!-- XR_ANDROID_spatial_entity_bound_anchor -->
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateSpatialAnchorAttachableComponentsANDROID</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param><type>XrSystemId</type> <name>systemId</name></param>
+            <param optional="true"><type>uint32_t</type> <name>attachableComponentCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>attachableComponentCountOutput</name></param>
+            <param optional="true" len="attachableComponentCapacityInput"><type>XrSpatialComponentTypeEXT</type>* <name>attachableComponents</name></param>
+        </command>
+
+        <!-- XR_ANDROID_spatial_anchor_space -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_ANCHOR_ATTACHABLE_COMPONENT_NOT_FOUND_ANDROID,XR_ERROR_SPATIAL_ENTITY_ID_INVALID_EXT,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSpatialAnchorSpaceANDROID</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param><type>XrSpatialContextEXT</type> <name>spatialContext</name></param>
+            <param>const <type>XrSpatialAnchorCreateInfoEXT</type>* <name>createInfo</name></param>
+            <param><type>XrSpatialEntityIdEXT</type>* <name>anchorEntityId</name></param>
+            <param><type>XrSpace</type>* <name>anchorSpace</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_ANCHOR_ENTITY_ID_INVALID_ANDROID,XR_ERROR_SPATIAL_ENTITY_ID_INVALID_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSpatialAnchorSpaceFromIdANDROID</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param><type>XrSpatialContextEXT</type> <name>spatialContext</name></param>
+            <param>const <type>XrSpatialAnchorSpaceFromIdCreateInfoANDROID</type>* <name>createInfo</name></param>
+            <param><type>XrSpace</type>* <name>anchorSpace</name></param>
+        </command>
+
+        <!-- XR_META_tile_properties_hint commands -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrSetTilePropertiesHintMETA</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrTilePropertiesHintMETA</type>* <name>properties</name></param>
+        </command>
+
+        <!-- XR_META_environment_raycast -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PERMISSION_INSUFFICIENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateEnvironmentRaycasterAsyncMETA</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param optional="true">const <type>XrEnvironmentRaycasterCreateInfoMETA</type>* <name>info</name></param>
+            <param><type>XrFutureEXT</type>* <name>future</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_FUTURE_INVALID_EXT,XR_ERROR_FUTURE_PENDING_EXT,XR_ERROR_HANDLE_INVALID,XR_ERROR_INITIALIZATION_FAILED,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SESSION_NOT_RUNNING,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateEnvironmentRaycasterCompleteMETA</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param><type>XrFutureEXT</type> <name>future</name></param>
+            <param><type>XrEnvironmentRaycasterCreateCompletionMETA</type>* <name>completion</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroyEnvironmentRaycasterMETA</name></proto>
+            <param externsync="true_with_children"><type>XrEnvironmentRaycasterMETA</type> <name>environmentRaycaster</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrPerformEnvironmentRaycastMETA</name></proto>
+            <param><type>XrEnvironmentRaycasterMETA</type> <name>environmentRaycaster</name></param>
+            <param>const <type>XrEnvironmentRaycastHitGetInfoMETA</type>* <name>info</name></param>
+            <param><type>XrEnvironmentRaycastHitMETA</type>* <name>hitPoint</name></param>
+        </command>
+
+        <!-- XR_ANDROID_spatial_discovery_raycast commands -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_COMPONENT_NOT_ENABLED_EXT,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSpatialRaycastSnapshotANDROID</name></proto>
+            <param><type>XrSpatialContextEXT</type> <name>spatialContext</name></param>
+            <param>const <type>XrSpatialRaycastSnapshotCreateInfoANDROID</type>* <name>createInfo</name></param>
+            <param><type>XrSpatialSnapshotEXT</type>* <name>snapshot</name></param>
+        </command>
+
+        <!-- XR_QCOM_hand_tracking_gesture -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID">
+            <proto><type>XrResult</type> <name>xrGetHandGestureQCOM</name></proto>
+            <param><type>XrHandTrackerEXT</type> <name>handTracker</name></param>
+            <param><type>XrTime</type> <name>time</name></param>
+            <param><type>XrHandGestureQCOM</type>* <name>handGesture</name></param>
         </command>
 
     </commands>
@@ -11229,6 +12285,16 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <component subpath="/input/grasp_ext/ready_ext"          type="XR_ACTION_TYPE_BOOLEAN_INPUT"/>
             <component subpath="/input/aim_activate_ext/value"       type="XR_ACTION_TYPE_FLOAT_INPUT"/>
             <component subpath="/input/aim_activate_ext/ready_ext"   type="XR_ACTION_TYPE_BOOLEAN_INPUT"/>
+        </interaction_profile>
+
+        <!-- XR_ANDROID_mouse_interaction -->
+        <interaction_profile name="/interaction_profiles/android/mouse_interaction_android" title="ANDROID mouse interaction profile">
+            <user_path path="/user/mouse"/>
+            <component subpath="/input/aim/pose"                  type="XR_ACTION_TYPE_POSE_INPUT"/>
+            <component subpath="/input/select/click"              type="XR_ACTION_TYPE_BOOLEAN_INPUT"/>
+            <component subpath="/input/secondary_android/click"   type="XR_ACTION_TYPE_BOOLEAN_INPUT"/>
+            <component subpath="/input/tertiary_android/click"    type="XR_ACTION_TYPE_BOOLEAN_INPUT"/>
+            <component subpath="/input/scroll_android/value"      type="XR_ACTION_TYPE_VECTOR2F_INPUT"/>
         </interaction_profile>
 
         <!-- XR_OPPO_controller_interaction -->
@@ -14431,7 +15497,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_FB_space_warp" number="172" type="instance" supported="openxr">
+    <extension name="XR_FB_space_warp" number="172" type="instance" supported="openxr" deprecatedby="XR_EXT_frame_synthesis">
         <require>
             <enum value="2"                            name="XR_FB_space_warp_SPEC_VERSION"/>
             <enum value="&quot;XR_FB_space_warp&quot;" name="XR_FB_SPACE_WARP_EXTENSION_NAME"/>
@@ -14828,7 +15894,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_FB_touch_controller_proximity" number="207" type="instance" supported="openxr">
+    <extension name="XR_FB_touch_controller_proximity" number="207" type="instance" supported="openxr" obsoletedby="XR_VERSION_1_1">
         <require>
             <enum value="1"                                            name="XR_FB_touch_controller_proximity_SPEC_VERSION"/>
             <enum value="&quot;XR_FB_touch_controller_proximity&quot;" name="XR_FB_TOUCH_CONTROLLER_PROXIMITY_EXTENSION_NAME"/>
@@ -15661,10 +16727,19 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_FB_extension_285" number="285" type="instance" supported="disabled">
+    <extension name="XR_META_body_tracking_fidelity" number="285" type="instance" supported="openxr" depends="XR_VERSION_1_0+XR_FB_body_tracking">
         <require>
-            <enum value="1"                               name="XR_FB_extension_285_SPEC_VERSION"/>
-            <enum value="&quot;XR_FB_extension_285&quot;" name="XR_FB_EXTENSION_285_EXTENSION_NAME"/>
+            <enum value="1"                                          name="XR_META_body_tracking_fidelity_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_body_tracking_fidelity&quot;" name="XR_META_BODY_TRACKING_FIDELITY_EXTENSION_NAME"/>
+
+            <command name="xrRequestBodyTrackingFidelityMETA"/>
+
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_BODY_TRACKING_FIDELITY_STATUS_META"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_SYSTEM_PROPERTIES_BODY_TRACKING_FIDELITY_META"/>
+
+            <type name="XrSystemPropertiesBodyTrackingFidelityMETA"/>
+            <type name="XrBodyTrackingFidelityMETA"/>
+            <type name="XrBodyTrackingFidelityStatusMETA"/>
         </require>
     </extension>
 
@@ -16039,10 +17114,15 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_QCOM_extension_311" number="311" type="instance" supported="disabled">
+    <extension name="XR_QCOM_hand_tracking_gesture" number="311" type="instance" supported="openxr" depends="XR_VERSION_1_0+XR_EXT_hand_tracking" deprecatedby="XR_EXT_hand_interaction">
         <require>
-            <enum value="1"                                 name="XR_QCOM_extension_311_SPEC_VERSION"/>
-            <enum value="&quot;XR_QCOM_extension_311&quot;" name="XR_QCOM_EXTENSION_311_EXTENSION_NAME"/>
+            <enum value="1"                                         name="XR_QCOM_hand_tracking_gesture_SPEC_VERSION"/>
+            <enum value="&quot;XR_QCOM_hand_tracking_gesture&quot;" name="XR_QCOM_HAND_TRACKING_GESTURE_EXTENSION_NAME"/>
+
+            <type name="XrHandGestureTypeQCOM"/>
+            <type name="XrHandGestureQCOM"/>
+
+            <command name="xrGetHandGestureQCOM"/>
         </require>
     </extension>
 
@@ -17112,10 +18192,85 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_BD_extension_410" number="410" type="instance" supported="disabled">
+    <extension name="XR_BD_spatial_audio_rendering" number="410" type="instance" supported="openxr">
         <require>
-            <enum value="1"                               name="XR_BD_extension_410_SPEC_VERSION"/>
-            <enum value="&quot;XR_BD_extension_410&quot;" name="XR_BD_extension_410_EXTENSION_NAME"/>
+            <enum value="1"                                         name="XR_BD_spatial_audio_rendering_SPEC_VERSION"/>
+            <enum value="&quot;XR_BD_spatial_audio_rendering&quot;" name="XR_BD_SPATIAL_AUDIO_RENDERING_EXTENSION_NAME"/>
+
+            <!-- Structs -->
+            <enum offset="0"  extends="XrStructureType" name="XR_TYPE_SPATIAL_AUDIO_RENDERER_CREATE_INFO_BD"/>
+            <enum offset="1"  extends="XrStructureType" name="XR_TYPE_AUDIO_BUFFER_BD"/>
+            <enum offset="3"  extends="XrStructureType" name="XR_TYPE_SOUND_OBJECT_DIRECTIVITY_CARDIOID_BD"/>
+            <enum offset="4"  extends="XrStructureType" name="XR_TYPE_SOUND_OBJECT_SHAPE_SPHERE_BD"/>
+            <enum offset="5"  extends="XrStructureType" name="XR_TYPE_SOUND_OBJECT_DISTANCE_ATTENUATION_BD"/>
+            <enum offset="6"  extends="XrStructureType" name="XR_TYPE_SOUND_OBJECT_DISTANCE_ATTENUATION_CURVE_BD"/>
+            <enum offset="7"  extends="XrStructureType" name="XR_TYPE_SOUND_OBJECT_CONFIG_BD"/>
+            <enum offset="8"  extends="XrStructureType" name="XR_TYPE_SOUND_FIELD_CONFIG_BD"/>
+            <enum offset="9"  extends="XrStructureType" name="XR_TYPE_SOUND_FIELD_CHANNEL_DEFINITION_SURROUND_BD"/>
+            <enum offset="10" extends="XrStructureType" name="XR_TYPE_SOUND_FIELD_CHANNEL_DEFINITION_AMBIX_BD"/>
+            <enum offset="11" extends="XrStructureType" name="XR_TYPE_SOUND_FIELD_CHANNEL_DEFINITION_FUMA_BD"/>
+            <enum offset="12" extends="XrStructureType" name="XR_TYPE_SOUND_TRIANGLE_MESH_BD"/>
+            <enum offset="13" extends="XrStructureType" name="XR_TYPE_SOUND_OBSTACLE_CONFIG_BD"/>
+            <enum offset="14" extends="XrStructureType" name="XR_TYPE_SOUND_OBSTACLE_MATERIAL_CONFIG_BD"/>
+
+            <enum offset="0"  extends="XrObjectType"    name="XR_OBJECT_TYPE_SPATIAL_AUDIO_RENDERER_BD"           comment="XrSpatialAudioRendererBD"/>
+            <enum offset="1"  extends="XrObjectType"    name="XR_OBJECT_TYPE_SOUND_FIELD_BD"                      comment="XrSoundFieldBD"/>
+            <enum offset="2"  extends="XrObjectType"    name="XR_OBJECT_TYPE_SOUND_OBJECT_BD"                     comment="XrSoundObjectBD"/>
+            <enum offset="3"  extends="XrObjectType"    name="XR_OBJECT_TYPE_SOUND_OBSTACLE_BD"                   comment="XrSoundObstacleBD"/>
+            <enum offset="4"  extends="XrObjectType"    name="XR_OBJECT_TYPE_SOUND_OBSTACLE_MATERIAL_BD"          comment="XrSoundObstacleMaterialBD"/>
+
+            <type name="XrSpatialAudioRendererBD"/>
+            <type name="XrSoundFieldBD"/>
+            <type name="XrSoundObjectBD"/>
+            <type name="XrSoundObstacleBD"/>
+            <type name="XrSoundObstacleMaterialBD"/>
+
+            <type name="XrSpatialAudioRendererCreateInfoBD"/>
+            <type name="XrAudioBufferBD"/>
+            <type name="XrSoundObjectDirectivityCardioidBD"/>
+            <type name="XrSoundObjectShapeSphereBD"/>
+            <type name="XrSoundObjectDistanceAttenuationBD"/>
+            <type name="XrSoundObjectDistanceAttenuationCurveBD"/>
+            <type name="XrSoundObjectConfigBD"/>
+            <type name="XrSoundFieldConfigBD"/>
+            <type name="XrSoundFieldChannelDefinitionSurroundBD"/>
+            <type name="XrSoundFieldChannelDefinitionAmbixBD"/>
+            <type name="XrSoundFieldChannelDefinitionFumaBD"/>
+            <type name="XrSoundFieldChannelMaskSurroundBD"/>
+            <type name="XrSoundTriangleMeshBD"/>
+            <type name="XrSoundObstacleConfigBD"/>
+            <type name="XrSoundObstacleMaterialConfigBD"/>
+            <type name="XrAttenuationCurvePointBD"/>
+            <type name="XrAudioBufferChannelLayoutBD"/>
+            <type name="XrSoundObstacleMaterialTypeBD"/>
+            <type name="XrSoundObjectDistanceAttenuationTypeBD"/>
+            <type name="XrSoundObstacleFlagsBD"/>
+            <type name="XrSoundObjectFlagsBD"/>
+            <type name="XrSoundFieldChannelMaskSurroundBD"/>
+            <type name="XrSoundFieldChannelMaskAmbixBD"/>
+            <type name="XrSoundFieldChannelMaskFumaBD"/>
+            <type name="XrSoundFieldFlagsBD"/>
+
+            <command name="xrEnumerateSupportedAudioSampleRateBD"/>
+            <command name="xrQueryFramesPerBufferRangeBD"/>
+            <command name="xrCreateSpatialAudioRendererBD"/>
+            <command name="xrDestroySpatialAudioRendererBD"/>
+            <command name="xrCreateSoundObstacleMaterialBD"/>
+            <command name="xrUpdateSoundObstacleMaterialConfigBD"/>
+            <command name="xrDestroySoundObstacleMaterialBD"/>
+            <command name="xrCreateSoundObstacleBD"/>
+            <command name="xrUpdateSoundObstacleConfigBD"/>
+            <command name="xrDestroySoundObstacleBD"/>
+            <command name="xrCreateSoundObjectBD"/>
+            <command name="xrUpdateSoundObjectConfigBD"/>
+            <command name="xrSubmitSoundObjectBufferBD"/>
+            <command name="xrDestroySoundObjectBD"/>
+            <command name="xrCreateSoundFieldBD"/>
+            <command name="xrUpdateSoundFieldConfigBD"/>
+            <command name="xrSubmitSoundFieldBufferBD"/>
+            <command name="xrDestroySoundFieldBD"/>
+            <command name="xrWaitAudioPeriodBD"/>
+            <command name="xrEndAudioPeriodBD"/>
         </require>
     </extension>
 
@@ -17643,10 +18798,30 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_extension_463" number="463" type="instance" supported="disabled">
+    <extension name="XR_ANDROID_composition_layer_passthrough_mesh" number="463" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                    name="XR_ANDROID_extension_463_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_extension_463&quot;" name="XR_ANDROID_extension_463_EXTENSION_NAME"/>
+            <enum value="1"                                                         name="XR_ANDROID_composition_layer_passthrough_mesh_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_composition_layer_passthrough_mesh&quot;" name="XR_ANDROID_COMPOSITION_LAYER_PASSTHROUGH_MESH_EXTENSION_NAME"/>
+
+            <enum offset="0"         extends="XrStructureType"                      name="XR_TYPE_PASSTHROUGH_LAYER_CREATE_INFO_ANDROID"/>
+            <enum offset="1"         extends="XrStructureType"                      name="XR_TYPE_PASSTHROUGH_LAYER_MESH_ANDROID"/>
+            <enum offset="2"         extends="XrStructureType"                      name="XR_TYPE_COMPOSITION_LAYER_PASSTHROUGH_ANDROID"/>
+            <enum offset="3"         extends="XrStructureType"                      name="XR_TYPE_SYSTEM_PASSTHROUGH_LAYER_PROPERTIES_ANDROID"/>
+
+            <enum offset="0" dir="-" extends="XrResult"                             name="XR_ERROR_MESH_DATA_LIMIT_EXCEEDED_ANDROID"                    comment="Returned by passthrough layer functions to indicate the mesh data exceeds the supported limit."/>
+
+            <enum offset="0"         extends="XrObjectType"                         name="XR_OBJECT_TYPE_PASSTHROUGH_LAYER_ANDROID"                     comment="XrPassthroughLayerANDROID"/>
+
+            <type name="XrPassthroughLayerANDROID"/>
+            <type name="XrWindingOrderANDROID"/>
+            <type name="XrPassthroughLayerCreateInfoANDROID"/>
+            <type name="XrPassthroughLayerMeshANDROID"/>
+            <type name="XrCompositionLayerPassthroughANDROID"/>
+            <type name="XrSystemPassthroughLayerPropertiesANDROID"/>
+
+            <command name="xrCreatePassthroughLayerANDROID"/>
+            <command name="xrDestroyPassthroughLayerANDROID"/>
+            <command name="xrSetPassthroughLayerMeshANDROID"/>
         </require>
     </extension>
 
@@ -17676,10 +18851,24 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_extension_466" number="466" type="instance" supported="disabled">
+    <extension name="XR_ANDROID_performance_metrics" number="466" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                    name="XR_ANDROID_extension_466_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_extension_466&quot;" name="XR_ANDROID_extension_466_EXTENSION_NAME"/>
+            <enum value="1"                                          name="XR_ANDROID_performance_metrics_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_performance_metrics&quot;" name="XR_ANDROID_PERFORMANCE_METRICS_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrStructureType"               name="XR_TYPE_PERFORMANCE_METRICS_STATE_ANDROID"/>
+            <enum offset="1" extends="XrStructureType"               name="XR_TYPE_PERFORMANCE_METRICS_COUNTER_ANDROID"/>
+
+            <type name="XrPerformanceMetricsCounterUnitANDROID"/>
+            <type name="XrPerformanceMetricsCounterFlagsANDROID"/>
+            <type name="XrPerformanceMetricsStateANDROID"/>
+            <type name="XrPerformanceMetricsCounterANDROID"/>
+            <type name="XrPerformanceMetricsCounterFlagBitsANDROID"/>
+
+            <command name="xrEnumeratePerformanceMetricsCounterPathsANDROID"/>
+            <command name="xrSetPerformanceMetricsStateANDROID"/>
+            <command name="xrGetPerformanceMetricsStateANDROID"/>
+            <command name="xrQueryPerformanceMetricsCounterANDROID"/>
         </require>
     </extension>
 
@@ -17700,10 +18889,12 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_extension_468" number="468" type="instance" supported="disabled">
+    <extension name="XR_ANDROID_unbounded_reference_space" number="468" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                    name="XR_ANDROID_extension_468_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_extension_468&quot;" name="XR_ANDROID_extension_468_EXTENSION_NAME"/>
+            <enum value="1"                                                name="XR_ANDROID_unbounded_reference_space_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_unbounded_reference_space&quot;" name="XR_ANDROID_UNBOUNDED_REFERENCE_SPACE_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrReferenceSpaceType"                name="XR_REFERENCE_SPACE_TYPE_UNBOUNDED_ANDROID"/>
         </require>
     </extension>
 
@@ -18443,10 +19634,12 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_META_extension_553" number="553" type="instance" supported="disabled">
+    <extension name="XR_META_spatial_entity_semantic_label" number="553" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                 name="XR_META_extension_553_SPEC_VERSION"/>
-            <enum value="&quot;XR_META_extension_553&quot;" name="XR_META_extension_553_EXTENSION_NAME"/>
+            <enum value="1"                                                 name="XR_META_spatial_entity_semantic_label_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_spatial_entity_semantic_label&quot;" name="XR_META_SPATIAL_ENTITY_SEMANTIC_LABEL_EXTENSION_NAME"/>
+
+            <type name="XrSemanticLabelMETA"/>
         </require>
     </extension>
 
@@ -18779,10 +19972,41 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_META_extension_593" number="593" type="instance" supported="disabled">
+    <extension name="XR_META_environment_raycast" depends="XR_EXT_future" number="593" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                 name="XR_META_extension_593_SPEC_VERSION"/>
-            <enum value="&quot;XR_META_extension_593&quot;" name="XR_META_extension_593_EXTENSION_NAME"/>
+            <enum value="1"                                       name="XR_META_environment_raycast_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_environment_raycast&quot;" name="XR_META_ENVIRONMENT_RAYCAST_EXTENSION_NAME"/>
+
+            <type name="XrEnvironmentRaycasterMETA"/>
+
+            <enum offset="0" extends="XrObjectType" name="XR_OBJECT_TYPE_ENVIRONMENT_RAYCASTER_META" comment="XrEnvironmentRaycasterMETA"/>
+
+            <type name="XrSystemEnvironmentRaycastPropertiesMETA"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SYSTEM_ENVIRONMENT_RAYCAST_PROPERTIES_META"/>
+
+            <type name="XrEnvironmentRaycasterCreateInfoMETA"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_ENVIRONMENT_RAYCASTER_CREATE_INFO_META"/>
+
+            <type name="XrEnvironmentRaycasterCreateCompletionMETA"/>
+            <enum offset="2" extends="XrStructureType" name="XR_TYPE_ENVIRONMENT_RAYCASTER_CREATE_COMPLETION_META"/>
+
+            <type name="XrEnvironmentRaycastFilterBaseHeaderMETA"/>
+
+            <type name="XrEnvironmentRaycastHitGetInfoMETA"/>
+            <enum offset="3" extends="XrStructureType" name="XR_TYPE_ENVIRONMENT_RAYCAST_HIT_GET_INFO_META"/>
+
+            <type name="XrEnvironmentRaycastHitMETA"/>
+            <enum offset="4" extends="XrStructureType" name="XR_TYPE_ENVIRONMENT_RAYCAST_HIT_META"/>
+
+            <type name="XrEnvironmentRaycastFilterDistanceMETA"/>
+            <enum offset="5" extends="XrStructureType" name="XR_TYPE_ENVIRONMENT_RAYCAST_FILTER_DISTANCE_META"/>
+
+            <type name="XrEnvironmentRaycastHitStatusMETA"/>
+
+            <command name="xrCreateEnvironmentRaycasterAsyncMETA"/>
+            <command name="xrCreateEnvironmentRaycasterCompleteMETA"/>
+            <command name="xrDestroyEnvironmentRaycasterMETA"/>
+            <command name="xrPerformEnvironmentRaycastMETA"/>
         </require>
     </extension>
 
@@ -18898,10 +20122,17 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_META_extension_610" number="610" type="instance" supported="disabled">
+    <extension name="XR_META_tile_properties_hint" number="610" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                 name="XR_META_extension_610_SPEC_VERSION"/>
-            <enum value="&quot;XR_META_extension_610&quot;" name="XR_META_extension_610_EXTENSION_NAME"/>
+            <enum value="1"                                        name="XR_META_tile_properties_hint_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_tile_properties_hint&quot;" name="XR_META_TILE_PROPERTIES_HINT_EXTENSION_NAME"/>
+
+            <type name="XrExtent3DiMETA"/>
+            <type name="XrTilePropertiesMETA"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_TILE_PROPERTIES_META"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_TILE_PROPERTIES_HINT_META"/>
+            <type name="XrTilePropertiesHintMETA"/>
+            <command name="xrSetTilePropertiesHintMETA"/>
         </require>
     </extension>
 
@@ -19575,10 +20806,11 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_extension_705" number="705" type="instance" supported="disabled">
+    <extension name="XR_ANDROID_mouse_interaction" number="705" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                    name="XR_ANDROID_extension_705_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_extension_705&quot;" name="XR_ANDROID_EXTENSION_705_EXTENSION_NAME"/>
+            <enum value="1"                                        name="XR_ANDROID_mouse_interaction_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_mouse_interaction&quot;" name="XR_ANDROID_MOUSE_INTERACTION_EXTENSION_NAME"/>
+            <interaction_profile name="/interaction_profiles/android/mouse_interaction_android"/>
         </require>
     </extension>
 
@@ -19620,10 +20852,24 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_extension_709" number="709" type="instance" supported="disabled">
+    <extension name="XR_ANDROID_trackables_qr_code" number="709" type="instance" supported="openxr" depends="XR_ANDROID_trackables">
         <require>
-            <enum value="1"                                    name="XR_ANDROID_extension_709_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_extension_709&quot;" name="XR_ANDROID_EXTENSION_709_EXTENSION_NAME"/>
+            <enum value="1"                                         name="XR_ANDROID_trackables_qr_code_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_trackables_qr_code&quot;" name="XR_ANDROID_TRACKABLES_QR_CODE_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrStructureType"              name="XR_TYPE_SYSTEM_QR_CODE_TRACKING_PROPERTIES_ANDROID"/>
+            <enum offset="1" extends="XrStructureType"              name="XR_TYPE_TRACKABLE_QR_CODE_CONFIGURATION_ANDROID"/>
+            <enum offset="2" extends="XrStructureType"              name="XR_TYPE_TRACKABLE_QR_CODE_ANDROID"/>
+
+            <enum offset="0" extends="XrTrackableTypeANDROID"       name="XR_TRACKABLE_TYPE_QR_CODE_ANDROID"                  comment="Indicates that the trackable is a QR code."/>
+
+            <type name="XrQrCodeTrackingModeANDROID"/>
+
+            <type name="XrSystemQrCodeTrackingPropertiesANDROID"/>
+            <type name="XrTrackableQrCodeConfigurationANDROID"/>
+            <type name="XrTrackableQrCodeANDROID"/>
+
+            <command name="xrGetTrackableQrCodeANDROID"/>
         </require>
     </extension>
 
@@ -19874,10 +21120,40 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROIDX_extension_719" number="719" type="instance" supported="disabled">
+    <extension name="XR_ANDROID_scene_meshing" number="719" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                     name="XR_ANDROIDX_extension_719_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROIDX_extension_719&quot;" name="XR_ANDROIDX_EXTENSION_719_EXTENSION_NAME"/>
+            <enum value="3"                                    name="XR_ANDROID_scene_meshing_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_scene_meshing&quot;" name="XR_ANDROID_SCENE_MESHING_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrStructureType"         name="XR_TYPE_SYSTEM_SCENE_MESHING_PROPERTIES_ANDROID"/>
+            <enum offset="1" extends="XrStructureType"         name="XR_TYPE_SCENE_MESHING_TRACKER_CREATE_INFO_ANDROID"/>
+            <enum offset="2" extends="XrStructureType"         name="XR_TYPE_SCENE_MESH_SNAPSHOT_CREATE_INFO_ANDROID"/>
+            <enum offset="3" extends="XrStructureType"         name="XR_TYPE_SCENE_MESH_SNAPSHOT_CREATION_RESULT_ANDROID"/>
+            <enum offset="4" extends="XrStructureType"         name="XR_TYPE_SCENE_SUBMESH_STATE_ANDROID"/>
+            <enum offset="5" extends="XrStructureType"         name="XR_TYPE_SCENE_SUBMESH_DATA_ANDROID"/>
+
+            <enum offset="0" extends="XrObjectType"            name="XR_OBJECT_TYPE_SCENE_MESHING_TRACKER_ANDROID"        comment="XrSceneMeshingTrackerANDROID"/>
+            <enum offset="1" extends="XrObjectType"            name="XR_OBJECT_TYPE_SCENE_MESH_SNAPSHOT_ANDROID"          comment="XrSceneMeshSnapshotANDROID"/>
+
+            <type name="XrSceneMeshingTrackerANDROID"/>
+            <type name="XrSceneMeshSnapshotANDROID"/>
+            <type name="XrSystemSceneMeshingPropertiesANDROID"/>
+            <type name="XrSceneMeshingTrackerCreateInfoANDROID"/>
+            <type name="XrSceneMeshSnapshotCreateInfoANDROID"/>
+            <type name="XrSceneMeshSnapshotCreationResultANDROID"/>
+            <type name="XrSceneSubmeshStateANDROID"/>
+            <type name="XrSceneSubmeshDataANDROID"/>
+            <type name="XrSceneMeshSemanticLabelSetANDROID"/>
+            <type name="XrSceneMeshSemanticLabelANDROID"/>
+            <type name="XrSceneMeshTrackingStateANDROID"/>
+
+            <command name="xrEnumerateSupportedSemanticLabelSetsANDROID"/>
+            <command name="xrCreateSceneMeshingTrackerANDROID"/>
+            <command name="xrDestroySceneMeshingTrackerANDROID"/>
+            <command name="xrCreateSceneMeshSnapshotANDROID"/>
+            <command name="xrDestroySceneMeshSnapshotANDROID"/>
+            <command name="xrGetAllSubmeshStatesANDROID"/>
+            <command name="xrGetSubmeshDataANDROID"/>
         </require>
     </extension>
 
@@ -20559,17 +21835,43 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_extension_786" number="786" type="instance" supported="disabled">
+    <extension name="XR_ANDROID_spatial_object_tracking" number="786" type="instance" supported="openxr" depends="XR_EXT_spatial_entity">
         <require>
-            <enum value="1"                                    name="XR_ANDROID_extension_786_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_extension_786&quot;" name="XR_ANDROID_EXTENSION_786_EXTENSION_NAME"/>
+            <enum value="2"                                              name="XR_ANDROID_spatial_object_tracking_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_spatial_object_tracking&quot;" name="XR_ANDROID_SPATIAL_OBJECT_TRACKING_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrStructureType"                   name="XR_TYPE_SPATIAL_CAPABILITY_CONFIGURATION_OBJECT_TRACKING_ANDROID"/>
+            <enum offset="1" extends="XrStructureType"                   name="XR_TYPE_SPATIAL_COMPONENT_OBJECT_SEMANTIC_LABEL_LIST_ANDROID"/>
+
+            <enum offset="0" extends="XrSpatialCapabilityEXT"            name="XR_SPATIAL_CAPABILITY_OBJECT_TRACKING_ANDROID"                    comment="Object tracking"/>
+            <enum offset="0" extends="XrSpatialComponentTypeEXT"         name="XR_SPATIAL_COMPONENT_TYPE_OBJECT_SEMANTIC_LABEL_ANDROID"          comment="Component that provides a semantic label for a object; Corresponding list structure is slink:XrSpatialComponentObjectSemanticLabelListANDROID; Corresponding data structure is elink:XrSpatialObjectSemanticLabelANDROID"/>
+            <type name="XrSpatialObjectSemanticLabelANDROID"/>
+            <type name="XrSpatialCapabilityConfigurationObjectTrackingANDROID"/>
+            <type name="XrSpatialComponentObjectSemanticLabelListANDROID"/>
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_extension_787" number="787" type="instance" supported="disabled">
+    <!-- XR_ANDROID_spatial_discovery_raycast -->
+    <extension name="XR_ANDROID_spatial_discovery_raycast" number="787" type="instance" supported="openxr" depends="XR_EXT_spatial_entity">
         <require>
-            <enum value="1"                                    name="XR_ANDROID_extension_787_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_extension_787&quot;" name="XR_ANDROID_EXTENSION_787_EXTENSION_NAME"/>
+            <enum value="1"                                                name="XR_ANDROID_spatial_discovery_raycast_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_spatial_discovery_raycast&quot;" name="XR_ANDROID_SPATIAL_DISCOVERY_RAYCAST_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrSpatialCapabilityEXT"              name="XR_SPATIAL_CAPABILITY_DEPTH_RAYCAST_ANDROID"         comment="Raycast against depth buffer"/>
+            <enum offset="0" extends="XrSpatialComponentTypeEXT"           name="XR_SPATIAL_COMPONENT_TYPE_RAYCAST_RESULT_ANDROID"    comment="Component that provides the pose of a raycast hit on an entity. Corresponding list structure is slink:XrSpatialComponentRaycastResultListANDROID; Corresponding data structure is slink:XrSpatialRaycastResultDataANDROID"/>
+
+            <type name="XrSpatialRaycastResultDataANDROID"/>
+
+            <type name="XrSpatialCapabilityConfigurationDepthRaycastANDROID"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SPATIAL_CAPABILITY_CONFIGURATION_DEPTH_RAYCAST_ANDROID"/>
+            <type name="XrSpatialRaycastInfoANDROID"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_SPATIAL_RAYCAST_INFO_ANDROID"/>
+            <type name="XrSpatialComponentRaycastResultListANDROID"/>
+            <enum offset="2" extends="XrStructureType" name="XR_TYPE_SPATIAL_COMPONENT_RAYCAST_RESULT_LIST_ANDROID"/>
+            <type name="XrSpatialRaycastSnapshotCreateInfoANDROID"/>
+            <enum offset="3" extends="XrStructureType" name="XR_TYPE_SPATIAL_RAYCAST_SNAPSHOT_CREATE_INFO_ANDROID"/>
+
+            <command name="xrCreateSpatialRaycastSnapshotANDROID"/>
         </require>
     </extension>
 
@@ -20594,17 +21896,32 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_extension_791" number="791" type="instance" supported="disabled">
+    <extension name="XR_ANDROID_spatial_entity_bound_anchor" number="791" type="instance" supported="openxr" depends="XR_EXT_spatial_anchor">
         <require>
-            <enum value="1"                                    name="XR_ANDROID_extension_791_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_extension_791&quot;" name="XR_ANDROID_EXTENSION_791_EXTENSION_NAME"/>
+            <enum value="2"                                                  name="XR_ANDROID_spatial_entity_bound_anchor_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_spatial_entity_bound_anchor&quot;" name="XR_ANDROID_SPATIAL_ENTITY_BOUND_ANCHOR_EXTENSION_NAME"/>
+
+            <enum offset="1" dir="-" extends="XrResult"                      name="XR_ERROR_SPATIAL_ANCHOR_ATTACHABLE_COMPONENT_NOT_FOUND_ANDROID" comment="Spatial entity with parent ID does not have at least one component enumerated by xrEnumerateSpatialAnchorAttachableComponentsANDROID"/>
+
+            <type name="XrSpatialAnchorParentANDROID"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SPATIAL_ANCHOR_PARENT_ANDROID"/>
+
+            <extend type="command" name="xrCreateSpatialAnchorEXT" errorcodes="XR_ERROR_SPATIAL_ANCHOR_ATTACHABLE_COMPONENT_NOT_FOUND_ANDROID,XR_ERROR_SPATIAL_ENTITY_ID_INVALID_EXT"/>
+
+            <command name="xrEnumerateSpatialAnchorAttachableComponentsANDROID"/>
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_extension_792" number="792" type="instance" supported="disabled">
+    <extension name="XR_ANDROID_spatial_component_subsumed_by" number="792" type="instance" supported="openxr" depends="XR_EXT_spatial_entity+XR_EXT_spatial_plane_tracking">
         <require>
-            <enum value="1"                                    name="XR_ANDROID_extension_792_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_extension_792&quot;" name="XR_ANDROID_EXTENSION_792_EXTENSION_NAME"/>
+            <enum value="1"                                                    name="XR_ANDROID_spatial_component_subsumed_by_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_spatial_component_subsumed_by&quot;" name="XR_ANDROID_SPATIAL_COMPONENT_SUBSUMED_BY_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrSpatialComponentTypeEXT"               name="XR_SPATIAL_COMPONENT_TYPE_SUBSUMED_BY_ANDROID"           comment="Component that provides entity ID of the entity subsuming the attached entity. Corresponding list structure is slink:XrSpatialComponentSubsumedByListANDROID; Corresponding data structure is basetype:XrSpatialEntityIdEXT"/>
+            <type name="XrSpatialDiscoveryUniqueEntitiesFilterANDROID"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_SPATIAL_DISCOVERY_UNIQUE_ENTITIES_FILTER_ANDROID"/>
+            <type name="XrSpatialComponentSubsumedByListANDROID"/>
+            <enum offset="2" extends="XrStructureType" name="XR_TYPE_SPATIAL_COMPONENT_SUBSUMED_BY_LIST_ANDROID"/>
         </require>
     </extension>
 
@@ -20629,10 +21946,18 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_extension_796" number="796" type="instance" supported="disabled">
+    <extension name="XR_ANDROID_spatial_anchor_space" number="796" type="instance" supported="openxr" depends="XR_EXT_spatial_anchor">
         <require>
-            <enum value="1"                                    name="XR_ANDROID_extension_796_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_extension_796&quot;" name="XR_ANDROID_EXTENSION_796_EXTENSION_NAME"/>
+            <enum value="1"                                           name="XR_ANDROID_spatial_anchor_space_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_spatial_anchor_space&quot;" name="XR_ANDROID_SPATIAL_ANCHOR_SPACE_EXTENSION_NAME"/>
+
+            <enum offset="1" dir="-" extends="XrResult"               name="XR_ERROR_SPATIAL_ANCHOR_ENTITY_ID_INVALID_ANDROID" comment="The specified spatial entity ID is invalid for an anchor."/>
+
+            <type name="XrSpatialAnchorSpaceFromIdCreateInfoANDROID"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SPATIAL_ANCHOR_SPACE_FROM_ID_CREATE_INFO_ANDROID"/>
+
+            <command name="xrCreateSpatialAnchorSpaceANDROID"/>
+            <command name="xrCreateSpatialAnchorSpaceFromIdANDROID"/>
         </require>
     </extension>
 
@@ -20916,10 +22241,16 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_EXT_extension_837" number="837" type="instance" supported="disabled">
+    <extension name="XR_EXT_interaction_profile_battery_state_display" number="837" type="instance" supported="openxr" ratified="openxr">
         <require>
-            <enum value="1"                                name="XR_EXT_extension_837_SPEC_VERSION"/>
-            <enum value="&quot;XR_EXT_extension_837&quot;" name="XR_EXT_EXTENSION_837_EXTENSION_NAME"/>
+            <enum value="1"                                                            name="XR_EXT_interaction_profile_battery_state_display_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_interaction_profile_battery_state_display&quot;" name="XR_EXT_INTERACTION_PROFILE_BATTERY_STATE_DISPLAY_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrStructureType"                                 name="XR_TYPE_BATTERY_STATE_DISPLAY_EXT"/>
+
+            <type name="XrBatteryStateDisplayEXT"/>
+            <type name="XrBatteryStateDisplayStateFlagsEXT"/>
+            <type name="XrBatteryStateDisplayStateFlagBitsEXT"/>
         </require>
     </extension>
 
@@ -20939,10 +22270,14 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_EXT_extension_840" number="840" type="instance" supported="disabled">
+    <extension name="XR_EXT_view_configuration_views_change" number="840" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                name="XR_EXT_extension_840_SPEC_VERSION"/>
-            <enum value="&quot;XR_EXT_extension_840&quot;" name="XR_EXT_EXTENSION_840_EXTENSION_NAME"/>
+            <enum value="1"                                                  name="XR_EXT_view_configuration_views_change_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_view_configuration_views_change&quot;" name="XR_EXT_VIEW_CONFIGURATION_VIEWS_CHANGE_EXTENSION_NAME"/>
+
+            <type name="XrEventDataViewConfigurationViewsChangedEXT"/>
+
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_EVENT_DATA_VIEW_CONFIGURATION_VIEWS_CHANGED_EXT"/>
         </require>
     </extension>
 
@@ -21171,9 +22506,16 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
     </extension>
 
     <extension name="XR_KHR_extension_873" number="873" type="instance" supported="disabled">
-         <require>
+        <require>
             <enum value="1"                                name="XR_KHR_extension_873_SPEC_VERSION"/>
             <enum value="&quot;XR_KHR_extension_873&quot;" name="XR_KHR_EXTENSION_873_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_EXT_extension_874" number="874" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                name="XR_EXT_extension_874_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_extension_874&quot;" name="XR_EXT_EXTENSION_874_EXTENSION_NAME"/>
         </require>
     </extension>
 

@@ -8,18 +8,17 @@
 #define UNUSED_PARM(x) \
     { (void)(x); }
 
-std::shared_ptr<IPlatformPlugin> CreatePlatformPlugin(const std::shared_ptr<Options>& options,
-                                                      const std::shared_ptr<PlatformData>& data) {
+std::shared_ptr<IPlatformPlugin> CreatePlatformPlugin(const std::shared_ptr<PlatformData>& data) {
 #if !defined(XR_USE_PLATFORM_ANDROID)
     UNUSED_PARM(data);
 #endif
 
 #if defined(XR_USE_PLATFORM_WIN32)
-    return CreatePlatformPlugin_Win32(options);
+    return CreatePlatformPlugin_Win32();
 #elif defined(XR_USE_PLATFORM_ANDROID)
-    return CreatePlatformPlugin_Android(options, data);
+    return CreatePlatformPlugin_Android(data);
 #elif defined(XR_OS_APPLE) || defined(XR_OS_LINUX)
-    return CreatePlatformPlugin_Posix(options);
+    return CreatePlatformPlugin_Posix();
 #else
 #error Unsupported platform or no XR platform defined!
 #endif

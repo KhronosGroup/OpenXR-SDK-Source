@@ -6,7 +6,6 @@
 #include "common.h"
 #include "geometry.h"
 #include "graphicsplugin.h"
-#include "options.h"
 #include "graphics_plugin_impl_helpers.h"
 #include "check.h"
 
@@ -157,10 +156,9 @@ class SwapchainImageContext {
 };
 
 struct D3D12GraphicsPlugin : public IGraphicsPlugin {
-    D3D12GraphicsPlugin(const std::shared_ptr<Options>& options, std::shared_ptr<IPlatformPlugin>)
+    D3D12GraphicsPlugin()
         : m_vertexShaderBytes(CompileShader(ShaderHlsl, "MainVS", "vs_5_1")),
-          m_pixelShaderBytes(CompileShader(ShaderHlsl, "MainPS", "ps_5_1")),
-          m_clearColor(options->GetBackgroundClearColor()) {}
+          m_pixelShaderBytes(CompileShader(ShaderHlsl, "MainPS", "ps_5_1")) {}
 
     ~D3D12GraphicsPlugin() override { CloseHandle(m_fenceEvent); }
 
@@ -715,7 +713,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         CpuWaitForFence(m_fenceValue);
     }
 
-    void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
+    void SetClearColor(const std::array<float, 4> clearColor) override { m_clearColor = clearColor; }
 
    private:
     const ComPtr<ID3DBlob> m_vertexShaderBytes;
@@ -739,9 +737,6 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
 };
 }  // namespace
 
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_D3D12(const std::shared_ptr<Options>& options,
-                                                            std::shared_ptr<IPlatformPlugin> platformPlugin) {
-    return std::make_shared<D3D12GraphicsPlugin>(options, platformPlugin);
-}
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_D3D12() { return std::make_shared<D3D12GraphicsPlugin>(); }
 
 #endif

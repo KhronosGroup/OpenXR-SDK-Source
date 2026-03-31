@@ -1,0 +1,11 @@
+{
+    "file_format_version": "1.0.0",
+    "api_layer": {
+        "name": "XR_APILAYER_LUNARG_api_dump",
+        "library_path": "libXrApiLayer_api_dump.so",
+        "api_version": "1.1",
+        "implementation_version": "1",
+        "description": "API Layer to record api calls as they occur",
+        "disable_environment": "LUNARG_api_dump_disabled"
+    }
+}

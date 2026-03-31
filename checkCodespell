@@ -47,7 +47,7 @@ CODESPELL_IGNORE=${CODESPELL_IGNORE:-${DEFAULT_CODESPELL_IGNORE}}
 # Wee, Ser, Nuber, Blok, DeVault are names
 # rouge is a word (and our source code highlighter)
 # implementors is just how we spell it
-IGNORE_WORDS="lod,nd,ba,unknwn,wee,ser,nuber,blok,devault,rouge,implementor,implementors"
+IGNORE_WORDS="lod,nd,ba,unknwn,wee,ser,nuber,blok,devault,rouge,implementor,implementors,ACN"
 
 # Add to this to exclude individual files or directories (comma-delimited)
 # - Skipping external code.

@@ -50,4 +50,8 @@ DirectX::XMMATRIX XM_CALLCONV LoadXrMatrix(const XrMatrix4x4f& matrix);
 Microsoft::WRL::ComPtr<ID3DBlob> CompileShader(const char* hlsl, const char* entrypoint, const char* shaderTarget);
 Microsoft::WRL::ComPtr<IDXGIAdapter1> GetAdapter(LUID adapterId);
 
+static constexpr DXGI_FORMAT kDefaultDepthFormat = DXGI_FORMAT_D32_FLOAT;
+static constexpr DXGI_FORMAT kDefaultDepthFormatTypeless = DXGI_FORMAT_R32_TYPELESS;
+DXGI_FORMAT GetDepthStencilFormatOrDefault(const XrSwapchainCreateInfo* createInfo);
+
 #endif

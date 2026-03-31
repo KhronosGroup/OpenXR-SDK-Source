@@ -7,7 +7,6 @@
 #include "geometry.h"
 #include "graphicsplugin.h"
 #include "graphics_plugin_impl_helpers.h"
-#include "options.h"
 
 #ifdef XR_USE_GRAPHICS_API_OPENGL_ES
 
@@ -57,8 +56,7 @@ static const char* FragmentShaderGlsl = R"_(#version 320 es
     )_";
 
 struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
-    OpenGLESGraphicsPlugin(const std::shared_ptr<Options>& options, const std::shared_ptr<IPlatformPlugin> /*unused*/&)
-        : m_clearColor(options->GetBackgroundClearColor()) {}
+    OpenGLESGraphicsPlugin() {}
 
     OpenGLESGraphicsPlugin(const OpenGLESGraphicsPlugin&) = delete;
     OpenGLESGraphicsPlugin& operator=(const OpenGLESGraphicsPlugin&) = delete;
@@ -403,7 +401,7 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
 
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return 1; }
 
-    void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
+    void SetClearColor(const std::array<float, 4> clearColor) override { m_clearColor = clearColor; }
 
    private:
 #ifdef XR_USE_PLATFORM_ANDROID
@@ -424,9 +422,6 @@ struct OpenGLESGraphicsPlugin : public IGraphicsPlugin {
 };
 }  // namespace
 
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_OpenGLES(const std::shared_ptr<Options>& options,
-                                                               std::shared_ptr<IPlatformPlugin> platformPlugin) {
-    return std::make_shared<OpenGLESGraphicsPlugin>(options, platformPlugin);
-}
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_OpenGLES() { return std::make_shared<OpenGLESGraphicsPlugin>(); }
 
 #endif

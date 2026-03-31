@@ -80,4 +80,31 @@ file(
     "${CMAKE_CURRENT_BINARY_DIR}/resources/runtimes"
 )
 
+gen_xr_layer_json(
+    "${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/layers/XrApiLayer_api_dump.json"
+    LUNARG_api_dump
+    "$<TARGET_FILE:XrApiLayer_api_dump>"
+    1
+    "API Layer to record api calls as they occur"
+    ""
+)
+
+gen_xr_layer_json(
+    "${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/layers/XrApiLayer_core_validation.json"
+    LUNARG_core_validation
+    $<TARGET_FILE:XrApiLayer_core_validation>
+    1
+    "API Layer to perform validation of api calls and parameters as they occur"
+    ""
+)
+
+# Add generated file to our sources so we depend on it, and thus trigger generation.
+target_sources(
+    loader_test
+    PRIVATE
+        "${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/layers/XrApiLayer_core_validation.json"
+        "${PROJECT_BINARY_DIR}/src/tests/loader_test/resources/layers/XrApiLayer_api_dump.json"
+
+)
+
 add_subdirectory(test_layers)

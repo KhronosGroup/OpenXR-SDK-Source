@@ -981,6 +981,17 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         # Validate the rest of this struct
         struct_union_check += self.writeIndent(2)
         struct_union_check += 'switch (next_header->type) {\n'
+        # Manually handling XR_TYPE_UNKNOWN as a XrBaseInStructure
+        struct_union_check += self.writeIndent(3)
+        struct_union_check += 'case XR_TYPE_UNKNOWN:\n'
+        struct_union_check += self.writeIndent(4)
+        struct_union_check += 'if (!ApiDumpOutputXrStruct(gen_dispatch_table, next_header, prefix, "const XrBaseInStructure*", true, contents)) {\n'
+        struct_union_check += self.writeIndent(5)
+        struct_union_check += 'return false;\n'
+        struct_union_check += self.writeIndent(4)
+        struct_union_check += '}\n'
+        struct_union_check += self.writeIndent(4)
+        struct_union_check += 'return true;\n'
         enum_tuple = [x for x in self.api_enums if x.name == 'XrStructureType'][0]
         for cur_value in enum_tuple.values:
             struct_define_name = self.genXrStructureName(

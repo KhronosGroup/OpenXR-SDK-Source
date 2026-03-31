@@ -216,12 +216,12 @@ void android_main(struct android_app* app) {
         bool exitRenderLoop = false;
 
         // Create platform-specific implementation.
-        std::shared_ptr<IPlatformPlugin> platformPlugin = CreatePlatformPlugin(options, data);
+        std::shared_ptr<IPlatformPlugin> platformPlugin = CreatePlatformPlugin(data);
         // Create graphics API implementation.
-        std::shared_ptr<IGraphicsPlugin> graphicsPlugin = CreateGraphicsPlugin(options, platformPlugin);
+        std::shared_ptr<IGraphicsPlugin> graphicsPlugin = CreateGraphicsPlugin(options->GraphicsPlugin);
 
         // Initialize the OpenXR program.
-        std::shared_ptr<IOpenXrProgram> program = CreateOpenXrProgram(options, platformPlugin, graphicsPlugin);
+        std::shared_ptr<IOpenXrProgram> program = CreateOpenXrProgram(platformPlugin, graphicsPlugin);
 
         // Initialize the loader for this platform
         PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
@@ -234,15 +234,13 @@ void android_main(struct android_app* app) {
         }
 
         program->CreateInstance();
-        program->InitializeSystem();
+        program->InitializeSystem(options->Parsed.FormFactor, options->Parsed.ViewConfigType,
+                                  options->Parsed.EnvironmentBlendModeOverride, options->Parsed.EnvironmentBlendMode);
 
-        options->SetEnvironmentBlendMode(program->GetPreferredBlendMode());
-        UpdateOptionsFromSystemProperties(*options);
-        platformPlugin->UpdateOptions(options);
-        graphicsPlugin->UpdateOptions(options);
+        graphicsPlugin->SetClearColor(program->GetBackgroundClearColor());
 
         program->InitializeDevice();
-        program->InitializeSession();
+        program->InitializeSession(options->AppSpace);
         program->CreateSwapchains();
 
         while (app->destroyRequested == 0) {
@@ -310,24 +308,22 @@ int main(int argc, char* argv[]) {
         bool requestRestart = false;
         do {
             // Create platform-specific implementation.
-            std::shared_ptr<IPlatformPlugin> platformPlugin = CreatePlatformPlugin(options, data);
+            std::shared_ptr<IPlatformPlugin> platformPlugin = CreatePlatformPlugin(data);
 
             // Create graphics API implementation.
-            std::shared_ptr<IGraphicsPlugin> graphicsPlugin = CreateGraphicsPlugin(options, platformPlugin);
+            std::shared_ptr<IGraphicsPlugin> graphicsPlugin = CreateGraphicsPlugin(options->GraphicsPlugin);
 
             // Initialize the OpenXR program.
-            std::shared_ptr<IOpenXrProgram> program = CreateOpenXrProgram(options, platformPlugin, graphicsPlugin);
+            std::shared_ptr<IOpenXrProgram> program = CreateOpenXrProgram(platformPlugin, graphicsPlugin);
 
             program->CreateInstance();
-            program->InitializeSystem();
+            program->InitializeSystem(options->Parsed.FormFactor, options->Parsed.ViewConfigType,
+                                      options->Parsed.EnvironmentBlendModeOverride, options->Parsed.EnvironmentBlendMode);
 
-            options->SetEnvironmentBlendMode(program->GetPreferredBlendMode());
-            UpdateOptionsFromCommandLine(*options, argc, argv);
-            platformPlugin->UpdateOptions(options);
-            graphicsPlugin->UpdateOptions(options);
+            graphicsPlugin->SetClearColor(program->GetBackgroundClearColor());
 
             program->InitializeDevice();
-            program->InitializeSession();
+            program->InitializeSession(options->AppSpace);
             program->CreateSwapchains();
 
             while (!quitKeyPressed) {

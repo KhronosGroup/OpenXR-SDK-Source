@@ -645,6 +645,7 @@ XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrDestroyInstance(XrInstance instance
 
     next_dispatch->DestroyInstance(instance);
     ApiDumpCleanUpMapsForTable(next_dispatch);
+    delete next_dispatch;
 
     // Write out the HTML footer if we destroy the last instance
     if (g_instance_dispatch_map.empty() && g_record_info.type == RECORD_HTML_FILE) {

@@ -7,7 +7,6 @@
 #include "geometry.h"
 #include "graphicsplugin.h"
 #include "graphics_plugin_impl_helpers.h"
-#include "options.h"
 
 #ifdef XR_USE_GRAPHICS_API_OPENGL
 
@@ -91,8 +90,7 @@ inline GLenum TexTarget(bool isArray, bool isMultisample) {
     }
 }
 struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
-    OpenGLGraphicsPlugin(const std::shared_ptr<Options>& options, const std::shared_ptr<IPlatformPlugin> /*unused*/&)
-        : m_clearColor(options->GetBackgroundClearColor()) {}
+    OpenGLGraphicsPlugin() {}
 
     OpenGLGraphicsPlugin(const OpenGLGraphicsPlugin&) = delete;
     OpenGLGraphicsPlugin& operator=(const OpenGLGraphicsPlugin&) = delete;
@@ -474,7 +472,7 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
 
     uint32_t GetSupportedSwapchainSampleCount(const XrViewConfigurationView&) override { return 1; }
 
-    void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
+    void SetClearColor(const std::array<float, 4> clearColor) override { m_clearColor = clearColor; }
 
    private:
 #ifdef XR_USE_PLATFORM_WIN32
@@ -504,9 +502,6 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
 };
 }  // namespace
 
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_OpenGL(const std::shared_ptr<Options>& options,
-                                                             std::shared_ptr<IPlatformPlugin> platformPlugin) {
-    return std::make_shared<OpenGLGraphicsPlugin>(options, platformPlugin);
-}
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_OpenGL() { return std::make_shared<OpenGLGraphicsPlugin>(); }
 
 #endif

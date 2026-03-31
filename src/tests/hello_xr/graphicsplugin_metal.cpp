@@ -7,7 +7,6 @@
 #include "geometry.h"
 #include "graphicsplugin.h"
 #include "graphics_plugin_impl_helpers.h"
-#include "options.h"
 
 #if defined(XR_USE_GRAPHICS_API_METAL)
 
@@ -22,7 +21,7 @@
 #include <simd/simd.h>
 
 struct MetalGraphicsPlugin : public IGraphicsPlugin {
-    MetalGraphicsPlugin(const std::shared_ptr<Options>& /*options*/, std::shared_ptr<IPlatformPlugin>) {}
+    MetalGraphicsPlugin() {}
 
     ~MetalGraphicsPlugin() override {
         DestroyResources();
@@ -415,7 +414,7 @@ struct MetalGraphicsPlugin : public IGraphicsPlugin {
         pCmd->commit();
     }
 
-    void UpdateOptions(const std::shared_ptr<Options>& options) override { m_clearColor = options->GetBackgroundClearColor(); }
+    void SetClearColor(const std::array<float, 4> clearColor) override { m_clearColor = clearColor; }
 
    private:
     NS::SharedPtr<MTL::Device> m_device;
@@ -441,9 +440,6 @@ struct MetalGraphicsPlugin : public IGraphicsPlugin {
     std::array<float, 4> m_clearColor;
 };
 
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Metal(const std::shared_ptr<Options>& options,
-                                                            std::shared_ptr<IPlatformPlugin> platformPlugin) {
-    return std::make_shared<MetalGraphicsPlugin>(options, platformPlugin);
-}
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Metal() { return std::make_shared<MetalGraphicsPlugin>(); }
 
 #endif

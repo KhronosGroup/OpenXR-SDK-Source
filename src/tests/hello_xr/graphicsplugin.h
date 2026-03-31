@@ -63,39 +63,32 @@ struct IGraphicsPlugin {
         return view.recommendedSwapchainSampleCount;
     }
 
-    // Perform required steps after updating Options
-    virtual void UpdateOptions(const std::shared_ptr<struct Options>& options) = 0;
+    // ClearColor depends on the environment (blend mode). We will set this after initialization
+    // based on the blend mode selected / available.
+    virtual void SetClearColor(const std::array<float, 4> clearColor) = 0;
 };
 
 // Graphics API factories are forward declared here.
 #ifdef XR_USE_GRAPHICS_API_OPENGL_ES
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_OpenGLES(const std::shared_ptr<struct Options>& options,
-                                                               std::shared_ptr<struct IPlatformPlugin> platformPlugin);
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_OpenGLES();
 #endif
 #ifdef XR_USE_GRAPHICS_API_OPENGL
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_OpenGL(const std::shared_ptr<struct Options>& options,
-                                                             std::shared_ptr<struct IPlatformPlugin> platformPlugin);
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_OpenGL();
 #endif
 #ifdef XR_USE_GRAPHICS_API_VULKAN
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_VulkanLegacy(const std::shared_ptr<struct Options>& options,
-                                                                   std::shared_ptr<struct IPlatformPlugin> platformPlugin);
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_VulkanLegacy();
 
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Vulkan(const std::shared_ptr<struct Options>& options,
-                                                             std::shared_ptr<struct IPlatformPlugin> platformPlugin);
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Vulkan();
 #endif
 #ifdef XR_USE_GRAPHICS_API_D3D11
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_D3D11(const std::shared_ptr<struct Options>& options,
-                                                            std::shared_ptr<struct IPlatformPlugin> platformPlugin);
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_D3D11();
 #endif
 #ifdef XR_USE_GRAPHICS_API_D3D12
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_D3D12(const std::shared_ptr<struct Options>& options,
-                                                            std::shared_ptr<struct IPlatformPlugin> platformPlugin);
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_D3D12();
 #endif
 #ifdef XR_USE_GRAPHICS_API_METAL
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Metal(const std::shared_ptr<struct Options>& options,
-                                                            std::shared_ptr<struct IPlatformPlugin> platformPlugin);
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin_Metal();
 #endif
 
 // Create a graphics plugin for the graphics API specified in the options.
-std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin(const std::shared_ptr<struct Options>& options,
-                                                      std::shared_ptr<struct IPlatformPlugin> platformPlugin);
+std::shared_ptr<IGraphicsPlugin> CreateGraphicsPlugin(const std::string graphicsPluginName);

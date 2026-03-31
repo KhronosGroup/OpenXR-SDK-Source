@@ -34,8 +34,9 @@
 
 #include "xr_dependencies.h"
 #include <openxr/openxr.h>
-#include <openxr/openxr_reflection.h>
 #include <openxr/openxr_loader_negotiation.h>
+#include <openxr/openxr_platform.h>
+#include <openxr/openxr_reflection.h>
 
 #include "common/xr_linear.h"
 
@@ -76,8 +77,8 @@ struct XrSession_T {
 
     // session state
     XrSessionState sessionState{XR_SESSION_STATE_UNKNOWN};
-    XrTime beginTime = 0;
-    XrTime endTime = 0;
+    bool hasBegun = false;
+    bool hasEnded = false;
 
     // spaces
     std::mutex spacesMutex;
@@ -316,51 +317,26 @@ const std::vector<const char*> cOculusTouchIPData_1_0{
     "/user/hand/right/output/haptic",
 };
 
+// XR_KHR_maintenance1 does not include proximity paths from XR_FB_touch_controller_proximity
 const std::vector<const char*> cOculusTouchIPData_1_0_khr_maint1{
-    "/user/hand/left/input/x/click",
-    "/user/hand/left/input/x/touch",
-    "/user/hand/left/input/y/click",
-    "/user/hand/left/input/y/touch",
-    "/user/hand/left/input/menu/click",
-    "/user/hand/left/input/squeeze/value",
-    "/user/hand/left/input/trigger/value",
-    "/user/hand/left/input/trigger/touch",
-    // https://gitlab.khronos.org/openxr/openxr/-/issues/2599
-    // "/user/hand/left/input/trigger/proximity",
-    "/user/hand/left/input/thumbstick/x",
-    "/user/hand/left/input/thumbstick/y",
-    "/user/hand/left/input/thumbstick/click",
-    "/user/hand/left/input/thumbstick/touch",
-    "/user/hand/left/input/thumbstick",
-    "/user/hand/left/input/thumbrest/touch",
-    // https://gitlab.khronos.org/openxr/openxr/-/issues/2599
-    // "/user/hand/left/input/thumb_resting_surfaces/proximity",
-    "/user/hand/left/input/grip/pose",
-    "/user/hand/left/input/grip_surface/pose",
-    "/user/hand/left/input/aim/pose",
-    "/user/hand/left/output/haptic",
-    "/user/hand/right/input/a/click",
-    "/user/hand/right/input/a/touch",
-    "/user/hand/right/input/b/click",
-    "/user/hand/right/input/b/touch",
-    "/user/hand/right/input/system/click",
-    "/user/hand/right/input/squeeze/value",
-    "/user/hand/right/input/trigger/value",
-    "/user/hand/right/input/trigger/touch",
-    // https://gitlab.khronos.org/openxr/openxr/-/issues/2599
-    // "/user/hand/right/input/trigger/proximity",
-    "/user/hand/right/input/thumbstick/x",
-    "/user/hand/right/input/thumbstick/y",
-    "/user/hand/right/input/thumbstick/click",
-    "/user/hand/right/input/thumbstick/touch",
-    "/user/hand/right/input/thumbstick",
-    "/user/hand/right/input/thumbrest/touch",
-    // https://gitlab.khronos.org/openxr/openxr/-/issues/2599
-    // "/user/hand/right/input/thumb_resting_surfaces/proximity",
-    "/user/hand/right/input/grip/pose",
-    "/user/hand/right/input/grip_surface/pose",
-    "/user/hand/right/input/aim/pose",
-    "/user/hand/right/output/haptic",
+    "/user/hand/left/input/x/click",           "/user/hand/left/input/x/touch",
+    "/user/hand/left/input/y/click",           "/user/hand/left/input/y/touch",
+    "/user/hand/left/input/menu/click",        "/user/hand/left/input/squeeze/value",
+    "/user/hand/left/input/trigger/value",     "/user/hand/left/input/trigger/touch",
+    "/user/hand/left/input/thumbstick/x",      "/user/hand/left/input/thumbstick/y",
+    "/user/hand/left/input/thumbstick/click",  "/user/hand/left/input/thumbstick/touch",
+    "/user/hand/left/input/thumbstick",        "/user/hand/left/input/thumbrest/touch",
+    "/user/hand/left/input/grip/pose",         "/user/hand/left/input/grip_surface/pose",
+    "/user/hand/left/input/aim/pose",          "/user/hand/left/output/haptic",
+    "/user/hand/right/input/a/click",          "/user/hand/right/input/a/touch",
+    "/user/hand/right/input/b/click",          "/user/hand/right/input/b/touch",
+    "/user/hand/right/input/system/click",     "/user/hand/right/input/squeeze/value",
+    "/user/hand/right/input/trigger/value",    "/user/hand/right/input/trigger/touch",
+    "/user/hand/right/input/thumbstick/x",     "/user/hand/right/input/thumbstick/y",
+    "/user/hand/right/input/thumbstick/click", "/user/hand/right/input/thumbstick/touch",
+    "/user/hand/right/input/thumbstick",       "/user/hand/right/input/thumbrest/touch",
+    "/user/hand/right/input/grip/pose",        "/user/hand/right/input/grip_surface/pose",
+    "/user/hand/right/input/aim/pose",         "/user/hand/right/output/haptic",
 };
 
 const std::vector<const char*> cOculusTouchIPData_1_1{
@@ -919,7 +895,7 @@ XrTime currentXrTime() {
 bool validateQuat(const XrQuaternionf& quat) {
     // tolerance for unit quats is 1%
     float norm = sqrtf(quat.x * quat.x + quat.y * quat.y + quat.z * quat.z + quat.w * quat.w);
-    return fabsf(norm - 1.f) <= 0.1f;
+    return fabsf(norm - 1.f) <= 0.01f;
 }
 
 template <typename T>
@@ -1036,7 +1012,13 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrEnumerateInstanceExtensionProperties
         return XR_ERROR_API_LAYER_NOT_PRESENT;
     }
 
-    static constexpr std::array<XrExtensionProperties, 3> runtimeExtensions = {{
+#ifdef XR_USE_PLATFORM_ANDROID
+    static constexpr std::size_t extension_count = 4;
+#else
+    static constexpr std::size_t extension_count = 3;
+#endif
+
+    static constexpr std::array<XrExtensionProperties, extension_count> runtimeExtensions = {{
         XrExtensionProperties{
             /*.type =*/XR_TYPE_EXTENSION_PROPERTIES,
             /*.next =*/nullptr,
@@ -1055,6 +1037,14 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrEnumerateInstanceExtensionProperties
             /*.extensionName =*/"XR_KHR_fake_ext2",
             /*.extensionVersion =*/3,
         },
+#ifdef XR_USE_PLATFORM_ANDROID
+        XrExtensionProperties{
+            /*.type =*/XR_TYPE_EXTENSION_PROPERTIES,
+            /*.next =*/nullptr,
+            /*.extensionName =*/XR_KHR_ANDROID_CREATE_INSTANCE_EXTENSION_NAME,
+            /*.extensionVersion =*/XR_KHR_android_create_instance_SPEC_VERSION,
+        },
+#endif
     }};
 
     return XrElementCapacityWrite(propertyCapacityInput, propertyCountOutput, properties, runtimeExtensions.data(),
@@ -1257,13 +1247,15 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrBeginSession(XrSession session, cons
         return viewConfigurationError(sessionPtr->instance, beginInfo->primaryViewConfigurationType);
     }
 
-    if (sessionPtr->beginTime != 0) {
+    if (sessionPtr->hasBegun) {
         return XR_ERROR_SESSION_RUNNING;
     }
 
-    sessionPtr->beginTime = currentXrTime();
+    sessionPtr->hasBegun = true;
 
     switchSessionState(session, XR_SESSION_STATE_SYNCHRONIZED);
+    switchSessionState(session, XR_SESSION_STATE_VISIBLE);
+    switchSessionState(session, XR_SESSION_STATE_FOCUSED);
 
     return XR_SUCCESS;
 }
@@ -1274,7 +1266,7 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrEndSession(XrSession session) {
         return XR_ERROR_SESSION_NOT_STOPPING;
     }
 
-    sessionPtr->beginTime = 0;
+    sessionPtr->hasBegun = false;
 
     switchSessionState(session, XR_SESSION_STATE_IDLE);
     switchSessionState(session, XR_SESSION_STATE_EXITING);
@@ -1284,15 +1276,15 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrEndSession(XrSession session) {
 
 XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrRequestExitSession(XrSession session) {
     XrSession_T* sessionPtr = demoteFromHandle<XrSession, XrSession_T>(session);
-    if (sessionPtr->beginTime == 0) {
+    if (!sessionPtr->hasBegun) {
         return XR_ERROR_SESSION_NOT_RUNNING;
     }
 
     // Behavior for request exit session twice not defined, but we return not running.
-    if (sessionPtr->endTime != 0) {
+    if (sessionPtr->hasEnded) {
         return XR_ERROR_SESSION_NOT_RUNNING;
     }
-    sessionPtr->endTime = currentXrTime();
+    sessionPtr->hasEnded = true;
 
     if (sessionPtr->sessionState == XR_SESSION_STATE_FOCUSED) {
         switchSessionState(session, XR_SESSION_STATE_VISIBLE);
@@ -1746,9 +1738,7 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrCreateAction(XrActionSet actionSet, 
                 definitions = cInteractionProfileDefinitions_1_0_khr_maintenance1;
             }
         } else {
-            // This is not strictly correct - but OpenXR 1.1 is a superset of maintenance1
-            // so we are ok if OpenXR 1.1 and maintenance1 are both enabled.
-            // https://gitlab.khronos.org/openxr/openxr/-/issues/2599
+            // OpenXR 1.1 is a superset of maintenance1
             definitions = cInteractionProfileDefinitions_1_1;
         }
 
@@ -2133,7 +2123,7 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrCreateActionSpace(XrSession session,
 XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrWaitFrame(XrSession session, const XrFrameWaitInfo* /*frameWaitInfo*/,
                                                       XrFrameState* frameState) {
     XrSession_T* sessionPtr = demoteFromHandle<XrSession, XrSession_T>(session);
-    if (sessionPtr->beginTime == 0) {
+    if (!sessionPtr->hasBegun) {
         return XR_ERROR_SESSION_NOT_RUNNING;
     }
 
@@ -2147,13 +2137,7 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrBeginFrame(XrSession /*session*/, co
     return XR_SUCCESS;
 }
 
-XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrEndFrame(XrSession session, const XrFrameEndInfo* /*frameEndInfo*/) {
-    XrSession_T* sessionPtr = demoteFromHandle<XrSession, XrSession_T>(session);
-    if (sessionPtr->beginTime != 0 && sessionPtr->endTime == 0 && sessionPtr->sessionState != XR_SESSION_STATE_FOCUSED) {
-        switchSessionState(session, XR_SESSION_STATE_VISIBLE);
-        switchSessionState(session, XR_SESSION_STATE_FOCUSED);
-    }
-
+XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrEndFrame(XrSession /*session*/, const XrFrameEndInfo* /*frameEndInfo*/) {
     return XR_SUCCESS;
 }
 
