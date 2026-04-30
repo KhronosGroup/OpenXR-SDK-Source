@@ -36,4 +36,6 @@ Asciidoctor::Extensions.register do
     inline_macro SemanticSubpathInlineMacro
     inline_macro SemanticPathInlineMacro
     inline_macro ActionNameInlineMacro
+
+    tree_processor RefLinkTargetModifier
 end

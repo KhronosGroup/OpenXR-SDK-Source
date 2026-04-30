@@ -278,7 +278,7 @@ LoaderInstance::LoaderInstance(XrInstance instance, const XrInstanceCreateInfo* 
     : _runtime_instance(instance),
       _topmost_gipa(topmost_gipa),
       _api_layer_interfaces(std::move(api_layer_interfaces)),
-      _dispatch_table(new XrGeneratedDispatchTableCore{}) {
+      _dispatch_table(std::make_unique<XrGeneratedDispatchTableCore>()) {
     for (uint32_t ext = 0; ext < create_info->enabledExtensionCount; ++ext) {
         _enabled_extensions.push_back(create_info->enabledExtensionNames[ext]);
     }

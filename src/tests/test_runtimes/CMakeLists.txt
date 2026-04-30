@@ -58,6 +58,8 @@ macro(gen_xr_runtime_json filename libfile)
     )
 endmacro()
 
+file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/openxr/1")
+
 gen_xr_runtime_json(
     "${CMAKE_CURRENT_BINARY_DIR}/openxr/1/active_runtime.json"
     "${CMAKE_CURRENT_BINARY_DIR}/$<TARGET_FILE_NAME:test_runtime>"

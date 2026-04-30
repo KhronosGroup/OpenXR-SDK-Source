@@ -1235,7 +1235,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         inline_enum_str += self.writeIndent(int_indent)
         inline_enum_str += f'oss_enum << "{error_prefix} {param_type} \\"{param_name}\\" enum value ";\n'
         inline_enum_str += self.writeIndent(int_indent)
-        inline_enum_str += f'oss_enum << Uint32ToHexString(static_cast<uint32_t>({pointer_string}{full_param_name}));\n'
+        inline_enum_str += f'oss_enum << Uint64ToHexString(static_cast<uint64_t>({pointer_string}{full_param_name}));\n'
         inline_enum_str += self.writeIndent(int_indent)
         inline_enum_str += 'CoreValidLogMessage(%s, "VUID-%s-%s-parameter",\n' % (instance_info_string,
                                                                                   cmd_struct_name,
@@ -1324,7 +1324,7 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             inline_flag_str += self.writeIndent(int_indent)
             inline_flag_str += f'oss_enum << "{error_prefix} {param_type} \\"{param_name}\\" flag value ";\n'
             inline_flag_str += self.writeIndent(int_indent)
-            inline_flag_str += 'oss_enum << Uint32ToHexString(static_cast<uint32_t>(%s%s));\n' % (pointer_string,
+            inline_flag_str += 'oss_enum << Uint64ToHexString(static_cast<uint64_t>(%s%s));\n' % (pointer_string,
                                                                                                   full_param_name)
             inline_flag_str += self.writeIndent(int_indent)
             inline_flag_str += 'oss_enum <<" contains illegal bit";\n'

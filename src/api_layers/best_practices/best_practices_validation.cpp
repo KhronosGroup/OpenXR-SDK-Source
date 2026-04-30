@@ -313,10 +313,12 @@ XRAPI_ATTR XrResult XRAPI_CALL BestPracticesLayerXrSyncActions(XrSession session
 
     result = g_nextDispatch.Get<PFN_xrSyncActions>(&XrGeneratedDispatchTable::SyncActions)(session, syncInfo);
 
-    if (result == XR_SUCCESS && !g_framesInFlight.empty()) {
+    {
         std::unique_lock<std::mutex> frameLock(g_frameMutex);
-        FrameState &currentFrameState = g_framesInFlight.front();
-        currentFrameState.syncActionsSucceeded = true;
+        if (result == XR_SUCCESS && !g_framesInFlight.empty()) {
+            FrameState &currentFrameState = g_framesInFlight.front();
+            currentFrameState.syncActionsSucceeded = true;
+        }
     }
     return result;
 }
@@ -355,29 +357,35 @@ XRAPI_ATTR XrResult XRAPI_CALL BestPracticesLayerXrLocateViews(XrSession session
                                                                XrViewState *viewState, uint32_t viewCapacityInput,
                                                                uint32_t *viewCountOutput, XrView *views) {
     XrResult result = XR_SUCCESS;
-    if (!g_framesInFlight.empty()) {
+    {
         std::unique_lock<std::mutex> frameLock(g_frameMutex);
-        FrameState &currentFrameState = g_framesInFlight.front();
-        if (currentFrameState.predictedDisplayTime != 0 && viewLocateInfo->displayTime != currentFrameState.predictedDisplayTime) {
-            BPLogger::LogMessage("xrLocateViews was called with a different displayTime than what was obtained from xrWaitFrame.");
+        if (!g_framesInFlight.empty()) {
+            FrameState &currentFrameState = g_framesInFlight.front();
+            if (currentFrameState.predictedDisplayTime != 0 &&
+                viewLocateInfo->displayTime != currentFrameState.predictedDisplayTime) {
+                BPLogger::LogMessage(
+                    "xrLocateViews was called with a different displayTime than what was obtained from xrWaitFrame.");
+            }
         }
     }
 
     result = g_nextDispatch.Get<PFN_xrLocateViews>(&XrGeneratedDispatchTable::LocateViews)(
         session, viewLocateInfo, viewState, viewCapacityInput, viewCountOutput, views);
 
-    if (!g_framesInFlight.empty()) {
-        if (viewCapacityInput != 0) {
-            std::unique_lock<std::mutex> frameLock(g_frameMutex);
-            FrameState &currentFrameState = g_framesInFlight.front();
-            for (uint32_t i = 0; i < viewCapacityInput; i++) {
-                currentFrameState.views[i] = views[i];
+    {
+        std::unique_lock<std::mutex> frameLock(g_frameMutex);
+        if (!g_framesInFlight.empty()) {
+            if (viewCapacityInput != 0) {
+                FrameState &currentFrameState = g_framesInFlight.front();
+                for (uint32_t i = 0; i < viewCapacityInput; i++) {
+                    currentFrameState.views[i] = views[i];
+                }
             }
+        } else {
+            BPLogger::LogMessage(
+                "xrLocateViews was called before xrWaitFrame with no frames in flight. Consider making the call between "
+                "xrBeginFrame and xrEndFrame.");
         }
-    } else {
-        BPLogger::LogMessage(
-            "xrLocateViews was called before xrWaitFrame with no frames in flight. Consider making the call between xrBeginFrame "
-            "and xrEndFrame.");
     }
     return result;
 }

@@ -138,7 +138,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         updates them automatically by processing a line at a time.
         -->
         <type category="define">// OpenXR current version number.
-#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(1, 1, 58)</type>
+#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(1, 1, 59)</type>
 
         <!--
         Defines for a fixed major.minor version of OpenXR preserving the shared patch version.
@@ -543,6 +543,12 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrSceneMeshingTrackerANDROID</name>)</type>
         <type category="handle" parent="XrSceneMeshingTrackerANDROID"><type>XR_DEFINE_HANDLE</type>(<name>XrSceneMeshSnapshotANDROID</name>)</type>
 
+        <!-- XR_ANDROID_eye_tracking -->
+        <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrEyeTrackerANDROID</name>)</type>
+
+        <!-- XR_ANDROID_light_estimation -->
+        <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrLightEstimatorANDROID</name>)</type>
+
         <!-- XR_FB_face_tracking -->
         <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrFaceTrackerFB</name>)</type>
 
@@ -724,6 +730,9 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <!-- enums for XR_META_spatial_entity_semantic_label -->
         <type name="XrSemanticLabelMETA" category="enum"/>
 
+        <!-- enums for XR_META_boundary_visibility -->
+        <type name="XrBoundaryVisibilityMETA" category="enum"/>
+
         <!-- flag bits for XR_FB_scene -->
         <type name="XrSemanticLabelsSupportFlagBitsFB" category="enum"/>
 
@@ -799,6 +808,15 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <type name="XrSceneMeshSemanticLabelANDROID" category="enum"/>
         <type name="XrSceneMeshTrackingStateANDROID" category="enum"/>
 
+        <!-- enums for XR_ANDROID_eye_tracking -->
+        <type name="XrEyeIndexANDROID" category="enum"/>
+        <type name="XrEyeStateANDROID" category="enum"/>
+        <type name="XrEyeTrackingModeANDROID" category="enum"/>
+
+        <!-- XR_ANDROID_light_estimation -->
+        <type name="XrSphericalHarmonicsKindANDROID" category="enum"/>
+        <type name="XrLightEstimateStateANDROID" category="enum"/>
+
         <!-- XR_META_local_dimming -->
         <type name="XrLocalDimmingModeMETA" category="enum"/>
 
@@ -812,6 +830,9 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <type name="XrFaceExpressionSet2FB" category="enum"/>
         <type name="XrFaceTrackingDataSource2FB" category="enum"/>
         <type name="XrFaceConfidence2FB" category="enum"/>
+
+        <!-- enums for XR_META_face_tracking_visemes -->
+        <type name="XrFaceTrackingVisemeMETA" category="enum"/>
 
         <!-- enums for XR_FB_body_tracking -->
         <type name="XrBodyJointFB" category="enum"/>
@@ -2082,6 +2103,19 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member><type>XrTime</type>                       <name>time</name></member>
         </type>
 
+        <!-- XR_META_face_tracking_visemes-->
+        <type category="struct" name="XrSystemFaceTrackingVisemesPropertiesMETA" structextends="XrSystemProperties" returnedonly="true">
+            <member values="XR_TYPE_SYSTEM_FACE_TRACKING_VISEMES_PROPERTIES_META"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*    <name>next</name></member>
+            <member><type>XrBool32</type> <name>supportsVisemes</name></member>
+        </type>
+        <type category="struct" name="XrFaceTrackingVisemesMETA" structextends="XrFaceExpressionWeights2FB">
+            <member values="XR_TYPE_FACE_TRACKING_VISEMES_META"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrBool32</type>    <name>isValid</name></member>
+            <member><type>float</type>       <name>visemes</name>[<enum>XR_FACE_TRACKING_VISEME_COUNT_META</enum>]</member>
+        </type>
+
         <!-- XR_FB_body_tracking structs -->
         <type category="struct" name="XrSystemBodyTrackingPropertiesFB" structextends="XrSystemProperties" returnedonly="true">
             <member values="XR_TYPE_SYSTEM_BODY_TRACKING_PROPERTIES_FB"><type>XrStructureType</type> <name>type</name></member>
@@ -3022,6 +3056,52 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member optional="true"><type>uint32_t</type>                              <name>indexCapacityInput</name></member>
             <member optional="true"><type>uint32_t</type>                              <name>indexCountOutput</name></member>
             <member optional="true" len="indexCapacityInput"><type>uint32_t</type>*    <name>indices</name></member>
+        </type>
+
+        <!-- XR_META_spatial_entity_room_mesh structs -->
+        <type category="struct" name="XrRoomMeshFaceMETA">
+            <member><type>XrUuid</type>                 <name>uuid</name></member>
+            <member optional="true"><type>XrUuid</type> <name>parentUuid</name></member>
+            <member><type>XrSemanticLabelMETA</type>    <name>semanticLabel</name></member>
+        </type>
+
+        <type category="struct" name="XrRoomMeshFaceIndicesMETA">
+            <member values="XR_TYPE_ROOM_MESH_FACE_INDICES_META"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                              <name>next</name></member>
+            <member optional="true"><type>uint32_t</type>                           <name>indexCapacityInput</name></member>
+            <member optional="true"><type>uint32_t</type>                           <name>indexCountOutput</name></member>
+            <member optional="true" len="indexCapacityInput"><type>uint32_t</type>* <name>indices</name></member>
+        </type>
+
+        <type category="struct" name="XrSpaceRoomMeshGetInfoMETA">
+            <member values="XR_TYPE_SPACE_ROOM_MESH_GET_INFO_META"><type>XrStructureType</type>                <name>type</name></member>
+            <member>const <type>void</type>*                                                                   <name>next</name></member>
+            <member optional="true"><type>uint32_t</type>                                                      <name>recognizedSemanticLabelCount</name></member>
+            <member optional="true" len="recognizedSemanticLabelCount">const <type>XrSemanticLabelMETA</type>* <name>recognizedSemanticLabels</name></member>
+        </type>
+
+        <type category="struct" name="XrRoomMeshMETA">
+            <member values="XR_TYPE_ROOM_MESH_META"><type>XrStructureType</type>             <name>type</name></member>
+            <member><type>void</type>*                                                       <name>next</name></member>
+            <member optional="true"><type>uint32_t</type>                                    <name>vertexCapacityInput</name></member>
+            <member optional="true"><type>uint32_t</type>                                    <name>vertexCountOutput</name></member>
+            <member optional="true" len="vertexCapacityInput"><type>XrVector3f</type>*       <name>vertices</name></member>
+            <member optional="true"><type>uint32_t</type>                                    <name>faceCapacityInput</name></member>
+            <member optional="true"><type>uint32_t</type>                                    <name>faceCountOutput</name></member>
+            <member optional="true" len="faceCapacityInput"><type>XrRoomMeshFaceMETA</type>* <name>faces</name></member>
+        </type>
+
+        <!-- XR_META_boundary_visibility structs -->
+        <type category="struct" name="XrSystemBoundaryVisibilityPropertiesMETA" structextends="XrSystemProperties" returnedonly="true">
+            <member values="XR_TYPE_SYSTEM_BOUNDARY_VISIBILITY_PROPERTIES_META"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*    <name>next</name></member>
+            <member><type>XrBool32</type> <name>supportsBoundaryVisibility</name></member>
+        </type>
+
+        <type category="struct" name="XrEventDataBoundaryVisibilityChangedMETA" parentstruct="XrEventDataBaseHeader" returnedonly="true">
+            <member values="XR_TYPE_EVENT_DATA_BOUNDARY_VISIBILITY_CHANGED_META"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*              <name>next</name></member>
+            <member><type>XrBoundaryVisibilityMETA</type> <name>boundaryVisibility</name></member>
         </type>
 
         <!-- XR_FB_scene structs -->
@@ -4241,6 +4321,83 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member optional="true" len="indexCapacityInput"><type>uint32_t</type>*    <name>indices</name></member>
         </type>
 
+        <!-- XR_ANDROID_eye_tracking -->
+        <type category="struct" name="XrSystemEyeTrackingPropertiesANDROID" returnedonly="true" structextends="XrSystemProperties">
+            <member values="XR_TYPE_SYSTEM_EYE_TRACKING_PROPERTIES_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*    <name>next</name></member>
+            <member><type>XrBool32</type> <name>supportsEyeTracking</name></member>
+        </type>
+        <type category="struct" name="XrEyeANDROID">
+            <member><type>XrEyeStateANDROID</type> <name>eyeState</name></member>
+            <member><type>XrPosef</type>           <name>eyePose</name></member>
+        </type>
+        <type category="struct" name="XrEyesANDROID">
+            <member values="XR_TYPE_EYES_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                    <name>next</name></member>
+            <member><type>XrEyeANDROID</type>             <name>eyes</name>[<enum>XR_EYE_MAX_ANDROID</enum>]</member>
+            <member><type>XrEyeTrackingModeANDROID</type> <name>mode</name></member>
+        </type>
+        <type category="struct" name="XrEyesGetInfoANDROID">
+            <member values="XR_TYPE_EYES_GET_INFO_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrTime</type>      <name>time</name></member>
+            <member><type>XrSpace</type>     <name>baseSpace</name></member>
+        </type>
+        <type category="struct" name="XrEyeTrackerCreateInfoANDROID">
+            <member values="XR_TYPE_EYE_TRACKER_CREATE_INFO_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+
+        <!-- XR_ANDROID_recommended_resolution -->
+        <type category="struct" name="XrEventDataRecommendedResolutionChangedANDROID" parentstruct="XrEventDataBaseHeader" returnedonly="true">
+            <member values="XR_TYPE_EVENT_DATA_RECOMMENDED_RESOLUTION_CHANGED_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+
+        <!-- XR_ANDROID_light_estimation -->
+        <type category="struct" name="XrSystemLightEstimationPropertiesANDROID" returnedonly="true" structextends="XrSystemProperties">
+            <member values="XR_TYPE_SYSTEM_LIGHT_ESTIMATION_PROPERTIES_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*    <name>next</name></member>
+            <member><type>XrBool32</type> <name>supportsLightEstimation</name></member>
+        </type>
+        <type category="struct" name="XrLightEstimatorCreateInfoANDROID">
+            <member values="XR_TYPE_LIGHT_ESTIMATOR_CREATE_INFO_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+        <type category="struct" name="XrLightEstimateGetInfoANDROID">
+            <member values="XR_TYPE_LIGHT_ESTIMATE_GET_INFO_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrSpace</type>     <name>space</name></member>
+            <member><type>XrTime</type>      <name>time</name></member>
+        </type>
+        <type category="struct" name="XrLightEstimateANDROID">
+            <member values="XR_TYPE_LIGHT_ESTIMATE_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                       <name>next</name></member>
+            <member><type>XrLightEstimateStateANDROID</type> <name>state</name></member>
+            <member><type>XrTime</type>                      <name>lastUpdatedTime</name></member>
+        </type>
+        <type category="struct" name="XrDirectionalLightANDROID" structextends="XrLightEstimateANDROID">
+            <member values="XR_TYPE_DIRECTIONAL_LIGHT_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                       <name>next</name></member>
+            <member><type>XrLightEstimateStateANDROID</type> <name>state</name></member>
+            <member><type>XrVector3f</type>                  <name>intensity</name></member>
+            <member><type>XrVector3f</type>                  <name>direction</name></member>
+        </type>
+        <type category="struct" name="XrAmbientLightANDROID" structextends="XrLightEstimateANDROID">
+            <member values="XR_TYPE_AMBIENT_LIGHT_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                       <name>next</name></member>
+            <member><type>XrLightEstimateStateANDROID</type> <name>state</name></member>
+            <member><type>XrVector3f</type>                  <name>intensity</name></member>
+            <member><type>XrVector3f</type>                  <name>colorCorrection</name></member>
+        </type>
+        <type category="struct" name="XrSphericalHarmonicsANDROID" structextends="XrLightEstimateANDROID">
+            <member values="XR_TYPE_SPHERICAL_HARMONICS_ANDROID"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                           <name>next</name></member>
+            <member><type>XrLightEstimateStateANDROID</type>     <name>state</name></member>
+            <member><type>XrSphericalHarmonicsKindANDROID</type> <name>kind</name></member>
+            <member><type>float</type>                           <name>coefficients</name>[9][3]</member>
+        </type>
+
         <!-- XR_EXT_plane_detection -->
         <type category="struct" name="XrSystemPlaneDetectionPropertiesEXT" returnedonly="true" structextends="XrSystemProperties">
             <member values="XR_TYPE_SYSTEM_PLANE_DETECTION_PROPERTIES_EXT"><type>XrStructureType</type> <name>type</name></member>
@@ -5045,6 +5202,17 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member><type>void</type>*                                                    <name>next</name></member>
             <member><type>uint32_t</type>                                                 <name>semanticLabelCount</name></member>
             <member len="semanticLabelCount"><type>XrSpatialPlaneSemanticLabelEXT</type>* <name>semanticLabels</name></member>
+        </type>
+
+        <!-- XR_EXT_stationary_reference_space -->
+        <type category="struct" name="XrStationaryReferenceSpaceGenerationIdGetInfoEXT">
+            <member values="XR_TYPE_STATIONARY_REFERENCE_SPACE_GENERATION_ID_GET_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+        <type category="struct" name="XrStationaryReferenceSpaceGenerationIdResultEXT">
+            <member values="XR_TYPE_STATIONARY_REFERENCE_SPACE_GENERATION_ID_RESULT_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*  <name>next</name></member>
+            <member><type>XrUuid</type> <name>generationId</name></member>
         </type>
 
         <!-- XR_ML_system_notifications -->
@@ -6594,6 +6762,25 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="2"   name="XR_FACE_CONFIDENCE2_COUNT_FB"/>
     </enums>
 
+    <!-- XR_META_face_tracking_visemes -->
+    <enums name="XrFaceTrackingVisemeMETA" type="enum">
+        <enum value="0"    name="XR_FACE_TRACKING_VISEME_SIL_META"/>
+        <enum value="1"    name="XR_FACE_TRACKING_VISEME_PP_META"/>
+        <enum value="2"    name="XR_FACE_TRACKING_VISEME_FF_META"/>
+        <enum value="3"    name="XR_FACE_TRACKING_VISEME_TH_META"/>
+        <enum value="4"    name="XR_FACE_TRACKING_VISEME_DD_META"/>
+        <enum value="5"    name="XR_FACE_TRACKING_VISEME_KK_META"/>
+        <enum value="6"    name="XR_FACE_TRACKING_VISEME_CH_META"/>
+        <enum value="7"    name="XR_FACE_TRACKING_VISEME_SS_META"/>
+        <enum value="8"    name="XR_FACE_TRACKING_VISEME_NN_META"/>
+        <enum value="9"    name="XR_FACE_TRACKING_VISEME_RR_META"/>
+        <enum value="10"   name="XR_FACE_TRACKING_VISEME_AA_META"/>
+        <enum value="11"   name="XR_FACE_TRACKING_VISEME_E_META"/>
+        <enum value="12"   name="XR_FACE_TRACKING_VISEME_IH_META"/>
+        <enum value="13"   name="XR_FACE_TRACKING_VISEME_OH_META"/>
+        <enum value="14"   name="XR_FACE_TRACKING_VISEME_OU_META"/>
+    </enums>
+
     <!-- XR_FB_body_tracking -->
     <enums name="XrBodyJointFB" type="enum">
         <enum value="0"    name="XR_BODY_JOINT_ROOT_FB"/>
@@ -7228,6 +7415,12 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="7"   name="XR_SEMANTIC_LABEL_WINDOW_FRAME_META"        comment="Window frame, which usually exists on a wall face."/>
     </enums>
 
+    <!-- enums for XR_META_boundary_visibility -->
+    <enums name="XrBoundaryVisibilityMETA" type="enum">
+        <enum value="1"   name="XR_BOUNDARY_VISIBILITY_NOT_SUPPRESSED_META" comment="Boundary visibility is not suppressed."/>
+        <enum value="2"   name="XR_BOUNDARY_VISIBILITY_SUPPRESSED_META"     comment="Boundary visibility is suppressed."/>
+    </enums>
+
     <!-- flags for XR_FB_scene -->
     <enums name="XrSemanticLabelsSupportFlagBitsFB" type="bitmask">
         <enum bitpos="0" name="XR_SEMANTIC_LABELS_SUPPORT_MULTIPLE_SEMANTIC_LABELS_BIT_FB"       comment="If set, and the runtime reports the pname:extensionVersion as 2 or greater, the runtime may: return multiple semantic labels separated by a comma without spaces. Otherwise, the runtime must: return a single semantic label."/>
@@ -7346,6 +7539,16 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="34"   name="XR_LIP_EXPRESSION_TONGUE_UPLEFT_MORPH_HTC"/>
         <enum value="35"   name="XR_LIP_EXPRESSION_TONGUE_DOWNRIGHT_MORPH_HTC"/>
         <enum value="36"   name="XR_LIP_EXPRESSION_TONGUE_DOWNLEFT_MORPH_HTC"/>
+    </enums>
+
+    <!-- enums for XR_ANDROID_light_estimation -->
+    <enums name="XrLightEstimateStateANDROID" type="enum">
+        <enum value="0"   name="XR_LIGHT_ESTIMATE_STATE_VALID_ANDROID"   comment="The light estimate is valid"/>
+        <enum value="1"   name="XR_LIGHT_ESTIMATE_STATE_INVALID_ANDROID" comment="The light estimate is invalid"/>
+    </enums>
+    <enums name="XrSphericalHarmonicsKindANDROID" type="enum">
+        <enum value="0"   name="XR_SPHERICAL_HARMONICS_KIND_TOTAL_ANDROID"   comment="The spherical harmonic coefficients represent the environment light radiance function, including the contribution from the main light."/>
+        <enum value="1"   name="XR_SPHERICAL_HARMONICS_KIND_AMBIENT_ANDROID" comment="The spherical harmonic coefficients represent the environment light radiance function, excluding the contribution from the main light."/>
     </enums>
 
     <!-- flags for XR_ALMALENCE_digital_lens_control -->
@@ -7674,6 +7877,23 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="1"   name="XR_SCENE_MESH_TRACKING_STATE_TRACKING_ANDROID"     comment="The tracker is actively tracking."/>
         <enum value="2"   name="XR_SCENE_MESH_TRACKING_STATE_WAITING_ANDROID"      comment="The tracker is waiting for valid measurements to integrate since the last mesh update."/>
         <enum value="3"   name="XR_SCENE_MESH_TRACKING_STATE_ERROR_ANDROID"        comment="The tracker has not received valid measurements for multiple cycles and is in an error state."/>
+    </enums>
+
+    <!-- enums for XR_ANDROID_eye_tracking -->
+    <enums name="XrEyeIndexANDROID" type="enum">
+        <enum value="0"   name="XR_EYE_INDEX_LEFT_ANDROID"  comment="Left eye."/>
+        <enum value="1"   name="XR_EYE_INDEX_RIGHT_ANDROID" comment="Right eye."/>
+    </enums>
+    <enums name="XrEyeStateANDROID" type="enum">
+        <enum value="0"   name="XR_EYE_STATE_INVALID_ANDROID" comment="Indicates that the eye is in an error state or not present."/>
+        <enum value="1"   name="XR_EYE_STATE_GAZING_ANDROID"  comment="Indicates that the eye is currently gazing."/>
+        <enum value="2"   name="XR_EYE_STATE_SHUT_ANDROID"    comment="Indicates that the eye is currently shut due to a wink or a blink."/>
+    </enums>
+    <enums name="XrEyeTrackingModeANDROID" type="enum">
+        <enum value="0"   name="XR_EYE_TRACKING_MODE_NOT_TRACKING_ANDROID" comment="Indicates that eye tracking is not currently active."/>
+        <enum value="1"   name="XR_EYE_TRACKING_MODE_RIGHT_ANDROID"        comment="Indicates that only the right eye is tracking."/>
+        <enum value="2"   name="XR_EYE_TRACKING_MODE_LEFT_ANDROID"         comment="Indicates that only the left eye is tracking."/>
+        <enum value="3"   name="XR_EYE_TRACKING_MODE_BOTH_ANDROID"         comment="Indicates that both the left and right eyes are tracking."/>
     </enums>
 
     <!-- enums for XR_ML_frame_end_info -->
@@ -8388,7 +8608,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrInstanceCreateInfo</type>* <name>createInfo</name></param>
             <param><type>XrInstance</type>* <name>instance</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyInstance</name></proto>
             <param externsync="true_with_children"><type>XrInstance</type> <name>instance</name></param>
         </command>
@@ -8433,11 +8653,11 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrSessionCreateInfo</type>* <name>createInfo</name></param>
             <param><type>XrSession</type>* <name>session</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroySession</name></proto>
             <param externsync="true_with_children"><type>XrSession</type> <name>session</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroySpace</name></proto>
             <param externsync="true_with_children"><type>XrSpace</type> <name>space</name></param>
         </command>
@@ -8454,7 +8674,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrSwapchainCreateInfo</type>* <name>createInfo</name></param>
             <param><type>XrSwapchain</type>* <name>swapchain</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroySwapchain</name></proto>
             <param externsync="true_with_children"><type>XrSwapchain</type> <name>swapchain</name></param>
         </command>
@@ -8666,7 +8886,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrActionSetCreateInfo</type>* <name>createInfo</name></param>
             <param><type>XrActionSet</type>* <name>actionSet</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyActionSet</name></proto>
             <param externsync="true_with_children"><type>XrActionSet</type> <name>actionSet</name></param>
         </command>
@@ -8676,7 +8896,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrActionCreateInfo</type>* <name>createInfo</name></param>
             <param><type>XrAction</type>* <name>action</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyAction</name></proto>
             <param externsync="true_with_children"><type>XrAction</type> <name>action</name></param>
         </command>
@@ -8801,7 +9021,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrDebugUtilsMessengerCreateInfoEXT</type>* <name>createInfo</name></param>
             <param><type>XrDebugUtilsMessengerEXT</type>* <name>messenger</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyDebugUtilsMessengerEXT</name></proto>
             <param externsync="true"><type>XrDebugUtilsMessengerEXT</type> <name>messenger</name></param>
             <implicitexternsyncparams>
@@ -8892,19 +9112,19 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </command>
 
         <!-- commands for XR_MSFT_spatial_anchor -->
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CREATE_SPATIAL_ANCHOR_FAILED_MSFT,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CREATE_SPATIAL_ANCHOR_FAILED_MSFT,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrCreateSpatialAnchorMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrSpatialAnchorCreateInfoMSFT</type>* <name>createInfo</name></param>
             <param><type>XrSpatialAnchorMSFT</type>* <name>anchor</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrCreateSpatialAnchorSpaceMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrSpatialAnchorSpaceCreateInfoMSFT</type>* <name>createInfo</name></param>
             <param><type>XrSpace</type>* <name>space</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroySpatialAnchorMSFT</name></proto>
             <param externsync="true_with_children"><type>XrSpatialAnchorMSFT</type> <name>anchor</name></param>
         </command>
@@ -8954,7 +9174,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </command>
 
         <!-- commands for XR_MSFT_spatial_graph_bridge -->
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrCreateSpatialGraphNodeSpaceMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrSpatialGraphNodeSpaceCreateInfoMSFT</type>* <name>createInfo</name></param>
@@ -8966,7 +9186,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrSpatialGraphStaticNodeBindingCreateInfoMSFT</type>* <name>createInfo</name></param>
             <param><type>XrSpatialGraphNodeBindingMSFT</type>* <name>nodeBinding</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroySpatialGraphNodeBindingMSFT</name></proto>
             <param externsync="true_with_children"><type>XrSpatialGraphNodeBindingMSFT</type> <name>nodeBinding</name></param>
         </command>
@@ -8984,7 +9204,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrHandTrackerCreateInfoEXT</type>* <name>createInfo</name></param>
             <param><type>XrHandTrackerEXT</type>* <name>handTracker</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyHandTrackerEXT</name></proto>
             <param externsync="true_with_children"><type>XrHandTrackerEXT</type> <name>handTracker</name></param>
         </command>
@@ -9002,7 +9222,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrFaceTrackerCreateInfoFB</type>* <name>createInfo</name></param>
             <param><type>XrFaceTrackerFB</type>* <name>faceTracker</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyFaceTrackerFB</name></proto>
             <param externsync="true_with_children"><type>XrFaceTrackerFB</type> <name>faceTracker</name></param>
         </command>
@@ -9020,7 +9240,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrFaceTrackerCreateInfo2FB</type>* <name>createInfo</name></param>
             <param><type>XrFaceTracker2FB</type>* <name>faceTracker</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyFaceTracker2FB</name></proto>
             <param externsync="true_with_children"><type>XrFaceTracker2FB</type> <name>faceTracker</name></param>
         </command>
@@ -9038,7 +9258,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrBodyTrackerCreateInfoFB</type>* <name>createInfo</name></param>
             <param><type>XrBodyTrackerFB</type>* <name>bodyTracker</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyBodyTrackerFB</name></proto>
             <param externsync="true_with_children"><type>XrBodyTrackerFB</type> <name>bodyTracker</name></param>
         </command>
@@ -9073,7 +9293,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrEyeTrackerCreateInfoFB</type>* <name>createInfo</name></param>
             <param><type>XrEyeTrackerFB</type>* <name>eyeTracker</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyEyeTrackerFB</name></proto>
             <param externsync="true_with_children"><type>XrEyeTrackerFB</type> <name>eyeTracker</name></param>
         </command>
@@ -9099,13 +9319,13 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </command>
 
         <!-- XR_MSFT_controller_model -->
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrGetControllerModelKeyMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPath</type> <name>topLevelUserPath</name></param>
             <param><type>XrControllerModelKeyStateMSFT</type>* <name>controllerModelKeyState</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrLoadControllerModelMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrControllerModelKeyMSFT</type> <name>modelKey</name></param>
@@ -9113,13 +9333,13 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>uint32_t</type>* <name>bufferCountOutput</name></param>
             <param optional="true" len="bufferCapacityInput"><type>uint8_t</type>* <name>buffer</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrGetControllerModelPropertiesMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrControllerModelKeyMSFT</type> <name>modelKey</name></param>
             <param><type>XrControllerModelPropertiesMSFT</type>* <name>properties</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CONTROLLER_MODEL_KEY_INVALID_MSFT,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrGetControllerModelStateMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrControllerModelKeyMSFT</type> <name>modelKey</name></param>
@@ -9141,7 +9361,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param optional="true">const <type>XrSceneObserverCreateInfoMSFT</type>* <name>createInfo</name></param>
             <param><type>XrSceneObserverMSFT</type>* <name>sceneObserver</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroySceneObserverMSFT</name></proto>
             <param externsync="true_with_children"><type>XrSceneObserverMSFT</type> <name>sceneObserver</name></param>
         </command>
@@ -9151,7 +9371,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param optional="true">const <type>XrSceneCreateInfoMSFT</type>* <name>createInfo</name></param>
             <param><type>XrSceneMSFT</type>* <name>scene</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroySceneMSFT</name></proto>
             <param externsync="true_with_children"><type>XrSceneMSFT</type> <name>scene</name></param>
         </command>
@@ -9237,13 +9457,13 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </command>
 
         <!-- XR_MSFT_perception_anchor_interop -->
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrCreateSpatialAnchorFromPerceptionAnchorMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>IUnknown</type>* <name>perceptionAnchor</name></param>
             <param><type>XrSpatialAnchorMSFT</type>* <name>anchor</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrTryGetPerceptionAnchorFromSpatialAnchorMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrSpatialAnchorMSFT</type> <name>anchor</name></param>
@@ -9304,20 +9524,20 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </command>
 
         <!-- XR_FB_render_model -->
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrEnumerateRenderModelPathsFB</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param optional="true"><type>uint32_t</type> <name>pathCapacityInput</name></param>
             <param><type>uint32_t</type>* <name>pathCountOutput</name></param>
             <param optional="true" len="pathCapacityInput"><type>XrRenderModelPathInfoFB</type>* <name>paths</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_RENDER_MODEL_UNAVAILABLE_FB,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CALL_ORDER_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_RENDER_MODEL_UNAVAILABLE_FB,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CALL_ORDER_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrGetRenderModelPropertiesFB</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPath</type> <name>path</name></param>
             <param><type>XrRenderModelPropertiesFB</type>* <name>properties</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_RENDER_MODEL_UNAVAILABLE_FB,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RENDER_MODEL_KEY_INVALID_FB,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_RENDER_MODEL_UNAVAILABLE_FB,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RENDER_MODEL_KEY_INVALID_FB,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrLoadRenderModelFB</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrRenderModelLoadInfoFB</type>* <name>info</name></param>
@@ -9563,6 +9783,28 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrSpaceTriangleMeshMETA</type>* <name>triangleMeshOutput</name></param>
         </command>
 
+        <!-- XR_META_spatial_entity_room_mesh -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SPACE_COMPONENT_NOT_ENABLED_FB,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetSpaceRoomMeshMETA</name></proto>
+            <param><type>XrSpace</type> <name>space</name></param>
+            <param>const <type>XrSpaceRoomMeshGetInfoMETA</type>* <name>getInfo</name></param>
+            <param><type>XrRoomMeshMETA</type>* <name>roomMeshOutput</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SPACE_COMPONENT_NOT_ENABLED_FB,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetSpaceRoomMeshFaceIndicesMETA</name></proto>
+            <param><type>XrSpace</type> <name>space</name></param>
+            <param>const <type>XrUuid</type>* <name>faceUuid</name></param>
+            <param><type>XrRoomMeshFaceIndicesMETA</type>* <name>roomMeshFaceIndicesOutput</name></param>
+        </command>
+
+        <!-- XR_META_boundary_visibility -->
+        <command successcodes="XR_SUCCESS,XR_BOUNDARY_VISIBILITY_SUPPRESSION_NOT_ALLOWED_META,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrRequestBoundaryVisibilityMETA</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param><type>XrBoundaryVisibilityMETA</type> <name>boundaryVisibility</name></param>
+        </command>
+
         <!-- XR_FB_scene -->
         <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPACE_COMPONENT_NOT_ENABLED_FB,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrGetSpaceBoundingBox2DFB</name></proto>
@@ -9645,39 +9887,39 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </command>
 
         <!-- XR_MSFT_spatial_anchor_persistence -->
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrCreateSpatialAnchorStoreConnectionMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrSpatialAnchorStoreConnectionMSFT</type>* <name>spatialAnchorStore</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_OUT_OF_MEMORY">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroySpatialAnchorStoreConnectionMSFT</name></proto>
             <param externsync="true_with_children"><type>XrSpatialAnchorStoreConnectionMSFT</type> <name>spatialAnchorStore</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_ANCHOR_NAME_INVALID_MSFT,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_ANCHOR_NAME_INVALID_MSFT,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrPersistSpatialAnchorMSFT</name></proto>
             <param><type>XrSpatialAnchorStoreConnectionMSFT</type> <name>spatialAnchorStore</name></param>
             <param>const <type>XrSpatialAnchorPersistenceInfoMSFT</type>* <name>spatialAnchorPersistenceInfo</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrEnumeratePersistedSpatialAnchorNamesMSFT</name></proto>
             <param><type>XrSpatialAnchorStoreConnectionMSFT</type> <name>spatialAnchorStore</name></param>
             <param optional="true"><type>uint32_t</type> <name>spatialAnchorNameCapacityInput</name></param>
             <param><type>uint32_t</type>* <name>spatialAnchorNameCountOutput</name></param>
             <param optional="true" len="spatialAnchorNameCapacityInput"><type>XrSpatialAnchorPersistenceNameMSFT</type>* <name>spatialAnchorNames</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_ANCHOR_NAME_INVALID_MSFT,XR_ERROR_SPATIAL_ANCHOR_NAME_NOT_FOUND_MSFT,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_ANCHOR_NAME_INVALID_MSFT,XR_ERROR_SPATIAL_ANCHOR_NAME_NOT_FOUND_MSFT,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrCreateSpatialAnchorFromPersistedNameMSFT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrSpatialAnchorFromPersistedAnchorCreateInfoMSFT</type>* <name>spatialAnchorCreateInfo</name></param>
             <param><type>XrSpatialAnchorMSFT</type>* <name>spatialAnchor</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_ANCHOR_NAME_INVALID_MSFT,XR_ERROR_SPATIAL_ANCHOR_NAME_NOT_FOUND_MSFT,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_ANCHOR_NAME_INVALID_MSFT,XR_ERROR_SPATIAL_ANCHOR_NAME_NOT_FOUND_MSFT,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrUnpersistSpatialAnchorMSFT</name></proto>
             <param><type>XrSpatialAnchorStoreConnectionMSFT</type> <name>spatialAnchorStore</name></param>
             <param>const <type>XrSpatialAnchorPersistenceNameMSFT</type>* <name>spatialAnchorPersistenceName</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrClearSpatialAnchorStoreMSFT</name></proto>
             <param><type>XrSpatialAnchorStoreConnectionMSFT</type> <name>spatialAnchorStore</name></param>
         </command>
@@ -9689,7 +9931,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrBodyTrackerCreateInfoBD</type>* <name>createInfo</name></param>
             <param><type>XrBodyTrackerBD</type>* <name>bodyTracker</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyBodyTrackerBD</name></proto>
             <param externsync="true_with_children"><type>XrBodyTrackerBD</type> <name>bodyTracker</name></param>
         </command>
@@ -9707,7 +9949,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrFacialTrackerCreateInfoHTC</type>* <name>createInfo</name></param>
             <param><type>XrFacialTrackerHTC</type>* <name>facialTracker</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyFacialTrackerHTC</name></proto>
             <param externsync="true_with_children"><type>XrFacialTrackerHTC</type> <name>facialTracker</name></param>
         </command>
@@ -9758,7 +10000,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrBodyTrackerCreateInfoHTC</type>* <name>createInfo</name></param>
             <param><type>XrBodyTrackerHTC</type>* <name>bodyTracker</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyBodyTrackerHTC</name></proto>
             <param externsync="true_with_children"><type>XrBodyTrackerHTC</type> <name>bodyTracker</name></param>
         </command>
@@ -9804,7 +10046,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrExtent2Df</type>* <name>size</name></param>
         </command>
 
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_MARKER_ID_INVALID_VARJO,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_MARKER_ID_INVALID_VARJO,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrCreateMarkerSpaceVARJO</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrMarkerSpaceCreateInfoVARJO</type>* <name>createInfo</name></param>
@@ -9819,7 +10061,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </command>
 
         <!-- commands for XR_ALMALENCE_digital_lens_control -->
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST">
             <proto><type>XrResult</type> <name>xrSetDigitalLensControlALMALENCE</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrDigitalLensControlALMALENCE</type>* <name>digitalLensControl</name></param>
@@ -9875,7 +10117,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrPerformanceMetricsStateMETA</type>* <name>state</name></param>
         </command>
 
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrGetPerformanceMetricsStateMETA</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPerformanceMetricsStateMETA</type>* <name>state</name></param>
@@ -9912,7 +10154,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </command>
 
         <!-- XR_FB_haptic_pcm -->
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_ACTIONSET_NOT_ATTACHED,XR_ERROR_ACTION_TYPE_MISMATCH,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_ACTIONSET_NOT_ATTACHED,XR_ERROR_ACTION_TYPE_MISMATCH,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrGetDeviceSampleRateFB</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrHapticActionInfo</type>* <name>hapticActionInfo</name></param>
@@ -10175,7 +10417,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrPerformanceMetricsStateANDROID</type>* <name>state</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrGetPerformanceMetricsStateANDROID</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param><type>XrPerformanceMetricsStateANDROID</type>* <name>state</name></param>
@@ -10213,7 +10455,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </command>
 
         <!-- XR_ANDROID_scene_meshing -->
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrEnumerateSupportedSemanticLabelSetsANDROID</name></proto>
             <param><type>XrInstance</type> <name>instance</name></param>
             <param><type>XrSystemId</type> <name>systemId</name></param>
@@ -10253,6 +10495,48 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrSceneMeshSnapshotANDROID</type> <name>snapshot</name></param>
             <param><type>uint32_t</type> <name>submeshDataCount</name></param>
             <param len="submeshDataCount"><type>XrSceneSubmeshDataANDROID</type>* <name>inoutSubmeshData</name></param>
+        </command>
+
+        <!-- commands for XR_ANDROID_eye_tracking -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateEyeTrackerANDROID</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrEyeTrackerCreateInfoANDROID</type>* <name>createInfo</name></param>
+            <param><type>XrEyeTrackerANDROID</type>* <name>eyeTracker</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroyEyeTrackerANDROID</name></proto>
+            <param externsync="true_with_children"><type>XrEyeTrackerANDROID</type> <name>eyeTracker</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PERMISSION_INSUFFICIENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetCoarseTrackingEyesInfoANDROID</name></proto>
+            <param><type>XrEyeTrackerANDROID</type> <name>eyeTracker</name></param>
+            <param>const <type>XrEyesGetInfoANDROID</type>* <name>getInfo</name></param>
+            <param><type>XrEyesANDROID</type>* <name>eyesOutput</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PERMISSION_INSUFFICIENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetFineTrackingEyesInfoANDROID</name></proto>
+            <param><type>XrEyeTrackerANDROID</type> <name>eyeTracker</name></param>
+            <param>const <type>XrEyesGetInfoANDROID</type>* <name>getInfo</name></param>
+            <param><type>XrEyesANDROID</type>* <name>eyesOutput</name></param>
+        </command>
+
+        <!-- commands for XR_ANDROID_light_estimation -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST">
+            <proto><type>XrResult</type> <name>xrCreateLightEstimatorANDROID</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param><type>XrLightEstimatorCreateInfoANDROID</type>* <name>createInfo</name></param>
+            <param><type>XrLightEstimatorANDROID</type>* <name>outHandle</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroyLightEstimatorANDROID</name></proto>
+            <param externsync="true_with_children"><type>XrLightEstimatorANDROID</type> <name>estimator</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetLightEstimateANDROID</name></proto>
+            <param><type>XrLightEstimatorANDROID</type> <name>estimator</name></param>
+            <param>const <type>XrLightEstimateGetInfoANDROID</type>* <name>input</name></param>
+            <param><type>XrLightEstimateANDROID</type>* <name>output</name></param>
         </command>
 
         <!-- XR_EXT_plane_detection -->
@@ -10431,7 +10715,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrMarkerDetectorCreateInfoML</type>* <name>createInfo</name></param>
             <param><type>XrMarkerDetectorML</type>* <name>markerDetector</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyMarkerDetectorML</name></proto>
             <param externsync="true_with_children"><type>XrMarkerDetectorML</type> <name>markerDetector</name></param>
         </command>
@@ -10525,7 +10809,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrEnvironmentDepthSwapchainCreateInfoMETA</type>* <name>createInfo</name></param>
             <param><type>XrEnvironmentDepthSwapchainMETA</type>* <name>swapchain</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyEnvironmentDepthSwapchainMETA</name></proto>
             <param externsync="true_with_children"><type>XrEnvironmentDepthSwapchainMETA</type> <name>swapchain</name></param>
         </command>
@@ -10553,6 +10837,14 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrEnvironmentDepthHandRemovalSetInfoMETA</type>* <name>setInfo</name></param>
         </command>
 
+        <!-- XR_EXT_stationary_reference_space -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SESSION_NOT_RUNNING,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetStationaryReferenceSpaceGenerationIdEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param optional="true">const <type>XrStationaryReferenceSpaceGenerationIdGetInfoEXT</type>* <name>getInfo</name></param>
+            <param><type>XrStationaryReferenceSpaceGenerationIdResultEXT</type>* <name>generationIdResult</name></param>
+        </command>
+
         <!-- XR_ML_facial_expression -->
         <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FACIAL_EXPRESSION_PERMISSION_DENIED_ML,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrCreateFacialExpressionClientML</name></proto>
@@ -10560,7 +10852,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param>const <type>XrFacialExpressionClientCreateInfoML</type>* <name>createInfo</name></param>
             <param><type>XrFacialExpressionClientML</type>* <name>facialExpressionClient</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyFacialExpressionClientML</name></proto>
             <param externsync="true_with_children"><type>XrFacialExpressionClientML</type> <name>facialExpressionClient</name></param>
         </command>
@@ -10964,51 +11256,51 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </command>
 
         <!-- XR_EXT_render_model -->
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RENDER_MODEL_ID_INVALID_EXT,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RENDER_MODEL_ID_INVALID_EXT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrCreateRenderModelEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrRenderModelCreateInfoEXT</type>* <name>createInfo</name></param>
             <param><type>XrRenderModelEXT</type>* <name>renderModel</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyRenderModelEXT</name></proto>
             <param externsync="true_with_children"><type>XrRenderModelEXT</type> <name>renderModel</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrGetRenderModelPropertiesEXT</name></proto>
             <param><type>XrRenderModelEXT</type> <name>renderModel</name></param>
             <param optional="true">const <type>XrRenderModelPropertiesGetInfoEXT</type>* <name>getInfo</name></param>
             <param><type>XrRenderModelPropertiesEXT</type>* <name>properties</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrCreateRenderModelSpaceEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrRenderModelSpaceCreateInfoEXT</type>* <name>createInfo</name></param>
             <param><type>XrSpace</type>* <name>space</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RENDER_MODEL_ASSET_UNAVAILABLE_EXT,XR_ERROR_RENDER_MODEL_GLTF_EXTENSION_REQUIRED_EXT,XR_ERROR_RENDER_MODEL_ID_INVALID_EXT,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RENDER_MODEL_ASSET_UNAVAILABLE_EXT,XR_ERROR_RENDER_MODEL_GLTF_EXTENSION_REQUIRED_EXT,XR_ERROR_RENDER_MODEL_ID_INVALID_EXT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrCreateRenderModelAssetEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrRenderModelAssetCreateInfoEXT</type>* <name>createInfo</name></param>
             <param><type>XrRenderModelAssetEXT</type>* <name>asset</name></param>
         </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyRenderModelAssetEXT</name></proto>
             <param externsync="true_with_children"><type>XrRenderModelAssetEXT</type> <name>asset</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrGetRenderModelAssetDataEXT</name></proto>
             <param><type>XrRenderModelAssetEXT</type> <name>asset</name></param>
             <param optional="true">const <type>XrRenderModelAssetDataGetInfoEXT</type>* <name>getInfo</name></param>
             <param><type>XrRenderModelAssetDataEXT</type>* <name>buffer</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrGetRenderModelAssetPropertiesEXT</name></proto>
             <param><type>XrRenderModelAssetEXT</type> <name>asset</name></param>
             <param optional="true">const <type>XrRenderModelAssetPropertiesGetInfoEXT</type>* <name>getInfo</name></param>
             <param><type>XrRenderModelAssetPropertiesEXT</type>* <name>properties</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrGetRenderModelStateEXT</name></proto>
             <param><type>XrRenderModelEXT</type> <name>renderModel</name></param>
             <param>const <type>XrRenderModelStateGetInfoEXT</type>* <name>getInfo</name></param>
@@ -11016,7 +11308,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </command>
 
         <!-- XR_EXT_interaction_render_model -->
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_SESSION_NOT_RUNNING,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SESSION_NOT_RUNNING,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrEnumerateInteractionRenderModelIdsEXT</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrInteractionRenderModelIdsEnumerateInfoEXT</type>* <name>getInfo</name></param>
@@ -11024,7 +11316,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>uint32_t</type>* <name>renderModelIdCountOutput</name></param>
             <param len="renderModelIdCapacityInput" optional="true"><type>XrRenderModelIdEXT</type>* <name>renderModelIds</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_NOT_INTERACTION_RENDER_MODEL_EXT,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_NOT_INTERACTION_RENDER_MODEL_EXT,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrEnumerateRenderModelSubactionPathsEXT</name></proto>
             <param><type>XrRenderModelEXT</type> <name>renderModel</name></param>
             <param optional="true">const <type>XrInteractionRenderModelSubactionPathInfoEXT</type>* <name>info</name></param>
@@ -11032,7 +11324,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>uint32_t</type>* <name>pathCountOutput</name></param>
             <param len="pathCapacityInput" optional="true"><type>XrPath</type>* <name>paths</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_NOT_INTERACTION_RENDER_MODEL_EXT,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_RENDER_MODEL_ID_INVALID_EXT,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_NOT_INTERACTION_RENDER_MODEL_EXT,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_RENDER_MODEL_ID_INVALID_EXT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrGetRenderModelPoseTopLevelUserPathEXT</name></proto>
             <param><type>XrRenderModelEXT</type> <name>renderModel</name></param>
             <param>const <type>XrInteractionRenderModelTopLevelUserPathGetInfoEXT</type>* <name>info</name></param>
@@ -11283,7 +11575,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrUuidEXT</type>* <name>uuid</name></param>
         </command>
 
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_SENSING_SERVICE_UNAVAILABLE_BD,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_SENSING_SERVICE_UNAVAILABLE_BD,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrCreateAnchorSpaceBD</name></proto>
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrAnchorSpaceCreateInfoBD</type>* <name>createInfo</name></param>
@@ -11403,7 +11695,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrFaceTrackerBD</type>* <name>tracker</name></param>
         </command>
 
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID">
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
             <proto><type>XrResult</type> <name>xrDestroyFaceTrackerBD</name></proto>
             <param externsync="true_with_children"><type>XrFaceTrackerBD</type> <name>tracker</name></param>
         </command>
@@ -14648,7 +14940,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
 
     <extension name="XR_FB_passthrough" number="119" type="instance" supported="openxr">
         <require>
-            <enum value="4"                                     name="XR_FB_passthrough_SPEC_VERSION"/>
+            <enum value="5"                                     name="XR_FB_passthrough_SPEC_VERSION"/>
             <enum value="&quot;XR_FB_passthrough&quot;"         name="XR_FB_PASSTHROUGH_EXTENSION_NAME"/>
 
             <enum offset="0"          extends="XrStructureType" name="XR_TYPE_SYSTEM_PASSTHROUGH_PROPERTIES_FB"/>
@@ -17661,59 +17953,59 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_MNDX_extension_377" number="377" type="instance" supported="disabled">
+    <extension name="XR_MND_extension_377" number="377" type="instance" supported="disabled">
         <require>
-            <enum value="1"                                 name="XR_MNDX_extension_377_SPEC_VERSION"/>
-            <enum value="&quot;XR_MNDX_extension_377&quot;" name="XR_MNDX_extension_377_EXTENSION_NAME"/>
+            <enum value="1"                                name="XR_MND_extension_377_SPEC_VERSION"/>
+            <enum value="&quot;XR_MND_extension_377&quot;" name="XR_MND_extension_377_EXTENSION_NAME"/>
         </require>
     </extension>
 
-    <extension name="XR_MNDX_extension_378" number="378" type="instance" supported="disabled">
+    <extension name="XR_MND_extension_378" number="378" type="instance" supported="disabled">
         <require>
-            <enum value="1"                                 name="XR_MNDX_extension_378_SPEC_VERSION"/>
-            <enum value="&quot;XR_MNDX_extension_378&quot;" name="XR_MNDX_extension_378_EXTENSION_NAME"/>
+            <enum value="1"                                name="XR_MND_extension_378_SPEC_VERSION"/>
+            <enum value="&quot;XR_MND_extension_378&quot;" name="XR_MND_extension_378_EXTENSION_NAME"/>
         </require>
     </extension>
 
-    <extension name="XR_MNDX_extension_379" number="379" type="instance" supported="disabled">
+    <extension name="XR_MND_extension_379" number="379" type="instance" supported="disabled">
         <require>
-            <enum value="1"                                 name="XR_MNDX_extension_379_SPEC_VERSION"/>
-            <enum value="&quot;XR_MNDX_extension_379&quot;" name="XR_MNDX_extension_379_EXTENSION_NAME"/>
+            <enum value="1"                                name="XR_MND_extension_379_SPEC_VERSION"/>
+            <enum value="&quot;XR_MND_extension_379&quot;" name="XR_MND_extension_379_EXTENSION_NAME"/>
         </require>
     </extension>
 
-    <extension name="XR_MNDX_extension_380" number="380" type="instance" supported="disabled">
+    <extension name="XR_MND_extension_380" number="380" type="instance" supported="disabled">
         <require>
-            <enum value="1"                                 name="XR_MNDX_extension_380_SPEC_VERSION"/>
-            <enum value="&quot;XR_MNDX_extension_380&quot;" name="XR_MNDX_extension_380_EXTENSION_NAME"/>
+            <enum value="1"                                name="XR_MND_extension_380_SPEC_VERSION"/>
+            <enum value="&quot;XR_MND_extension_380&quot;" name="XR_MND_extension_380_EXTENSION_NAME"/>
         </require>
     </extension>
 
-    <extension name="XR_MNDX_extension_381" number="381" type="instance" supported="disabled">
+    <extension name="XR_MND_extension_381" number="381" type="instance" supported="disabled">
         <require>
-            <enum value="1"                                 name="XR_MNDX_extension_381_SPEC_VERSION"/>
-            <enum value="&quot;XR_MNDX_extension_381&quot;" name="XR_MNDX_extension_381_EXTENSION_NAME"/>
+            <enum value="1"                                name="XR_MND_extension_381_SPEC_VERSION"/>
+            <enum value="&quot;XR_MND_extension_381&quot;" name="XR_MND_extension_381_EXTENSION_NAME"/>
         </require>
     </extension>
 
-    <extension name="XR_MNDX_extension_382" number="382" type="instance" supported="disabled">
+    <extension name="XR_MND_extension_382" number="382" type="instance" supported="disabled">
         <require>
-            <enum value="1"                                 name="XR_MNDX_extension_382_SPEC_VERSION"/>
-            <enum value="&quot;XR_MNDX_extension_382&quot;" name="XR_MNDX_extension_382_EXTENSION_NAME"/>
+            <enum value="1"                                name="XR_MND_extension_382_SPEC_VERSION"/>
+            <enum value="&quot;XR_MND_extension_382&quot;" name="XR_MND_extension_382_EXTENSION_NAME"/>
         </require>
     </extension>
 
-    <extension name="XR_MNDX_extension_383" number="383" type="instance" supported="disabled">
+    <extension name="XR_MND_extension_383" number="383" type="instance" supported="disabled">
         <require>
-            <enum value="1"                                 name="XR_MNDX_extension_383_SPEC_VERSION"/>
-            <enum value="&quot;XR_MNDX_extension_383&quot;" name="XR_MNDX_extension_383_EXTENSION_NAME"/>
+            <enum value="1"                                name="XR_MND_extension_383_SPEC_VERSION"/>
+            <enum value="&quot;XR_MND_extension_383&quot;" name="XR_MND_extension_383_EXTENSION_NAME"/>
         </require>
     </extension>
 
-    <extension name="XR_MNDX_extension_384" number="384" type="instance" supported="disabled">
+    <extension name="XR_MND_extension_384" number="384" type="instance" supported="disabled">
         <require>
-            <enum value="1"                                 name="XR_MNDX_extension_384_SPEC_VERSION"/>
-            <enum value="&quot;XR_MNDX_extension_384&quot;" name="XR_MNDX_extension_384_EXTENSION_NAME"/>
+            <enum value="1"                                name="XR_MND_extension_384_SPEC_VERSION"/>
+            <enum value="&quot;XR_MND_extension_384&quot;" name="XR_MND_extension_384_EXTENSION_NAME"/>
         </require>
     </extension>
 
@@ -18556,10 +18848,10 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_MND_extension_445" number="445" type="instance" supported="disabled">
+    <extension name="XR_MNDX_xdev_space" number="445" type="instance" supported="disabled">
         <require>
-            <enum value="1"                                name="XR_MND_extension_445_SPEC_VERSION"/>
-            <enum value="&quot;XR_MND_extension_445&quot;" name="XR_MND_EXTENSION_445_EXTENSION_NAME"/>
+            <enum value="1"                              name="XR_MNDX_xdev_space_SPEC_VERSION"/>
+            <enum value="&quot;XR_MNDX_xdev_space&quot;" name="XR_MNDX_XDEV_SPACE_EXTENSION_NAME"/>
         </require>
     </extension>
 
@@ -18693,10 +18985,34 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_extension_457" number="457" type="instance" supported="disabled">
+    <extension name="XR_ANDROID_eye_tracking" number="457" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                    name="XR_ANDROID_extension_457_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_extension_457&quot;" name="XR_ANDROID_EXTENSION_457_EXTENSION_NAME"/>
+            <enum value="1"                                   name="XR_ANDROID_eye_tracking_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_eye_tracking&quot;" name="XR_ANDROID_EYE_TRACKING_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrStructureType"        name="XR_TYPE_EYES_ANDROID"/>
+            <enum offset="1" extends="XrStructureType"        name="XR_TYPE_EYE_TRACKER_CREATE_INFO_ANDROID"/>
+            <enum offset="2" extends="XrStructureType"        name="XR_TYPE_EYES_GET_INFO_ANDROID"/>
+            <enum offset="4" extends="XrStructureType"        name="XR_TYPE_SYSTEM_EYE_TRACKING_PROPERTIES_ANDROID"/>
+
+            <enum offset="0" extends="XrObjectType"           name="XR_OBJECT_TYPE_EYE_TRACKER_ANDROID"             comment="XrEyeTrackerANDROID"/>
+
+            <enum value="2"                                   name="XR_EYE_MAX_ANDROID"/>
+
+            <type name="XrSystemEyeTrackingPropertiesANDROID"/>
+            <type name="XrEyeTrackerANDROID"/>
+            <type name="XrEyeIndexANDROID"/>
+            <type name="XrEyeStateANDROID"/>
+            <type name="XrEyeTrackingModeANDROID"/>
+            <type name="XrEyeANDROID"/>
+            <type name="XrEyesANDROID"/>
+            <type name="XrEyesGetInfoANDROID"/>
+            <type name="XrEyeTrackerCreateInfoANDROID"/>
+
+            <command name="xrCreateEyeTrackerANDROID"/>
+            <command name="xrDestroyEyeTrackerANDROID"/>
+            <command name="xrGetFineTrackingEyesInfoANDROID"/>
+            <command name="xrGetCoarseTrackingEyesInfoANDROID"/>
         </require>
     </extension>
 
@@ -18791,10 +19107,13 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_extension_462" number="462" type="instance" supported="disabled">
+    <extension name="XR_ANDROID_recommended_resolution" number="462" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                    name="XR_ANDROID_extension_462_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_extension_462&quot;" name="XR_ANDROID_extension_462_EXTENSION_NAME"/>
+            <enum value="1"                                             name="XR_ANDROID_recommended_resolution_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_recommended_resolution&quot;" name="XR_ANDROID_RECOMMENDED_RESOLUTION_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrStructureType"                  name="XR_TYPE_EVENT_DATA_RECOMMENDED_RESOLUTION_CHANGED_ANDROID"/>
+            <type name="XrEventDataRecommendedResolutionChangedANDROID"/>
         </require>
     </extension>
 
@@ -19455,10 +19774,21 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_META_extension_529" number="529" type="instance" supported="disabled">
+    <extension name="XR_META_boundary_visibility" number="529" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                 name="XR_META_extension_529_SPEC_VERSION"/>
-            <enum value="&quot;XR_META_extension_529&quot;" name="XR_META_extension_529_EXTENSION_NAME"/>
+            <enum value="1"                                       name="XR_META_boundary_visibility_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_boundary_visibility&quot;" name="XR_META_BOUNDARY_VISIBILITY_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrResult"                   name="XR_BOUNDARY_VISIBILITY_SUPPRESSION_NOT_ALLOWED_META"/>
+
+            <type name="XrSystemBoundaryVisibilityPropertiesMETA"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SYSTEM_BOUNDARY_VISIBILITY_PROPERTIES_META"/>
+            <type name="XrEventDataBoundaryVisibilityChangedMETA"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_EVENT_DATA_BOUNDARY_VISIBILITY_CHANGED_META"/>
+
+            <type name="XrBoundaryVisibilityMETA"/>
+
+            <command name="xrRequestBoundaryVisibilityMETA"/>
         </require>
     </extension>
 
@@ -19557,10 +19887,20 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_META_extension_542" number="542" type="instance" supported="disabled">
+    <extension name="XR_META_face_tracking_visemes" number="542" type="instance" supported="openxr" depends="XR_VERSION_1_0+XR_FB_face_tracking2">
         <require>
-            <enum value="1"                                 name="XR_META_extension_542_SPEC_VERSION"/>
-            <enum value="&quot;XR_META_extension_542&quot;" name="XR_META_extension_542_EXTENSION_NAME"/>
+            <enum value="1"                                         name="XR_META_face_tracking_visemes_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_face_tracking_visemes&quot;" name="XR_META_FACE_TRACKING_VISEMES_EXTENSION_NAME"/>
+
+            <type name="XrFaceTrackingVisemeMETA"/>
+
+            <enum value="15"                           name="XR_FACE_TRACKING_VISEME_COUNT_META"/>
+
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_FACE_TRACKING_VISEMES_META"/>
+            <type name="XrFaceTrackingVisemesMETA"/>
+
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_SYSTEM_FACE_TRACKING_VISEMES_PROPERTIES_META"/>
+            <type name="XrSystemFaceTrackingVisemesPropertiesMETA"/>
         </require>
     </extension>
 
@@ -19643,10 +19983,24 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_META_extension_554" number="554" type="instance" supported="disabled">
+    <extension name="XR_META_spatial_entity_room_mesh" number="554" type="instance" depends="XR_VERSION_1_0+XR_FB_spatial_entity+XR_META_spatial_entity_semantic_label" supported="openxr">
         <require>
-            <enum value="1"                                 name="XR_META_extension_554_SPEC_VERSION"/>
-            <enum value="&quot;XR_META_extension_554&quot;" name="XR_META_extension_554_EXTENSION_NAME"/>
+            <enum value="1"                                            name="XR_META_spatial_entity_room_mesh_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_spatial_entity_room_mesh&quot;" name="XR_META_SPATIAL_ENTITY_ROOM_MESH_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrSpaceComponentTypeFB"          name="XR_SPACE_COMPONENT_TYPE_ROOM_MESH_META"/>
+
+            <enum offset="0" extends="XrStructureType"                 name="XR_TYPE_ROOM_MESH_FACE_INDICES_META"/>
+            <enum offset="1" extends="XrStructureType"                 name="XR_TYPE_SPACE_ROOM_MESH_GET_INFO_META"/>
+            <enum offset="2" extends="XrStructureType"                 name="XR_TYPE_ROOM_MESH_META"/>
+
+            <type name="XrRoomMeshFaceMETA"/>
+            <type name="XrRoomMeshFaceIndicesMETA"/>
+            <type name="XrSpaceRoomMeshGetInfoMETA"/>
+            <type name="XrRoomMeshMETA"/>
+
+            <command name="xrGetSpaceRoomMeshMETA"/>
+            <command name="xrGetSpaceRoomMeshFaceIndicesMETA"/>
         </require>
     </extension>
 
@@ -20766,10 +21120,36 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_extension_701" number="701" type="instance" supported="disabled">
+    <extension name="XR_ANDROID_light_estimation" number="701" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                    name="XR_ANDROID_extension_701_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_extension_701&quot;" name="XR_ANDROID_EXTENSION_701_EXTENSION_NAME"/>
+            <enum value="1"                                       name="XR_ANDROID_light_estimation_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_light_estimation&quot;" name="XR_ANDROID_LIGHT_ESTIMATION_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrStructureType"            name="XR_TYPE_LIGHT_ESTIMATOR_CREATE_INFO_ANDROID"/>
+            <enum offset="1" extends="XrStructureType"            name="XR_TYPE_LIGHT_ESTIMATE_GET_INFO_ANDROID"/>
+            <enum offset="2" extends="XrStructureType"            name="XR_TYPE_LIGHT_ESTIMATE_ANDROID"/>
+            <enum offset="3" extends="XrStructureType"            name="XR_TYPE_DIRECTIONAL_LIGHT_ANDROID"/>
+            <enum offset="4" extends="XrStructureType"            name="XR_TYPE_SPHERICAL_HARMONICS_ANDROID"/>
+            <enum offset="5" extends="XrStructureType"            name="XR_TYPE_AMBIENT_LIGHT_ANDROID"/>
+            <enum offset="6" extends="XrStructureType"            name="XR_TYPE_SYSTEM_LIGHT_ESTIMATION_PROPERTIES_ANDROID"/>
+
+            <enum offset="0" extends="XrObjectType"               name="XR_OBJECT_TYPE_LIGHT_ESTIMATOR_ANDROID"             comment="XrLightEstimatorANDROID"/>
+
+            <type name="XrSystemLightEstimationPropertiesANDROID"/>
+            <type name="XrLightEstimatorANDROID"/>
+            <type name="XrLightEstimatorCreateInfoANDROID"/>
+            <type name="XrLightEstimateGetInfoANDROID"/>
+            <type name="XrLightEstimateANDROID"/>
+            <type name="XrDirectionalLightANDROID"/>
+            <type name="XrAmbientLightANDROID"/>
+            <type name="XrSphericalHarmonicsANDROID"/>
+
+            <type name="XrLightEstimateStateANDROID"/>
+            <type name="XrSphericalHarmonicsKindANDROID"/>
+
+            <command name="xrCreateLightEstimatorANDROID"/>
+            <command name="xrDestroyLightEstimatorANDROID"/>
+            <command name="xrGetLightEstimateANDROID"/>
         </require>
     </extension>
 
@@ -21428,10 +21808,19 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_EXT_extension_743" number="743" type="instance" supported="disabled">
+    <extension name="XR_EXT_stationary_reference_space" number="743" type="instance" depends="XR_VERSION_1_0+XR_EXT_uuid" supported="openxr">
         <require>
-            <enum value="1"                                name="XR_EXT_extension_743_SPEC_VERSION"/>
-            <enum value="&quot;XR_EXT_extension_743&quot;" name="XR_EXT_EXTENSION_743_EXTENSION_NAME"/>
+            <enum value="1"                                             name="XR_EXT_stationary_reference_space_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_stationary_reference_space&quot;" name="XR_EXT_STATIONARY_REFERENCE_SPACE_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrReferenceSpaceType"             name="XR_REFERENCE_SPACE_TYPE_STATIONARY_EXT"/>
+
+            <type name="XrStationaryReferenceSpaceGenerationIdGetInfoEXT"/>
+            <type name="XrStationaryReferenceSpaceGenerationIdResultEXT"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_STATIONARY_REFERENCE_SPACE_GENERATION_ID_GET_INFO_EXT"/>
+            <enum offset="2" extends="XrStructureType" name="XR_TYPE_STATIONARY_REFERENCE_SPACE_GENERATION_ID_RESULT_EXT"/>
+
+            <command name="xrGetStationaryReferenceSpaceGenerationIdEXT"/>
         </require>
     </extension>
 
@@ -22516,6 +22905,734 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <require>
             <enum value="1"                                name="XR_EXT_extension_874_SPEC_VERSION"/>
             <enum value="&quot;XR_EXT_extension_874&quot;" name="XR_EXT_EXTENSION_874_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_KHR_extension_875" number="875" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                name="XR_KHR_extension_875_SPEC_VERSION"/>
+            <enum value="&quot;XR_KHR_extension_875&quot;" name="XR_KHR_EXTENSION_875_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_EXT_extension_876" number="876" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                name="XR_EXT_extension_876_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_extension_876&quot;" name="XR_EXT_EXTENSION_876_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_EXT_extension_877" number="877" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                name="XR_EXT_extension_877_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_extension_877&quot;" name="XR_EXT_EXTENSION_877_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_EXT_extension_878" number="878" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                name="XR_EXT_extension_878_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_extension_878&quot;" name="XR_EXT_EXTENSION_878_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_879" number="879" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_879_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_879&quot;" name="XR_META_EXTENSION_879_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_880" number="880" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_880_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_880&quot;" name="XR_META_EXTENSION_880_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_881" number="881" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_881_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_881&quot;" name="XR_META_EXTENSION_881_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_882" number="882" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_882_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_882&quot;" name="XR_META_EXTENSION_882_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_883" number="883" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_883_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_883&quot;" name="XR_META_EXTENSION_883_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_884" number="884" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_884_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_884&quot;" name="XR_META_EXTENSION_884_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_885" number="885" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_885_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_885&quot;" name="XR_META_EXTENSION_885_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_886" number="886" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_886_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_886&quot;" name="XR_META_EXTENSION_886_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_887" number="887" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_887_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_887&quot;" name="XR_META_EXTENSION_887_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_888" number="888" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_888_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_888&quot;" name="XR_META_EXTENSION_888_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_889" number="889" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_889_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_889&quot;" name="XR_META_EXTENSION_889_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_890" number="890" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_890_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_890&quot;" name="XR_META_EXTENSION_890_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_891" number="891" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_891_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_891&quot;" name="XR_META_EXTENSION_891_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_892" number="892" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_892_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_892&quot;" name="XR_META_EXTENSION_892_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_893" number="893" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_893_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_893&quot;" name="XR_META_EXTENSION_893_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_894" number="894" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_894_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_894&quot;" name="XR_META_EXTENSION_894_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_895" number="895" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_895_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_895&quot;" name="XR_META_EXTENSION_895_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_896" number="896" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_896_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_896&quot;" name="XR_META_EXTENSION_896_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_897" number="897" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_897_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_897&quot;" name="XR_META_EXTENSION_897_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_898" number="898" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_898_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_898&quot;" name="XR_META_EXTENSION_898_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_899" number="899" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_899_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_899&quot;" name="XR_META_EXTENSION_899_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_900" number="900" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_900_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_900&quot;" name="XR_META_EXTENSION_900_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_901" number="901" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_901_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_901&quot;" name="XR_META_EXTENSION_901_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_902" number="902" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_902_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_902&quot;" name="XR_META_EXTENSION_902_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_903" number="903" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_903_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_903&quot;" name="XR_META_EXTENSION_903_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_904" number="904" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_904_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_904&quot;" name="XR_META_EXTENSION_904_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_905" number="905" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_905_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_905&quot;" name="XR_META_EXTENSION_905_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_906" number="906" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_906_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_906&quot;" name="XR_META_EXTENSION_906_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_907" number="907" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_907_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_907&quot;" name="XR_META_EXTENSION_907_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_908" number="908" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_908_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_908&quot;" name="XR_META_EXTENSION_908_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_909" number="909" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_909_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_909&quot;" name="XR_META_EXTENSION_909_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_910" number="910" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_910_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_910&quot;" name="XR_META_EXTENSION_910_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_911" number="911" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_911_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_911&quot;" name="XR_META_EXTENSION_911_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_912" number="912" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_912_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_912&quot;" name="XR_META_EXTENSION_912_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_913" number="913" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_913_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_913&quot;" name="XR_META_EXTENSION_913_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_914" number="914" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_914_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_914&quot;" name="XR_META_EXTENSION_914_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_915" number="915" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_915_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_915&quot;" name="XR_META_EXTENSION_915_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_916" number="916" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_916_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_916&quot;" name="XR_META_EXTENSION_916_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_917" number="917" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_917_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_917&quot;" name="XR_META_EXTENSION_917_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_918" number="918" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_918_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_918&quot;" name="XR_META_EXTENSION_918_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_919" number="919" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_919_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_919&quot;" name="XR_META_EXTENSION_919_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_920" number="920" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_920_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_920&quot;" name="XR_META_EXTENSION_920_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_921" number="921" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_921_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_921&quot;" name="XR_META_EXTENSION_921_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_922" number="922" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_922_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_922&quot;" name="XR_META_EXTENSION_922_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_923" number="923" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_923_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_923&quot;" name="XR_META_EXTENSION_923_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_924" number="924" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_924_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_924&quot;" name="XR_META_EXTENSION_924_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_925" number="925" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_925_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_925&quot;" name="XR_META_EXTENSION_925_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_926" number="926" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_926_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_926&quot;" name="XR_META_EXTENSION_926_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_927" number="927" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_927_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_927&quot;" name="XR_META_EXTENSION_927_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_928" number="928" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_928_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_928&quot;" name="XR_META_EXTENSION_928_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_929" number="929" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_929_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_929&quot;" name="XR_META_EXTENSION_929_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_930" number="930" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_930_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_930&quot;" name="XR_META_EXTENSION_930_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_931" number="931" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_931_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_931&quot;" name="XR_META_EXTENSION_931_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_932" number="932" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_932_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_932&quot;" name="XR_META_EXTENSION_932_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_933" number="933" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_933_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_933&quot;" name="XR_META_EXTENSION_933_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_934" number="934" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_934_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_934&quot;" name="XR_META_EXTENSION_934_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_935" number="935" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_935_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_935&quot;" name="XR_META_EXTENSION_935_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_936" number="936" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_936_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_936&quot;" name="XR_META_EXTENSION_936_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_937" number="937" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_937_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_937&quot;" name="XR_META_EXTENSION_937_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_938" number="938" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_938_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_938&quot;" name="XR_META_EXTENSION_938_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_939" number="939" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_939_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_939&quot;" name="XR_META_EXTENSION_939_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_940" number="940" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_940_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_940&quot;" name="XR_META_EXTENSION_940_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_941" number="941" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_941_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_941&quot;" name="XR_META_EXTENSION_941_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_942" number="942" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_942_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_942&quot;" name="XR_META_EXTENSION_942_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_943" number="943" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_943_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_943&quot;" name="XR_META_EXTENSION_943_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_944" number="944" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_944_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_944&quot;" name="XR_META_EXTENSION_944_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_945" number="945" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_945_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_945&quot;" name="XR_META_EXTENSION_945_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_946" number="946" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_946_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_946&quot;" name="XR_META_EXTENSION_946_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_947" number="947" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_947_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_947&quot;" name="XR_META_EXTENSION_947_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_948" number="948" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_948_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_948&quot;" name="XR_META_EXTENSION_948_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_949" number="949" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_949_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_949&quot;" name="XR_META_EXTENSION_949_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_950" number="950" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_950_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_950&quot;" name="XR_META_EXTENSION_950_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_951" number="951" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_951_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_951&quot;" name="XR_META_EXTENSION_951_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_952" number="952" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_952_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_952&quot;" name="XR_META_EXTENSION_952_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_953" number="953" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_953_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_953&quot;" name="XR_META_EXTENSION_953_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_954" number="954" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_954_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_954&quot;" name="XR_META_EXTENSION_954_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_955" number="955" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_955_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_955&quot;" name="XR_META_EXTENSION_955_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_956" number="956" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_956_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_956&quot;" name="XR_META_EXTENSION_956_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_957" number="957" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_957_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_957&quot;" name="XR_META_EXTENSION_957_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_958" number="958" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_958_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_958&quot;" name="XR_META_EXTENSION_958_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_959" number="959" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_959_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_959&quot;" name="XR_META_EXTENSION_959_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_960" number="960" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_960_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_960&quot;" name="XR_META_EXTENSION_960_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_961" number="961" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_961_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_961&quot;" name="XR_META_EXTENSION_961_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_962" number="962" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_962_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_962&quot;" name="XR_META_EXTENSION_962_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_963" number="963" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_963_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_963&quot;" name="XR_META_EXTENSION_963_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_964" number="964" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_964_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_964&quot;" name="XR_META_EXTENSION_964_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_965" number="965" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_965_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_965&quot;" name="XR_META_EXTENSION_965_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_966" number="966" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_966_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_966&quot;" name="XR_META_EXTENSION_966_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_967" number="967" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_967_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_967&quot;" name="XR_META_EXTENSION_967_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_968" number="968" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_968_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_968&quot;" name="XR_META_EXTENSION_968_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_969" number="969" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_969_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_969&quot;" name="XR_META_EXTENSION_969_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_970" number="970" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_970_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_970&quot;" name="XR_META_EXTENSION_970_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_971" number="971" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_971_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_971&quot;" name="XR_META_EXTENSION_971_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_972" number="972" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_972_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_972&quot;" name="XR_META_EXTENSION_972_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_973" number="973" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_973_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_973&quot;" name="XR_META_EXTENSION_973_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_974" number="974" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_974_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_974&quot;" name="XR_META_EXTENSION_974_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_975" number="975" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_975_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_975&quot;" name="XR_META_EXTENSION_975_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_976" number="976" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_976_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_976&quot;" name="XR_META_EXTENSION_976_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_977" number="977" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_977_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_977&quot;" name="XR_META_EXTENSION_977_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_META_extension_978" number="978" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                 name="XR_META_extension_978_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_978&quot;" name="XR_META_EXTENSION_978_EXTENSION_NAME"/>
         </require>
     </extension>
 

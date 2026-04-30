@@ -272,7 +272,7 @@ class DocOutputGenerator(OutputGenerator):
 
         # Asciidoc anchor
         write(self.genOpts.conventions.warning_comment, file=fp)
-        write(f'[[{basename}]]', file=fp)
+        write(f'[#{basename},role=docgenerator_link]', file=fp)
 
         if self.genOpts.conventions.generate_index_terms:
             if basename.startswith(self.conventions.command_prefix):

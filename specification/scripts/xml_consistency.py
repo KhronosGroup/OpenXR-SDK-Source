@@ -24,6 +24,7 @@ from apiconventions import APIConventions
 from parse_dependency import dependencyNames
 
 INVALID_HANDLE = "XR_ERROR_HANDLE_INVALID"
+RUNTIME_FAILURE = "XR_ERROR_RUNTIME_FAILURE"
 UNSUPPORTED = "XR_ERROR_FUNCTION_UNSUPPORTED"
 TWO_CALL_STRING_NAME = "buffer"
 
@@ -307,9 +308,11 @@ class Checker(XMLChecker):
         before performing "ancestor propagation".
 
         Passed to compute_type_to_codes as the extra_op."""
-        # All handle types can result in an invalid handle error.
         for type_name in self.handle_data.handle_types:
+            # All handle types can result in an invalid handle error.
             types_to_codes.add(type_name, INVALID_HANDLE)
+            # All handle types can result in a runtime failure.
+            types_to_codes.add(type_name, RUNTIME_FAILURE)
 
     def get_codes_for_command_and_type(self, cmd_name, type_name):
         """Return a set of return codes expected due to having

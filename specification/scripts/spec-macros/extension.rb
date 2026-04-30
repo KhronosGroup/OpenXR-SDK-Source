@@ -329,3 +329,26 @@ end
 
 # Could effectively repeat if we need an actionsetname:
 
+class RefLinkTargetModifier < Asciidoctor::Extensions::TreeProcessor
+    def process document
+        document.find_by(role: "docgenerator_link").each do |block|
+            id = block.id
+            parent = block.parent
+
+            # The parent will be the open block for the symbol if the
+            # spec is written in the expected style. When the parent
+            # is an open block, it is the ideal anchor target for the
+            # symbol to allow the intro blurb to be visible.
+            if parent.context != :open &&
+               # The man pages replace the open block parent with a C
+               # Specification block with no context.
+               parent.title != "C Specification"
+                Asciidoctor::LoggerManager.logger.warn "Generated link for symbol #{id} is not the child of an open block."
+                next
+            end
+
+            parent.id = id
+            parent.blocks.delete(block)
+        end
+    end
+end

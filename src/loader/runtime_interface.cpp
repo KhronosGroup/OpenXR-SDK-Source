@@ -352,7 +352,7 @@ XrResult RuntimeInterface::CreateInstance(const XrInstanceCreateInfo* info, XrIn
     res = rt_xrCreateInstance(info, instance);
     if (XR_SUCCEEDED(res)) {
         create_succeeded = true;
-        std::unique_ptr<XrGeneratedDispatchTableCore> dispatch_table(new XrGeneratedDispatchTableCore());
+        auto dispatch_table = std::make_unique<XrGeneratedDispatchTableCore>();
         GeneratedXrPopulateDispatchTableCore(dispatch_table.get(), *instance, _get_instance_proc_addr);
         std::lock_guard<std::mutex> mlock(_dispatch_table_mutex);
         _dispatch_table_map[*instance] = std::move(dispatch_table);

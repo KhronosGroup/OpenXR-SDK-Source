@@ -17,7 +17,7 @@
 
 # This image/tag is generated from https://github.com/KhronosGroup/DockerContainers/blob/main/openxr.Dockerfile
 # Purpose: Spec (pdf/html) generation
-IMAGE_NAME=khronosgroup/docker-images:openxr.20251023
+IMAGE_NAME=khronosgroup/docker-images:openxr.20260415@sha256:800fd68bd1b16b426555158f4aa06b2ef1c150fba922d7a11361fc85f6ba0bcd
 MOUNTPOINT=$(pwd)
 
 set -e

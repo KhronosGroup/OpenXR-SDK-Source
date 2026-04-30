@@ -21,7 +21,7 @@ stages:
       - job: loader_docs
         pool:
           vmImage: "ubuntu-latest"
-        container: khronosgroup/docker-images:openxr.20240924@sha256:3d595e68d21b2bba12cb7bbfa8cb135f66a2d9b97efeda6de3c6c8412163c4b7
+        container: khronosgroup/docker-images:openxr.20260415@sha256:800fd68bd1b16b426555158f4aa06b2ef1c150fba922d7a11361fc85f6ba0bcd
         steps:
           - script: make loader
             workingDirectory: specification
@@ -34,7 +34,7 @@ stages:
       - job: archive
         pool:
           vmImage: "ubuntu-latest"
-        container: khronosgroup/docker-images:openxr.20240924@sha256:3d595e68d21b2bba12cb7bbfa8cb135f66a2d9b97efeda6de3c6c8412163c4b7
+        container: khronosgroup/docker-images:openxr.20260415@sha256:800fd68bd1b16b426555158f4aa06b2ef1c150fba922d7a11361fc85f6ba0bcd
         steps:
           - script: make loader
             workingDirectory: specification

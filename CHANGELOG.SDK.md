@@ -21,6 +21,59 @@ along with any public pull requests that have been accepted.
 In this repository in particular, since it is primarily software,
 pull requests may be integrated as they are accepted even between periodic updates.
 
+## OpenXR SDK 1.1.59 (2026-04-30)
+
+This release includes several fixes and cleanups in the loader and various API
+layers. There is also an additional multi-vendor extension and vendor extensions
+added to the registry with this release.
+
+- SDK
+  - Best Practices Layer: Fix: Addresses race conditions
+    ([internal MR 4208](https://gitlab.khronos.org/openxr/openxr/merge_requests/4208),
+    [internal issue 2676](https://gitlab.khronos.org/openxr/openxr/issues/2676),
+    [OpenXR-SDK-Source issue 581](https://github.com/KhronosGroup/OpenXR-SDK-Source/issues/581))
+  - Loader: Improvement: Code cleanup and robustness improvements.
+    ([internal MR 3475](https://gitlab.khronos.org/openxr/openxr/merge_requests/3475),
+    [OpenXR-SDK-Source PR 413](https://github.com/KhronosGroup/OpenXR-SDK-Source/pull/413))
+  - Loader: Improvement: Use `std::make_unique` instead of raw `new` where
+    constructors are public.
+    ([internal MR 4252](https://gitlab.khronos.org/openxr/openxr/merge_requests/4252))
+  - Test Runtime: Fix: Address missing directory error when building on macOS.
+    ([internal MR 4269](https://gitlab.khronos.org/openxr/openxr/merge_requests/4269))
+  - Validation Layer: Fix: Cast flags to `uint64_t` before printing as hexadecimal.
+    ([internal MR 4225](https://gitlab.khronos.org/openxr/openxr/merge_requests/4225))
+- Registry
+  - Chore: Reserve extension numbers and adjust previous reservations.
+    ([internal MR 4266](https://gitlab.khronos.org/openxr/openxr/merge_requests/4266),
+    [internal MR 4276](https://gitlab.khronos.org/openxr/openxr/merge_requests/4276),
+    [internal MR 4282](https://gitlab.khronos.org/openxr/openxr/merge_requests/4282),
+    [internal MR 4253](https://gitlab.khronos.org/openxr/openxr/merge_requests/4253))
+  - Improvement: Enforce that essentially all functions must be able to return
+    `XR_ERROR_RUNTIME_FAILURE`.
+    ([internal MR 3611](https://gitlab.khronos.org/openxr/openxr/merge_requests/3611),
+    [internal issue 2345](https://gitlab.khronos.org/openxr/openxr/issues/2345))
+  - New multi-vendor extension: `XR_EXT_stationary_reference_space`
+    ([internal MR 3021](https://gitlab.khronos.org/openxr/openxr/merge_requests/3021))
+  - New vendor extension: `XR_META_boundary_visibility`
+    ([internal MR 3249](https://gitlab.khronos.org/openxr/openxr/merge_requests/3249))
+  - New vendor extension: `XR_META_face_tracking_visemes`
+    ([internal MR 3424](https://gitlab.khronos.org/openxr/openxr/merge_requests/3424))
+  - New vendor extension: `XR_META_spatial_entity_room_mesh`
+    ([internal MR 3530](https://gitlab.khronos.org/openxr/openxr/merge_requests/3530))
+  - New vendor extension: `XR_ANDROID_eye_tracking`
+    ([internal MR 3773](https://gitlab.khronos.org/openxr/openxr/merge_requests/3773))
+  - New vendor extension: `XR_ANDROID_recommended_resolution`
+    ([internal MR 3840](https://gitlab.khronos.org/openxr/openxr/merge_requests/3840))
+  - New vendor extension: `XR_ANDROID_light_estimation`.
+    ([internal MR 3879](https://gitlab.khronos.org/openxr/openxr/merge_requests/3879))
+  - Schematron: Improvement: Add validation for ordering of structs in `xr.xml`.
+    ([internal MR 4251](https://gitlab.khronos.org/openxr/openxr/merge_requests/4251))
+  - Schematron: Bump schXslt Schematron checker version and fix error in wrapper
+    script.
+    ([internal MR 4288](https://gitlab.khronos.org/openxr/openxr/merge_requests/4288))
+  - Update vendor specification: Revision 5 of `XR_FB_passthrough`
+    ([internal MR 3862](https://gitlab.khronos.org/openxr/openxr/merge_requests/3862))
+
 ## OpenXR SDK 1.1.58 (2026-03-31)
 
 This release features several fixes to the SDK as well as tooling improvements.
