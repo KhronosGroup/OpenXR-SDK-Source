@@ -1,0 +1,5 @@
+---
+- mr.4296.gl
+- issues.2743.gl
+---
+ - Fix `stack-use-after-scope` problem in `manifest_file.cpp`

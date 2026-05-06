@@ -866,12 +866,13 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
 
     uint32_t implementation_version = 0;
     {
+        std::string implementation_version_str = layer_root_node["implementation_version"].asString();
         char *end_ptr;
-        implementation_version = strtol(layer_root_node["implementation_version"].asString().c_str(), &end_ptr, 10);
+        implementation_version = strtol(implementation_version_str.c_str(), &end_ptr, 10);
         if (*end_ptr != '\0') {
-            std::ostringstream oss(error_ss.str());
-            oss << "layer " << filename << " has invalid implementation version.";
-            LoaderLogger::LogWarningMessage("", oss.str());
+            error_ss << "layer " << filename << " has invalid implementation version.";
+            LoaderLogger::LogWarningMessage("", error_ss.str());
+            return;
         }
     }
     std::string library_path = layer_root_node["library_path"].asString();
