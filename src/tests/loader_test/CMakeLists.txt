@@ -26,10 +26,10 @@ if(ANDROID)
     target_include_directories(loader_test PRIVATE ${ANDROID_NATIVE_APP_GLUE})
 else()
     add_executable(loader_test loader_test_utils.cpp loader_test.cpp)
-    add_sanitizers(loader_test)
 endif()
 
 openxr_add_filesystem_utils(loader_test)
+add_sanitizers(loader_test)
 set_target_properties(loader_test PROPERTIES FOLDER ${LOADER_TESTS_FOLDER})
 target_link_libraries(
     loader_test PRIVATE OpenXR::openxr_loader Catch2::Catch2

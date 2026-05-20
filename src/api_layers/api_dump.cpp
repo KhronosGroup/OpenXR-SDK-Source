@@ -451,9 +451,42 @@ XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrGetInstanceProcAddr(XrInstance inst
 
         *function = ApiDumpLayerInnerGetInstanceProcAddr(name);
 
-        // If we setup the function, just return
+        // ApiDumpLayerInnerGetInstanceProcAddr returns a wrapper for every function
+        // the layer was compiled to know about, regardless of whether the runtime
+        // supports it. We must verify the downstream chain also supports the function,
+        // otherwise we'd return XR_SUCCESS for unsupported extension functions (e.g.
+        // xrCreateHandTrackerEXT) when the spec requires XR_ERROR_FUNCTION_UNSUPPORTED.
+        // For pre-instance calls (XR_NULL_HANDLE), skip the check since those are
+        // core functions that are always supported and the dispatch map won't have
+        // an entry yet.
         if (*function != nullptr) {
-            return XR_SUCCESS;
+            if (instance == XR_NULL_HANDLE) {
+                return XR_SUCCESS;
+            }
+
+            XrGeneratedDispatchTable *gen_dispatch_table = nullptr;
+            {
+                std::unique_lock<std::mutex> mlock(g_instance_dispatch_mutex);
+                auto map_iter = g_instance_dispatch_map.find(instance);
+                if (map_iter == g_instance_dispatch_map.end()) {
+                    return XR_ERROR_HANDLE_INVALID;
+                }
+                gen_dispatch_table = map_iter->second;
+            }
+            if (nullptr == gen_dispatch_table) {
+                return XR_ERROR_HANDLE_INVALID;
+            }
+
+            PFN_xrVoidFunction next_function = nullptr;
+            XrResult result = gen_dispatch_table->GetInstanceProcAddr(instance, name, &next_function);
+            if (XR_SUCCEEDED(result)) {
+                return XR_SUCCESS;
+            }
+
+            // The downstream runtime/layer doesn't support this function,
+            // so don't expose our wrapper either.
+            *function = nullptr;
+            return result;
         }
 
         // We have not found it, so pass it down to the next layer/runtime
@@ -609,6 +642,10 @@ XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrCreateApiLayerInstance(const XrInst
         XrInstance returned_instance = *instance;
         XrResult result = next_create_api_layer_instance(info, &new_api_layer_info, &returned_instance);
         *instance = returned_instance;
+
+        if (XR_FAILED(result)) {
+            return result;
+        }
 
         // Create the dispatch table to the next levels
         auto *next_dispatch = new XrGeneratedDispatchTable();

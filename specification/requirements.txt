@@ -25,3 +25,6 @@ pytest
 
 # for python doc builds
 pdoc3
+
+# For specification XML merging.
+lxml

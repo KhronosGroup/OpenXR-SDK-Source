@@ -53,11 +53,11 @@ class LoaderInstance {
 
     virtual ~LoaderInstance();
 
-    XrInstance GetInstanceHandle() { return _runtime_instance; }
-    const std::unique_ptr<XrGeneratedDispatchTableCore>& DispatchTable() { return _dispatch_table; }
+    XrInstance GetInstanceHandle() const { return _runtime_instance; }
+    const std::unique_ptr<XrGeneratedDispatchTableCore>& DispatchTable() const { return _dispatch_table; }
     std::vector<std::unique_ptr<ApiLayerInterface>>& LayerInterfaces() { return _api_layer_interfaces; }
-    bool ExtensionIsEnabled(const std::string& extension);
-    XrDebugUtilsMessengerEXT DefaultDebugUtilsMessenger() { return _messenger; }
+    bool ExtensionIsEnabled(const std::string& extension) const;
+    XrDebugUtilsMessengerEXT DefaultDebugUtilsMessenger() const { return _messenger; }
     void SetDefaultDebugUtilsMessenger(XrDebugUtilsMessengerEXT messenger) { _messenger = messenger; }
     XrResult GetInstanceProcAddr(const char* name, PFN_xrVoidFunction* function);
 

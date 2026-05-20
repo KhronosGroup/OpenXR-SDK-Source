@@ -540,7 +540,7 @@ static void ParseExtension(Json::Value const &ext, std::vector<ExtensionListing>
         if (ext_version.isUInt()) {
             ext_listing.extension_version = ext_version.asUInt();
         } else {
-            ext_listing.extension_version = atoi(ext_version.asString().c_str());
+            ext_listing.extension_version = strtoul(ext_version.asString().c_str(), nullptr, 10);
         }
         extensions.push_back(ext_listing);
     }
@@ -868,7 +868,7 @@ void ApiLayerManifestFile::CreateIfValid(ManifestFileType type, const std::strin
     {
         std::string implementation_version_str = layer_root_node["implementation_version"].asString();
         char *end_ptr;
-        implementation_version = strtol(implementation_version_str.c_str(), &end_ptr, 10);
+        implementation_version = strtoul(implementation_version_str.c_str(), &end_ptr, 10);
         if (*end_ptr != '\0') {
             error_ss << "layer " << filename << " has invalid implementation version.";
             LoaderLogger::LogWarningMessage("", error_ss.str());

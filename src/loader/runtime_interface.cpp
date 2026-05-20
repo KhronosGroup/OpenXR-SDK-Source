@@ -215,7 +215,7 @@ XrResult RuntimeInterface::TryLoadingSingleRuntime(const std::string& openxr_com
     std::vector<XrExtensionProperties> extension_properties;
     GetInstance()->GetInstanceExtensionProperties(extension_properties);
     supported_extensions.reserve(extension_properties.size());
-    for (XrExtensionProperties ext_prop : extension_properties) {
+    for (const auto& ext_prop : extension_properties) {
         supported_extensions.emplace_back(ext_prop.extensionName);
     }
     GetInstance()->SetSupportedExtensions(supported_extensions);

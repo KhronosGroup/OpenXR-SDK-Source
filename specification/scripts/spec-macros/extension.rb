@@ -342,7 +342,11 @@ class RefLinkTargetModifier < Asciidoctor::Extensions::TreeProcessor
             if parent.context != :open &&
                # The man pages replace the open block parent with a C
                # Specification block with no context.
-               parent.title != "C Specification"
+               parent.title != "C Specification" &&
+               # The style guide uses these two symbols as examples.
+               # Examples need to be outside of an opendoc to avoid
+               # confusing asciidoctor.
+               !["xrCreateInstance", "XrInstanceCreateInfo"].include?(id)
                 Asciidoctor::LoggerManager.logger.warn "Generated link for symbol #{id} is not the child of an open block."
                 next
             end

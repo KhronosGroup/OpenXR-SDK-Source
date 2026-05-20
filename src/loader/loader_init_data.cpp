@@ -45,8 +45,7 @@ XrResult LoaderInitData::initializeProperties(const XrLoaderInitInfoBaseHeaderKH
                 if (propertyInfo->propertyValues[i].value == nullptr) {
                     return XR_ERROR_VALIDATION_FAILURE;
                 }
-                std::string view{propertyInfo->propertyValues[i].name};
-                if (view.size() == 0) {
+                if (propertyInfo->propertyValues[i].name[0] == '\0') {
                     return XR_ERROR_VALIDATION_FAILURE;
                 }
             }

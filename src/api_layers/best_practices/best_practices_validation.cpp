@@ -148,16 +148,22 @@ XRAPI_ATTR XrResult XRAPI_CALL BestPracticesLayerXrBeginFrame(XrSession session,
             BPLogger::LogMessage("There are no frames in queue. XrWaitFrame has not been called");
         }
 
-        FrameState &currentFrameState = g_framesInFlight.front();
+        FrameState currentFrameState = g_framesInFlight.front();
+        bool frameDiscarded = false;
 
         if (currentFrameState.beginFrameCalled) {
             if (currentFrameState.beginFrameResult >= XR_SUCCESS) {
-                // Failure case where xrEndFrame from the last frame was not successful, but everything else was.
-                if (!currentFrameState.endFrameCalled || currentFrameState.endFrameResult != XR_SUCCESS) {
+                if (!currentFrameState.endFrameCalled) {
+                    // Application could be discarding the in-progress frame by calling xrBeginFrame again without xrEndFrame.
+                    frameDiscarded = true;
+                    g_framesInFlight.pop_front();
+                    if (!g_framesInFlight.empty()) currentFrameState = g_framesInFlight.front();
+                } else if (currentFrameState.endFrameResult != XR_SUCCESS) {
+                    // xrEndFrame was called but returned an error
                     BPLogger::LogMessage(
                         "xrEndFrame was not successful for the previous frame. This xrBeginFrame is for a new frame.");
                     g_framesInFlight.pop_front();
-                    if (g_framesInFlight.size() > 0) currentFrameState = g_framesInFlight.front();
+                    if (!g_framesInFlight.empty()) currentFrameState = g_framesInFlight.front();
                 }
             } else {
                 // Application is retrying xrBeginFrame and frame state may still be valid if this call succeeds.
@@ -165,13 +171,11 @@ XRAPI_ATTR XrResult XRAPI_CALL BestPracticesLayerXrBeginFrame(XrSession session,
                     "Application is retrying xrBeginFrame after a previous failure. Consider calling xrWaitFrame to start a new "
                     "frame instead");
             }
-        } else {
+        } else if (currentFrameState.beginFrameResult != XR_SUCCESS) {
             // beginFrameCalled being false but having a failure result means this frame was reset in xrWaitFrame for being invalid,
             // remove it here.
-            if (currentFrameState.beginFrameResult != XR_SUCCESS) {
-                g_framesInFlight.pop_front();
-                if (g_framesInFlight.size() > 0) currentFrameState = g_framesInFlight.front();
-            }
+            g_framesInFlight.pop_front();
+            if (!g_framesInFlight.empty()) currentFrameState = g_framesInFlight.front();
         }
 
         if (!currentFrameState.waitFrameCalled || currentFrameState.waitFrameResult != XR_SUCCESS) {
@@ -180,8 +184,14 @@ XRAPI_ATTR XrResult XRAPI_CALL BestPracticesLayerXrBeginFrame(XrSession session,
 
         result = g_nextDispatch.Get<PFN_xrBeginFrame>(&XrGeneratedDispatchTable::BeginFrame)(session, frameBeginInfo);
 
-        currentFrameState.beginFrameResult = result;
-        currentFrameState.beginFrameCalled = true;
+        if (frameDiscarded && result != XR_FRAME_DISCARDED) {
+            BPLogger::LogMessage("xrEndFrame was not called for the previous frame and the frame was not properly discarded.");
+        }
+
+        if (!g_framesInFlight.empty()) {
+            g_framesInFlight.front().beginFrameResult = result;
+            g_framesInFlight.front().beginFrameCalled = true;
+        }
     }
 
     return result;

@@ -520,7 +520,10 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                     write_string += 'std::to_string('
                 if can_dereference:
                     write_string += '*' * pointer_count
-                if full_type == 'char*' and not member_param.is_static_array:
+                if is_char and not member_param.is_const:
+                    # Output buffers may be uninitialized; log the pointer, not the contents.
+                    write_string += f'PointerToHexString(reinterpret_cast<const void *>({full_name}))'
+                elif full_type == 'char*' and not member_param.is_static_array:
                     write_string += f'({full_name} ? {full_name} : "(nullptr)")'
                 else:
                     write_string += f'{full_name}'
@@ -1028,7 +1031,13 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         struct_union_check += self.writeIndent(3)
         struct_union_check += 'default:\n'
         struct_union_check += self.writeIndent(4)
+        struct_union_check += 'if (!ApiDumpOutputXrStruct(gen_dispatch_table, next_header, prefix, "const XrBaseInStructure*", true, contents)) {\n'
+        struct_union_check += self.writeIndent(5)
         struct_union_check += 'return false;\n'
+        struct_union_check += self.writeIndent(4)
+        struct_union_check += '}\n'
+        struct_union_check += self.writeIndent(4)
+        struct_union_check += 'return true;\n'
         struct_union_check += self.writeIndent(2)
         struct_union_check += '}\n'
         struct_union_check += '    } catch(...) {\n'
@@ -1171,18 +1180,15 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                     second_base_handle_name = undecorate(cur_cmd.params[-1].type)
                     if is_create:
                         generated_commands += '        if (XR_SUCCESS == result && nullptr != %s) {\n' % cur_cmd.params[-1].name
-                        generated_commands += '            auto exists = g_%s_dispatch_map.find(*%s);\n' % (
-                            second_base_handle_name, cur_cmd.params[-1].name)
-                        generated_commands += '            if (exists == g_%s_dispatch_map.end()) {\n' % second_base_handle_name
-                        generated_commands += f'                std::unique_lock<std::mutex> lock(g_{second_base_handle_name}_dispatch_mutex);\n'
+                        generated_commands += f'            std::unique_lock<std::mutex> lock(g_{second_base_handle_name}_dispatch_mutex);\n'
+                        generated_commands += '            if (g_%s_dispatch_map.find(*%s) == g_%s_dispatch_map.end()) {\n' % (
+                            second_base_handle_name, cur_cmd.params[-1].name, second_base_handle_name)
                         generated_commands += '                g_%s_dispatch_map[*%s] = gen_dispatch_table;\n' % (
                             second_base_handle_name, cur_cmd.params[-1].name)
                         generated_commands += '            }\n'
                         generated_commands += '        }\n'
                     elif is_destroy:
-                        generated_commands += '        auto exists = g_%s_dispatch_map.find(%s);\n' % (
-                            second_base_handle_name, cur_cmd.params[-1].name)
-                        generated_commands += '        if (exists != g_%s_dispatch_map.end()) {\n' % second_base_handle_name
+                        generated_commands += '        {\n'
                         generated_commands += f'            std::unique_lock<std::mutex> lock(g_{second_base_handle_name}_dispatch_mutex);\n'
                         generated_commands += '            g_%s_dispatch_map.erase(%s);\n' % (
                             second_base_handle_name, cur_cmd.params[-1].name)

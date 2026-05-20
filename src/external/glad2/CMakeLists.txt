@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 add_library(openxr-glad-loader STATIC src/gl.c)
+add_sanitizers(openxr-glad-loader)
 target_include_directories(openxr-glad-loader PUBLIC include)
 target_link_libraries(openxr-glad-loader PRIVATE ${CMAKE_DL_LIBS})
 

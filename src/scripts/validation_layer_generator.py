@@ -1237,15 +1237,15 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
         inline_enum_str += self.writeIndent(int_indent)
         inline_enum_str += f'oss_enum << Uint64ToHexString(static_cast<uint64_t>({pointer_string}{full_param_name}));\n'
         inline_enum_str += self.writeIndent(int_indent)
+        # Warn but don't block: unknown values may be valid extension enums
+        # the layer wasn't compiled against. Let the runtime decide.
         inline_enum_str += 'CoreValidLogMessage(%s, "VUID-%s-%s-parameter",\n' % (instance_info_string,
                                                                                   cmd_struct_name,
                                                                                   param_name)
         inline_enum_str += self.writeIndent(int_indent)
-        inline_enum_str += f'                    VALID_USAGE_DEBUG_SEVERITY_ERROR, {cmd_name_param},\n'
+        inline_enum_str += f'                    VALID_USAGE_DEBUG_SEVERITY_WARNING, {cmd_name_param},\n'
         inline_enum_str += self.writeIndent(int_indent)
         inline_enum_str += '                    objects_info, oss_enum.str());\n'
-        inline_enum_str += self.writeIndent(int_indent)
-        inline_enum_str += 'return XR_ERROR_VALIDATION_FAILURE;\n'
         int_indent = int_indent - 1
         inline_enum_str += self.writeIndent(int_indent)
         inline_enum_str += '}\n'
@@ -1895,7 +1895,17 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             param_member_contents += self.writeIndent(indent)
             param_member_contents += '}\n'
         elif self.isEnumType(param_member.type):
-            if is_array and not param_member.is_const:
+            # Skip enum validation for toString functions' value parameter.
+            # These functions are designed to accept any value and return
+            # "XR_UNKNOWN_..." for unrecognized values.
+            is_tostring_value = (is_command and param_member.name == 'value'
+                                 and (struct_command_name.endswith('ToString')
+                                      or struct_command_name.endswith('ToString2KHR')))
+            if is_tostring_value:
+                param_member_contents += self.writeIndent(indent)
+                param_member_contents += f'// NOTE: Skipping enum validation for {struct_command_name} {param_member.name} - '
+                param_member_contents += 'toString functions accept any value\n'
+            elif is_array and not param_member.is_const:
                 param_member_contents += self.writeIndent(indent)
                 param_member_contents += f'// NOTE: Can\'t validate "VUID-{struct_command_name}-{param_member.name}-parameter" output enum buffer\n'
             else:
@@ -1929,7 +1939,10 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 param_member_contents += self.writeIndent(indent)
                 param_member_contents += '// NOTE: Can\'t validate "VUID-%s-%s-parameter" type\n' % (struct_command_name,
                                                                                                      param_member.name)
-            elif param_member.is_static_array and _CHAR_RE.search(param_member.type):
+            elif param_member.is_static_array and _CHAR_RE.search(param_member.type) and param_member.is_const:
+                # Only validate strlen on input (const) char arrays.
+                # Output (non-const) char arrays may be uninitialized,
+                # so calling strlen() on them is undefined behavior.
                 param_member_contents += self.writeIndent(indent)
                 param_member_contents += 'if (%s < std::strlen(%s)) {\n' % (
                     param_member.static_array_sizes[0], prefixed_param_member_name)
@@ -2892,8 +2905,26 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
 
         validation_source_funcs += '        *function = GenValidUsageInnerGetInstanceProcAddr(name);\n\n'
 
-        validation_source_funcs += '        // If we setup the function, just return\n'
+        validation_source_funcs += '        // GenValidUsageInnerGetInstanceProcAddr returns a wrapper for every function\n'
+        validation_source_funcs += '        // the layer was compiled to know about, regardless of whether the runtime\n'
+        validation_source_funcs += '        // supports it. We must verify the downstream chain also supports the function,\n'
+        validation_source_funcs += '        // otherwise we\'d return XR_SUCCESS for unsupported extension functions (e.g.\n'
+        validation_source_funcs += '        // xrCreateHandTrackerEXT) when the spec requires XR_ERROR_FUNCTION_UNSUPPORTED.\n'
+        validation_source_funcs += '        // For pre-instance calls (XR_NULL_HANDLE), skip the check since those are\n'
+        validation_source_funcs += '        // core functions that are always supported.\n'
         validation_source_funcs += '        if (*function != nullptr) {\n'
+        validation_source_funcs += '            if (instance == XR_NULL_HANDLE) {\n'
+        validation_source_funcs += '                return XR_SUCCESS;\n'
+        validation_source_funcs += '            }\n'
+        validation_source_funcs += '            GenValidUsageXrInstanceInfo* info = g_instance_info.get(instance);\n'
+        validation_source_funcs += '            if (nullptr != info && nullptr != info->dispatch_table) {\n'
+        validation_source_funcs += '                PFN_xrVoidFunction next_function = nullptr;\n'
+        validation_source_funcs += '                XrResult result = info->dispatch_table->GetInstanceProcAddr(instance, name, &next_function);\n'
+        validation_source_funcs += '                if (XR_FAILED(result)) {\n'
+        validation_source_funcs += '                    *function = nullptr;\n'
+        validation_source_funcs += '                    return result;\n'
+        validation_source_funcs += '                }\n'
+        validation_source_funcs += '            }\n'
         validation_source_funcs += '            return XR_SUCCESS;\n'
         validation_source_funcs += '        }\n'
         validation_source_funcs += '        // We have not found it, so pass it down to the next layer/runtime\n'

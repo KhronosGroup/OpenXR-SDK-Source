@@ -1,0 +1,734 @@
+almalence_digital_lens_control.adoc|||* pname:next must be code:NULL.
+api_initialization.adoc|||using one slink:XrInstance may not be valid when used with objects related
+bd_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
+bd_facial_simulation.adoc|||[open,refpage='XrFaceExpressionBD', desc='The name of blend shapes of face that can be tracked', type='enums', xrefs='XrFacialSimulationDataBD XrFacialSimulationModeBD']
+bd_facial_simulation.adoc|||[open,refpage='XrLipExpressionBD', desc='The name of blend shapes of lip that can be tracked', type='enums',xrefs='XrLipExpressionDataBD XrFacialSimulationModeBD']
+bd_facial_simulation.adoc|||array that can contain at least pname:faceExpressionWeightCount of
+bd_facial_simulation.adoc|||array that can contain at least pname:lipsyncExpressionWeightCount of
+bd_future_progress.adoc|||If some progress hints can be provided before the asynchronous operation is
+bd_spatial_audio_rendering.adoc|||// We should now be able to hear added sound field in device audio output
+bd_spatial_audio_rendering.adoc|||// We should now be able to hear added sound object in device audio output
+bd_spatial_audio_rendering.adoc|||// We should now be able to hear that the position of the sound object is changed
+bd_spatial_audio_rendering.adoc|||// We should now be able to hear the echo and reverb goes away
+bd_spatial_audio_rendering.adoc|||// We should now be able to hear the sound field being rotated in device audio output
+bd_spatial_audio_rendering.adoc|||// We should now be able to hear the sound object
+bd_spatial_audio_rendering.adoc|||familiar with audio middleware may know this concept under that name.
+epic_view_configuration_fov.adoc|||* pname:maxMutableFov is the maximum field-of-view that the runtime can
+epic_view_configuration_fov.adoc|||These field-of-view parameters can be used during initialization of the
+epic_view_configuration_fov.adoc|||can be added to the next chain of slink:XrViewConfigurationView to retrieve
+epic_view_configuration_fov.adoc|||should: specify the upper limit that runtime can support.
+ext_active_action_set_priority.adoc|||   To avoid additional complexity each action set can only be specified once
+ext_composition_layer_inverted_alpha.adoc|||Doing so using this extension over more general alternatives may result in
+ext_composition_layer_inverted_alpha.adoc|||apiext:XR_KHR_composition_layer_color_scale_bias extension may introduce.
+ext_conformance_automation.adoc|||// This should be kept in sync with conformance_automation_warning.adoc
+ext_debug_utils.adoc|||      from the OpenXR loader, layers, and drivers should be captured.
+ext_debug_utils.adoc|||  This may be `0`.
+ext_debug_utils.adoc|||  corresponds the Valid Usage ID (VUID) that can be used to jump to the
+ext_debug_utils.adoc|||  information for the region that should be begun.
+ext_debug_utils.adoc|||* pname:session is the slink:XrSession that a label region should be
+ext_debug_utils.adoc|||A message may correspond to more than one type.
+ext_debug_utils.adoc|||An application can change the name associated with an object simply by
+ext_debug_utils.adoc|||An individual debug label may be inserted at any time using
+ext_debug_utils.adoc|||Calls to flink:xrSessionBeginDebugUtilsLabelRegionEXT may be nested allowing
+ext_debug_utils.adoc|||For validation layers, this pname:messageId value actually can be used to
+ext_debug_utils.adoc|||If a certain warning/error message constantly fires, a user can simply look
+ext_debug_utils.adoc|||It can be useful for an application to provide its own content relative to a
+ext_debug_utils.adoc|||Some callbacks may log the information to a file, others may cause a debug
+ext_debug_utils.adoc|||These 3 bits of information can be used to filter out messages so you only
+ext_debug_utils.adoc|||This can be especially true if your application creates more than one
+ext_debug_utils.adoc|||This may be blank, or it may simply contain the name of an OpenXR component
+ext_debug_utils.adoc|||This structure should only be considered valid during the lifetime of the
+ext_debug_utils.adoc|||To begin identifying a region using a debug label inside a session, you may
+ext_debug_utils.adoc|||Using this, you can build a "call-stack" of sorts with labels since any
+ext_debug_utils.adoc|||are provided to indicate what messages should be allowed to trigger the
+ext_debug_utils.adoc|||can display a more usable visualization of where actions occur in the
+ext_debug_utils.adoc|||pname:messageId that may be a string identifying the message ID for the
+ext_debug_utils.adoc|||this can be done.
+ext_debug_utils.adoc|||tools or with validation layers that can print a friendly name when
+ext_dpad_binding.adoc|||   activate three adjacent directions, of which two must be opposite.
+ext_dpad_binding.adoc|||Another action set can also have a dpad active on each of those inputs, and
+ext_dpad_binding.adoc|||The behavior of this dpad-like mapping may be customized using
+ext_dpad_binding.adoc|||The struct must: be added for each input that should be treated as a dpad to
+ext_dpad_binding.adoc|||can have a dpad on each of:
+ext_dpad_binding.adoc|||single logical dpad may be active simultaneously.
+ext_dpad_binding.adoc|||the active and inactive state that can occur when the amount of force
+ext_dpad_binding.adoc|||they can have different settings.
+ext_eye_gaze_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
+ext_eye_gaze_interaction.adoc|||An application can expect that a nominal eye gaze pose can be used for use
+ext_eye_gaze_interaction.adoc|||Applications should be very careful when using sub-nominal eye gaze pose,
+ext_eye_gaze_interaction.adoc|||Eye tracking data can be sensitive personal information and is closely
+ext_eye_gaze_interaction.adoc|||Runtimes that cannot predict or interpolate eye gaze poses must: clamp the
+ext_eye_gaze_interaction.adoc|||The eye gaze pose may originate from a point positioned between the user's
+ext_eye_gaze_interaction.adoc|||The pname:time field may: be in the future if a runtime can predict gaze
+ext_eye_gaze_interaction.adoc|||With these building blocks, an application can discover if the XR runtime
+ext_eye_gaze_interaction.adoc|||degraded performance and should not be relied on for all input scenarios.
+ext_eye_gaze_interaction.adoc|||since the behavior can vary considerably for different users and
+ext_eye_gaze_interaction.adoc|||that the runtime may not have the capability to predict or interpolate eye
+ext_frame_synthesis.adoc|||  This may be useful for applications that prefer to conserve CPU and GPU
+ext_frame_synthesis.adoc|||For example, the application may render them in a lower resolution dedicated
+ext_frame_synthesis.adoc|||values depend on the pixel's movement and may extend beyond the boundaries
+ext_future.adoc|||    // all functions using futures must be synchronized.
+ext_future.adoc|||   future after completion, we cannot differentiate between a future that
+ext_future.adoc|||  // completion.fooObject is now valid and may be used!
+ext_future.adoc|||** Clarify what the runtime may do in a completion function.
+ext_hand_joints_motion_range.adoc|||flink:xrLocateHandJointsEXT should return hand joint locations conforming to
+ext_hand_tracking.adoc|||        // The returned joint location array can be directly indexed with
+ext_hand_tracking.adoc|||  dlink:XR_HAND_JOINT_COUNT_EXT and can be indexed using
+ext_hand_tracking.adoc|||An application can create an slink:XrHandTrackerEXT handle using
+ext_hand_tracking.adoc|||If possible, applications should use the joint name part of the
+ext_hand_tracking.adoc|||The application can chain an slink:XrHandJointVelocitiesEXT structure to the
+ext_hand_tracking.adoc|||The application can use a sphere at the joint location with joint radius for
+ext_hand_tracking.adoc|||This behavior can be modified by the apiext:XR_EXT_hand_joints_motion_range
+ext_hand_tracking.adoc|||This handle can be used to locate hand joints using
+ext_hand_tracking.adoc|||[open,refpage='XrHandJointEXT',type='enums',desc='The name of hand joints that can be tracked',xrefs='']
+ext_hand_tracking.adoc|||application can index elements using the corresponding hand joint enum (e.g.
+ext_hand_tracking.adoc|||fill the pname:jointLocations array ordered so that it may be indexed by the
+ext_hand_tracking.adoc|||is undefined and should be avoided.
+ext_hand_tracking.adoc|||observed or can be calculated by the runtime, the runtime must: fill in the
+ext_hand_tracking.adoc|||pname:jointLocations that can contain at least pname:jointCount of
+ext_hand_tracking.adoc|||pname:jointVelocities that can contain at least pname:jointCount of
+ext_hand_tracking.adoc|||that the application can index elements using the corresponding hand joint
+ext_hand_tracking.adoc|||velocity__ is observed or can be calculated by the runtime, the runtime
+ext_hand_tracking_data_source.adoc|||. Should slink:XrHandTrackingDataSourceInfoEXT include an pname:isActive member or can it use pname:isActive from slink:XrHandJointLocationsEXT?
+ext_hand_tracking_data_source.adoc|||It should not be required.
+ext_hand_tracking_data_source.adoc|||pname:isActive member and cannot use the pname:isActive from
+ext_hp_mixed_reality_controller.adoc|||// the path name must be vendor-suffixed in new extensions.
+ext_interaction_profile_battery_state_display.adoc|||   interaction profile active, then the runtime can return battery level for
+ext_interaction_render_model.adoc|||   Option A (only devices for the currently active action sets) may mean
+ext_interaction_render_model.adoc|||   We cannot test automatically whether the hardware looks like the model,
+ext_interaction_render_model.adoc|||   should: assume there may be multiple values in this list, even though
+ext_interaction_render_model.adoc|||   that the conformance test suite can enforce the requirement that
+ext_interaction_render_model.adoc|||   was determined to be out of scope for this extension, though may be added
+ext_interaction_render_model.adoc|||   within an instance, we can check that the UUID does not change based on
+ext_interaction_render_model.adoc|||  action in any action set, C: any devices the user may interact with even
+ext_interaction_render_model.adoc|||  alpha blending everywhere an interaction render model may appear.
+ext_interaction_render_model.adoc|||  application behavior and should be followed closely.
+ext_interaction_render_model.adoc|||  switches devices, or should it trigger an event prompting the runtime to
+ext_interaction_render_model.adoc|||* The output must be considered fully dynamic, conforming only to the
+ext_interaction_render_model.adoc|||* dlink:XR_NULL_PATH if no such path can be determined (e.g. the
+ext_interaction_render_model.adoc|||** Assets for devices must remain fixed within a given instance.
+ext_interaction_render_model.adoc|||// End of non-normative note: normative macros may resume
+ext_interaction_render_model.adoc|||// Non-normative note: should not contain any normative macros
+ext_interaction_render_model.adoc|||// The returned glTF model may have any or all of these extensions listed in
+ext_interaction_render_model.adoc|||However, models returned from this extension must conform to the
+ext_interaction_render_model.adoc|||It returns models that may not have been available at the time of
+ext_interaction_render_model.adoc|||and an application could show the devices that can interact with that menu
+ext_loader_init_properties.adoc|||The loader must: must clear the internal database of property pairs when
+ext_palm_pose.adoc|||Application visuals may depict, for example, realistic human hands that are
+ext_palm_pose.adoc|||The new identifier is a pose that can be used to place application-specific
+ext_palm_pose.adoc|||it, but such an API layer is unaware of it, the runtime may "accept" (not
+ext_palm_pose.adoc|||visual content such as avatar visuals that may or may not match human hands.
+ext_performance_settings.adoc|||   The runtime may take independent action that will interfere with the
+ext_performance_settings.adoc|||   application should take mitigating action in order to prevent thermal
+ext_performance_settings.adoc|||   composition can no longer be maintained under the current workload.
+ext_performance_settings.adoc|||   consequently the runtime may take independent action that will interfere
+ext_performance_settings.adoc|||   in a degraded user experience, and that the application should take
+ext_performance_settings.adoc|||   indicates that the current load should be sustainable in the near future. +
+ext_performance_settings.adoc|||  The application should take drastic mitigation action.
+ext_performance_settings.adoc|||  sub-domain has reached an early warning level where the application should
+ext_performance_settings.adoc|||// Khronos may elect to exercise its Copyright  license to incorporate this submission into
+ext_performance_settings.adoc|||<2> the developer may choose to only reduce CPU domain and keep the GPU
+ext_performance_settings.adoc|||For a limited amount of time, both the Mobile and PC systems can provide a
+ext_performance_settings.adoc|||One of the major functions the runtime shall provide is the timely
+ext_performance_settings.adoc|||The XR Runtime shall select ename:XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT
+ext_performance_settings.adoc|||The XR runtime shall provide performance related notifications to the
+ext_performance_settings.adoc|||The application developer must pay attention to keep these boost periods
+ext_performance_settings.adoc|||When improvement is observed, the application can potentially rollback some
+ext_performance_settings.adoc|||application should also in the sustainable modes be prepared to react to
+ext_performance_settings.adoc|||ename:XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT), the device may still run
+ext_performance_settings.adoc|||milliseconds - the runtime may have to ask the application via notifications
+ext_performance_settings.adoc|||the application should be encouraged.
+ext_performance_settings.adoc|||very short and carefully monitor the side effects, which may vary a lot
+ext_render_model.adoc|||     This cache can be kept locally but is not be distributed with an
+ext_render_model.adoc|||     can use this UUID as a key to cache the glTF, node names, and processed
+ext_render_model.adoc|||     should avoid doing the work in latency sensitive threads.
+ext_render_model.adoc|||   * Reading and processing the glTF asset data can be a slow operation,
+ext_render_model.adoc|||   Once this is complete, flink:xrDestroyRenderModelAssetEXT can be called.
+ext_render_model.adoc|||// End of non-normative note: normative macros may resume
+ext_render_model.adoc|||// Non-normative note: should not contain any normative macros
+ext_samsung_odyssey_controller.adoc|||// the path name must be vendor-suffixed in new extensions.
+ext_spatial_entity.adoc|||   An example of this could be that tables can be detected by both a plane
+ext_spatial_entity.adoc|||   What is important to note here is that a given spatial entity can have at
+ext_spatial_marker_tracking.adoc|||            // Qr Code data can be queried using
+ext_spatial_persistence.adoc|||// Note: Anchor capability is just used as an example here. Persistence can be
+ext_spatial_persistence.adoc|||// supported by other capabilities too. xrEnumerateSpatialCapabilityComponentTypesEXT() can
+ext_stationary_reference_space.adoc|||2. Use a reference space that can regain its location in the physical world
+ext_stationary_reference_space.adoc|||* Applications can use the {local_floor_space} location in `STATIONARY`
+ext_stationary_reference_space.adoc|||* Applications can use the {view_space} location in `STATIONARY` reference
+ext_stationary_reference_space.adoc|||* Applications can use the {local_space} location in `STATIONARY` reference
+ext_stationary_reference_space.adoc|||The runtime may: determine that the previous `STATIONARY` space cannot be
+ext_stationary_reference_space.adoc|||ename:XR_FALSE, because the runtime cannot establish the relation between
+ext_stationary_reference_space.adoc|||reference spaces since how they are implemented can vary between runtimes.
+ext_stationary_reference_space.adoc|||Portable applications cannot assume a particular order for space change
+ext_stationary_reference_space.adoc|||should use the apiext:XR_EXT_spatial_persistence and
+ext_stationary_reference_space.adoc|||Because the generation ID of the `STATIONARY` reference space cannot be used
+ext_thermal_query.adoc|||// Khronos may elect to exercise its Copyright  license to incorporate this submission into
+ext_user_presence.adoc|||A runtime may choose to correlate the two states or keep them independent.
+ext_user_presence.adoc|||For example, this may indicate that the user has put on the headset, or has
+ext_user_presence.adoc|||For example, this may indicate that the user has removed the headset or has
+ext_user_presence.adoc|||pname:isUserPresent, so that the application can be in sync on the state
+ext_user_presence.adoc|||relationships between session state and user presence, instead, they should
+ext_user_presence.adoc|||slink:XrEventDataUserPresenceChangedEXT event can not be observed without a
+ext_view_configuration_depth_range.adoc|||  content should be rendered for the view.
+ext_view_configuration_depth_range.adoc|||  meters that content should be rendered for the view to achieve the best
+ext_view_configuration_depth_range.adoc|||For XR systems there may exist a per view recommended min/max depth range at
+ext_view_configuration_depth_range.adoc|||The depth range may be driven by several factors, including user comfort, or
+ext_view_configuration_depth_range.adoc|||and can result in a poor user experience due to observed visual artifacts,
+ext_view_configuration_depth_range.adoc|||min/max recommended and absolute distances at which content should be
+ext_view_configuration_depth_range.adoc|||which content should be rendered into the virtual world.
+ext_view_configuration_views_change.adoc|||  This may happen for example if the user has changed resolution settings in
+ext_view_configuration_views_change.adoc|||The updated recommendation can be found by calling
+ext_view_configuration_views_change.adoc|||this may result in undesired compositing.
+ext_win32_appcontainer_compatible.adoc|||If the XR system cannot support an AppContainer execution environment, the
+extx_overlay.adoc|||An overlay application should not assume that the values returned to it by
+extx_overlay.adoc|||Application developers may desire to implement an OpenXR application that
+extx_overlay.adoc|||However, once the sessions have been properly ordered, the runtime should
+extx_overlay.adoc|||Since one or more sessions may be active at the same time, this extension
+extx_overlay.adoc|||This can occur in many cases, one typical example is when a user switches
+extx_overlay.adoc|||This may require duplicating events to more than one session.
+extx_overlay.adoc|||This should result in the newest overlay session being composited closer to
+extx_overlay.adoc|||additional flags which can be used to adjust overlay behavior.
+extx_overlay.adoc|||called with no layers, then the runtime should clear the VR display.
+extx_overlay.adoc|||should be applied to the final composition frame.
+extx_overlay.adoc|||specification must change as defined below:
+extx_overlay.adoc|||the input information that can be read by another active session.
+extx_overlay.adoc|||then when both sessions are visible, the runtime can integrate their
+fb_android_surface_swapchain_create.adoc|||  Buffers are retired in order, and the producer may block until a new
+fb_android_surface_swapchain_create.adoc|||  compositor should acquire the most recent buffer whose presentation
+fb_android_surface_swapchain_create.adoc|||  underlying BufferQueue should be created in synchronous mode, allowing
+fb_color_space.adoc|||An application may inspect the native color space of the system by chaining
+fb_color_space.adoc|||Application developers may desire to specify the color space in which they
+fb_color_space.adoc|||XR devices may use a color space that is different from many monitors used
+fb_composition_layer_depth_test.adoc|||For projection layers, this can be supplied via the
+fb_composition_layer_depth_test.adoc|||To specify that a layer should be depth tested, a
+fb_composition_layer_image_layout.adoc|||  coordinate origin must be considered flipped vertically.
+fb_composition_layer_secure_content.adoc|||indicate a composition layer contains secure content and must not be written
+fb_composition_layer_secure_content.adoc|||layer type has secure content and whether it must be completely excluded
+fb_composition_layer_secure_content.adoc|||must be rendered in its place.
+fb_display_refresh_rate.adoc|||* A video application may choose a display refresh rate which better matches
+fb_display_refresh_rate.adoc|||* An application which can support a higher frame rate may choose to render
+fb_display_refresh_rate.adoc|||Conversely, lowering the display refresh rate can provide better thermal
+fb_display_refresh_rate.adoc|||application developers may request a specific display refresh rate in order
+fb_display_refresh_rate.adoc|||can lead to thermal degradation.
+fb_face_tracking2.adoc|||        // This tells the runtime that the application can take
+fb_face_tracking2.adoc|||** **Resolved.** We expect that all applications should use
+fb_face_tracking2.adoc|||In this scenario, pname:weightCount and pname:confidenceCount can be set to
+fb_foveation.adoc|||* An application to create swapchains that can support foveation for its
+fb_foveation.adoc|||specific HMDs, application developers may request and use available
+fb_haptic_amplitude_envelope.adoc|||An application can trigger an amplitude envelope haptic effect by creating a
+fb_haptic_pcm.adoc|||  can play a haptic effect
+fb_haptic_pcm.adoc|||A device can be invalid if the runtime does not find any device (which can
+fb_haptic_pcm.adoc|||If the application does not want any resampling to occur, then it can use
+fb_haptic_pcm.adoc|||haptic effect on this action has not yet completed, then the application can
+fb_haptic_pcm.adoc|||the runtime can store.
+fb_keyboard_tracking.adoc|||  queryInfo must have either ename:XR_KEYBOARD_TRACKING_QUERY_LOCAL_BIT_FB
+fb_keyboard_tracking.adoc|||The flink:xrCreateKeyboardSpaceFB function returns an slink:XrSpace that can
+fb_keyboard_tracking.adoc|||describe a keyboard that the system can locate.
+fb_passthrough.adoc|||  In some cases where a part of the environment, such as a desk, can be
+fb_passthrough.adoc|||  before the function can be called.
+fb_passthrough.adoc|||  one can exist.
+fb_passthrough.adoc|||A mesh can be instantiated multiple times, in the same or in different
+fb_passthrough.adoc|||Applications may use passthrough in a multitude of ways, including:
+fb_passthrough.adoc|||It is a composition layer type that may be submitted in flink:xrEndFrame
+fb_passthrough.adoc|||Layer objects may be used to specify rendering properties of the layer, such
+fb_passthrough.adoc|||passthrough layers produced on behalf of the application, and may free up
+fb_passthrough.adoc|||   flink:xrDestroyPassthroughFB, an app should destroy all
+fb_passthrough_keyboard_hands.adoc|||This extension is dependent on apiext:XR_FB_passthrough extension which can
+fb_passthrough_keyboard_hands.adoc|||range [0.0, 1.0], the runtime must return ename:XR_ERROR_VALIDATION_FAILURE.
+fb_render_model.adoc|||  After a successful call to flink:xrGetRenderModelPropertiesFB, flags must
+fb_render_model.adoc|||Multiple values of elink:XrRenderModelFlagBitsFB can be set on this variable
+fb_render_model.adoc|||The application can use this key along with the model version to update its
+fb_render_model.adoc|||Therefore, the application should: ensure it can handle this extension.
+fb_render_model.adoc|||This path can be used to request information about the render model for the
+fb_render_model.adoc|||extension and can be used to get information about the models as well as
+fb_render_model.adoc|||pname:modelVersion can be used to determine if the render model has changed.
+fb_scene.adoc|||  can be code:NULL if pname:wallUuidCapacityInput is 0.
+fb_scene.adoc|||* pname:buffer is a pointer to an array of bytes, but can be code:NULL if
+fb_scene.adoc|||If used to represent physical distances, values must be in meters.
+fb_scene.adoc|||The maximum corner can therefore be computed as
+fb_scene.adoc|||The maximum corner can therefore be computed as [eq]#pname:offset +
+fb_scene.adoc|||The width, height, and depth values must be non-negative.
+fb_scene.adoc|||This structure is used for component values that may be fractional
+fb_scene.adoc|||and `ceilingUuid` are unspecified and should not be used.
+fb_scene_capture.adoc|||  scene capture should occur.
+fb_scene_capture.adoc|||  type of scene capture should be initiated by the runtime.
+fb_scene_capture.adoc|||[open,refpage='XrSceneCaptureRequestInfoFB',type='structs',desc='Describes how a scene capture should be conducted by the system',xrefs='']
+fb_space_warp.adoc|||  The pose should be identity when there is no
+fb_space_warp.adoc|||  The swapchain should be created with ename:XR_SWAPCHAIN_USAGE_SAMPLED_BIT
+fb_space_warp.adoc|||  This can be used when the application has better knowledge the particular
+fb_space_warp.adoc|||  pname:farZ can be infinite.
+fb_space_warp.adoc|||  pname:nearZ can be infinite.
+fb_space_warp.adoc|||both may be enabled and used at the same time, for different purposes.
+fb_space_warp.adoc|||runtime can do high quality frame extrapolation and reprojection, allow
+fb_spatial_entity.adoc|||* pname:timeout is the number of nanoseconds before the operation should be
+fb_spatial_entity.adoc|||** Drop requirement for `XR_EXT_uuid` must be enabled
+fb_spatial_entity_query.adoc|||* pname:timeout is the number of nanoseconds before the operation should
+fb_spatial_entity_user.adoc|||* pname:userId is the user ID with which the application can reference.
+fb_spatial_entity_user.adoc|||[open,refpage='XrSpaceUserFB',type='handles',desc='Represents a user with which spaces can be shared']
+fb_spatial_entity_user.adoc|||[open,refpage='XrSpaceUserIdFB',desc='User ID with which spaces can be shared',type='basetypes']
+fb_spatial_entity_sharing.adoc|||  pname:users is a list of the users with which the pname:spaces will: be
+fb_swapchain_update_state.adoc|||The slink:XrSwapchainStateBaseHeaderFB is a base structure that can be
+fb_swapchain_update_state_android_surface.adoc|||  Android Surface Swapchain, as the surface dimensions may be implicitly
+fb_swapchain_update_state_android_surface.adoc|||* A video application may need to communicate a new width and height for an
+fb_swapchain_update_state_android_surface.adoc|||* A video application may need to update the default size of the image
+fb_swapchain_update_state_android_surface.adoc|||* pname:height is the height of the image buffer, must not be greater than
+fb_swapchain_update_state_android_surface.adoc|||* pname:width is the width of the image buffer, must not be greater than the
+fb_swapchain_update_state_android_surface.adoc|||dlink:XR_USE_PLATFORM_ANDROID must be defined before including
+fb_swapchain_update_state_opengl_es.adoc|||  In such cases, the texture image memory may be shared between processes,
+fb_swapchain_update_state_opengl_es.adoc|||  application, swapchains must be created in a cross-process friendly way.
+fb_swapchain_update_state_opengl_es.adoc|||  but the texture state may not; and, an explicit mechanism to synchronize
+fb_swapchain_update_state_opengl_es.adoc|||Current texture bindings may be altered by the call, including the active
+fb_swapchain_update_state_opengl_es.adoc|||dlink:XR_USE_GRAPHICS_API_OPENGL_ES must be defined before including
+fb_swapchain_update_state_opengl_es.adoc|||to support cases where the application may choose to directly sample the
+fb_swapchain_update_state_vulkan.adoc|||  In such cases, the texture image memory may be shared between processes,
+fb_swapchain_update_state_vulkan.adoc|||  application, swapchains must be created in a cross-process friendly way.
+fb_swapchain_update_state_vulkan.adoc|||  but the texture state may not; and, an explicit mechanism to synchronize
+fb_swapchain_update_state_vulkan.adoc|||dlink:XR_USE_GRAPHICS_API_VULKAN must be defined before including
+fb_touch_controller_pro.adoc|||  This tip can detect various pressure levels and could be used for writing
+fb_touch_controller_pro.adoc|||  that can be interchanged with the lanyard.
+fb_touch_controller_pro.adoc|||// the path name must be vendor-suffixed in new extensions.
+fb_triangle_mesh.adoc|||  The actual number of triangles can vary and is defined when
+fb_triangle_mesh.adoc|||  The actual number of vertices can vary and is defined when
+fb_triangle_mesh.adoc|||  The size of the array must be pname:triangleCount elements.
+fb_triangle_mesh.adoc|||  The size of the array must be pname:vertexCount elements.
+fb_triangle_mesh.adoc|||  The updated data must have the exact same number of vertices.
+fb_triangle_mesh.adoc|||Applications may specify the triangle winding order of a mesh - whether the
+fb_triangle_mesh.adoc|||Immutable meshes have no state machine; they may be considered to be in
+fb_triangle_mesh.adoc|||In particular, application may provide the surfaces of real-world objects
+fb_triangle_mesh.adoc|||Meshes may be useful in XR applications when representing parts of the
+fb_triangle_mesh.adoc|||Mutable meshes have a state machine controlling how they may be updated.
+fundamentals.adoc|||  formatted correctly but cannot be used for the lifetime of this function's
+fundamentals.adoc|||A convenience macro that can be used to test a function's failure.
+fundamentals.adoc|||An application cannot assume that the system's clock and the runtime's clock
+fundamentals.adoc|||For example, to create an slink:XrSwapchain handle, applications must call
+fundamentals.adoc|||In general, anywhere an object handle of more than one type can occur, the
+fundamentals.adoc|||In the following discussion, "set pname:elementCountOutput" should be
+fundamentals.adoc|||Prerelease versions of OpenXR may use different rules for versioning.
+fundamentals.adoc|||Resources created by the runtime should not be freed by the application, and
+fundamentals.adoc|||These structures allow for some type safety and can be used by OpenXR API
+fundamentals.adoc|||This structure is used for component values that may be real numbers,
+fundamentals.adoc|||group, and just like for implementors, they must maintain their vendor
+fundamentals.adoc|||information provided to the API so that the trace file can be played back by
+fundamentals.adoc|||maximum positive value that can be represented by an basetype:XrTime.
+fundamentals.adoc|||one runtime can be active at any given time.
+fundamentals.adoc|||storing such an offset, as this may cause time drift.
+htc_anchor.adoc|||The anchor is represented by an slink:XrSpace and its pose can be tracked
+htc_body_tracking.adoc|||  It indicates some of the body joints may not be tracked.
+htc_facial_tracking.adoc|||  describes which type of facial tracking should be used for this handle.
+htc_facial_tracking.adoc|||This handle can be used to retrieve corresponding facial expressions using
+htc_facial_tracking.adoc|||expression data so that it can be indexed by the elink:XrEyeExpressionHTC
+htc_facial_tracking.adoc|||facial expression can be animated with the player's eye movement.
+htc_facial_tracking.adoc|||facial expression can be animated with the player's lip movement.
+htc_facial_tracking.adoc|||that can contain at least pname:expressionCount of code:float.
+htc_facial_tracking.adoc|||that the application can index elements using the corresponding facial
+htc_hand_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
+htc_vive_cosmos_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
+htc_vive_focus3_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
+htc_vive_wrist_tracker_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
+htc_vive_wrist_tracker_interaction.adoc|||Besides this use case, user also can tie it to a physical object to track
+htcx_vive_tracker_interaction.adoc|||  The format of this path string is unspecified and should be treated as an
+htcx_vive_tracker_interaction.adoc|||* Either the persistent path or the role path can be be passed as a
+htcx_vive_tracker_interaction.adoc|||For example, it can be attached to user's hands or feet to track the motion
+htcx_vive_tracker_interaction.adoc|||HTC VIVE Tracker is a generic tracked device which can be attached to
+htcx_vive_tracker_interaction.adoc|||It can also be attached to any other devices the user wants to track and
+htcx_vive_tracker_interaction.adoc|||The role path and persistent path of this tracker can be retrieved with this
+huawei_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
+input.adoc|||  If pname:subactionPaths is NULL, this parameter must be 0.
+input.adoc|||  The action can be passed to flink:xrApplyHapticFeedback to send a haptic
+input.adoc|||  The action can be passed to flink:xrGetActionStateBoolean to retrieve a
+input.adoc|||  The action can be passed to flink:xrGetActionStateFloat to retrieve a
+input.adoc|||  The action can be passed to flink:xrGetActionStateVector2f to retrieve a
+input.adoc|||  The action can can be passed to flink:xrCreateActionSpace to create a
+input.adoc|||  This parameter can be combined with pname:currentState to detect rising
+input.adoc|||  This string should be in the system's current active locale.
+input.adoc|||  This string should be presented in the system's current active locale.
+input.adoc|||  code:UTF-8 string that can be presented to the user as a description of
+input.adoc|||  more slink:XrActiveActionSet structures that should be synchronized.
+input.adoc|||A given action can either be used for either input or output, but not both.
+input.adoc|||Applications can query action state using subaction paths that differentiate
+input.adoc|||Furthermore, the runtime should stop all in-progress haptic events when a
+input.adoc|||Haptic feedback may be immediately halted for a haptic action using the
+input.adoc|||If an input value cannot be converted to the type of the action, the value
+input.adoc|||If the runtime is unable to provide input because it cannot emulate any of
+input.adoc|||The current state of an input action can be obtained by calling the
+input.adoc|||This abstraction ensures that applications can run on a wide variety of
+input.adoc|||[open,refpage='XR_FREQUENCY_UNSPECIFIED',desc='Runtime should determine optimal frequency for haptic pulse',type='defines',xrefs='xrApplyHapticFeedback']
+input.adoc|||application to indicate that the value should be queried again.
+input.adoc|||get action data must also omit subaction paths.
+input.adoc|||slink:XrHapticBaseHeader which can be used to determine the type of the
+instance.adoc|||  It may be empty to indicate no specified engine.
+instance.adoc|||As stated <<fundamentals-extensions, earlier>>, extensions can expand the
+instance.adoc|||Because the list of available layers may change externally between calls to
+instance.adoc|||If a specified API layer cannot be found, no slink:XrInstance will be
+instance.adoc|||If the application attempts to create more instances than a runtime can
+instance.adoc|||Likewise, if a specified extension cannot be found, the call must: return
+instance.adoc|||The application can determine the available instance extensions by calling
+instance.adoc|||The application should call flink:xrDestroyInstance and relinquish any
+instance.adoc|||The extensions supported by a layer may also change between two calls, e.g.
+instance.adoc|||The list of available layers may change at any time due to actions outside
+instance.adoc|||The specific list of structures that may be used for extending
+instance.adoc|||These structures may be optional: or even required: for instance creation on
+instance.adoc|||and waited past the specified time, it may then re-try
+instance.adoc|||objects that may be created and used, but they must: support the creation
+instance.adoc|||slink:XrInstanceCreateInfo::pname:next can be found in the "Valid Usage
+instance.adoc|||that may be in use.
+introduction.adoc|||*can*:: This word means that the particular behavior described is a valid
+introduction.adoc|||*cannot*:: This word means that the particular behavior described is not
+introduction.adoc|||*may*:: This word, or the adjective *optional*, means that an item is truly
+introduction.adoc|||*must*:: When used alone, this word, or the term *required*, means that the
+introduction.adoc|||*should*:: When used alone, this word means that there may exist valid
+introduction.adoc|||One vendor may choose to include the item because a particular marketplace
+introduction.adoc|||Optionally, a runtime may support device layer plugins which allow access to
+introduction.adoc|||Specification text may address either party; typically the intended audience
+introduction.adoc|||The runtime may handle such functionality as frame composition, peripheral
+introduction.adoc|||There is an important distinction between *cannot* and *must not*, as used
+introduction.adoc|||When followed by *not* ("`should: not`"), the phrase means that there may
+introduction.adoc|||accomplish through the API, while *must not* means something that the
+introduction.adoc|||another vendor may omit the same item.
+introduction.adoc|||can be inferred from context, though some sections are defined to address
+introduction.adoc|||full implications must be understood and carefully weighed before choosing a
+khr_android_create_instance.adoc|||The pname:applicationVM field should be populated with the `JavaVM`
+khr_android_thread_settings.adoc|||of time, these threads must be identified to the system, which will adjust
+khr_binding_modification.adoc|||This extension adds an optional structure that can be included on the
+khr_composition_layer_color_scale_bias.adoc|||defines a transform that may be applied to the color derived from existing
+khr_composition_layer_cube.adoc|||Without updating the image source, the user can look all around, and the
+khr_composition_layer_cube.adoc|||compositor can display what they are looking at without intervention from
+khr_composition_layer_cylinder.adoc|||It can be imagined much the same way a curved television display looks to a
+khr_composition_layer_cylinder.adoc|||These can be understood via the following diagram, which is a top-down view
+khr_composition_layer_depth.adoc|||  pname:minDepth and pname:maxDepth must be in the range [0, 1].
+khr_composition_layer_depth.adoc|||  pname:minDepth must be less than pname:maxDepth.
+khr_composition_layer_depth.adoc|||Reverse z mappings can be achieved by making pname:nearZ > pname:farZ.
+khr_composition_layer_depth.adoc|||window space depth that is greater than points further away can be achieved
+khr_composition_layer_equirect.adoc|||This extension adds an additional layer type where the XR runtime must map
+khr_composition_layer_equirect.adoc|||very common, and the highest quality you can get from them is by sampling
+khr_composition_layer_equirect2.adoc|||This extension adds an additional layer type where the XR runtime must map
+khr_composition_layer_equirect2.adoc|||very common, and the highest quality you can get from them is by sampling
+khr_convert_timespec_time.adoc|||If the output pname:time cannot represent the input pname:timespecTime, the
+khr_convert_timespec_time.adoc|||If the output pname:timespecTime cannot represent the input pname:time, the
+khr_generic_controller.adoc|||** The data that is made available by the Generic Controller Profile can
+khr_loader_init.adoc|||** Explicitly state that the call to flink:xrInitializeLoaderKHR should be
+khr_loader_init.adoc|||On some platforms, before loading can occur the loader must be initialized
+khr_swapchain_usage_input_attachment_bit.adoc|||should be created in a way so that they can be used as input attachments.
+khr_visibility_mask.adoc|||  When rendering the mask for use in a projection layer, these vertices must
+khr_visibility_mask.adoc|||As a result, it may be that there are parts of the display that are not
+khr_vulkan_enable.adoc|||Therefore, OpenXR functions that may access the sname:VkQueue specified in
+khr_vulkan_enable.adoc|||These requirements can be queried by the application using
+khr_vulkan_enable.adoc|||can query flink:xrGetVulkanGraphicsDeviceKHR to identify the correct
+khr_vulkan_enable.adoc|||device extensions enabled, which can be queried using
+khr_vulkan_enable.adoc|||flink:xrGetVulkanGraphicsDeviceKHR returns should be passed to
+khr_vulkan_enable.adoc|||runtime, so that the returned swapchain images used by the application may
+khr_vulkan_enable.adoc|||so that they can use that graphics device to generate XR images.
+khr_vulkan_enable.adoc|||the slink:XrGraphicsBindingVulkanKHR must also be externally synchronized.
+khr_vulkan_enable2.adoc|||      If the application is interested in capturing this data it can set the
+khr_vulkan_enable2.adoc|||Some computer systems may have multiple graphics devices, each of which may
+khr_vulkan_enable2.adoc|||The runtime may schedule work on the sname:VkQueue specified in the binding,
+khr_vulkan_enable2.adoc|||Therefore, OpenXR functions that may access the sname:VkQueue specified in
+khr_vulkan_enable2.adoc|||or it may schedule work on any hardware queue in a foreign logical device.
+khr_vulkan_enable2.adoc|||runtime, so that the returned swapchain images used by the application may
+khr_vulkan_enable2.adoc|||structures in a Vulkan-backed slink:XrSession, the application can interpret
+khr_vulkan_swapchain_format_list.adoc|||In the same way that a Vulkan-based application can pass a
+khr_vulkan_swapchain_format_list.adoc|||function, an OpenXR application can pass an identically configured
+khr_vulkan_swapchain_format_list.adoc|||must create OpenXR swapchains with the
+khr_win32_convert_performance_counter_time.adoc|||If the output pname:performanceCounter cannot represent the input
+khr_win32_convert_performance_counter_time.adoc|||If the output pname:time cannot represent the input
+meta_body_tracking_calibration.adoc|||implement a UI to allow users to specify when it should be called.
+meta_body_tracking_fidelity.adoc|||[open,refpage='XrBodyTrackingFidelityMETA',type='enums',desc='Fidelity that may be requested or currently in use by the body tracker',xrefs='xrRequestBodyTrackingFidelityMETA XrBodyTrackingFidelityStatusMETA']
+meta_body_tracking_full_body.adoc|||ename:XR_BODY_JOINT_SET_FULL_BODY_META, which can be set as the joint set in
+meta_detached_controllers.adoc|||* Controllers that are "not held" can have some meaning in-application, for
+meta_detached_controllers.adoc|||// for /user/detached_controller_meta/left, and they can be
+meta_detached_controllers.adoc|||For an app that cares about detached controllers, you can set up bindings
+meta_detached_controllers.adoc|||Note that the same can be done for actions; actionname:ButtonClickAction
+meta_detached_controllers.adoc|||The two extensions can be brought together to have a controller pose that
+meta_detached_controllers.adoc|||should: be considered detached, as should a right controller held in the
+meta_environment_depth.adoc|||at any given time, and must return ename:XR_ERROR_LIMIT_REACHED if
+meta_environment_raycast.adoc|||For example, if you are looking at a screen, the hit point may be on the
+meta_environment_raycast.adoc|||When necessary, the application can instruct users to move to a different
+meta_environment_raycast.adoc|||point, but it may not be accurate.
+meta_passthrough_preferences.adoc|||For more information on how applications can control the display of
+meta_performance_metrics.adoc|||flink:xrEnumeratePerformanceMetricsCounterPathsMETA, the runtime must return
+meta_simultaneous_hands_and_controllers.adoc|||input), but this may consume additional power and system resources.
+meta_spatial_entity_discovery.adoc|||apiext:XR_FB_spatial_entity_sharing, and applications should not try to
+meta_spatial_entity_discovery.adoc|||apiext:XR_META_spatial_entity_discovery, and should instead use
+meta_spatial_entity_group_sharing.adoc|||Any logged-in user using the same application may query for spatial entities
+meta_spatial_entity_persistence.adoc|||of them must contain at least one element.
+meta_tile_properties_hint.adoc|||therefore cannot get the tile properties without providing an API for the
+meta_virtual_keyboard.adoc|||* pname:textContext is a pointer to a code:char buffer, should contain prior
+meta_virtual_keyboard.adoc|||Different input poses can be used to accommodate application specific
+meta_virtual_keyboard.adoc|||Note that new animations may be added after the runtime processes inputs
+meta_virtual_keyboard.adoc|||Note that new texture data may be added after the runtime processes inputs
+meta_virtual_keyboard.adoc|||Since the application has control over how collision should be handled
+meta_virtual_keyboard.adoc|||This is to give the effect that the virtual object cannot push through the
+meta_virtual_keyboard.adoc|||for managing how the keyboard should collide with other objects in the
+meta_virtual_keyboard.adoc|||solution and provides a keyboard that can seamlessly blend into the
+meta_virtual_keyboard.adoc|||that can be used by the application's choice of physics system.
+meta_virtual_keyboard.adoc|||weight should be applied to, or apply all weights if the value is -1.
+ml_facial_expression.adoc|||// User must explicitly request what facial expression blend shape to query
+ml_marker_understanding.adoc|||pname:session must be the same session that created the
+ml_ml2_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
+ml_world_mesh_detection.adoc|||          // It may be advantageous to use memory allocated
+ml_world_mesh_detection.adoc|||          // memory may provide some performance benefits by avoiding
+ml_world_mesh_detection.adoc|||This buffer must be allocated by the application, the system provides
+mnd_headless.adoc|||** Clarify that `xrWaitFrame` is permitted and should set `shouldRender` to
+mnd_headless.adoc|||// Khronos may elect to exercise its Copyright license to incorporate this submission into
+mnd_headless.adoc|||Some applications may wish to access XR interaction devices without
+mnd_swapchain_usage_input_attachment_bit.adoc|||should be created in a way so that they can be used as input attachments.
+mndx_egl_enable.adoc|||This extension must be provided by runtimes supporting applications using
+mndx_force_feedback_curl.adoc|||  The range of the value should represent the entire range the location is
+msft_composition_layer_reprojection.adoc|||  The app can: also omit the plane override, indicating the runtime should
+msft_composition_layer_reprojection.adoc|||  This mode is typically used for world-locked content that should remain
+msft_composition_layer_reprojection.adoc|||  This mode works better for body-locked content that should follow the user
+msft_composition_layer_reprojection.adoc|||  placed on a plane, or when it cannot afford to submit depth information.
+msft_composition_layer_reprojection.adoc|||  should be stabilized only for changes to orientation, ignoring positional
+msft_composition_layer_reprojection.adoc|||When the application is confident that overriding the reprojection plane can
+msft_controller_model.adoc|||  The parent name may: be empty if it should not be used to locate this
+msft_controller_model.adoc|||The node can be located in the glTF node hierarchy by finding the node(s)
+msft_controller_model.adoc|||model that can be retrieved from flink:xrLoadControllerModelMSFT function.
+msft_first_person_observer.adoc|||The application should render with assets and shaders that produce output
+msft_first_person_observer.adoc|||display may support alpha-blending when composing the first-person observer
+msft_first_person_observer.adoc|||perspective as the primary views, and so the application should render its
+msft_hand_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
+msft_hand_tracking_mesh.adoc|||An application can chain an slink:XrHandPoseTypeInfoMSFT structure to the
+msft_hand_tracking_mesh.adoc|||An application can choose different pname:handPoseType values to query the
+msft_hand_tracking_mesh.adoc|||An application should create separate hand mesh space handles for each hand
+msft_hand_tracking_mesh.adoc|||For example, a hand visualization may generate a UV mapping for the hand
+msft_hand_tracking_mesh.adoc|||If the runtime cannot return any tracking data for the given pname:time at
+msft_hand_tracking_mesh.adoc|||In this way, the application can avoid possible insufficient buffer sizees
+msft_hand_tracking_mesh.adoc|||In this way, the application can avoid possible insufficient buffer sizes
+msft_hand_tracking_mesh.adoc|||In this way, the application can easily avoid unnecessary processing of
+msft_hand_tracking_mesh.adoc|||It can use the returned pname:indexBufferKey and pname:vertexUpdateTime from
+msft_hand_tracking_mesh.adoc|||Some hand mesh visualizations may require an initial analysis or processing
+msft_hand_tracking_mesh.adoc|||The application can also reuse the same slink:XrHandTrackerEXT handle
+msft_hand_tracking_mesh.adoc|||The application can therefore avoid unnecessary processing of indices, such
+msft_hand_tracking_mesh.adoc|||The application can therefore avoid unnecessary processing of vertices, such
+msft_hand_tracking_mesh.adoc|||The application should use slink:XrHandMeshMSFT::pname:indexBufferChanged
+msft_hand_tracking_mesh.adoc|||The hand mesh space can be related to other spaces in the session, such as
+msft_hand_tracking_mesh.adoc|||The hand mesh space may be not locatable when the hand is outside of the
+msft_hand_tracking_mesh.adoc|||This input can be used to render the hand shape together with the controller
+msft_hand_tracking_mesh.adoc|||ename:XR_TRUE, the data in slink:XrHandMeshMSFT must be valid to use.
+msft_hand_tracking_mesh.adoc|||using the same slink:XrHandTrackerEXT, so that the application can apply the
+msft_holographic_window_attachment.adoc|||Applications may use this extension to create and control the CoreWindow/App
+msft_holographic_window_attachment.adoc|||If the CoreWindow is for a secondary app view, the application must
+msft_holographic_window_attachment.adoc|||This extension is only valid to use where an application can create a
+msft_holographic_window_attachment.adoc|||[open,refpage='XrHolographicWindowAttachmentMSFT',type='structs',desc='The holographic window binding structure which can be passed at session creation',xrefs='xrCreateSession']
+msft_perception_anchor_interop.adoc|||If the runtime can convert the pname:anchor to a
+msft_perception_anchor_interop.adoc|||If the runtime cannot convert the pname:anchor to a
+msft_scene_marker.adoc|||  It can be NULL if bufferCapacityInput is 0.
+msft_scene_marker.adoc|||  the marker geometry, applications can obtain additional geometry
+msft_scene_marker.adoc|||An slink:XrSceneMarkerQRCodesMSFT structure can be chained to the pname:next
+msft_scene_marker.adoc|||When the runtime cannot observe a previously observed
+msft_scene_understanding.adoc|||  Applications can request varying levels of detail for visual meshes when
+msft_scene_understanding.adoc|||  Floors are any surfaces on which one can walk.
+msft_scene_understanding.adoc|||  This class should not be confused with uncategorized where background is
+msft_scene_understanding.adoc|||  This should not be confused with background, as this object could be
+msft_scene_understanding.adoc|||  Visual mesh can also be used for rendering the silhouettes of objects.
+msft_scene_understanding.adoc|||  collider meshes for objects should be included in the resulting scene.
+msft_scene_understanding.adoc|||  flink:xrGetSceneComponentsMSFT, then slink:XrSceneMeshesMSFT may be
+msft_scene_understanding.adoc|||  flink:xrGetSceneComponentsMSFT, then slink:XrSceneObjectsMSFT may be
+msft_scene_understanding.adoc|||  flink:xrGetSceneComponentsMSFT, then slink:XrScenePlanesMSFT may be
+msft_scene_understanding.adoc|||  meshes for objects should be included in the resulting scene.
+msft_scene_understanding.adoc|||  objects should be included in the resulting scene.
+msft_scene_understanding.adoc|||  should all classify as floor.
+msft_scene_understanding.adoc|||  visualization meshes for objects should be included in the resulting
+msft_scene_understanding.adoc|||Applications can avoid unnecessarily calling flink:xrGetSceneMeshBuffersMSFT
+msft_scene_understanding.adoc|||Applications can chain one or more of following extension structures to the
+msft_scene_understanding.adoc|||Applications may use the scene mesh buffer identifier as a key to cache the
+msft_scene_understanding.adoc|||Each slink:XrSceneMSFT may contain one or more scene components.
+msft_scene_understanding.adoc|||It can only be called after flink:xrGetSceneComputeStateMSFT returns
+msft_scene_understanding.adoc|||OpenXR uses an X-Y plane with +Z as the plane normal but other APIs may use
+msft_scene_understanding.adoc|||Similar to flink:xrLocateSpace, apps should call
+msft_scene_understanding.adoc|||The X-Y plane can be converted to an X-Z plane by rotating [eq]#-{pi}/2#
+msft_scene_understanding.adoc|||The application can use this information to reason about the structure and
+msft_scene_understanding.adoc|||The application should destroy the slink:XrSceneObserverMSFT handle when it
+msft_scene_understanding.adoc|||The elink:XrSceneComponentTypeMSFT denotes which additional properties can
+msft_scene_understanding.adoc|||by flink:xrLocateSceneComponentsMSFT in later frames may change over time as
+msft_scene_understanding.adoc|||ename:XR_SCENE_COMPUTE_CONSISTENCY_OCCLUSION_OPTIMIZED_MSFT should be done
+msft_scene_understanding.adoc|||pname:flags should be empty.
+msft_scene_understanding.adoc|||scene compute consistencies that may be passed to
+msft_scene_understanding.adoc|||scene compute features that may be passed to flink:xrComputeNewSceneMSFT.
+msft_scene_understanding.adoc|||simulation should set pname:consistency to
+msft_scene_understanding.adoc|||the target space or the scene components may refine their locations.
+msft_scene_understanding_serialization.adoc|||* pname:buffer is a pointer to the buffer where the data should be copied.
+msft_scene_understanding_serialization.adoc|||* pname:countInput is the number of bytes that should be read.
+msft_scene_understanding_serialization.adoc|||The slink:XrUuidMSFT of a scene fragment can be passed to
+msft_scene_understanding_serialization.adoc|||ename:XR_SCENE_COMPONENT_TYPE_SERIALIZED_SCENE_FRAGMENT_MSFT can be passed
+msft_secondary_view_configuration.adoc|||The application can inspect the properties of a secondary view configuration
+msft_secondary_view_configuration.adoc|||The application should submit an
+msft_secondary_view_configuration.adoc|||and can use this secondary view configuration type in later functions.
+msft_secondary_view_configuration.adoc|||can make active while a session is running.
+msft_secondary_view_configuration.adoc|||it can support by chaining an
+msft_secondary_view_configuration.adoc|||single frame loop should additionally render into those active secondary
+msft_secondary_view_configuration.adoc|||slink:XrSecondaryViewConfigurationLayerInfoMSFT must be one of the view
+msft_secondary_view_configuration.adoc|||slink:XrSecondaryViewConfigurationLayerInfoMSFT must not be the primary view
+msft_spatial_anchor.adoc|||** Note that the parameter to `xrDestroySpatialAnchorMSFT` must be
+msft_spatial_anchor.adoc|||If slink:XrSpatialAnchorCreateInfoMSFT::pname:space cannot be located
+msft_spatial_anchor.adoc|||Multiple slink:XrSpace handles may exist for a given
+msft_spatial_anchor.adoc|||The slink:XrSpace handle must be eventually freed via the
+msft_spatial_anchor.adoc|||application can ensure that each piece of content stays at a fixed location
+msft_spatial_anchor.adoc|||viewer, but may cause content placed far from the viewer to drift in its
+msft_spatial_graph_bridge.adoc|||Applications can also try to get a spatial graph node from an slink:XrSpace
+msft_spatial_graph_bridge.adoc|||For example, a QR code tracking library can use a static node to represent
+msft_spatial_graph_bridge.adoc|||HMD so a web camera library can use a dynamic node to represent the camera
+msft_spatial_graph_bridge.adoc|||The application can retry creating the slink:XrSpatialGraphNodeBindingMSFT
+msft_spatial_graph_bridge.adoc|||This may happen when the given slink:XrSpace cannot be properly tracked at
+msft_unbounded_reference_space.adoc|||These inferred poses can, for example, be based on neck model updates,
+msft_unbounded_reference_space.adoc|||This is because the viewer may move through various rooms and levels of
+msft_unbounded_reference_space.adoc|||original origin can no longer be located (e.g. the viewer moved through a
+oculus_android_session_state_enable.adoc|||- The application should not call flink:xrRequestExitSession to request the
+oculus_android_session_state_enable.adoc|||- The application should not wait to receive the
+oculus_android_session_state_enable.adoc|||- The runtime does not determine when the application's session should be
+oculus_android_session_state_enable.adoc|||An Android Activity can only be in the session running state while the
+oculus_android_session_state_enable.adoc|||An Android Activity can only be in the session running state while there is
+oculus_android_session_state_enable.adoc|||However, this is not guaranteed and, for instance, surfaceDestroyed() may be
+oculus_android_session_state_enable.adoc|||Instead, the application should begin their session once there is a surface
+oculus_android_session_state_enable.adoc|||Instead, the application should end its session once the surface is
+oculus_android_session_state_enable.adoc|||Some OpenXR runtimes may require this extension to transition the
+oculus_android_session_state_enable.adoc|||The application should not wait to receive the ename:XR_SESSION_STATE_READY
+oculus_android_session_state_enable.adoc|||These two life cycles may interleave in complex ways.
+oculus_audio_device_guid.adoc|||  If these commands were to be reimplemented, `Oculus` should be replaced by
+oculus_audio_device_guid.adoc|||  If these commands were to be reimplemented, they should also pass a
+oculus_audio_device_guid.adoc|||On Windows, there may be multiple audio devices available on the system.
+rendering.adoc|||  This is the typical mode for VR experiences, although this mode can also
+rendering.adoc|||  with an additive display, although this mode can also be supported on
+rendering.adoc|||Applications should discard frames for which flink:xrEndFrame returns a
+rendering.adoc|||Because a runtime may reproject the layer over time, a projection layer
+rendering.adoc|||Blending of layers can be controlled by layer per-texel source alpha.
+rendering.adoc|||For devices that can support multiple environment blend modes, such as AR
+rendering.adoc|||For example, a VR headset may not support the
+rendering.adoc|||For example, a projection layer containing world-locked content should use
+rendering.adoc|||In the case that the projection layer should be head-locked, such as a heads
+rendering.adoc|||Layer swapchain textures may contain an alpha channel, depending on the
+rendering.adoc|||Quad layers can subtend a smaller portion of the display's field of view,
+rendering.adoc|||The application can inspect the set of supported environment blend modes for
+rendering.adoc|||around the black shadow to ensure the shadow can be seen.
+rendering.adoc|||can submit frames with an environment blend mode of
+rendering.adoc|||flink:xrWaitFrame, since a pipelined system may call flink:xrWaitFrame on a
+rendering.adoc|||frame-rate interpolation and distortion correction can be performed by the
+rendering.adoc|||passthrough, while an AR headset with an additive display may not support
+rendering.adoc|||should specify an slink:XrSpace in which to maximize stability of the layer
+semantic_paths.adoc|||    This position should be adjusted left or right to center the position
+semantic_paths.adoc|||  This may include, but is not limited to, face buttons, thumbstick, and
+semantic_paths.adoc|||* stylus - Tip that can be used for writing or drawing.
+semantic_paths.adoc|||* thumb_resting_surfaces - Any surfaces that a thumb may naturally rest on.
+semantic_paths.adoc|||// chapter normally. We may consider including a generated list of links once
+semantic_paths.adoc|||// we may consider a generated list here from registry markup.
+semantic_paths.adoc|||If the runtime's resources are exhausted and it cannot create the path, a
+semantic_paths.adoc|||Interaction profiles define paths for each component that can be bound to an
+semantic_paths.adoc|||This can be useful if the calling application receives an basetype:XrPath
+semantic_paths.adoc|||component part of the path can be determined automatically.
+semantic_paths.adoc|||identifier must use a location suffix as specified above.
+semantic_paths.adoc|||no more can be created.
+session.adoc|||  The application should destroy the current session and can optionally
+session.adoc|||  The application should end its XR experience and not automatically restart
+session.adoc|||  The application should exit its frame loop and call flink:xrEndSession.
+session.adoc|||  the runtime>> and is visible to the user but cannot receive XR input.
+session.adoc|||  the runtime>>, is visible to the user and can receive XR input.
+session.adoc|||(ename:XR_ERROR_VALIDATION_FAILURE may be returned due to legacy behavior)
+session.adoc|||2. The application can regularly call flink:xrPollEvent to monitor for
+session.adoc|||After returning from the flink:xrBeginSession call, the runtime may then
+session.adoc|||An application may be visible but not have focus, for example when the
+session.adoc|||If the application wishes to exit a running session, the application can
+session.adoc|||Only running sessions may become focused sessions that receive XR input.
+session.adoc|||The application can expect to receive active <<input, action inputs>>.
+session.adoc|||The application can save resources here by skipping rendering and not
+session.adoc|||The application may need to change its own internal state while input is
+session.adoc|||The application should check whether flink:xrWaitFrame returns
+session.adoc|||The application should render XR content and submit the composition layers
+session.adoc|||These extensions can be activated during slink:XrInstance create time.
+session.adoc|||While events can be expanded upon, there are a minimum set of lifecycle
+session.adoc|||ename:XR_SESSION_STATE_STOPPING>> event, it should stop its frame loop and
+session.adoc|||events which can occur which all OpenXR applications must be aware of.
+session.adoc|||experience, as users cannot interact with the application at this time.
+session.adoc|||flink:xrDestroySession can be called when the session is in any session
+session.adoc|||lifecycle state may be the preferred method of provoking session state
+session.adoc|||number of extensions of which each runtime can support any subset.
+session.adoc|||runtime has determined that the application should halt its rendering loop.
+session.adoc|||session state changes may be implicitly triggered by application lifecycle
+session.adoc|||should avoid heavy GPU work so that other visible applications can take CPU
+session.adoc|||submit frames at full frame rate, but may wish to change visually to
+session.adoc|||submitting its composition layers, although it may wish to pause its
+session.adoc|||unfocused, and applications should react to an inactive input action by
+session.adoc|||with the ename:XR_SESSION_STATE_STOPPING state, the application should stop
+spaces.adoc|||  that is empty and can be walked around on.
+spaces.adoc|||* pname:poseValid is true if the runtime can determine the
+spaces.adoc|||* pname:referenceSpaceType is the reference space type whose bounds should
+spaces.adoc|||* pname:time is the time for which the location should be provided.
+spaces.adoc|||Multiple slink:XrSpace handles may exist simultaneously, up to some limit
+spaces.adoc|||Note that other spaces can be created as well, such as pose action spaces
+spaces.adoc|||Some systems will support no {stage_space}, while others may support a
+spaces.adoc|||The following example code shows how an application can get both the
+spaces.adoc|||The slink:XrSpace handle must be eventually freed via the
+spaces.adoc|||These inferred poses can, for example, be based on neck model updates,
+spaces.adoc|||This may occur due to the user recentering the space explicitly, or the
+spaces.adoc|||XR systems may: have limited real world spatial ranges in which users can
+spaces.adoc|||behavior or content placement to ensure the user can complete the experience
+spaces.adoc|||can be calculated by the runtime, the runtime must: fill in the linear
+spaces.adoc|||head-mounted displays and may be uncomfortable to view if too large.
+spaces.adoc|||observed or can be calculated by the runtime, the runtime must: fill in the
+spaces.adoc|||rendering world content, applications should call flink:xrLocateViews
+spaces.adoc|||space are implicitly "head-locked", even if they may not be "display-locked"
+spaces.adoc|||specifies which slink:XrSpace the runtime should use to interpret those
+spaces.adoc|||that is empty and can be walked around on.
+spaces.adoc|||the user can freely move while remaining tracked, if available for that
+system.adoc|||  The user cannot touch the display itself.
+system.adoc|||Each system may include: a VR/AR display, various forms of input (gamepad,
+system.adoc|||The application uses the system to create a <<session,session>>, which can
+system.adoc|||While an application's core XR rendering may span across form factors, its
+system.adoc|||[open,refpage='XR_MIN_COMPOSITION_LAYERS_SUPPORTED',desc='Defines the minimum composition layers that a conformant runtime must support',type='defines',xrefs='XrSystemGraphicsProperties']
+system.adoc|||composition layers that a conformant runtime must support.
+ultraleap_hand_tracking_forearm.adoc|||[open,refpage='XrHandForearmJointULTRALEAP',type='enums',desc='The name of hand joints that can be tracked including the elbow',xrefs='XrHandJointEXT']
+valve_analog_threshold.adoc|||   slink:XrInteractionProfileSuggestedBinding, applications should use
+valve_analog_threshold.adoc|||  The binding must remain true until the input analog value falls below
+valve_analog_threshold.adoc|||Applications can also chain a single
+valve_analog_threshold.adoc|||should not be used by any new applications.
+varjo_composition_layer_depth_test.adoc|||    Initial value for the nearest depth should be infinity.
+varjo_composition_layer_depth_test.adoc|||    Otherwise the layer pixel is discarded, and compositor should move to
+varjo_composition_layer_depth_test.adoc|||    The compositor must track the depth value nearest to the virtual camera.
+varjo_composition_layer_depth_test.adoc|||    should composite the layer against the previous layers with "painter's
+varjo_composition_layer_depth_test.adoc|||    test range of the layer, the compositor must perform depth test against
+varjo_composition_layer_depth_test.adoc|||  specifies the lower bound of the range where depth testing should be
+varjo_composition_layer_depth_test.adoc|||  the upper bound of the range where depth testing should be performed.
+varjo_composition_layer_depth_test.adoc||| 1. Layers must be composited in the submission order.
+varjo_composition_layer_depth_test.adoc|||"painter's algorithm" such as described in <<rendering-compositing>> must be
+varjo_composition_layer_depth_test.adoc|||// Khronos may elect to exercise its Copyright  license to incorporate this submission into
+varjo_composition_layer_depth_test.adoc|||An application must also specify a range where depth testing will happen,
+varjo_composition_layer_depth_test.adoc|||Core OpenXR specifies that layer compositing must happen in the layer
+varjo_composition_layer_depth_test.adoc|||For this purpose the application should enable environment depth estimation
+varjo_composition_layer_depth_test.adoc|||However, an application may want to composite the final image against the
+varjo_composition_layer_depth_test.adoc|||Layers can now provide depth information that will be used to calculate
+varjo_composition_layer_depth_test.adoc|||Mixed reality applications may want to show hands on top of the rendered VR
+varjo_composition_layer_depth_test.adoc|||Overall, composition should be performed in the following way:
+varjo_composition_layer_depth_test.adoc|||which can be chained to slink:XrCompositionLayerProjection in order to
+varjo_environment_depth_estimation.adoc|||  functionality should be activated.
+varjo_environment_depth_estimation.adoc|||// Khronos may elect to exercise its Copyright  license to incorporate this submission into
+varjo_environment_depth_estimation.adoc|||Function can be called immediately after the session is created.
+varjo_environment_depth_estimation.adoc|||When this estimation is enabled, the compositor can generate properly
+varjo_environment_depth_estimation.adoc|||XR hardware and runtime may offer various ways to estimate the depth of the
+varjo_foveated_rendering.adoc|||  runtime should return foveated FoV.
+varjo_foveated_rendering.adoc|||  runtime should return foveated view configuration view.
+varjo_foveated_rendering.adoc|||// Khronos may elect to exercise its Copyright  license to incorporate this submission into
+varjo_foveated_rendering.adoc|||generate the density that can be seen by the user, which is another big
+varjo_foveated_rendering.adoc|||reduction compared to the density that can be displayed, using dedicated eye
+varjo_marker_tracking.adoc|||* pname:markerId is the unique identifier of the marker which should be
+varjo_marker_tracking.adoc|||// Khronos may elect to exercise its Copyright  license to incorporate this submission into
+varjo_marker_tracking.adoc|||The tracking may be lost if the marker went outside of the trackable field
+varjo_quad_views.adoc|||// Khronos may elect to exercise its Copyright  license to incorporate this submission into
+varjo_quad_views.adoc|||The relative position of the inner views relative to the outer views can
+varjo_quad_views.adoc|||The small FoV viewport however can have a higher resolution with respect to
+varjo_quad_views.adoc|||To enumerate the 4 views flink:xrEnumerateViewConfigurationViews can be
+varjo_quad_views.adoc|||elink:XrViewConfigurationType which can be returned by
+varjo_quad_views.adoc|||should not omit the inner field of view from being generated in the outer
+varjo_view_offset.adoc|||// Khronos may elect to exercise its Copyright  license to incorporate this submission into
+varjo_view_offset.adoc|||In some cases, moving the VR content to match the real-world position may
+varjo_view_offset.adoc|||Note that while the objects' sizes may differ, their geometry, relative
+varjo_view_offset.adoc|||While this can be observed as an apparent jump in the location of virtual
+varjo_view_offset.adoc|||You can use this to create a smooth, animated transition between the two
+varjo_view_offset.adoc|||user – for example, their hands may appear unnaturally large in the image.
+varjo_xr4_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
+versions.adoc|||// Unfortunately we cannot include titles in an open refpage block, so this
+versions.adoc|||Applications that can provide a head-relative interaction experience in the
+view_configurations.adoc|||* pname:fovMutable indicates if the view field of view can be modified by
+view_configurations.adoc|||A simple multi-wall projection-based (CAVE-like) VR system may have a view
+view_configurations.adoc|||Applications can query more details of each view element using
+view_configurations.adoc|||Supporting more than one primary view configuration can be useful if a
+view_configurations.adoc|||configuration type can be demonstrated by looking at the rendered pixel
+view_configurations.adoc|||views for which an application can render images.

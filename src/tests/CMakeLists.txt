@@ -26,6 +26,7 @@ check_c_compiler_flag(
 check_c_compiler_flag(-Wmissing-braces HAVE_MISSING_BRACES)
 check_c_compiler_flag(-Wunreachable-code HAVE_UNREACHABLE_CODE)
 check_c_compiler_flag(-Wmissing-prototypes HAVE_MISSING_PROTOTYPES)
+check_c_compiler_flag(-Wc++20-extensions HAVE_CPP20_EXTENSIONS)
 
 if(HAVE_IMPLICIT_FALLTHROUGH)
     add_compile_options(-Werror=implicit-fallthrough)
@@ -52,6 +53,9 @@ if(HAVE_MISSING_PROTOTYPES)
             $<IF:$<COMPILE_LANGUAGE:C>,-Werror=missing-prototypes,>
         )
     endif()
+endif()
+if(HAVE_CPP20_EXTENSIONS)
+    add_compile_options(-Werror=c++20-extensions)
 endif()
 
 if(BUILD_SDK_TESTS)

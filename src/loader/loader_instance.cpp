@@ -293,8 +293,8 @@ LoaderInstance::~LoaderInstance() {
     LoaderLogger::LogInfoMessage("xrDestroyInstance", oss.str());
 }
 
-bool LoaderInstance::ExtensionIsEnabled(const std::string& extension) {
-    for (std::string& cur_enabled : _enabled_extensions) {
+bool LoaderInstance::ExtensionIsEnabled(const std::string& extension) const {
+    for (const std::string& cur_enabled : _enabled_extensions) {
         if (cur_enabled == extension) {
             return true;
         }

@@ -246,6 +246,7 @@ if((OPENGL_FOUND OR OpenGLES_FOUND)
         openxr-gfxwrapper STATIC common/gfxwrapper_opengl.c
                                  common/gfxwrapper_opengl.h
     )
+    add_sanitizers(openxr-gfxwrapper)
     target_link_libraries(openxr-gfxwrapper PUBLIC openxr-glad-loader)
 
     if(ANDROID)
@@ -601,9 +602,11 @@ if(NOT MSVC)
             "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-undefined,error"
         )
     elseif(NOT WIN32)
-        set(CMAKE_SHARED_LINKER_FLAGS
-            "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined"
-        )
+        if(NOT SANITIZE_ADDRESS)
+            set(CMAKE_SHARED_LINKER_FLAGS
+                "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--no-undefined"
+            )
+        endif()
     endif()
 endif()
 
@@ -622,6 +625,8 @@ endif()
 
 if(BUILD_TESTS OR BUILD_CONFORMANCE_TESTS)
     add_subdirectory(external/catch2)
+    add_sanitizers(Catch2)
+    add_sanitizers(Catch2WithMain)
 
     file(GLOB_RECURSE EXTERNAL_SOURCES external/catch2/*.cpp)
     # cmake-format: off

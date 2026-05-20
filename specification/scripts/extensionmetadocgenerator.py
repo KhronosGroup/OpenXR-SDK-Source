@@ -173,49 +173,53 @@ class Extension:
         return doc
 
     def conditionalLinkExt(self, extName, indent = '    '):
-        doc  = f"ifdef::{extName}[]\n"
-        doc += f"{indent}{self.conventions.formatExtension(extName)}\n"
-        doc += f"endif::{extName}[]\n"
-        doc += f"ifndef::{extName}[]\n"
-        doc += f"{indent}`{extName}`\n"
-        doc += f"endif::{extName}[]\n"
-
+        doc = ''
+        exts = extName.split('+')
+        for i, name in enumerate(exts):
+            comma = ', ' if i != 0 else ''
+            doc += f"ifdef::{name}[]\n"
+            doc += f"{indent}{comma}{self.conventions.formatExtension(name)}\n"
+            doc += f"endif::{name}[]\n"
+            doc += f"ifndef::{name}[]\n"
+            doc += f"{indent}{comma}`{name}`\n"
+            doc += f"endif::{name}[]\n"
         return doc
 
     def resolveDeprecationChain(self, extensions, succeededBy, isRefpage, file):
-        if succeededBy not in extensions:
-            write(f'  ** *NOTE* The extension `{succeededBy}` is not supported for the API specification being generated', file=file)
-            self.generator.logMsg(
-                'warn', f'resolveDeprecationChain: {self.name} defines a superseding interface {succeededBy} which is not in the supported extensions list')
-            return
+        for subExt in succeededBy.split('+'):
+            if subExt not in extensions:
+                write(f'  ** *NOTE* The extension `{subExt}` is not supported for the API specification being generated', file=file)
+                self.generator.logMsg(
+                    'warn', f'resolveDeprecationChain: {self.name} defines a superseding interface {subExt} which is not in the supported extensions list')
+                continue
 
-        ext = extensions[succeededBy]
+            ext = extensions[subExt]
 
-        if ext.deprecationType:
-            if ext.deprecationType == 'promotion':
-                if ext.supercedingAPIVersion:
-                    write(f"  ** Which in turn was _promoted_ to\n{ext.conditionalLinkCoreAPI(ext.supercedingAPIVersion, '-promotions', isRefpage)}", file=file)
-                else: # ext.supercedingExtension
-                    write(f"  ** Which in turn was _promoted_ to extension\n{ext.conditionalLinkExt(ext.supercedingExtension)}", file=file)
-                    ext.resolveDeprecationChain(extensions, ext.supercedingExtension, isRefpage, file)
-            elif ext.deprecationType == 'deprecation':
-                if ext.supercedingAPIVersion:
-                    write(f"  ** Which in turn was _deprecated_ by\n{ext.conditionalLinkCoreAPI(ext.supercedingAPIVersion, '-new-feature', isRefpage)}", file=file)
-                elif ext.supercedingExtension:
-                    write(f"  ** Which in turn was _deprecated_ by\n{ext.conditionalLinkExt(ext.supercedingExtension)}    extension", file=file)
-                    ext.resolveDeprecationChain(extensions, ext.supercedingExtension, isRefpage, file)
-                else:
-                    write('  ** Which in turn was _deprecated_ without replacement', file=file)
-            elif ext.deprecationType == 'obsoletion':
-                if ext.supercedingAPIVersion:
-                    write(f"  ** Which in turn was _obsoleted_ by\n{ext.conditionalLinkCoreAPI(ext.supercedingAPIVersion, '-new-feature', isRefpage)}", file=file)
-                elif ext.supercedingExtension:
-                    write(f"  ** Which in turn was _obsoleted_ by\n{ext.conditionalLinkExt(ext.supercedingExtension)}    extension", file=file)
-                    ext.resolveDeprecationChain(extensions, ext.supercedingExtension, isRefpage, file)
-                else:
-                    write('  ** Which in turn was _obsoleted_ without replacement', file=file)
-            else: # should be unreachable
-                self.generator.logMsg('error', 'Logic error in resolveDeprecationChain(): deprecationType is neither \'promotion\', \'deprecation\' nor \'obsoletion\'!')
+            if ext.deprecationType:
+                if ext.deprecationType == 'promotion':
+                    if ext.supercedingAPIVersion:
+                        write(f"  ** Which in turn was _promoted_ to\n{ext.conditionalLinkCoreAPI(ext.supercedingAPIVersion, '-promotions', isRefpage)}", file=file)
+                    else: # ext.supercedingExtension
+                        write(f"  ** Which in turn was _promoted_ to extension\n{ext.conditionalLinkExt(ext.supercedingExtension)}", file=file)
+                        ext.resolveDeprecationChain(extensions, ext.supercedingExtension, isRefpage, file)
+                elif ext.deprecationType == 'deprecation':
+                    if ext.supercedingAPIVersion:
+                        write(f"  ** Which in turn was _deprecated_ by\n{ext.conditionalLinkCoreAPI(ext.supercedingAPIVersion, '-new-feature', isRefpage)}", file=file)
+                    elif ext.supercedingExtension:
+                        write(f"  ** Which in turn was _deprecated_ by\n{ext.conditionalLinkExt(ext.supercedingExtension)}    extension", file=file)
+                        ext.resolveDeprecationChain(extensions, ext.supercedingExtension, isRefpage, file)
+                    else:
+                        write('  ** Which in turn was _deprecated_ without replacement', file=file)
+                elif ext.deprecationType == 'obsoletion':
+                    if ext.supercedingAPIVersion:
+                        write(f"  ** Which in turn was _obsoleted_ by\n{ext.conditionalLinkCoreAPI(ext.supercedingAPIVersion, '-new-feature', isRefpage)}", file=file)
+                    elif ext.supercedingExtension:
+                        write(f"  ** Which in turn was _obsoleted_ by\n{ext.conditionalLinkExt(ext.supercedingExtension)}    extension", file=file)
+                        ext.resolveDeprecationChain(extensions, ext.supercedingExtension, isRefpage, file)
+                    else:
+                        write('  ** Which in turn was _obsoleted_ without replacement', file=file)
+                else: # should be unreachable
+                    self.generator.logMsg('error', 'Logic error in resolveDeprecationChain(): deprecationType is neither \'promotion\', \'deprecation\' nor \'obsoletion\'!')
 
     def writeTag(self, tag, value, isRefpage, fp):
         """Write a tag and (if non-None) a tag value to a file.
@@ -340,17 +344,20 @@ class Extension:
         if self.deprecationType:
             self.writeTag('Deprecation State', None, isRefpage, fp)
 
+            needs_plural = self.supercedingExtension and '+' in self.supercedingExtension
+            extension_str = 'extensions' if needs_plural else 'extension'
+
             if self.deprecationType == 'promotion':
                 if self.supercedingAPIVersion:
                     write(f"  * _Promoted_ to\n{self.conditionalLinkCoreAPI(self.supercedingAPIVersion, '-promotions', isRefpage)}", file=fp)
                 else: # ext.supercedingExtension
-                    write(f"  * _Promoted_ to\n{self.conditionalLinkExt(self.supercedingExtension)}    extension", file=fp)
+                    write(f"  * _Promoted_ to\n{self.conditionalLinkExt(self.supercedingExtension)}    {extension_str}", file=fp)
                     self.resolveDeprecationChain(extensions, self.supercedingExtension, isRefpage, fp)
             elif self.deprecationType == 'deprecation':
                 if self.supercedingAPIVersion:
                     write(f"  * _Deprecated_ by\n{self.conditionalLinkCoreAPI(self.supercedingAPIVersion, '-new-features', isRefpage)}", file=fp)
                 elif self.supercedingExtension:
-                    write(f"  * _Deprecated_ by\n{self.conditionalLinkExt(self.supercedingExtension)}    extension" , file=fp)
+                    write(f"  * _Deprecated_ by\n{self.conditionalLinkExt(self.supercedingExtension)}    {extension_str}" , file=fp)
                     self.resolveDeprecationChain(extensions, self.supercedingExtension, isRefpage, fp)
                 else:
                     write('  * _Deprecated_ without replacement' , file=fp)
@@ -358,7 +365,7 @@ class Extension:
                 if self.supercedingAPIVersion:
                     write(f"  * _Obsoleted_ by\n{self.conditionalLinkCoreAPI(self.supercedingAPIVersion, '-new-features', isRefpage)}", file=fp)
                 elif self.supercedingExtension:
-                    write(f"  * _Obsoleted_ by\n{self.conditionalLinkExt(self.supercedingExtension)}    extension" , file=fp)
+                    write(f"  * _Obsoleted_ by\n{self.conditionalLinkExt(self.supercedingExtension)}    {extension_str}" , file=fp)
                     self.resolveDeprecationChain(extensions, self.supercedingExtension, isRefpage, fp)
                 else:
                     # TODO: Does not make sense to retroactively ban use of extensions from 1.0.

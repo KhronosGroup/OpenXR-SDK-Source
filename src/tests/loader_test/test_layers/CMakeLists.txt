@@ -33,6 +33,7 @@ foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
 endforeach()
 
 add_library(XrApiLayer_test MODULE layer_test.cpp)
+add_sanitizers(XrApiLayer_test)
 set_target_properties(XrApiLayer_test PROPERTIES FOLDER ${LOADER_TESTS_FOLDER})
 
 target_link_libraries(XrApiLayer_test PRIVATE OpenXR::headers)

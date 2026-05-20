@@ -100,6 +100,7 @@ add_library(
 set_target_properties(
     XrApiLayer_api_dump PROPERTIES FOLDER ${API_LAYERS_FOLDER}
 )
+add_sanitizers(XrApiLayer_api_dump)
 
 target_link_libraries(
     XrApiLayer_api_dump PRIVATE Threads::Threads OpenXR::headers
@@ -176,6 +177,7 @@ add_library(
 set_target_properties(
     XrApiLayer_core_validation PROPERTIES FOLDER ${API_LAYERS_FOLDER}
 )
+add_sanitizers(XrApiLayer_core_validation)
 
 target_link_libraries(
     XrApiLayer_core_validation PRIVATE Threads::Threads OpenXR::headers

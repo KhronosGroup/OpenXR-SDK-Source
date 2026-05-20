@@ -33,13 +33,13 @@ endif
 ifneq (,$(strip $(VERY_STRICT)))
 ADOC_FAILURE_LEVEL := --failure-level INFO --verbose
 else
-ADOC_FAILURE_LEVEL := --failure-level ERROR
+ADOC_FAILURE_LEVEL := --failure-level WARN
 endif
 
 VERSIONS := XR_VERSION_1_0 XR_VERSION_1_1 XR_LOADER_VERSION_1_0
 VERSIONOPTIONS := $(foreach version,$(VERSIONS),-feature $(version))
 
-SPECREVISION = 1.1.59
+SPECREVISION = 1.1.60
 REVISION_COMPONENTS = $(subst ., ,$(SPECREVISION))
 MAJORMINORVER = $(word 1,$(REVISION_COMPONENTS)).$(word 2,$(REVISION_COMPONENTS))
 
@@ -108,8 +108,7 @@ default:
 	$(ECHO) "Pass QUIET= to disable quiet mode (echos all commands)"
 	$(ECHO) "Pass VERYQUIET= to disable very quiet mode (prints full build command for each refpage)"
 	$(ECHO) "Pass VERBOSE=1 to invoke asciidoctor with the --verbose option and genxr.py without the -q option"
-	$(ECHO) "Pass STRICT=1 to invoke asciidoctor with the --failure-level ERROR option"
-	$(ECHO) "Pass VERY_STRICT=1 to invoke asciidoctor with the --failure-level WARN option"
+	$(ECHO) "Pass VERY_STRICT=1 to invoke asciidoctor with the --failure-level INFO option"
 	$(ECHO) "Pass RELEASE=1 to turn off all asciidoctor date/timestamps for a reproducible release build"
 	@if [ -d sources/chapters ] && [ -d loader ]; then \
 	    echo "Pass some string for RELEASE_SPECS_SUFFIX to add a suffix to the version-numbered directory for the release targets"; fi
@@ -600,6 +599,7 @@ check-spec-links:
 	$(QUIET)if [ -f checkXml.sh ] && [ -f registry/registry.rnc ]; then env FAIL_IF_COULD_NOT_VALIDATE=false ./checkXml.sh; fi
 	$(QUIET)if [ -f checkSchematron.sh ] && [ -f registry/registry.sch ]; then ./checkSchematron.sh; fi
 	$(QUIET)$(PYTHON) $(SCRIPTS)/xml_consistency.py
+	$(QUIET)$(PYTHON) $(SCRIPTS)/findBareNormatives.py
 
 .PHONY: check-spec-links
 

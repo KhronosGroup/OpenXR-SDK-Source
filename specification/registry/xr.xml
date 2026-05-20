@@ -138,7 +138,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         updates them automatically by processing a line at a time.
         -->
         <type category="define">// OpenXR current version number.
-#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(1, 1, 59)</type>
+#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(1, 1, 60)</type>
 
         <!--
         Defines for a fixed major.minor version of OpenXR preserving the shared patch version.
@@ -314,6 +314,16 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <type category="define">
 #define <name>XR_LIP_EXPRESSION_COUNT_BD</name> 20</type>
 
+
+        <!-- XR_EXT_haptic_parametric -->
+        <type category="define">
+#define <name>XR_HAPTIC_PARAMETRIC_MAX_POINTS_TRANSIENTS_EXT</name> 500</type>
+        <type category="define">
+#define <name>XR_HAPTIC_PARAMETRIC_VIBRATION_EXTEND_DURATION_EXT</name> 50000000</type>
+        <type category="define">
+#define <name>XR_HAPTIC_PARAMETRIC_FREQUENCY_MIN_HZ_EXT</name> 1</type>
+        <type category="define">
+#define <name>XR_HAPTIC_PARAMETRIC_FREQUENCY_MAX_HZ_EXT</name> 1000</type>
 
         <!-- Value types -->
         <type category="basetype">typedef <type>uint32_t</type> <name>XrBool32</name>;</type>
@@ -987,6 +997,9 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
 
         <!-- XR_QCOM_hand_tracking_gesture -->
         <type name="XrHandGestureTypeQCOM" category="enum"/>
+
+        <!-- XR_EXT_haptic_parametric -->
+        <type name="XrHapticParametricStreamFrameTypeEXT" category="enum"/>
 
         <!-- Struct types -->
         <type category="struct" name="XrVector2f">
@@ -1785,7 +1798,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <type category="struct" name="XrSessionCreateInfoOverlayEXTX" structextends="XrSessionCreateInfo">
             <member values="XR_TYPE_SESSION_CREATE_INFO_OVERLAY_EXTX"><type>XrStructureType</type> <name>type</name></member>
             <member>const <type>void</type>*                                                      <name>next</name></member>
-            <member><type>XrOverlaySessionCreateFlagsEXTX</type>                                                         <name>createFlags</name></member>
+            <member optional="true"><type>XrOverlaySessionCreateFlagsEXTX</type>                  <name>createFlags</name></member>
             <member><type>uint32_t</type>                                                         <name>sessionLayersPlacement</name></member>
         </type>
         <type category="struct" name="XrEventDataMainSessionVisibilityChangedEXTX" parentstruct="XrEventDataBaseHeader" returnedonly="true">
@@ -2800,7 +2813,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <type category="struct" name="XrFoveationEyeTrackedProfileCreateInfoMETA" structextends="XrFoveationLevelProfileCreateInfoFB">
             <member values="XR_TYPE_FOVEATION_EYE_TRACKED_PROFILE_CREATE_INFO_META"><type>XrStructureType</type> <name>type</name></member>
             <member>const <type>void</type>*                                 <name>next</name></member>
-            <member><type>XrFoveationEyeTrackedProfileCreateFlagsMETA</type> <name>flags</name></member>
+            <member optional="true"><type>XrFoveationEyeTrackedProfileCreateFlagsMETA</type> <name>flags</name></member>
         </type>
         <type category="struct" name="XrFoveationEyeTrackedStateMETA" returnedonly="true">
             <member values="XR_TYPE_FOVEATION_EYE_TRACKED_STATE_META"><type>XrStructureType</type> <name>type</name></member>
@@ -6303,7 +6316,51 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member><type>float</type>                 <name>flipRatio</name></member>
         </type>
 
+        <!-- XR_EXT_haptic_parametric -->
+        <type category="struct" name="XrHapticParametricPropertiesEXT">
+            <member values="XR_TYPE_HAPTIC_PARAMETRIC_PROPERTIES_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*      <name>next</name></member>
+            <member><type>XrDuration</type> <name>idealFrameSubmissionRate</name></member>
+            <member><type>XrDuration</type> <name>minimumFirstFrameDuration</name></member>
+            <member><type>float</type>      <name>minFrequencyHz</name></member>
+            <member><type>float</type>      <name>maxFrequencyHz</name></member>
+        </type>
 
+        <type category="struct" name="XrHapticParametricPointEXT">
+            <member><type>XrDuration</type> <name>time</name></member>
+            <member><type>float</type>      <name>value</name></member>
+        </type>
+
+        <type category="struct" name="XrHapticParametricTransientEXT">
+            <member><type>XrDuration</type> <name>time</name></member>
+            <member><type>float</type>      <name>amplitude</name></member>
+            <member><type>float</type>      <name>frequency</name></member>
+        </type>
+
+        <type category="struct" name="XrHapticParametricVibrationEXT" parentstruct="XrHapticBaseHeader">
+            <member values="XR_TYPE_HAPTIC_PARAMETRIC_VIBRATION_EXT"><type>XrStructureType</type>            <name>type</name></member>
+            <member>const <type>void</type>*                                                                 <name>next</name></member>
+
+            <member><type>uint32_t</type>                                                                    <name>amplitudePointCount</name></member>
+            <member len="amplitudePointCount">const <type>XrHapticParametricPointEXT</type>*                 <name>amplitudePoints</name></member>
+
+            <member optional="true"><type>uint32_t</type>                                                    <name>frequencyPointCount</name></member>
+            <member optional="true" len="frequencyPointCount">const <type>XrHapticParametricPointEXT</type>* <name>frequencyPoints</name></member>
+
+            <member optional="true"><type>uint32_t</type>                                                    <name>transientCount</name></member>
+            <member optional="true" len="transientCount">const <type>XrHapticParametricTransientEXT</type>*  <name>transients</name></member>
+
+            <member><type>float</type>                                                                       <name>minFrequencyHz</name></member>
+            <member><type>float</type>                                                                       <name>maxFrequencyHz</name></member>
+
+            <member><type>XrHapticParametricStreamFrameTypeEXT</type>                                        <name>streamFrameType</name></member>
+        </type>
+
+        <type category="struct" name="XrSystemHapticParametricPropertiesEXT" returnedonly="true" structextends="XrSystemProperties">
+            <member values="XR_TYPE_SYSTEM_HAPTIC_PARAMETRIC_PROPERTIES_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*    <name>next</name></member>
+            <member><type>XrBool32</type> <name>supportsParametricHaptics</name></member>
+        </type>
     </types>
 
 
@@ -8424,6 +8481,14 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="0"    name="XR_HAND_GESTURE_TYPE_OPEN_HAND_QCOM" comment="The open hand gesture is a neutral position. It is performed by extending the hand with the fingers opened and the palm away from the user."/>
         <enum value="2"    name="XR_HAND_GESTURE_TYPE_GRAB_QCOM"      comment="The grab gesture is performed by placing the hand in front of the user and closing the hand into a fist."/>
         <enum value="7"    name="XR_HAND_GESTURE_TYPE_PINCH_QCOM"     comment="The pinch gesture is performed by touching the tip of the thumb to the tip of the index finger while extending the remaining fingers."/>
+    </enums>
+
+    <!-- XR_EXT_haptic_parametric -->
+    <enums name="XrHapticParametricStreamFrameTypeEXT" type="enum">
+        <enum value="0"   name="XR_HAPTIC_PARAMETRIC_STREAM_FRAME_TYPE_NONE_EXT"/>
+        <enum value="1"   name="XR_HAPTIC_PARAMETRIC_STREAM_FRAME_TYPE_FIRST_FRAME_EXT"/>
+        <enum value="2"   name="XR_HAPTIC_PARAMETRIC_STREAM_FRAME_TYPE_INTERMEDIATE_FRAME_EXT"/>
+        <enum value="3"   name="XR_HAPTIC_PARAMETRIC_STREAM_FRAME_TYPE_LAST_FRAME_EXT"/>
     </enums>
 
     <!-- SECTION: OpenXR loader command definitions -->
@@ -11836,6 +11901,13 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrHandGestureQCOM</type>* <name>handGesture</name></param>
         </command>
 
+        <!-- XR_EXT_haptic_parametric -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_ACTIONSET_NOT_ATTACHED,XR_ERROR_ACTION_TYPE_MISMATCH,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_PATH_INVALID,XR_ERROR_PATH_UNSUPPORTED,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrHapticParametricGetPropertiesEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrHapticActionInfo</type>* <name>hapticActionInfo</name></param>
+            <param><type>XrHapticParametricPropertiesEXT</type>* <name>parametricProperties</name></param>
+        </command>
     </commands>
 
     <interaction_profiles>
@@ -13737,7 +13809,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_MSFT_unbounded_reference_space" number="39" type="instance" supported="openxr">
+    <extension name="XR_MSFT_unbounded_reference_space" number="39" type="instance" supported="openxr" deprecatedby="">
         <require>
             <enum value="1"                                             name="XR_MSFT_unbounded_reference_space_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_unbounded_reference_space&quot;" name="XR_MSFT_UNBOUNDED_REFERENCE_SPACE_EXTENSION_NAME"/>
@@ -13746,7 +13818,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_MSFT_spatial_anchor" number="40" type="instance" supported="openxr">
+    <extension name="XR_MSFT_spatial_anchor" number="40" type="instance" supported="openxr" obsoletedby="XR_EXT_spatial_anchor">
         <require>
             <enum value="2"                                  name="XR_MSFT_spatial_anchor_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_spatial_anchor&quot;" name="XR_MSFT_SPATIAL_ANCHOR_EXTENSION_NAME"/>
@@ -13838,7 +13910,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_MSFT_spatial_graph_bridge" number="50" type="instance" supported="openxr">
+    <extension name="XR_MSFT_spatial_graph_bridge" number="50" type="instance" supported="openxr" deprecatedby="">
         <require>
             <enum value="2"                                        name="XR_MSFT_spatial_graph_bridge_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_spatial_graph_bridge&quot;" name="XR_MSFT_SPATIAL_GRAPH_BRIDGE_EXTENSION_NAME"/>
@@ -13913,7 +13985,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_MSFT_hand_tracking_mesh" number="53" depends="XR_VERSION_1_0+XR_EXT_hand_tracking" type="instance" supported="openxr">
+    <extension name="XR_MSFT_hand_tracking_mesh" number="53" depends="XR_VERSION_1_0+XR_EXT_hand_tracking" type="instance" supported="openxr" deprecatedby="">
         <require>
             <enum value="4"                                      name="XR_MSFT_hand_tracking_mesh_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_hand_tracking_mesh&quot;" name="XR_MSFT_HAND_TRACKING_MESH_EXTENSION_NAME"/>
@@ -13939,7 +14011,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_MSFT_secondary_view_configuration" number="54" type="instance" supported="openxr">
+    <extension name="XR_MSFT_secondary_view_configuration" number="54" type="instance" supported="openxr" deprecatedby="">
         <require>
             <enum value="1"                                                name="XR_MSFT_secondary_view_configuration_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_secondary_view_configuration&quot;" name="XR_MSFT_SECONDARY_VIEW_CONFIGURATION_EXTENSION_NAME"/>
@@ -13959,7 +14031,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_MSFT_first_person_observer" number="55" type="instance" depends="XR_VERSION_1_0+XR_MSFT_secondary_view_configuration" supported="openxr">
+    <extension name="XR_MSFT_first_person_observer" number="55" type="instance" depends="XR_VERSION_1_0+XR_MSFT_secondary_view_configuration" supported="openxr" deprecatedby="">
         <require>
             <enum value="1"                                         name="XR_MSFT_first_person_observer_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_first_person_observer&quot;" name="XR_MSFT_FIRST_PERSON_OBSERVER_EXTENSION_NAME"/>
@@ -13967,7 +14039,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_MSFT_controller_model" number="56" type="instance" supported="openxr">
+    <extension name="XR_MSFT_controller_model" number="56" type="instance" supported="openxr" obsoletedby="XR_EXT_interaction_render_model">
         <require>
             <enum value="2"                                    name="XR_MSFT_controller_model_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_controller_model&quot;" name="XR_MSFT_CONTROLLER_MODEL_EXTENSION_NAME"/>
@@ -13997,7 +14069,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_MSFT_perception_anchor_interop" number="57" type="instance" supported="openxr" depends="XR_VERSION_1_0+XR_MSFT_spatial_anchor" protect="XR_USE_PLATFORM_WIN32">
+    <extension name="XR_MSFT_perception_anchor_interop" number="57" type="instance" supported="openxr" depends="XR_VERSION_1_0+XR_MSFT_spatial_anchor" protect="XR_USE_PLATFORM_WIN32" deprecatedby="">
         <require>
             <enum value="1"                                             name="XR_MSFT_perception_anchor_interop_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_perception_anchor_interop&quot;" name="XR_MSFT_PERCEPTION_ANCHOR_INTEROP_EXTENSION_NAME"/>
@@ -14038,7 +14110,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_MSFT_holographic_window_attachment" number="64" type="instance" supported="openxr" protect="XR_USE_PLATFORM_WIN32">
+    <extension name="XR_MSFT_holographic_window_attachment" number="64" type="instance" supported="openxr" protect="XR_USE_PLATFORM_WIN32" deprecatedby="">
         <require>
             <enum value="1"                                                 name="XR_MSFT_holographic_window_attachment_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_holographic_window_attachment&quot;" name="XR_MSFT_HOLOGRAPHIC_WINDOW_ATTACHMENT_EXTENSION_NAME"/>
@@ -14061,7 +14133,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_MSFT_composition_layer_reprojection" number="67" type="instance" supported="openxr">
+    <extension name="XR_MSFT_composition_layer_reprojection" number="67" type="instance" supported="openxr" deprecatedby="">
         <require>
             <enum value="1"                                                  name="XR_MSFT_composition_layer_reprojection_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_composition_layer_reprojection&quot;" name="XR_MSFT_COMPOSITION_LAYER_REPROJECTION_EXTENSION_NAME"/>
@@ -14492,7 +14564,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_MSFT_scene_understanding" number="98" type="instance" supported="openxr">
+    <extension name="XR_MSFT_scene_understanding" number="98" type="instance" supported="openxr" obsoletedby="XR_EXT_spatial_entity">
         <require>
             <enum value="2"                                       name="XR_MSFT_scene_understanding_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_scene_understanding&quot;" name="XR_MSFT_SCENE_UNDERSTANDING_EXTENSION_NAME"/>
@@ -14572,7 +14644,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_MSFT_scene_understanding_serialization" number="99" type="instance" supported="openxr" depends="XR_VERSION_1_0+XR_MSFT_scene_understanding">
+    <extension name="XR_MSFT_scene_understanding_serialization" number="99" type="instance" supported="openxr" depends="XR_VERSION_1_0+XR_MSFT_scene_understanding" deprecatedby="">
         <require>
             <enum value="2"                                                     name="XR_MSFT_scene_understanding_serialization_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_scene_understanding_serialization&quot;" name="XR_MSFT_SCENE_UNDERSTANDING_SERIALIZATION_EXTENSION_NAME"/>
@@ -15450,9 +15522,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-
-
-    <extension name="XR_MSFT_spatial_anchor_persistence" number="143" depends="XR_VERSION_1_0+XR_MSFT_spatial_anchor" type="instance" supported="openxr">
+    <extension name="XR_MSFT_spatial_anchor_persistence" number="143" depends="XR_VERSION_1_0+XR_MSFT_spatial_anchor" type="instance" supported="openxr" obsoletedby="XR_EXT_spatial_persistence">
         <require>
             <enum value="2"                                              name="XR_MSFT_spatial_anchor_persistence_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_spatial_anchor_persistence&quot;" name="XR_MSFT_SPATIAL_ANCHOR_PERSISTENCE_EXTENSION_NAME"/>
@@ -15509,7 +15579,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_MSFT_scene_marker" number="148" type="instance" supported="openxr" depends="XR_VERSION_1_0+XR_MSFT_scene_understanding">
+    <extension name="XR_MSFT_scene_marker" number="148" type="instance" supported="openxr" depends="XR_VERSION_1_0+XR_MSFT_scene_understanding" obsoletedby="XR_EXT_spatial_marker_tracking">
         <require>
             <enum value="1"                                name="XR_MSFT_scene_marker_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_scene_marker&quot;" name="XR_MSFT_SCENE_MARKER_EXTENSION_NAME"/>
@@ -18946,7 +19016,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_trackables" number="456" type="instance" supported="openxr">
+    <extension name="XR_ANDROID_trackables" number="456" type="instance" supported="openxr" deprecatedby="XR_EXT_spatial_entity+XR_EXT_spatial_plane_tracking+XR_ANDROID_spatial_component_subsumed_by+XR_EXT_spatial_anchor+XR_ANDROID_spatial_entity_bound_anchor+XR_ANDROID_spatial_anchor_space">
         <require>
             <enum value="2"                                    name="XR_ANDROID_trackables_SPEC_VERSION"/>
             <enum value="&quot;XR_ANDROID_trackables&quot;"    name="XR_ANDROID_TRACKABLES_EXTENSION_NAME"/>
@@ -19016,7 +19086,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_device_anchor_persistence" number="458" type="instance" depends="XR_EXT_uuid+XR_ANDROID_trackables" supported="openxr">
+    <extension name="XR_ANDROID_device_anchor_persistence" number="458" type="instance" depends="XR_EXT_uuid+XR_ANDROID_trackables" supported="openxr" deprecatedby="XR_EXT_spatial_persistence+XR_EXT_spatial_persistence_operations">
         <require>
             <enum value="1"                                                name="XR_ANDROID_device_anchor_persistence_SPEC_VERSION"/>
             <enum value="&quot;XR_ANDROID_device_anchor_persistence&quot;" name="XR_ANDROID_DEVICE_ANCHOR_PERSISTENCE_EXTENSION_NAME"/>
@@ -19144,7 +19214,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_raycast" number="464" type="instance" supported="openxr" depends="XR_ANDROID_trackables">
+    <extension name="XR_ANDROID_raycast" number="464" type="instance" supported="openxr" depends="XR_ANDROID_trackables" deprecatedby="XR_ANDROID_spatial_discovery_raycast">
         <require>
             <enum value="1"                                   name="XR_ANDROID_raycast_SPEC_VERSION"/>
             <enum value="&quot;XR_ANDROID_raycast&quot;"      name="XR_ANDROID_RAYCAST_EXTENSION_NAME"/>
@@ -19191,7 +19261,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_trackables_object" number="467" type="instance" supported="openxr" depends="XR_ANDROID_trackables">
+    <extension name="XR_ANDROID_trackables_object" number="467" type="instance" supported="openxr" depends="XR_ANDROID_trackables" deprecatedby="XR_ANDROID_spatial_object_tracking">
         <require>
             <enum value="2"                                        name="XR_ANDROID_trackables_object_SPEC_VERSION"/>
             <enum value="&quot;XR_ANDROID_trackables_object&quot;" name="XR_ANDROID_TRACKABLES_OBJECT_EXTENSION_NAME"/>
@@ -19779,7 +19849,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="1"                                       name="XR_META_boundary_visibility_SPEC_VERSION"/>
             <enum value="&quot;XR_META_boundary_visibility&quot;" name="XR_META_BOUNDARY_VISIBILITY_EXTENSION_NAME"/>
 
-            <enum offset="0" extends="XrResult"                   name="XR_BOUNDARY_VISIBILITY_SUPPRESSION_NOT_ALLOWED_META"/>
+            <enum offset="0" extends="XrResult"                   name="XR_BOUNDARY_VISIBILITY_SUPPRESSION_NOT_ALLOWED_META" comment="Runtime did not accept the request to suppress the boundary visibility"/>
 
             <type name="XrSystemBoundaryVisibilityPropertiesMETA"/>
             <enum offset="0" extends="XrStructureType" name="XR_TYPE_SYSTEM_BOUNDARY_VISIBILITY_PROPERTIES_META"/>
@@ -19988,7 +20058,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="1"                                            name="XR_META_spatial_entity_room_mesh_SPEC_VERSION"/>
             <enum value="&quot;XR_META_spatial_entity_room_mesh&quot;" name="XR_META_SPATIAL_ENTITY_ROOM_MESH_EXTENSION_NAME"/>
 
-            <enum offset="0" extends="XrSpaceComponentTypeFB"          name="XR_SPACE_COMPONENT_TYPE_ROOM_MESH_META"/>
+            <enum offset="0" extends="XrSpaceComponentTypeFB"          name="XR_SPACE_COMPONENT_TYPE_ROOM_MESH_META"          comment="Room mesh component."/>
 
             <enum offset="0" extends="XrStructureType"                 name="XR_TYPE_ROOM_MESH_FACE_INDICES_META"/>
             <enum offset="1" extends="XrStructureType"                 name="XR_TYPE_SPACE_ROOM_MESH_GET_INFO_META"/>
@@ -21208,7 +21278,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_trackables_marker" number="708" type="instance" supported="openxr" depends="XR_ANDROID_trackables">
+    <extension name="XR_ANDROID_trackables_marker" number="708" type="instance" supported="openxr" depends="XR_ANDROID_trackables" deprecatedby="XR_EXT_spatial_marker_tracking">
         <require>
             <enum value="1"                                        name="XR_ANDROID_trackables_marker_SPEC_VERSION"/>
             <enum value="&quot;XR_ANDROID_trackables_marker&quot;" name="XR_ANDROID_TRACKABLES_MARKER_EXTENSION_NAME"/>
@@ -21232,7 +21302,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_trackables_qr_code" number="709" type="instance" supported="openxr" depends="XR_ANDROID_trackables">
+    <extension name="XR_ANDROID_trackables_qr_code" number="709" type="instance" supported="openxr" depends="XR_ANDROID_trackables" deprecatedby="XR_EXT_spatial_marker_tracking">
         <require>
             <enum value="1"                                         name="XR_ANDROID_trackables_qr_code_SPEC_VERSION"/>
             <enum value="&quot;XR_ANDROID_trackables_qr_code&quot;" name="XR_ANDROID_TRACKABLES_QR_CODE_EXTENSION_NAME"/>
@@ -22133,10 +22203,29 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_EXT_haptic_parametric" number="776" type="instance" supported="disabled">
+    <extension name="XR_EXT_haptic_parametric" number="776" type="instance" supported="openxr">
         <require>
             <enum value="1"                                    name="XR_EXT_haptic_parametric_SPEC_VERSION"/>
             <enum value="&quot;XR_EXT_haptic_parametric&quot;" name="XR_EXT_HAPTIC_PARAMETRIC_EXTENSION_NAME"/>
+
+            <type name="XR_HAPTIC_PARAMETRIC_MAX_POINTS_TRANSIENTS_EXT"/>
+            <type name="XR_HAPTIC_PARAMETRIC_VIBRATION_EXTEND_DURATION_EXT"/>
+            <type name="XR_HAPTIC_PARAMETRIC_FREQUENCY_MIN_HZ_EXT"/>
+            <type name="XR_HAPTIC_PARAMETRIC_FREQUENCY_MAX_HZ_EXT"/>
+            <type name="XrHapticParametricPropertiesEXT"/>
+            <type name="XrHapticParametricPointEXT"/>
+            <type name="XrHapticParametricTransientEXT"/>
+            <type name="XrHapticParametricVibrationEXT"/>
+            <type name="XrHapticParametricStreamFrameTypeEXT"/>
+            <type name="XrSystemHapticParametricPropertiesEXT"/>
+
+            <command name="xrHapticParametricGetPropertiesEXT"/>
+
+            <extend type="command" name="xrApplyHapticFeedback" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED"/>
+
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_HAPTIC_PARAMETRIC_VIBRATION_EXT"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_HAPTIC_PARAMETRIC_PROPERTIES_EXT"/>
+            <enum offset="2" extends="XrStructureType" name="XR_TYPE_SYSTEM_HAPTIC_PARAMETRIC_PROPERTIES_EXT"/>
         </require>
     </extension>
 

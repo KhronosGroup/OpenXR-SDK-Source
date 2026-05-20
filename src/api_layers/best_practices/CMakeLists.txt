@@ -56,6 +56,7 @@ add_library(
 set_target_properties(
     XrApiLayer_best_practices_validation PROPERTIES FOLDER ${API_LAYERS_FOLDER}
 )
+add_sanitizers(XrApiLayer_best_practices_validation)
 
 target_link_libraries(
     XrApiLayer_best_practices_validation PRIVATE Threads::Threads

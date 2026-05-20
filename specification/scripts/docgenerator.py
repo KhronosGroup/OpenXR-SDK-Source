@@ -173,6 +173,13 @@ class DocOutputGenerator(OutputGenerator):
     options, only actual C types are emitted, and none of the boilerplate
     preprocessor code is emitted."""
 
+    ENUM_COMMENT_WARNING_SUPPRESSIONS = {
+        'XrStructureType',
+        'XrViewConfigurationType',
+        'XrReferenceSpaceType',
+        'XrLipExpressionHTC',
+    }
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -552,7 +559,7 @@ class DocOutputGenerator(OutputGenerator):
                     self.logMsg('warn', 'The following value(s) for', groupName,
                                 'were omitted from the table due to missing comment attributes:',
                                 ', '.join(missing_comments))
-                else:
+                elif groupName not in self.ENUM_COMMENT_WARNING_SUPPRESSIONS:
                     self.logMsg('warn', 'The enumeration ', groupName,
                                 'appears to be missing comments for most of its elements')
 

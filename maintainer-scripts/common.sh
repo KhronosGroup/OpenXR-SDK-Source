@@ -195,6 +195,7 @@ getSDKSourceFilenames() {
         maintainer-scripts/publish-aar \
         specification/.gitignore \
         specification/config/attribs.adoc \
+        specification/config/khronos.css \
         specification/registry/*.xml \
         specification/scripts \
         specification/loader \
@@ -260,6 +261,7 @@ getSDKFilenames() {
         src/external/android-jni-wrappers \
         src/external/jnipp \
         src/external/jsoncpp \
+        src/external/sanitizers-cmake \
         src/loader \
         src/version.cmake \
         | grep -E -v "${COMMON_EXCLUDE_PATTERN}" \

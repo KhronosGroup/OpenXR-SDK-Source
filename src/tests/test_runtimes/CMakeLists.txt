@@ -34,6 +34,7 @@ endforeach()
 
 add_library(test_runtime MODULE runtime_test.cpp)
 set_target_properties(test_runtime PROPERTIES FOLDER ${LOADER_TESTS_FOLDER})
+add_sanitizers(test_runtime)
 target_link_libraries(test_runtime PRIVATE OpenXR::headers)
 
 add_dependencies(test_runtime xr_global_generated_files)

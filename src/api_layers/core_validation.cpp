@@ -570,6 +570,13 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrCreateApiLayerInstance(const XrIn
         // Call the generated pre valid usage check.
         validation_result = GenValidUsageInputsXrCreateInstance(info, instance);
 
+        // If validation failed, return the validation error immediately without
+        // forwarding the call to the next layer (which would likely crash or
+        // return a misleading error when given invalid parameters).
+        if (XR_SUCCESS != validation_result) {
+            return validation_result;
+        }
+
         // Copy the contents of the layer info struct, but then move the next info up by
         // one slot so that the next layer gets information.
         memcpy(&new_api_layer_info, apiLayerInfo, sizeof(XrApiLayerCreateInfo));
@@ -583,6 +590,13 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrCreateApiLayerInstance(const XrIn
         XrInstance returned_instance = *instance;
         XrResult next_result = next_create_api_layer_instance(info, &new_api_layer_info, &returned_instance);
         *instance = returned_instance;
+
+        // If instance creation failed downstream, return that error immediately
+        // without attempting to set up instance tracking state (which would fail
+        // or throw when given an invalid instance handle).
+        if (XR_FAILED(next_result)) {
+            return next_result;
+        }
 
         // Create the instance information
         std::unique_ptr<GenValidUsageXrInstanceInfo> instance_info(
@@ -642,7 +656,13 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrDestroyInstance(XrInstance instan
         auto info_with_lock = g_instance_info.getWithLock(instance);
         GenValidUsageXrInstanceInfo *gen_instance_info = info_with_lock.second;
         if (nullptr != gen_instance_info) {
-            gen_instance_info->debug_messengers.clear();
+            // Destroy any messenger handles the layer created implicitly
+            // (e.g. from the next chain during instance creation).
+            while (!gen_instance_info->debug_messengers.empty()) {
+                XrDebugUtilsMessengerEXT messenger = gen_instance_info->debug_messengers.back()->messenger;
+                gen_instance_info->debug_messengers.pop_back();
+                CoreValidationXrDestroyDebugUtilsMessengerEXT(messenger);
+            }
         }
     }
 
