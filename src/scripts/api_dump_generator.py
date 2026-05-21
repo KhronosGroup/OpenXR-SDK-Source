@@ -449,7 +449,33 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             write_string += f'contents.emplace_back("{full_type}", {description}'
             write_string += f', oss_{short_pname}.str());\n'
         else:
-            if base_type == 'XrResult':
+            need_brace = False
+            if full_type == 'XrPath':
+                write_string += self.writeIndent(indent)
+                write_string += f'if ({full_name} == XR_NULL_PATH) {{\n'
+                indent = indent + 1
+                write_string += self.writeIndent(indent)
+                write_string += f'contents.emplace_back("{full_type}", {description}, "XR_NULL_PATH");\n'
+                write_string += self.writeIndent(indent - 1)
+                write_string += '} else if (nullptr != gen_dispatch_table) {\n'
+                write_string += self.writeIndent(indent)
+                write_string += 'uint32_t out_size = 0;\n'
+                write_string += self.writeIndent(indent)
+                write_string += 'gen_dispatch_table->PathToString(FindInstanceFromDispatchTable(gen_dispatch_table),\n'
+                write_string += self.writeIndent(indent)
+                write_string += f'                                 {full_name}, 0, &out_size, nullptr);\n'
+                write_string += self.writeIndent(indent)
+                write_string += f'std::string {short_pname}_string(out_size > 0 ? out_size - 1 : 0, \'\\0\');\n'
+                write_string += self.writeIndent(indent)
+                write_string += 'gen_dispatch_table->PathToString(FindInstanceFromDispatchTable(gen_dispatch_table),\n'
+                write_string += self.writeIndent(indent)
+                write_string += f'                                 {full_name}, out_size, &out_size, {short_pname}_string.data());\n'
+                write_string += self.writeIndent(indent)
+                write_string += f'contents.emplace_back("{full_type}", {description}, {short_pname}_string);\n'
+                write_string += self.writeIndent(indent - 1)
+                write_string += '} else {\n'
+                need_brace = True
+            elif base_type == 'XrResult':
                 write_string += self.writeIndent(indent)
                 write_string += 'if (nullptr != gen_dispatch_table) {\n'
                 indent = indent + 1
@@ -463,7 +489,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 write_string += f'contents.emplace_back("{full_type}", {description}, {short_pname}_string);\n'
                 write_string += self.writeIndent(indent - 1)
                 write_string += '} else {\n'
-                write_string += self.writeIndent(indent)
+                need_brace = True
             elif base_type == 'XrStructureType':
                 write_string += self.writeIndent(indent)
                 write_string += 'if (nullptr != gen_dispatch_table) {\n'
@@ -478,7 +504,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 write_string += f'contents.emplace_back("{full_type}", {description}, {short_pname}_string);\n'
                 write_string += self.writeIndent(indent - 1)
                 write_string += '} else {\n'
-                write_string += self.writeIndent(indent)
+                need_brace = True
 
             # If we're outputting using a string stream, determine the type of information
             # we're generating and format it appropriately.
@@ -532,7 +558,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                     write_string += ')'
                 write_string += ');\n'
 
-            if base_type in ('XrResult', 'XrStructureType'):
+            if need_brace:
                 indent = indent - 1
                 write_string += self.writeIndent(indent)
                 write_string += '}\n'
