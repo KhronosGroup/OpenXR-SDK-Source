@@ -77,10 +77,14 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             preamble += '#include <openxr/openxr_platform.h>\n\n'
             preamble += '#include <mutex>\n'
             preamble += '#include <string>\n'
-            preamble += '#include <tuple>\n'
             preamble += '#include <unordered_map>\n'
             preamble += '#include <vector>\n\n'
             preamble += 'struct XrGeneratedDispatchTable;\n\n'
+            preamble += 'struct Argument {\n'
+            preamble += '    std::string type;\n'
+            preamble += '    std::string name;\n'
+            preamble += '    std::string value;\n'
+            preamble += '};\n\n'
         elif self.genOpts.filename == 'xr_generated_api_dump.cpp':
             preamble += '#include "xr_generated_api_dump.hpp"\n'
             preamble += '#include "xr_generated_dispatch_table.h"\n'
@@ -138,7 +142,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         generated_prototypes += '// Api Dump Inner inner xrGetInstanceProcAddr helper\n'
         generated_prototypes += 'PFN_xrVoidFunction ApiDumpLayerInnerGetInstanceProcAddr(const char* name);\n\n'
         generated_prototypes += '// Api Dump Log Command\n'
-        generated_prototypes += 'bool ApiDumpLayerRecordContent(std::vector<std::tuple<std::string, std::string, std::string>> contents);\n\n'
+        generated_prototypes += 'bool ApiDumpLayerRecordContent(std::vector<Argument> contents);\n\n'
         generated_prototypes += '// Api Dump Manual Functions\n'
         generated_prototypes += 'XrInstance FindInstanceFromDispatchTable(XrGeneratedDispatchTable* dispatch_table);\n'
         generated_prototypes += 'XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrCreateInstance(const XrInstanceCreateInfo *info,\n'
@@ -146,14 +150,14 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         generated_prototypes += 'XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrDestroyInstance(XrInstance instance);\n'
         generated_prototypes += '\n//Dump utility functions\n'
         generated_prototypes += 'bool ApiDumpDecodeNextChain(XrGeneratedDispatchTable* gen_dispatch_table, const void* value, std::string prefix,\n'
-        generated_prototypes += '                            std::vector<std::tuple<std::string, std::string, std::string>> &contents);\n'
+        generated_prototypes += '                            std::vector<Argument> &contents);\n'
         generated_prototypes += '\n// Union/Structure Output Helper function prototypes\n'
         for xr_union in self.api_unions:
             if xr_union.protect_value:
                 generated_prototypes += f'#if {xr_union.protect_string}\n'
             generated_prototypes += f'bool ApiDumpOutputXrUnion(XrGeneratedDispatchTable* gen_dispatch_table, const {xr_union.name}* value,\n'
             generated_prototypes += '                          std::string prefix, std::string type_string, bool is_pointer,\n'
-            generated_prototypes += '                          std::vector<std::tuple<std::string, std::string, std::string>> &contents);\n'
+            generated_prototypes += '                          std::vector<Argument> &contents);\n'
             if xr_union.protect_value:
                 generated_prototypes += f'#endif // {xr_union.protect_string}\n'
         for xr_struct in self.api_structures:
@@ -164,7 +168,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 generated_prototypes += f'#if {xr_struct.protect_string}\n'
             generated_prototypes += f'bool ApiDumpOutputXrStruct(XrGeneratedDispatchTable* gen_dispatch_table, const {xr_struct.name}* value,\n'
             generated_prototypes += '                           std::string prefix, std::string type_string, bool is_pointer,\n'
-            generated_prototypes += '                           std::vector<std::tuple<std::string, std::string, std::string>> &contents);\n'
+            generated_prototypes += '                           std::vector<Argument> &contents);\n'
             if xr_struct.protect_value:
                 generated_prototypes += f'#endif // {xr_struct.protect_string}\n'
         return generated_prototypes
@@ -387,8 +391,8 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             write_string += self.writeIndent(indent)
             write_string += f'oss_{short_pname} << std::nouppercase;\n'
             write_string += self.writeIndent(indent)
-            write_string += f'contents.emplace_back("{full_type}", {description}'
-            write_string += f', oss_{short_pname}.str());\n'
+            write_string += f'contents.emplace_back(Argument{{"{full_type}", {description}'
+            write_string += f', oss_{short_pname}.str()}});\n'
             indent = indent - 1
             write_string += self.writeIndent(indent)
             write_string += '}\n'
@@ -409,8 +413,8 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             write_string += self.writeIndent(indent)
             write_string += f'oss_{short_pname} << std::nouppercase;\n'
             write_string += self.writeIndent(indent)
-            write_string += f'contents.emplace_back("{full_type}", {description}'
-            write_string += f', oss_{short_pname}.str());\n'
+            write_string += f'contents.emplace_back(Argument{{"{full_type}", {description}'
+            write_string += f', oss_{short_pname}.str()}});\n'
             indent = indent - 1
             write_string += self.writeIndent(indent)
             write_string += '}\n'
@@ -425,8 +429,8 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 write_string += '*' * pointer_count
             write_string += f'{full_name}).QuadPart );\n'
             write_string += self.writeIndent(indent)
-            write_string += f'contents.emplace_back("{full_type}", {description}'
-            write_string += f', oss_{short_pname}.str());\n'
+            write_string += f'contents.emplace_back(Argument{{"{full_type}", {description}'
+            write_string += f', oss_{short_pname}.str()}});\n'
         elif base_type == 'timespec':
             # Unbeknownst to XR, this is actually a struct.
             write_string += self.writeIndent(indent)
@@ -446,8 +450,8 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             write_string += f'{full_name}).tv_nsec << "s";\n'
 
             write_string += self.writeIndent(indent)
-            write_string += f'contents.emplace_back("{full_type}", {description}'
-            write_string += f', oss_{short_pname}.str());\n'
+            write_string += f'contents.emplace_back(Argument{{"{full_type}", {description}'
+            write_string += f', oss_{short_pname}.str()}});\n'
         else:
             need_brace = False
             if full_type == 'XrPath':
@@ -455,7 +459,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 write_string += f'if ({full_name} == XR_NULL_PATH) {{\n'
                 indent = indent + 1
                 write_string += self.writeIndent(indent)
-                write_string += f'contents.emplace_back("{full_type}", {description}, "XR_NULL_PATH");\n'
+                write_string += f'contents.emplace_back(Argument{{"{full_type}", {description}, "XR_NULL_PATH"}});\n'
                 write_string += self.writeIndent(indent - 1)
                 write_string += '} else if (nullptr != gen_dispatch_table) {\n'
                 write_string += self.writeIndent(indent)
@@ -471,7 +475,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 write_string += self.writeIndent(indent)
                 write_string += f'                                 {full_name}, out_size, &out_size, {short_pname}_string.data());\n'
                 write_string += self.writeIndent(indent)
-                write_string += f'contents.emplace_back("{full_type}", {description}, {short_pname}_string);\n'
+                write_string += f'contents.emplace_back(Argument{{"{full_type}", {description}, {short_pname}_string}});\n'
                 write_string += self.writeIndent(indent - 1)
                 write_string += '} else {\n'
                 need_brace = True
@@ -486,7 +490,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 write_string += self.writeIndent(indent)
                 write_string += f'                                   {full_name}, {short_pname}_string);\n'
                 write_string += self.writeIndent(indent)
-                write_string += f'contents.emplace_back("{full_type}", {description}, {short_pname}_string);\n'
+                write_string += f'contents.emplace_back(Argument{{"{full_type}", {description}, {short_pname}_string}});\n'
                 write_string += self.writeIndent(indent - 1)
                 write_string += '} else {\n'
                 need_brace = True
@@ -501,7 +505,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 write_string += self.writeIndent(indent)
                 write_string += f'                                          {full_name}, {short_pname}_string);\n'
                 write_string += self.writeIndent(indent)
-                write_string += f'contents.emplace_back("{full_type}", {description}, {short_pname}_string);\n'
+                write_string += f'contents.emplace_back(Argument{{"{full_type}", {description}, {short_pname}_string}});\n'
                 write_string += self.writeIndent(indent - 1)
                 write_string += '} else {\n'
                 need_brace = True
@@ -536,12 +540,12 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                     write_string += '*' * pointer_count
                 write_string += f'{full_name});\n'
                 write_string += self.writeIndent(indent)
-                write_string += f'contents.emplace_back("{full_type}", {description}'
-                write_string += f', oss_{short_pname}.str());\n'
+                write_string += f'contents.emplace_back(Argument{{"{full_type}", {description}'
+                write_string += f', oss_{short_pname}.str()}});\n'
 
             else:
                 write_string += self.writeIndent(indent)
-                write_string += f'contents.emplace_back("{full_type}", {description}, '
+                write_string += f'contents.emplace_back(Argument{{"{full_type}", {description}, '
                 if not is_char:
                     write_string += 'std::to_string('
                 if can_dereference:
@@ -556,7 +560,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 # Close std::to_string
                 if not is_char:
                     write_string += ')'
-                write_string += ');\n'
+                write_string += '});\n'
 
             if need_brace:
                 indent = indent - 1
@@ -901,13 +905,13 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 struct_union_check += f'#if {xr_union.protect_string}\n'
             struct_union_check += f'bool ApiDumpOutputXrUnion(XrGeneratedDispatchTable* gen_dispatch_table, const {xr_union.name}* value,\n'
             struct_union_check += '                          std::string prefix, std::string type_string, bool is_pointer,\n'
-            struct_union_check += '                          std::vector<std::tuple<std::string, std::string, std::string>> &contents) {\n'
+            struct_union_check += '                          std::vector<Argument> &contents) {\n'
             struct_union_check += self.writeIndent(1)
             struct_union_check += '(void)gen_dispatch_table;  // silence warning\n'
             struct_union_check += self.writeIndent(1)
             struct_union_check += 'try {\n'
             struct_union_check += self.writeIndent(2)
-            struct_union_check += 'contents.emplace_back(type_string, prefix, PointerToHexString(value));\n'
+            struct_union_check += 'contents.emplace_back(Argument{type_string, prefix, PointerToHexString(value)});\n'
             struct_union_check += self.writeIndent(2)
             struct_union_check += 'if (is_pointer) {\n'
             struct_union_check += self.writeIndent(3)
@@ -938,7 +942,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 struct_union_check += f'#if {xr_struct.protect_string}\n'
             struct_union_check += f'bool ApiDumpOutputXrStruct(XrGeneratedDispatchTable* gen_dispatch_table, const {xr_struct.name}* value,\n'
             struct_union_check += '                           std::string prefix, std::string type_string, bool is_pointer,\n'
-            struct_union_check += '                           std::vector<std::tuple<std::string, std::string, std::string>> &contents) {\n'
+            struct_union_check += '                           std::vector<Argument> &contents) {\n'
             indent = 1
             struct_union_check += self.writeIndent(indent)
             struct_union_check += '(void)gen_dispatch_table;  // silence warning\n'
@@ -970,7 +974,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 struct_union_check += self.writeIndent(indent)
                 struct_union_check += '// Fallback path - Just output generic information about the base struct\n'
             struct_union_check += self.writeIndent(indent)
-            struct_union_check += 'contents.emplace_back(type_string, prefix, PointerToHexString(value));\n'
+            struct_union_check += 'contents.emplace_back(Argument{type_string, prefix, PointerToHexString(value)});\n'
             struct_union_check += self.writeIndent(indent)
             struct_union_check += 'if (is_pointer) {\n'
             struct_union_check += self.writeIndent(indent + 1)
@@ -997,11 +1001,11 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 struct_union_check += f'#endif // {xr_struct.protect_string}\n'
             struct_union_check += '\n'
         struct_union_check += 'bool ApiDumpDecodeNextChain(XrGeneratedDispatchTable* gen_dispatch_table, const void* value, std::string prefix,\n'
-        struct_union_check += '                            std::vector<std::tuple<std::string, std::string, std::string>> &contents) {\n'
+        struct_union_check += '                            std::vector<Argument> &contents) {\n'
         struct_union_check += self.writeIndent(1)
         struct_union_check += '(void)gen_dispatch_table;  // silence warning\n'
         struct_union_check += '    try {\n'
-        struct_union_check += '        contents.emplace_back("const void *", prefix, PointerToHexString(value));\n'
+        struct_union_check += '        contents.emplace_back(Argument{"const void *", prefix, PointerToHexString(value)});\n'
         struct_union_check += '        if (nullptr == value) {\n'
         struct_union_check += '            return true;\n'
         struct_union_check += '        }\n'
@@ -1143,7 +1147,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
 
                 generated_commands += '    try {\n'
                 generated_commands += '        // Generate output for this command\n'
-                generated_commands += '        std::vector<std::tuple<std::string, std::string, std::string>> contents;\n'
+                generated_commands += '        std::vector<Argument> contents;\n'
 
                 # Next, we have to call down to the next implementation of this command in the call chain.
                 # Before we can do that, we have to figure out what the dispatch table is
@@ -1166,10 +1170,10 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
 
                 # Print out a tuple for the header
                 if has_return:
-                    generated_commands += '        contents.emplace_back("%s", "%s", "");\n' % (
+                    generated_commands += '        contents.emplace_back(Argument{"%s", "%s", ""});\n' % (
                         cur_cmd.return_type.text, cur_cmd.name)
                 else:
-                    generated_commands += f'        contents.emplace_back("void", "{cur_cmd.name}", "");\n'
+                    generated_commands += f'        contents.emplace_back(Argument{{"void", "{cur_cmd.name}", ""}});\n'
                 # Print out information for each parameter
                 for param in cur_cmd.params:
                     can_expand = False
