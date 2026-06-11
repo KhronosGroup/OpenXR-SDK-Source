@@ -84,6 +84,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             preamble += '    std::string type;\n'
             preamble += '    std::string name;\n'
             preamble += '    std::string value;\n'
+            preamble += '    std::string decoded; // human readable alternative to value\n'
             preamble += '};\n\n'
         elif self.genOpts.filename == 'xr_generated_api_dump.cpp':
             preamble += '#include "xr_generated_api_dump.hpp"\n'
@@ -475,7 +476,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
                 write_string += self.writeIndent(indent)
                 write_string += f'                                 {full_name}, out_size, &out_size, {short_pname}_string.data());\n'
                 write_string += self.writeIndent(indent)
-                write_string += f'contents.emplace_back(Argument{{"{full_type}", {description}, {short_pname}_string}});\n'
+                write_string += f'contents.emplace_back(Argument{{"{full_type}", {description}, std::to_string({full_name}), {short_pname}_string}});\n'
                 write_string += self.writeIndent(indent - 1)
                 write_string += '} else {\n'
                 need_brace = True

@@ -169,7 +169,7 @@ bool ApiDumpLayerWriteHtmlHeader() {
                      "            display: inline;\n"
                      "            margin: 0 9px;\n"
                      "        }\n"
-                     "        .var, .type, .val {\n"
+                     "        .var, .type, .val, .decoded{\n"
                      "            display: inline;\n"
                      "            margin: 0 6px;\n"
                      "        }\n"
@@ -251,7 +251,12 @@ bool ApiDumpLayerRecordContent(std::vector<Argument> contents) {
                     const char *indent = (count++ != 0) ? "    " : "";
 
                     if (!content.value.empty()) {
-                        ALOGI("%s%s %s = %s", indent, content.type.c_str(), content.name.c_str(), content.value.c_str());
+                        if (!content.decoded.empty()) {
+                            ALOGI("%s%s %s = %s (%s)", indent, content.type.c_str(), content.name.c_str(), content.value.c_str(),
+                                  content.decoded.c_str());
+                        } else {
+                            ALOGI("%s%s %s = %s", indent, content.type.c_str(), content.name.c_str(), content.value.c_str());
+                        }
                     } else {
                         ALOGI("%s%s %s", indent, content.type.c_str(), content.name.c_str());
                     }
@@ -267,11 +272,14 @@ bool ApiDumpLayerRecordContent(std::vector<Argument> contents) {
                     if (count++ != 0) {
                         text_file << "    ";
                     }
+                    text_file << content.type << " " << content.name;
                     if (!content.value.empty()) {
-                        text_file << content.type << " " << content.name << " = " << content.value << "\n";
-                    } else {
-                        text_file << content.type << " " << content.name << "\n";
+                        text_file << " = " << content.value;
+                        if (!content.decoded.empty()) {
+                            text_file << " (" << content.decoded << ")";
+                        }
                     }
+                    text_file << "\n";
                 }
                 text_file.close();
                 success = true;
@@ -385,6 +393,9 @@ bool ApiDumpLayerRecordContent(std::vector<Argument> contents) {
                             text_file << "         <div class='val'>" << content.value << "</div>";
                         }
                         text_file << "\n";
+                        if (!content.decoded.empty()) {
+                            text_file << "         <div class='decoded'>" << content.decoded << "</div>\n";
+                        }
 
                         // Wrap up any summary we may have started.  Otherwise, just wrap up the
                         // <div> marker wrapping this entry.
