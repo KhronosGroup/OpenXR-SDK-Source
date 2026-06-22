@@ -13,7 +13,7 @@ jobs:
       image: khronosgroup/docker-images:openxr.20260415@sha256:800fd68bd1b16b426555158f4aa06b2ef1c150fba922d7a11361fc85f6ba0bcd
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           lfs: true
 
