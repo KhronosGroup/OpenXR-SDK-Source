@@ -8,7 +8,7 @@
     "configurePresets": [
         {
             "name": ".base-msvc",
-            "generator": "Visual Studio 17 2022",
+            "generator": "Visual Studio 18 2026",
             "hidden": true,
             "installDir": "$env{INSTALL_DIR}",
             "cacheVariables": {
@@ -68,7 +68,7 @@
         },
         {
             "name": ".base-cts-msvc",
-            "generator": "Visual Studio 17 2022",
+            "generator": "Visual Studio 18 2026",
             "hidden": true,
             "installDir": "$env{INSTALL_DIR}",
             "cacheVariables": {
