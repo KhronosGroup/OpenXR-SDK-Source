@@ -1,6 +1,8 @@
 # Copyright 2021-2026, Collabora, Ltd.
 # SPDX-License-Identifier: CC0-1.0
 
+name: "MSVC Build Preset"
+
 on:
   workflow_call:
     inputs:

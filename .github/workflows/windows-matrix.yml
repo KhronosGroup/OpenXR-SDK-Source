@@ -46,6 +46,7 @@ jobs:
       buildType: "RelWithDebInfo"
 
   organize-and-release-artifacts:
+    name: "Organize and combine Windows artifacts"
     if: inputs.organizeAndRelease
     needs:
       - msvc-build
