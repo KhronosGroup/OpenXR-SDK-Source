@@ -5,7 +5,8 @@ name: Pull request checks
 on:
   pull_request:
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   msvc-build:
