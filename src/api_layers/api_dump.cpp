@@ -169,7 +169,7 @@ bool ApiDumpLayerWriteHtmlHeader() {
                      "            display: inline;\n"
                      "            margin: 0 9px;\n"
                      "        }\n"
-                     "        .var, .type, .val {\n"
+                     "        .var, .type, .val, .decoded{\n"
                      "            display: inline;\n"
                      "            margin: 0 6px;\n"
                      "        }\n"
@@ -233,7 +233,7 @@ XrInstance FindInstanceFromDispatchTable(XrGeneratedDispatchTable *dispatch_tabl
 }
 
 // Function to record all the API dump information
-bool ApiDumpLayerRecordContent(std::vector<std::tuple<std::string, std::string, std::string>> contents) {
+bool ApiDumpLayerRecordContent(std::vector<Argument> contents) {
     bool success = false;
     if (g_record_info.initialized) {
         std::unique_lock<std::mutex> mlock(g_record_mutex);
@@ -248,17 +248,17 @@ bool ApiDumpLayerRecordContent(std::vector<std::tuple<std::string, std::string, 
 #define ALOGI(...) printf(__VA_ARGS__)
 #endif
                 for (const auto &content : contents) {
-                    std::string content_type;
-                    std::string content_name;
-                    std::string content_value;
-                    std::tie(content_type, content_name, content_value) = content;
-
                     const char *indent = (count++ != 0) ? "    " : "";
 
-                    if (!content_value.empty()) {
-                        ALOGI("%s%s %s = %s", indent, content_type.c_str(), content_name.c_str(), content_value.c_str());
+                    if (!content.value.empty()) {
+                        if (!content.decoded.empty()) {
+                            ALOGI("%s%s %s = %s (%s)", indent, content.type.c_str(), content.name.c_str(), content.value.c_str(),
+                                  content.decoded.c_str());
+                        } else {
+                            ALOGI("%s%s %s = %s", indent, content.type.c_str(), content.name.c_str(), content.value.c_str());
+                        }
                     } else {
-                        ALOGI("%s%s %s", indent, content_type.c_str(), content_name.c_str());
+                        ALOGI("%s%s %s", indent, content.type.c_str(), content.name.c_str());
                     }
                 }
                 success = true;
@@ -269,18 +269,17 @@ bool ApiDumpLayerRecordContent(std::vector<std::tuple<std::string, std::string, 
                 std::ofstream text_file;
                 text_file.open(g_record_info.file_name, std::ios::out | std::ios::app);
                 for (const auto &content : contents) {
-                    std::string content_type;
-                    std::string content_name;
-                    std::string content_value;
-                    std::tie(content_type, content_name, content_value) = content;
                     if (count++ != 0) {
                         text_file << "    ";
                     }
-                    if (!content_value.empty()) {
-                        text_file << content_type << " " << content_name << " = " << content_value << "\n";
-                    } else {
-                        text_file << content_type << " " << content_name << "\n";
+                    text_file << content.type << " " << content.name;
+                    if (!content.value.empty()) {
+                        text_file << " = " << content.value;
+                        if (!content.decoded.empty()) {
+                            text_file << " (" << content.decoded << ")";
+                        }
                     }
+                    text_file << "\n";
                 }
                 text_file.close();
                 success = true;
@@ -293,51 +292,45 @@ bool ApiDumpLayerRecordContent(std::vector<std::tuple<std::string, std::string, 
                 std::vector<std::string> prefixes;
                 uint32_t last_deref_count = 0;
                 for (uint32_t content_index = 0; content_index < contents.size(); ++content_index) {
-                    std::string content_type;
-                    std::string content_name;
-                    std::string content_value;
-                    std::tie(content_type, content_name, content_value) = contents[content_index];
+                    const auto &content = contents[content_index];
                     if (content_index == 0) {
                         text_file << "   <summary>\n"
-                                  << "      <div class='headertype'>" << content_type << "</div>\n"
-                                  << "      <div class='headervar'>" << content_name << "</div>\n"
+                                  << "      <div class='headertype'>" << content.type << "</div>\n"
+                                  << "      <div class='headervar'>" << content.name << "</div>\n"
                                   << "   </summary>\n";
                     } else {
                         uint32_t cur_deref_count = 0;
                         uint32_t next_deref_count = 0;
 
                         // Count number of structure and pointer dereferences for the current line
-                        cur_deref_count = static_cast<uint32_t>(std::count(content_name.begin(), content_name.end(), '.'));
+                        cur_deref_count = static_cast<uint32_t>(std::count(content.name.begin(), content.name.end(), '.'));
                         std::string::size_type start = 0;
-                        while ((start = content_name.find("->", start)) != std::string::npos) {
+                        while ((start = content.name.find("->", start)) != std::string::npos) {
                             ++cur_deref_count;
                             start += 2;
                         }
                         // Now look for array dereferences
                         start = 0;
-                        while ((start = content_name.find('[', start)) != std::string::npos) {
+                        while ((start = content.name.find('[', start)) != std::string::npos) {
                             ++cur_deref_count;
                             start++;
                         }
 
                         // If there's something after this, see if it's a sub-component of this.
                         if (content_index < contents.size() - 1) {
-                            std::string next_content_type;
-                            std::string next_content_name;
-                            std::string next_content_value;
-                            std::tie(next_content_type, next_content_name, next_content_value) = contents[content_index + 1];
+                            const auto &next_content = contents[content_index + 1];
 
                             // Count number of structure and pointer dereferences for the next line
                             next_deref_count =
-                                static_cast<uint32_t>(std::count(next_content_name.begin(), next_content_name.end(), '.'));
+                                static_cast<uint32_t>(std::count(next_content.name.begin(), next_content.name.end(), '.'));
                             start = 0;
-                            while ((start = next_content_name.find("->", start)) != std::string::npos) {
+                            while ((start = next_content.name.find("->", start)) != std::string::npos) {
                                 ++next_deref_count;
                                 start += 2;
                             }
                             // Now look for array dereferences
                             start = 0;
-                            while ((start = next_content_name.find('[', start)) != std::string::npos) {
+                            while ((start = next_content.name.find('[', start)) != std::string::npos) {
                                 ++next_deref_count;
                                 start++;
                             }
@@ -355,17 +348,17 @@ bool ApiDumpLayerRecordContent(std::vector<std::tuple<std::string, std::string, 
 
                         // Look through any prefixes we've saved (going backwards through the list)
                         // and find the one that matches our beginning.
-                        std::string short_name = content_name;
+                        std::string short_name = content.name;
                         if (cur_deref_count > 0) {
                             for (auto it = prefixes.rbegin(); it != prefixes.rend(); ++it) {
-                                if (content_name.find(*it) == 0) {
+                                if (content.name.find(*it) == 0) {
                                     std::string::size_type additional_offset = it->size() + 1;
-                                    if (content_name[additional_offset - 1] == '-') {
+                                    if (content.name[additional_offset - 1] == '-') {
                                         additional_offset++;
-                                    } else if (content_name[additional_offset - 1] == '[') {
+                                    } else if (content.name[additional_offset - 1] == '[') {
                                         additional_offset--;
                                     }
-                                    short_name = content_name.substr(additional_offset);
+                                    short_name = content.name.substr(additional_offset);
                                     break;
                                 }
                             }
@@ -379,27 +372,30 @@ bool ApiDumpLayerRecordContent(std::vector<std::tuple<std::string, std::string, 
                             text_file << "   <details class='data'>\n"
                                       << "      <summary>\n";
                             writing_summary = true;
-                            prefixes.push_back(content_name);
+                            prefixes.push_back(content.name);
                         } else {
                             text_file << "      <div class='data'>\n";
                         }
 
                         // Write out the content
-                        text_file << "         <div class='type'>" << content_type << "</div>\n"
+                        text_file << "         <div class='type'>" << content.type << "</div>\n"
                                   << "         <div class='var'>" << short_name << "</div>\n";
                         bool value_needs_printing = true;
-                        if (content_type.find("char") != std::string::npos) {
-                            uint64_t star_count = std::count(content_type.begin(), content_type.end(), '*');
-                            uint64_t bracket_count = std::count(content_type.begin(), content_type.end(), '[');
+                        if (content.type.find("char") != std::string::npos) {
+                            uint64_t star_count = std::count(content.type.begin(), content.type.end(), '*');
+                            uint64_t bracket_count = std::count(content.type.begin(), content.type.end(), '[');
                             if (star_count + bracket_count < 2) {
-                                text_file << "         <div class='val'>\"" << content_value << "\"</div>";
+                                text_file << "         <div class='val'>\"" << content.value << "\"</div>";
                                 value_needs_printing = false;
                             }
                         }
-                        if (!content_value.empty() && value_needs_printing) {
-                            text_file << "         <div class='val'>" << content_value << "</div>";
+                        if (!content.value.empty() && value_needs_printing) {
+                            text_file << "         <div class='val'>" << content.value << "</div>";
                         }
                         text_file << "\n";
+                        if (!content.decoded.empty()) {
+                            text_file << "         <div class='decoded'>" << content.decoded << "</div>\n";
+                        }
 
                         // Wrap up any summary we may have started.  Otherwise, just wrap up the
                         // <div> marker wrapping this entry.
@@ -442,11 +438,12 @@ XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrGetInstanceProcAddr(XrInstance inst
                                                                  PFN_xrVoidFunction *function) {
     try {
         // Generate output for this command
-        std::vector<std::tuple<std::string, std::string, std::string>> contents;
-        contents.emplace_back("XrResult", "xrGetInstanceProcAddr", "");
-        contents.emplace_back("XrInstance", "instance", HandleToHexString(instance));
-        contents.emplace_back("const char*", "name", name);
-        contents.emplace_back("PFN_xrVoidFunction*", "function", PointerToHexString(reinterpret_cast<const void *>(function)));
+        std::vector<Argument> contents;
+        contents.emplace_back(Argument{"XrResult", "xrGetInstanceProcAddr", ""});
+        contents.emplace_back(Argument{"XrInstance", "instance", HandleToHexString(instance)});
+        contents.emplace_back(Argument{"const char*", "name", name});
+        contents.emplace_back(
+            Argument{"PFN_xrVoidFunction*", "function", PointerToHexString(reinterpret_cast<const void *>(function))});
         ApiDumpLayerRecordContent(contents);
 
         *function = ApiDumpLayerInnerGetInstanceProcAddr(name);
@@ -575,12 +572,12 @@ XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrCreateApiLayerInstance(const XrInst
         }
 
         // Generate output for this command as if it were the standard xrCreateInstance
-        std::vector<std::tuple<std::string, std::string, std::string>> contents;
-        contents.emplace_back("XrResult", "xrCreateInstance", "");
-        contents.emplace_back("const XrInstanceCreateInfo*", "info", PointerToHexString(info));
+        std::vector<Argument> contents;
+        contents.emplace_back(Argument{"XrResult", "xrCreateInstance", ""});
+        contents.emplace_back(Argument{"const XrInstanceCreateInfo*", "info", PointerToHexString(info)});
         if (nullptr != info) {
             std::string info_prefix = "info->";
-            contents.emplace_back("XrStructureType", "info->type", std::to_string(info->type));
+            contents.emplace_back(Argument{"XrStructureType", "info->type", std::to_string(info->type)});
             std::string next_prefix = info_prefix;
             next_prefix += "next";
             // Decode the next chain if it exists
@@ -589,7 +586,7 @@ XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrCreateApiLayerInstance(const XrInst
             }
             std::string flags_prefix = info_prefix;
             flags_prefix += "createFlags";
-            contents.emplace_back("XrInstanceCreateFlags", flags_prefix, std::to_string(info->createFlags));
+            contents.emplace_back(Argument{"XrInstanceCreateFlags", flags_prefix, std::to_string(info->createFlags)});
             std::string applicationinfo_prefix = info_prefix;
             applicationinfo_prefix += "applicationInfo";
             if (!ApiDumpOutputXrStruct(nullptr, &info->applicationInfo, applicationinfo_prefix, "XrApplicationInfo", true,
@@ -600,33 +597,35 @@ XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrCreateApiLayerInstance(const XrInst
             enabledapilayercount_prefix += "enabledApiLayerCount";
             std::ostringstream oss_enabledApiLayerCount;
             oss_enabledApiLayerCount << "0x" << std::hex << (info->enabledApiLayerCount);
-            contents.emplace_back("uint32_t", enabledapilayercount_prefix, oss_enabledApiLayerCount.str());
+            contents.emplace_back(Argument{"uint32_t", enabledapilayercount_prefix, oss_enabledApiLayerCount.str()});
             std::string enabledapilayernames_prefix = info_prefix;
             enabledapilayernames_prefix += "enabledApiLayerNames";
             std::ostringstream oss_enabledApiLayerNames_array;
             oss_enabledApiLayerNames_array << "0x" << std::hex << (info->enabledApiLayerNames);
-            contents.emplace_back("const char* const*", enabledapilayernames_prefix, oss_enabledApiLayerNames_array.str());
+            contents.emplace_back(
+                Argument{"const char* const*", enabledapilayernames_prefix, oss_enabledApiLayerNames_array.str()});
             for (uint32_t i = 0; i < info->enabledApiLayerCount; ++i) {
                 std::string prefix = enabledapilayernames_prefix + "[" + std::to_string(i) + "]";
-                contents.emplace_back("const char* const*", prefix, info->enabledApiLayerNames[i]);
+                contents.emplace_back(Argument{"const char* const*", prefix, info->enabledApiLayerNames[i]});
             }
             std::string enabledextensioncount_prefix = info_prefix;
             enabledextensioncount_prefix += "enabledExtensionCount";
             std::ostringstream oss_enabledExtensionCount;
             oss_enabledExtensionCount << "0x" << std::hex << (info->enabledExtensionCount);
-            contents.emplace_back("uint32_t", enabledextensioncount_prefix, oss_enabledExtensionCount.str());
+            contents.emplace_back(Argument{"uint32_t", enabledextensioncount_prefix, oss_enabledExtensionCount.str()});
             std::string enabledextensionnames_prefix = info_prefix;
             enabledextensionnames_prefix += "enabledExtensionNames";
             std::ostringstream oss_enabledExtensionNames_array;
             oss_enabledExtensionNames_array << "0x" << std::hex << (info->enabledExtensionNames);
-            contents.emplace_back("const char* const*", enabledextensionnames_prefix, oss_enabledExtensionNames_array.str());
+            contents.emplace_back(
+                Argument{"const char* const*", enabledextensionnames_prefix, oss_enabledExtensionNames_array.str()});
             for (uint32_t ii = 0; ii < info->enabledExtensionCount; ++ii) {
                 std::string prefix = enabledextensionnames_prefix + "[" + std::to_string(ii) + "]";
-                contents.emplace_back("const char* const*", prefix, info->enabledExtensionNames[ii]);
+                contents.emplace_back(Argument{"const char* const*", prefix, info->enabledExtensionNames[ii]});
             }
         }
 
-        contents.emplace_back("XrInstance*", "instance", PointerToHexString(instance));
+        contents.emplace_back(Argument{"XrInstance*", "instance", PointerToHexString(instance)});
         ApiDumpLayerRecordContent(contents);
 
         // Copy the contents of the layer info struct, but then move the next info up by
@@ -662,9 +661,9 @@ XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrCreateApiLayerInstance(const XrInst
 
 XRAPI_ATTR XrResult XRAPI_CALL ApiDumpLayerXrDestroyInstance(XrInstance instance) {
     // Generate output for this command
-    std::vector<std::tuple<std::string, std::string, std::string>> contents;
-    contents.emplace_back("XrResult", "xrDestroyInstance", "");
-    contents.emplace_back("XrInstance", "instance", HandleToHexString(instance));
+    std::vector<Argument> contents;
+    contents.emplace_back(Argument{"XrResult", "xrDestroyInstance", ""});
+    contents.emplace_back(Argument{"XrInstance", "instance", HandleToHexString(instance)});
     ApiDumpLayerRecordContent(contents);
 
     XrGeneratedDispatchTable *next_dispatch = nullptr;
