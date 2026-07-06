@@ -66,6 +66,14 @@ if(ANDROID)
     target_link_libraries(
         XrApiLayer_best_practices_validation PRIVATE ${ANDROID_LOG_LIBRARY}
     )
+    # Force 16KB page sizes for Android 15+ compatibility.
+    target_link_options(
+        XrApiLayer_best_practices_validation
+        PRIVATE
+        "-Wl,-z,max-page-size=16384"
+        "-Wl,-z,common-page-size=16384"
+    )
+
 endif()
 target_compile_definitions(
     XrApiLayer_best_practices_validation
@@ -110,7 +118,7 @@ endif()
 #  - Make build depend on the module definition/version script/export map
 #  - Add the linker flag (except windows)
 if(WIN32)
-    # XrApiLayer_best_practices
+    # XrApiLayer_best_practices_validation
     target_sources(
         XrApiLayer_best_practices_validation
         PRIVATE
@@ -118,7 +126,7 @@ if(WIN32)
     )
 
 elseif(APPLE)
-    # XrApiLayer_best_practices
+    # XrApiLayer_best_practices_validation
     set_target_properties(
         XrApiLayer_best_practices_validation
         PROPERTIES
@@ -157,6 +165,42 @@ elseif(WIN32)
 
     set(LAYER_MANIFEST_INSTALL_DIR "${CMAKE_INSTALL_BINDIR}/api_layers")
     set(LAYER_BINARY_INSTALL_DIR "${CMAKE_INSTALL_BINDIR}/api_layers")
+elseif(ANDROID)
+    set(TARGET_NAME XrApiLayer_best_practices_validation)
+
+    string(
+        REPLACE
+            "XrApiLayer_"
+            "apilayer_"
+            ARTIFACT_ID
+            "${TARGET_NAME}"
+    )
+    set(POM_NAME
+        "${CMAKE_CURRENT_BINARY_DIR}/${ARTIFACT_ID}-${OPENXR_FULL_VERSION}${OPENXR_ANDROID_VERSION_SUFFIX}.pom"
+    )
+    configure_file(${ARTIFACT_ID}.pom "${POM_NAME}")
+    install(
+        FILES "${POM_NAME}"
+        DESTINATION .
+        COMPONENT Layers
+    )
+
+    # Manifest to merge with the consuming app
+    set(PACKAGE org.khronos.openxr.${ARTIFACT_ID})
+    configure_file(
+        ../AndroidManifest.xml.in
+        "${CMAKE_CURRENT_BINARY_DIR}/${ARTIFACT_ID}_AndroidManifest.xml"
+    )
+    install(
+        FILES "${CMAKE_CURRENT_BINARY_DIR}/${ARTIFACT_ID}_AndroidManifest.xml"
+        DESTINATION "${TARGET_NAME}"
+        RENAME "AndroidManifest.xml"
+        COMPONENT Layers
+    )
+    set(LAYER_MANIFEST_INSTALL_DIR
+        "${TARGET_NAME}/assets/openxr/${MAJOR}/api_layers/implicit.d"
+    )
+    set(LAYER_BINARY_INSTALL_DIR "${TARGET_NAME}/jni/${ANDROID_ABI}")
 endif()
 
 if(LAYER_MANIFEST_INSTALL_DIR)

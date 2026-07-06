@@ -21,6 +21,55 @@ along with any public pull requests that have been accepted.
 In this repository in particular, since it is primarily software,
 pull requests may be integrated as they are accepted even between periodic updates.
 
+## OpenXR SDK 1.1.61 (2026-07-02)
+
+This release marks the initial publication of the development tool API layers
+for easier usage by developers for Android/AOSP-based systems. A small addition
+to the reflection headers is also included, along with support for new and
+revised vendor extensions.
+
+- SDK
+  - Addition: Build AAR files of development API layers and publish to Maven
+    Central on release. A line like
+    `implementation 'org.khronos.openxr:apilayer_core_validation:1.1.61'`
+    (or `apilayer_api_dump` or `apilayer_best_practices_validation` equivalently)
+    will bundle a layer with your application and enable it automatically as an implicit layer.
+    ([internal MR 4136](https://gitlab.khronos.org/openxr/openxr/merge_requests/4136))
+  - Loader: Fix: Remove redundant null checks in `initializePlatform`.
+    ([internal MR 4261](https://gitlab.khronos.org/openxr/openxr/merge_requests/4261))
+- Registry
+  - Fix: Typos in enum value names for `XrTrackingOptimizationSettingsHintQCOM`.
+    Original names left as aliases for source compatibility.
+    ([internal MR 4186](https://gitlab.khronos.org/openxr/openxr/merge_requests/4186))
+  - Improvement: `XR_LIST_FUNCTIONS_` macros in the reflection header are now
+    generated for all features, even those lacking functions.
+    ([internal MR 4329](https://gitlab.khronos.org/openxr/openxr/merge_requests/4329))
+  - New vendor extension: `XR_ANDROID_spatial_discovery_bounds`
+    ([internal MR 3520](https://gitlab.khronos.org/openxr/openxr/merge_requests/3520))
+  - New vendor extension: `XR_BD_body_tracking_auxiliary_metrics`
+    ([internal MR 3756](https://gitlab.khronos.org/openxr/openxr/merge_requests/3756))
+  - New vendor extension: `XR_BD_dynamic_object_tracking`
+    ([internal MR 3944](https://gitlab.khronos.org/openxr/openxr/merge_requests/3944))
+  - New vendor extension: `XR_BD_dynamic_object_keyboard`
+    ([internal MR 3944](https://gitlab.khronos.org/openxr/openxr/merge_requests/3944))
+  - New vendor extension: `XR_BD_dynamic_object_mouse`
+    ([internal MR 3944](https://gitlab.khronos.org/openxr/openxr/merge_requests/3944))
+  - New vendor extension: `XR_META_hand_tracking_frequency_hint`
+    ([internal MR 4110](https://gitlab.khronos.org/openxr/openxr/merge_requests/4110))
+  - New vendor extension: `XR_META_hand_tracking_unextrapolated_poses`
+    ([internal MR 4113](https://gitlab.khronos.org/openxr/openxr/merge_requests/4113))
+  - New vendor extension: `XR_META_hand_tracking_wide_motion_mode2`
+    ([internal MR 4114](https://gitlab.khronos.org/openxr/openxr/merge_requests/4114))
+  - New vendor extension: `XR_ANDROID_google_cloud_auth`
+    ([internal MR 4200](https://gitlab.khronos.org/openxr/openxr/merge_requests/4200))
+  - New vendor extension: `XR_ANDROID_geospatial`
+    ([internal MR 4201](https://gitlab.khronos.org/openxr/openxr/merge_requests/4201))
+  - New vendor extension: `XR_ANDROID_geospatial_anchor`
+    ([internal MR 4214](https://gitlab.khronos.org/openxr/openxr/merge_requests/4214))
+  - Schematron: Add exception for the comments of a behavior-only
+    `XrSpatialComponentTypeEXT`.
+    ([internal MR 4353](https://gitlab.khronos.org/openxr/openxr/merge_requests/4353))
+
 ## OpenXR SDK 1.1.60 (2026-05-20)
 
 This release contains support for a new multi-vendor extension, as well as many

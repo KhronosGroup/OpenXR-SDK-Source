@@ -84,10 +84,16 @@ class CReflectionOutputGenerator(OutputGenerator):
         self.protects = set()
         self.template: Optional[JinjaTemplate] = None
         self.parents = {}
+        self.features = []
 
     def beginFile(self, genOpts):
         OutputGenerator.beginFile(self, genOpts)
         self.template = JinjaTemplate(self.env, f"template_{genOpts.filename}")
+
+    def beginFeature(self, interface, emit):
+        OutputGenerator.beginFeature(self, interface, emit)
+        if emit and self.featureName not in self.features:
+            self.features.append(self.featureName)
 
     def _get_structs_for_protect(self, protect=None):
         """
@@ -127,7 +133,7 @@ class CReflectionOutputGenerator(OutputGenerator):
             ((name, data) for name, data in self.registry.extdict.items()
              if data.supported != 'disabled'))
 
-        functions_by_feature = {}
+        functions_by_feature = {fn: [] for fn in self.features}
         for x in self.commands:
             if x.featureName not in functions_by_feature:
                 functions_by_feature[x.featureName] = []

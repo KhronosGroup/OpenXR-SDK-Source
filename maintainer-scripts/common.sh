@@ -190,6 +190,7 @@ getSDKSourceFilenames() {
         maintainer-scripts/archive-sdk.sh \
         maintainer-scripts/check-changelog-fragments.sh \
         maintainer-scripts/build-aar.sh \
+        maintainer-scripts/build-aar-layer.sh \
         maintainer-scripts/build-and-publish-aar-mavencentral.sh \
         maintainer-scripts/build-and-publish-aar-snapshot.sh \
         maintainer-scripts/publish-aar \

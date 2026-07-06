@@ -27,8 +27,11 @@ signing {
     }
 }
 
-val loaderAar = file(File(root, "openxr_loader_for_android-${version}.aar"))
-val loaderSourcesJar = file(File(root, "openxr_loader_for_android-${version}-sources.jar"))
+val loaderAar = file("$root/openxr_loader_for_android-${version}.aar")
+val loaderSourcesJar = file("$root/openxr_loader_for_android-${version}-sources.jar")
+val apiDumpLayerAar = file("$root/apilayer_api_dump-${version}.aar")
+val coreValidationLayerAar = file("$root/apilayer_core_validation-${version}.aar")
+val bestPracticesValidationLayerAar = file("$root/apilayer_best_practices_validation-${version}.aar")
 
 publishing {
     publications {
@@ -65,6 +68,121 @@ publishing {
                     //     name.set("MIT")
                     //     url.set("https://spdx.org/licenses/MIT.txt")
                     // }
+                }
+                developers {
+                    developer {
+                        name.set("The Khronos Group, Inc. OpenXR Working Group")
+                        email.set("openxr-speceditor AT khronos DOT org")
+                        url.set("https://khronos.org/openxr")
+                    }
+                }
+                scm {
+                    connection.set("scm:git:${siteUrl}.git")
+                    developerConnection.set(gitUrl)
+                    url.set(siteUrl)
+                }
+                issueManagement {
+                    system.set("GitHub Issues")
+                    url.set("${siteUrl}/issues")
+                }
+            }
+        }
+
+        create<MavenPublication>("apiDumpLayer") {
+
+            artifactId = "apilayer_api_dump"
+
+            artifacts {
+                artifact(apiDumpLayerAar) {
+                    extension = "aar"
+                }
+            }
+
+            pom {
+                name.set("OpenXR api_dump Layer")
+                description.set("An API layer to dump out OpenXR API calls for debugging during the development process.")
+                url.set(siteUrl)
+                licenses {
+                    license {
+                        name.set("Apache-2.0")
+                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+                developers {
+                    developer {
+                        name.set("The Khronos Group, Inc. OpenXR Working Group")
+                        email.set("openxr-speceditor AT khronos DOT org")
+                        url.set("https://khronos.org/openxr")
+                    }
+                }
+                scm {
+                    connection.set("scm:git:${siteUrl}.git")
+                    developerConnection.set(gitUrl)
+                    url.set(siteUrl)
+                }
+                issueManagement {
+                    system.set("GitHub Issues")
+                    url.set("${siteUrl}/issues")
+                }
+            }
+        }
+        create<MavenPublication>("coreValidationLayer") {
+
+            artifactId = "apilayer_core_validation"
+
+            artifacts {
+                artifact(coreValidationLayerAar) {
+                    extension = "aar"
+                }
+            }
+
+            pom {
+                name.set("OpenXR core_validation Layer")
+                description.set("An API layer to verify valid usage during the development process.")
+                url.set(siteUrl)
+                licenses {
+                    license {
+                        name.set("Apache-2.0")
+                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+                developers {
+                    developer {
+                        name.set("The Khronos Group, Inc. OpenXR Working Group")
+                        email.set("openxr-speceditor AT khronos DOT org")
+                        url.set("https://khronos.org/openxr")
+                    }
+                }
+                scm {
+                    connection.set("scm:git:${siteUrl}.git")
+                    developerConnection.set(gitUrl)
+                    url.set(siteUrl)
+                }
+                issueManagement {
+                    system.set("GitHub Issues")
+                    url.set("${siteUrl}/issues")
+                }
+            }
+        }
+        create<MavenPublication>("bestPracticesValidationLayer") {
+
+            artifactId = "apilayer_best_practices_validation"
+
+            artifacts {
+                artifact(bestPracticesValidationLayerAar) {
+                    extension = "aar"
+                }
+            }
+
+            pom {
+                name.set("OpenXR best_practices_validation Layer")
+                description.set("An API layer to check for best practices usage during the development process.")
+                url.set(siteUrl)
+                licenses {
+                    license {
+                        name.set("Apache-2.0")
+                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
                 }
                 developers {
                     developer {

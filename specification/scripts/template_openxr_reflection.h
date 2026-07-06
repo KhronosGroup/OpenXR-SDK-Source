@@ -115,7 +115,7 @@ XR_ENUM_STR(XrResult);
 /// calls your macro with the function name and extension name.
 /// Trims the leading `xr` from the function name and the leading `XR_` from the feature name,
 /// because it is easy to add back but impossible to remove with the preprocessor.
-#define XR_LIST_FUNCTIONS_/*{ featname }*/(_) \
+#define XR_LIST_FUNCTIONS_/*{ featname }*/(_)/*{" \\" if functions_by_feature[featname]}*/
 //# for command, feature in functions_by_feature[featname]
     _(/*{ command | remove_prefix("xr") }*/, /*{ feature | remove_prefix("XR_") }*/) \
 //# endfor

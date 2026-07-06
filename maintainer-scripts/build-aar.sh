@@ -13,6 +13,9 @@
 # Touch a file named SNAPSHOT in the root directory to
 # make a version suffixed with -SNAPSHOT
 
+# NOTE: If modifying, consider whether the closely-related build-aar-layer.sh
+# also needs your changes!
+
 set -e
 
 logMsg() {

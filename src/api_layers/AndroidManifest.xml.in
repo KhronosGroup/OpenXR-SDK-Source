@@ -1,0 +1,13 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="${PACKAGE}"
+  android:versionCode="1"
+  android:versionName="${OPENXR_FULL_VERSION}${OPENXR_ANDROID_VERSION_SUFFIX}">
+  <!--
+  Copyright (c) 2020-2026 The Khronos Group Inc.
+  SPDX-License-Identifier: Apache-2.0
+  -->
+
+  <!-- If this is not included as a minimum, the manifest merger assumes we target an ancient SDK and adds permissions. -->
+  <uses-sdk android:minSdkVersion="${ANDROID_PLATFORM}" android:targetSdkVersion="${ANDROID_PLATFORM}" />
+
+</manifest>

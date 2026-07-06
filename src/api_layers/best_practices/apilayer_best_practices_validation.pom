@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <!--
+  Copyright (c) 2020-2026 The Khronos Group Inc.
+  SPDX-License-Identifier: Apache-2.0 OR MIT
+  -->
+  <groupId>org.khronos.openxr</groupId>
+  <artifactId>apilayer_best_practices_validation</artifactId>
+  <version>@MAJOR@.@MINOR@.@PATCH@@OPENXR_SDK_HOTFIX_VERSION_SUFFIX@@OPENXR_ANDROID_VERSION_SUFFIX@</version>
+  <packaging>aar</packaging>
+  <name>OpenXR best_practices_validation Layer</name>
+  <description>An API layer to check for best practices usage during the development process.</description>
+  <url>https://github.com/KhronosGroup/OpenXR-SDK-Source</url>
+  <licenses>
+    <license>
+      <name>Apache-2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <name>The Khronos Group, Inc. OpenXR Working Group</name>
+      <email>openxr-speceditor AT khronos DOT org</email>
+      <url>https://khronos.org/openxr</url>
+    </developer>
+  </developers>
+  <scm>
+    <connection>scm:git:https://github.com/KhronosGroup/OpenXR-SDK-Source.git</connection>
+    <developerConnection>scm:git:git@github.com:KhronosGroup/OpenXR-SDK-Source.git</developerConnection>
+    <url>https://github.com/KhronosGroup/OpenXR-SDK-Source</url>
+  </scm>
+  <issueManagement>
+    <system>GitHub Issues</system>
+    <url>https://github.com/KhronosGroup/OpenXR-SDK-Source/issues</url>
+  </issueManagement>
+</project>

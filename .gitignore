@@ -89,6 +89,8 @@ clang-format-patches/
 /*.diff
 /*.log
 /*.pdf
+!src/loader/*.pom
+!src/api_layers/**/*.pom
 
 # Key stores
 *.jks

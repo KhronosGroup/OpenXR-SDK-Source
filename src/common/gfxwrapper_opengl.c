@@ -833,9 +833,12 @@ static bool ksGpuContext_CreateForSurface(ksGpuContext *context, const ksGpuDevi
 void ksGpuContext_Destroy(ksGpuContext *context) {
 #if defined(OS_WINDOWS)
     if (context->hGLRC) {
-        if (!wglMakeCurrent(NULL, NULL)) {
-            DWORD error = GetLastError();
-            Error("Failed to release context error code (%d).", error);
+        // Only detach if the current context is the same as the context being destroyed. Driver will give error otherwise.
+        if (wglGetCurrentContext() == context->hGLRC) {
+            if (!wglMakeCurrent(NULL, NULL)) {
+                DWORD error = GetLastError();
+                Error("Failed to release context error code (%d).", error);
+            }
         }
 
         if (!wglDeleteContext(context->hGLRC)) {
