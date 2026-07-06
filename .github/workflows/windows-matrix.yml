@@ -1,4 +1,4 @@
-# Copyright 2021-2023, Collabora, Ltd.
+# Copyright 2021-2026, Collabora, Ltd.
 # SPDX-License-Identifier: CC0-1.0
 
 name: Windows builds
@@ -11,6 +11,8 @@ on:
         default: false
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   # generate_matrix:
   #   runs-on: ubuntu-latest
@@ -22,6 +24,8 @@ jobs:
   #       run: "python3 .github/scripts/generate_windows_matrix_build.py matrix"
   msvc-build:
     # needs: generate_matrix
+    permissions:
+      contents: read
     strategy:
       fail-fast: true
       # TODO: Fix matrix generation? Broke recently due to changes in github actions
@@ -46,8 +50,12 @@ jobs:
     needs:
       - msvc-build
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
     steps:
       - uses: "actions/checkout@v7"
+        with:
+          persist-credentials: false
 
       - name: Retrieve artifacts
         uses: "actions/download-artifact@v8"

@@ -1,4 +1,4 @@
-# Copyright 2021-2025, Collabora, Ltd.
+# Copyright 2021-2026, Collabora, Ltd.
 # SPDX-License-Identifier: CC0-1.0
 
 on:
@@ -22,8 +22,12 @@ on:
         type: string
         default: install
 
+permissions: {}
+
 jobs:
   msvc-build:
+    permissions:
+      contents: read
     runs-on: windows-latest
     env:
       VULKAN_SDK_VERSION: "1.1.114.0"
@@ -34,6 +38,7 @@ jobs:
           lfs: true
           fetch-tags: "${{ !github.event.release }}"
           fetch-depth: "${{ github.event.release && '0' || '1'}}"
+          persist-credentials: false
 
       - name: Get modern CMake and Ninja
         uses: lukka/get-cmake@v4.2.3
@@ -51,12 +56,18 @@ jobs:
         shell: pwsh
         run: |
           Copy-Item .github/scripts/CMakePresets.json .
-          cmake --fresh --preset ${{ inputs.preset }} -S . -B $env:RUNNER_TEMP
+          cmake --fresh --preset $env:INPUTS_PRESET -S . -B $env:RUNNER_TEMP
+        env:
+          INPUTS_PRESET: ${{ inputs.preset }}
       - name: Build
-        run: "cmake --build $env:RUNNER_TEMP --parallel --clean-first --config ${{ inputs.buildType }}"
+        run: "cmake --build $env:RUNNER_TEMP --parallel --clean-first --config $env:INPUTS_BUILDTYPE"
+        env:
+          INPUTS_BUILDTYPE: ${{ inputs.buildType }}
 
       - name: Install
-        run: "cmake --build $env:RUNNER_TEMP --parallel --config ${{ inputs.buildType }} --target install"
+        run: "cmake --build $env:RUNNER_TEMP --parallel --config $env:INPUTS_BUILDTYPE --target install"
+        env:
+          INPUTS_BUILDTYPE: ${{ inputs.buildType }}
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v7

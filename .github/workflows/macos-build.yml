@@ -1,4 +1,4 @@
-# Copyright 2021-2025, Collabora, Ltd.
+# Copyright 2021-2026, Collabora, Ltd.
 # SPDX-License-Identifier: CC0-1.0
 
 name: macOS builds
@@ -6,14 +6,20 @@ on:
   workflow_call:
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   macos-build:
     name: macOS build
     runs-on: macos-latest
 
+    permissions:
+      contents: read
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - name: Install Dependencies
         run: |

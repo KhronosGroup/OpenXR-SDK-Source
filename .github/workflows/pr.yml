@@ -1,9 +1,11 @@
-# Copyright 2021-2022, Collabora, Ltd.
+# Copyright 2021-2026, Collabora, Ltd.
 # SPDX-License-Identifier: CC0-1.0
 
 name: Pull request checks
 on:
   pull_request:
+
+permissions: {}
 
 jobs:
   msvc-build:

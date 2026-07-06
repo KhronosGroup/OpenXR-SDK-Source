@@ -23,8 +23,12 @@ jobs:
           ]
     runs-on: ${{ matrix.device }}
 
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: "Get modern CMake and Ninja"
         uses: "lukka/get-cmake@v4.2.3"
       - name: Prepare Vulkan SDK

@@ -1,4 +1,4 @@
-# Copyright 2021-2025, Collabora, Ltd.
+# Copyright 2021-2026, Collabora, Ltd.
 # SPDX-License-Identifier: CC0-1.0
 
 name: Android
@@ -18,12 +18,18 @@ on:
         description: "Should we make a debug configured build?"
         default: true
 
+permissions: {}
+
 jobs:
   # Loader
   loader:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Get modern CMake and Ninja
         uses: "lukka/get-cmake@v4.2.3"
 
@@ -44,8 +50,12 @@ jobs:
   # Hello XR
   build-helloxr:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: "actions/checkout@v7"
+        with:
+          persist-credentials: false
       - name: "Get modern CMake and Ninja"
         uses: "lukka/get-cmake@v4.2.3"
       - name: "set up JDK"
