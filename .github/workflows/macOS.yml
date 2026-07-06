@@ -26,13 +26,13 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # actions/checkout@v7
         with:
           persist-credentials: false
       - name: "Get modern CMake and Ninja"
-        uses: "lukka/get-cmake@v4.2.3"
+        uses: "lukka/get-cmake@f176ccd3f28bda569c43aae4894f06b2435a3375" # lukka/get-cmake@v4.2.3
       - name: Prepare Vulkan SDK
-        uses: humbletim/setup-vulkan-sdk@v1.2.1
+        uses: "humbletim/setup-vulkan-sdk@c25f41106918cde0bf347e6f201277392b3a9e9d" # humbletim/setup-vulkan-sdk@v1.2.1
         with:
           vulkan-query-version: 1.3.290.0
           vulkan-components: Vulkan-Headers, Vulkan-Loader

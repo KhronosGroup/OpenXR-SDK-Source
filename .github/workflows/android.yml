@@ -27,11 +27,11 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # actions/checkout@v7
         with:
           persist-credentials: false
       - name: Get modern CMake and Ninja
-        uses: "lukka/get-cmake@v4.2.3"
+        uses: "lukka/get-cmake@f176ccd3f28bda569c43aae4894f06b2435a3375" # lukka/get-cmake@v4.2.3
 
       # Do this before building aar since it affects the version
       - name: Touch SNAPSHOT marker file
@@ -42,7 +42,7 @@ jobs:
         run: "./maintainer-scripts/build-aar.sh"
 
       - name: Upload bare AAR
-        uses: "actions/upload-artifact@v7"
+        uses: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # actions/upload-artifact@v7
         with:
           name: AAR and POM
           path: openxr_loader_for_android*
@@ -53,18 +53,18 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: "actions/checkout@v7"
+      - uses: "actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0" # actions/checkout@v7
         with:
           persist-credentials: false
       - name: "Get modern CMake and Ninja"
-        uses: "lukka/get-cmake@v4.2.3"
+        uses: "lukka/get-cmake@f176ccd3f28bda569c43aae4894f06b2435a3375" # lukka/get-cmake@v4.2.3
       - name: "set up JDK"
-        uses: "actions/setup-java@v5"
+        uses: "actions/setup-java@1bcf9fb12cf4aa7d266a90ae39939e61372fe520" # actions/setup-java@v5
         with:
           java-version-file: ".github/.java-version"
           distribution: "temurin"
       # Also performs Gradle wrapper validation
-      - uses: "gradle/actions/setup-gradle@v5"
+      - uses: "gradle/actions/setup-gradle@6f229686ee4375cc4a86b2514c89bac4930e82c4" # gradle/actions/setup-gradle@v5
 
       # HelloXR OpenGLES version
       - name: Build HelloXR OpenGLES for Android
@@ -72,7 +72,7 @@ jobs:
 
       - name: Upload HelloXR OpenGLES (debug) for Android
         if: "!inputs.release"
-        uses: "actions/upload-artifact@v7"
+        uses: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # actions/upload-artifact@v7
         with:
           name: HelloXR OpenGLES Android
           path: "src/tests/hello_xr/build/outputs/apk/OpenGLES/debug/*.apk"
