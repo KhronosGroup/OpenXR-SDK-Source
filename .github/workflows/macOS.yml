@@ -5,10 +5,10 @@ name: macOS
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 permissions:
   contents: read
@@ -16,8 +16,8 @@ permissions:
 jobs:
   macOS-build:
     strategy:
-        matrix:
-          device: [
+      matrix:
+        device: [
             macos-15-intel, # Tests Mac x86_64
             macos-latest, # Tests Mac arm64
           ]
