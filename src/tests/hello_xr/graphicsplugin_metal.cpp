@@ -307,19 +307,20 @@ struct MetalGraphicsPlugin : public IGraphicsPlugin {
     }
 
     void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
-                    int64_t swapchainFormat, const std::vector<Cube>& cubes) override {
+                    int64_t colorSwapchainFormat, int64_t depthSwapchainFormat, const std::vector<Cube>& cubes) override {
         auto pAutoReleasePool = NS::TransferPtr(NS::AutoreleasePool::alloc()->init());
 
         SwapchainContext& swapchainContext =
             m_swapchainImageDataMap.GetDataAndIndexFromBasePointer(swapchainImage).first->swapchainContext;
 
-        auto mtlSwapchainFormat = (MTL::PixelFormat)swapchainFormat;
-        if (mtlSwapchainFormat != m_colorAttachmentFormat) {
+        auto mtlColorSwapchainFormat = (MTL::PixelFormat)colorSwapchainFormat;
+        auto mtlDepthSwapchainFormat = (MTL::PixelFormat)depthSwapchainFormat;
+        if ((mtlColorSwapchainFormat != m_colorAttachmentFormat) || (mtlDepthSwapchainFormat != m_depthAttachmentFormat)) {
             auto pDesc = NS::TransferPtr(MTL::RenderPipelineDescriptor::alloc()->init());
             pDesc->setVertexFunction(m_vertexFunction.get());
             pDesc->setFragmentFunction(m_fragmentFunction.get());
-            pDesc->colorAttachments()->object(0)->setPixelFormat(mtlSwapchainFormat);
-            pDesc->setDepthAttachmentPixelFormat(MTL::PixelFormatDepth32Float);
+            pDesc->colorAttachments()->object(0)->setPixelFormat(mtlColorSwapchainFormat);
+            pDesc->setDepthAttachmentPixelFormat(mtlDepthSwapchainFormat);
 
             NS::Error* pError = nullptr;
             m_pipelineStateObject = NS::TransferPtr(m_device->newRenderPipelineState(pDesc.get(), &pError));
@@ -328,7 +329,7 @@ struct MetalGraphicsPlugin : public IGraphicsPlugin {
                 assert(false);
                 return;
             }
-            m_colorAttachmentFormat = mtlSwapchainFormat;
+            m_colorAttachmentFormat = mtlColorSwapchainFormat;
         }
 
         CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
@@ -338,7 +339,7 @@ struct MetalGraphicsPlugin : public IGraphicsPlugin {
         if (!m_depthStencilTexture) {
             auto depthTextureDescriptor = NS::TransferPtr(MTL::TextureDescriptor::alloc()->init());
             depthTextureDescriptor->setTextureType(colorTexture->textureType());
-            depthTextureDescriptor->setPixelFormat(MTL::PixelFormatDepth32Float);
+            depthTextureDescriptor->setPixelFormat(mtlDepthSwapchainFormat);
             depthTextureDescriptor->setWidth(colorTexture->width());
             depthTextureDescriptor->setHeight(colorTexture->height());
             depthTextureDescriptor->setUsage(MTL::TextureUsageRenderTarget);
@@ -422,6 +423,7 @@ struct MetalGraphicsPlugin : public IGraphicsPlugin {
     NS::SharedPtr<MTL::RenderPipelineState> m_pipelineStateObject;
     NS::SharedPtr<MTL::DepthStencilState> m_depthStencilState;
     MTL::PixelFormat m_colorAttachmentFormat{MTL::PixelFormatInvalid};
+    MTL::PixelFormat m_depthAttachmentFormat{MTL::PixelFormatInvalid};
 
     NS::SharedPtr<MTL::Library> m_library;
     NS::SharedPtr<MTL::Function> m_vertexFunction;
