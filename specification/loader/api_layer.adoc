@@ -692,8 +692,11 @@ Therefore, it must follow some conventions and rules defined below:
    contents of the instance extensions it supports.
 ** If "layerName" is NULL and:
 *** It is an explicit API layer, it must: not fill in any data.
-*** It is an implicit API layer, it must: add it's own instance extension
-    contents to the list of extensions.
+*** It is an implicit API layer and:
+**** an `XrInstance` has been created but not destroyed, it must: add its own
+     instance extension contents to the list of extensions.
+**** no `XrInstance` has been created, or all have been destroyed, it must:
+     return only its own instance extension contents.
 * For any OpenXR command the API layer intercepts, `xrGetInstanceProcAddr`
   must: return a pointer to a local entry point.
 ** Otherwise it returns the value obtained by calling down the instance call
