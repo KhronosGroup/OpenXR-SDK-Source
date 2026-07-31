@@ -3,11 +3,6 @@
 <?xml-model href="registry.rnc" type="application/relax-ng-compact-syntax"?>
 <?xml-model href="registry.sch" type="application/xml" schematypens="http://purl.oclc.org/dsdl/schematron"?>
 <registry>
-    <!--
-      DO NOT EDIT DIRECTLY - generated from xr.fragmented.xml and the following fragments:
-
-      - fragments/android/XR_ANDROID_trackables.xml
--->
     <comment>
 Copyright (c) 2017-2026 The Khronos Group Inc.
 
@@ -6577,60 +6572,6 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member><type>XrGoogleCloudAuthErrorANDROID</type> <name>error</name></member>
         </type>
 
-        <!-- XR_ANDROID_trackables -->
-        <type category="define">
-#define <name>XR_NULL_TRACKABLE_ANDROID</name> 0</type>
-
-        <type category="basetype"><type>XR_DEFINE_ATOM</type>(<name>XrTrackableANDROID</name>)</type>
-
-        <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrTrackableTrackerANDROID</name>)</type>
-
-        <type name="XrTrackingStateANDROID" category="enum"/>
-        <type name="XrTrackableTypeANDROID" category="enum"/>
-        <type name="XrPlaneTypeANDROID" category="enum"/>
-        <type name="XrPlaneLabelANDROID" category="enum"/>
-
-        <type category="struct" name="XrTrackableTrackerCreateInfoANDROID">
-            <member values="XR_TYPE_TRACKABLE_TRACKER_CREATE_INFO_ANDROID"><type>XrStructureType</type> <name>type</name></member>
-            <member>const <type>void</type>*            <name>next</name></member>
-            <member><type>XrTrackableTypeANDROID</type> <name>trackableType</name></member>
-        </type>
-        <type category="struct" name="XrTrackableGetInfoANDROID">
-            <member values="XR_TYPE_TRACKABLE_GET_INFO_ANDROID"><type>XrStructureType</type> <name>type</name></member>
-            <member>const <type>void</type>*        <name>next</name></member>
-            <member><type>XrTrackableANDROID</type> <name>trackable</name></member>
-            <member><type>XrSpace</type>            <name>baseSpace</name></member>
-            <member><type>XrTime</type>             <name>time</name></member>
-        </type>
-        <type category="struct" name="XrTrackablePlaneANDROID">
-            <member values="XR_TYPE_TRACKABLE_PLANE_ANDROID"><type>XrStructureType</type> <name>type</name></member>
-            <member><type>void</type>*                                                    <name>next</name></member>
-            <member><type>XrTrackingStateANDROID</type>                                   <name>trackingState</name></member>
-            <member><type>XrPosef</type>                                                  <name>centerPose</name></member>
-            <member><type>XrExtent2Df</type>                                              <name>extents</name></member>
-            <member><type>XrPlaneTypeANDROID</type>                                       <name>planeType</name></member>
-            <member><type>XrPlaneLabelANDROID</type>                                      <name>planeLabel</name></member>
-            <member><type>XrTrackableANDROID</type>                                       <name>subsumedByPlane</name></member>
-            <member><type>XrTime</type>                                                   <name>lastUpdatedTime</name></member>
-            <member optional="true"><type>uint32_t</type>                                 <name>vertexCapacityInput</name></member>
-            <member optional="true"><type>uint32_t</type>*                                <name>vertexCountOutput</name></member>
-            <member optional="true" len="vertexCapacityInput"><type>XrVector2f</type>*    <name>vertices</name></member>
-        </type>
-        <type category="struct" name="XrAnchorSpaceCreateInfoANDROID">
-            <member values="XR_TYPE_ANCHOR_SPACE_CREATE_INFO_ANDROID"><type>XrStructureType</type> <name>type</name></member>
-            <member>const <type>void</type>*        <name>next</name></member>
-            <member><type>XrSpace</type>            <name>space</name></member>
-            <member><type>XrTime</type>             <name>time</name></member>
-            <member><type>XrPosef</type>            <name>pose</name></member>
-            <member><type>XrTrackableANDROID</type> <name>trackable</name></member>
-        </type>
-        <type category="struct" name="XrSystemTrackablesPropertiesANDROID" returnedonly="true" structextends="XrSystemProperties">
-            <member values="XR_TYPE_SYSTEM_TRACKABLES_PROPERTIES_ANDROID"><type>XrStructureType</type> <name>type</name></member>
-            <member>const <type>void</type>* <name>next</name></member>
-            <member><type>XrBool32</type>    <name>supportsAnchor</name></member>
-            <member><type>uint32_t</type>    <name>maxAnchors</name></member>
-        </type>
-
     </types>
 
 
@@ -8964,30 +8905,6 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="2"   name="XR_HAND_TRACKING_FREQUENCY_HINT_HIGH_META"/>
     </enums>
 
-
-    <!-- XR_ANDROID_trackables -->
-    <enums name="XrTrackingStateANDROID" type="enum">
-        <enum value="0"   name="XR_TRACKING_STATE_PAUSED_ANDROID"   comment="Indicates that the trackable or anchor tracking is paused but may be resumed in the future."/>
-        <enum value="1"   name="XR_TRACKING_STATE_STOPPED_ANDROID"  comment="Tracking has stopped on this Trackable and will never be resumed."/>
-        <enum value="2"   name="XR_TRACKING_STATE_TRACKING_ANDROID" comment="The object is currently tracked and its pose is current."/>
-    </enums>
-    <enums name="XrTrackableTypeANDROID" type="enum">
-        <enum value="0"   name="XR_TRACKABLE_TYPE_NOT_VALID_ANDROID" comment="Indicates that the trackable is not valid."/>
-        <enum value="1"   name="XR_TRACKABLE_TYPE_PLANE_ANDROID"     comment="Indicates that the trackable is a plane."/>
-    </enums>
-    <enums name="XrPlaneTypeANDROID" type="enum">
-        <enum value="0"   name="XR_PLANE_TYPE_HORIZONTAL_DOWNWARD_FACING_ANDROID" comment="A horizontal plane facing downward (for example a ceiling)."/>
-        <enum value="1"   name="XR_PLANE_TYPE_HORIZONTAL_UPWARD_FACING_ANDROID"   comment="A horizontal plane facing upward (for example a floor or tabletop)."/>
-        <enum value="2"   name="XR_PLANE_TYPE_VERTICAL_ANDROID"                   comment="A vertical plane (for example a wall)."/>
-        <enum value="3"   name="XR_PLANE_TYPE_ARBITRARY_ANDROID"                  comment="A plane with an arbitrary orientation."/>
-    </enums>
-    <enums name="XrPlaneLabelANDROID" type="enum">
-        <enum value="0"   name="XR_PLANE_LABEL_UNKNOWN_ANDROID" comment="It was not possible to label the plane"/>
-        <enum value="1"   name="XR_PLANE_LABEL_WALL_ANDROID"    comment="The plane is a wall."/>
-        <enum value="2"   name="XR_PLANE_LABEL_FLOOR_ANDROID"   comment="The plane is a floor."/>
-        <enum value="3"   name="XR_PLANE_LABEL_CEILING_ANDROID" comment="The plane is a ceiling."/>
-        <enum value="4"   name="XR_PLANE_LABEL_TABLE_ANDROID"   comment="The plane is a table."/>
-    </enums>
 
     <!-- SECTION: OpenXR command definitions -->
     <commands>
@@ -12291,53 +12208,6 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrHapticActionInfo</type>* <name>hapticActionInfo</name></param>
             <param><type>XrHapticParametricPropertiesEXT</type>* <name>parametricProperties</name></param>
-        </command>
-
-        <!-- XR_ANDROID_trackables -->
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE">
-            <proto><type>XrResult</type> <name>xrEnumerateSupportedTrackableTypesANDROID</name></proto>
-            <param><type>XrInstance</type> <name>instance</name></param>
-            <param><type>XrSystemId</type> <name>systemId</name></param>
-            <param optional="true"><type>uint32_t</type> <name>trackableTypeCapacityInput</name></param>
-            <param><type>uint32_t</type>* <name>trackableTypeCountOutput</name></param>
-            <param optional="true" len="trackableTypeCapacityInput"><type>XrTrackableTypeANDROID</type>* <name>trackableTypes</name></param>
-        </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE">
-            <proto><type>XrResult</type> <name>xrEnumerateSupportedAnchorTrackableTypesANDROID</name></proto>
-            <param><type>XrInstance</type> <name>instance</name></param>
-            <param><type>XrSystemId</type> <name>systemId</name></param>
-            <param optional="true"><type>uint32_t</type> <name>trackableTypeCapacityInput</name></param>
-            <param><type>uint32_t</type>* <name>trackableTypeCountOutput</name></param>
-            <param optional="true" len="trackableTypeCapacityInput"><type>XrTrackableTypeANDROID</type>* <name>trackableTypes</name></param>
-        </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
-            <proto><type>XrResult</type> <name>xrCreateTrackableTrackerANDROID</name></proto>
-            <param><type>XrSession</type> <name>session</name></param>
-            <param>const <type>XrTrackableTrackerCreateInfoANDROID</type>* <name>createInfo</name></param>
-            <param><type>XrTrackableTrackerANDROID</type>* <name>trackableTracker</name></param>
-        </command>
-        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
-            <proto><type>XrResult</type> <name>xrDestroyTrackableTrackerANDROID</name></proto>
-            <param externsync="true_with_children"><type>XrTrackableTrackerANDROID</type> <name>trackableTracker</name></param>
-        </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
-            <proto><type>XrResult</type> <name>xrGetAllTrackablesANDROID</name></proto>
-            <param><type>XrTrackableTrackerANDROID</type> <name>trackableTracker</name></param>
-            <param optional="true"><type>uint32_t</type> <name>trackableCapacityInput</name></param>
-            <param><type>uint32_t</type>* <name>trackableCountOutput</name></param>
-            <param optional="true" len="trackableCapacityInput"><type>XrTrackableANDROID</type>* <name>trackables</name></param>
-        </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_MISMATCHING_TRACKABLE_TYPE_ANDROID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE">
-            <proto><type>XrResult</type> <name>xrGetTrackablePlaneANDROID</name></proto>
-            <param><type>XrTrackableTrackerANDROID</type> <name>trackableTracker</name></param>
-            <param>const <type>XrTrackableGetInfoANDROID</type>* <name>getInfo</name></param>
-            <param><type>XrTrackablePlaneANDROID</type>* <name>planeOutput</name></param>
-        </command>
-        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_POSE_INVALID,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID,XR_ERROR_TRACKABLE_TYPE_NOT_SUPPORTED_ANDROID,XR_ERROR_VALIDATION_FAILURE">
-            <proto><type>XrResult</type> <name>xrCreateAnchorSpaceANDROID</name></proto>
-            <param><type>XrSession</type> <name>session</name></param>
-            <param>const <type>XrAnchorSpaceCreateInfoANDROID</type>* <name>createInfo</name></param>
-            <param><type>XrSpace</type>* <name>anchorOutput</name></param>
         </command>
 
     </commands>
@@ -19478,44 +19348,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_trackables" number="456" type="instance" supported="openxr" deprecatedby="XR_EXT_spatial_entity+XR_EXT_spatial_plane_tracking+XR_ANDROID_spatial_component_subsumed_by+XR_EXT_spatial_anchor+XR_ANDROID_spatial_entity_bound_anchor+XR_ANDROID_spatial_anchor_space">
-        <require>
-            <enum value="2"                                    name="XR_ANDROID_trackables_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_trackables&quot;"    name="XR_ANDROID_TRACKABLES_EXTENSION_NAME"/>
-
-            <enum offset="0"         extends="XrStructureType" name="XR_TYPE_TRACKABLE_GET_INFO_ANDROID"/>
-            <enum offset="1"         extends="XrStructureType" name="XR_TYPE_ANCHOR_SPACE_CREATE_INFO_ANDROID"/>
-            <enum offset="3"         extends="XrStructureType" name="XR_TYPE_TRACKABLE_PLANE_ANDROID"/>
-            <enum offset="4"         extends="XrStructureType" name="XR_TYPE_TRACKABLE_TRACKER_CREATE_INFO_ANDROID"/>
-            <enum offset="5"         extends="XrStructureType" name="XR_TYPE_SYSTEM_TRACKABLES_PROPERTIES_ANDROID"/>
-
-            <enum offset="1"         extends="XrObjectType"    name="XR_OBJECT_TYPE_TRACKABLE_TRACKER_ANDROID"      comment="XrTrackableTrackerANDROID"/>
-
-            <enum offset="0" dir="-" extends="XrResult"        name="XR_ERROR_MISMATCHING_TRACKABLE_TYPE_ANDROID"   comment="Indicates that the parameters contains multiple trackable types."/>
-            <enum offset="1" dir="-" extends="XrResult"        name="XR_ERROR_TRACKABLE_TYPE_NOT_SUPPORTED_ANDROID" comment="Indicates that the function is not supported by the given trackable type."/>
-
-            <type name="XR_NULL_TRACKABLE_ANDROID"/>
-            <type name="XrTrackableANDROID"/>
-            <type name="XrTrackableTrackerANDROID"/>
-            <type name="XrTrackingStateANDROID"/>
-            <type name="XrTrackableTypeANDROID"/>
-            <type name="XrPlaneTypeANDROID"/>
-            <type name="XrPlaneLabelANDROID"/>
-            <type name="XrTrackableTrackerCreateInfoANDROID"/>
-            <type name="XrTrackableGetInfoANDROID"/>
-            <type name="XrTrackablePlaneANDROID"/>
-            <type name="XrAnchorSpaceCreateInfoANDROID"/>
-            <type name="XrSystemTrackablesPropertiesANDROID"/>
-
-            <command name="xrEnumerateSupportedTrackableTypesANDROID"/>
-            <command name="xrEnumerateSupportedAnchorTrackableTypesANDROID"/>
-            <command name="xrCreateTrackableTrackerANDROID"/>
-            <command name="xrDestroyTrackableTrackerANDROID"/>
-            <command name="xrGetAllTrackablesANDROID"/>
-            <command name="xrGetTrackablePlaneANDROID"/>
-            <command name="xrCreateAnchorSpaceANDROID"/>
-        </require>
-    </extension>
+    <extension name="XR_ANDROID_trackables" number="456" type="instance" fragment="true"/>
 
     <extension name="XR_ANDROID_eye_tracking" number="457" type="instance" supported="openxr">
         <require>

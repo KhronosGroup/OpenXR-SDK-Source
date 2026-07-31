@@ -23,6 +23,14 @@ def update_makefile(fn, spec_version):
             print(line, end='')
 
 
+def update_registry(fn, spec_version):
+    for line in fileinput.input(fn, inplace=True):
+        if '<name>XR_CURRENT_API_VERSION</name>' in line and 'XR_MAKE_VERSION' in line:
+            print('#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(%s, %s, %s)</type>' % spec_version)
+        else:
+            print(line, end='')
+
+
 if __name__ == "__main__":
 
     # Get the current version from the 'current_version.ini' file.
@@ -36,11 +44,8 @@ if __name__ == "__main__":
     # registry file (registry/xr.xml).
     #
     print('Replacing version lines in the registry')
-    for line in fileinput.input('registry/xr.xml', inplace=True):
-        if '<name>XR_CURRENT_API_VERSION</name>' in line and 'XR_MAKE_VERSION' in line:
-            print('#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(%s, %s, %s)</type>' % spec_version)
-        else:
-            print(line, end='')
+    update_registry('registry/xr.xml', spec_version)
+    update_registry('registry/xr.fragmented.xml', spec_version)
 
     # Now update the version in the appropriate places in the
     # specification make file (Makefile).
@@ -49,4 +54,4 @@ if __name__ == "__main__":
     update_makefile('Makefile', spec_version)
 
     print('Replacing version lines in the CTS Usage Makefile')
-    update_makefile('../src/conformance/usage/Makefile', spec_version)
+    update_makefile('../src/conformance/usage/asciidoctor-targets.mk', spec_version)
