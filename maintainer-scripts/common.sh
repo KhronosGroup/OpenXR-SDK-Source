@@ -198,6 +198,7 @@ getSDKSourceFilenames() {
         specification/config/attribs.adoc \
         specification/config/khronos.css \
         specification/registry/*.xml \
+        specification/registry/fragments \
         specification/scripts \
         specification/loader \
         specification/Makefile \
