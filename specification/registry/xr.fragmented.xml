@@ -13084,13 +13084,6 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
     </interaction_profiles>
 
     <!-- SECTION: OpenXR 1.0 API interface definitions -->
-    <!--
-        Note: Only explicitly specify types if they are not
-        referenced by a function or another type. (For example,
-        if they're expected to be in a next chain.)
-        Types referenced by functions are included automatically.
-    -->
-
     <feature api="openxr" name="XR_VERSION_1_0" number="1.0">
         <require comment="Header boilerplate">
             <type name="openxr_platform_defines"/>
@@ -13135,6 +13128,12 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XR_MAY_ALIAS"/>
             <type name="XR_DEFINE_HANDLE"/>
             <type name="XR_DEFINE_OPAQUE_64"/>
+
+            <type name="XR_DEFINE_ATOM"/>
+            <type name="XR_MAKE_VERSION"/>
+        </require>
+        <require comment="Result">
+            <type name="XrResult"/>
         </require>
         <require comment="Instance">
             <command name="xrGetInstanceProcAddr"/>
@@ -13146,6 +13145,18 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <command name="xrPollEvent"/>
             <command name="xrResultToString"/>
             <command name="xrStructureTypeToString"/>
+
+            <type    name="PFN_xrVoidFunction"/>
+            <type    name="XrApiLayerProperties"/>
+            <type    name="XrExtensionProperties"/>
+            <type    name="XrInstance"/>
+            <type    name="XrInstanceCreateInfo"/>
+            <type    name="XrInstanceCreateFlags"/>
+            <type    name="XrInstanceCreateFlagBits"/>
+            <type    name="XrApplicationInfo"/>
+            <type    name="XrInstanceProperties"/>
+            <type    name="XrEventDataBuffer"/>
+            <type    name="XrStructureType"/>
         </require>
         <require comment="Device">
             <command name="xrGetSystem"/>
@@ -13153,6 +13164,18 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <command name="xrEnumerateEnvironmentBlendModes"/>
             <command name="xrCreateSession"/>
             <command name="xrDestroySession"/>
+
+            <type    name="XrSystemId"/>
+            <type    name="XrFormFactor"/>
+            <type    name="XrSystemGetInfo"/>
+            <type    name="XrSystemProperties"/>
+            <type    name="XrSystemGraphicsProperties"/>
+            <type    name="XrSystemTrackingProperties"/>
+            <type    name="XrEnvironmentBlendMode"/>
+            <type    name="XrSession"/>
+            <type    name="XrSessionCreateInfo"/>
+            <type    name="XrSessionCreateFlags"/>
+            <type    name="XrSessionCreateFlagBits"/>
         </require>
         <require comment="Space">
             <command name="xrEnumerateReferenceSpaces"/>
@@ -13161,12 +13184,29 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <command name="xrCreateActionSpace"/>
             <command name="xrLocateSpace"/>
             <command name="xrDestroySpace"/>
+
+            <type    name="XrSpace"/>
+            <type    name="XrReferenceSpaceCreateInfo"/>
+            <type    name="XrReferenceSpaceType"/>
+            <type    name="XrActionSpaceCreateInfo"/>
+            <type    name="XrSpaceLocation"/>
+            <type    name="XrSpaceLocationFlags"/>
+            <type    name="XrSpaceLocationFlagBits"/>
             <type    name="XrSpaceVelocity"/>
+            <type    name="XrSpaceVelocityFlags"/>
+            <type    name="XrSpaceVelocityFlagBits"/>
+            <type    name="XrPosef"/>
+            <type    name="XrVector3f"/>
+            <type    name="XrQuaternionf"/>
         </require>
         <require comment="ViewConfigurations">
             <command name="xrEnumerateViewConfigurations"/>
             <command name="xrGetViewConfigurationProperties"/>
             <command name="xrEnumerateViewConfigurationViews"/>
+
+            <type    name="XrViewConfigurationType"/>
+            <type    name="XrViewConfigurationProperties"/>
+            <type    name="XrViewConfigurationView"/>
         </require>
         <require comment="Image">
             <command name="xrEnumerateSwapchainFormats"/>
@@ -13176,21 +13216,52 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <command name="xrAcquireSwapchainImage"/>
             <command name="xrWaitSwapchainImage"/>
             <command name="xrReleaseSwapchainImage"/>
+
+            <type    name="XrSwapchain"/>
+            <type    name="XrSwapchainCreateInfo"/>
+            <type    name="XrSwapchainCreateFlags"/>
+            <type    name="XrSwapchainCreateFlagBits"/>
+            <type    name="XrSwapchainUsageFlags"/>
+            <type    name="XrSwapchainUsageFlagBits"/>
+            <type    name="XrSwapchainImageBaseHeader"/>
+            <type    name="XrSwapchainImageAcquireInfo"/>
+            <type    name="XrSwapchainImageWaitInfo"/>
+            <type    name="XrDuration"/>
+            <type    name="XrSwapchainImageReleaseInfo"/>
         </require>
         <require comment="Session">
             <command name="xrBeginSession"/>
             <command name="xrEndSession"/>
             <command name="xrRequestExitSession"/>
+            <type    name="XrSessionBeginInfo"/>
         </require>
         <require comment="Display Timing">
             <command name="xrWaitFrame"/>
             <command name="xrBeginFrame"/>
             <command name="xrEndFrame"/>
             <command name="xrLocateViews"/>
+
+            <type    name="XrFrameState"/>
+            <type    name="XrFrameWaitInfo"/>
+            <type    name="XrFrameBeginInfo"/>
+            <type    name="XrFrameEndInfo"/>
+            <type    name="XrCompositionLayerBaseHeader"/>
+            <type    name="XrCompositionLayerFlags"/>
+            <type    name="XrCompositionLayerFlagBits"/>
+            <type    name="XrEyeVisibility"/>
+            <type    name="XrViewState"/>
+            <type    name="XrViewStateFlags"/>
+            <type    name="XrViewStateFlagBits"/>
+            <type    name="XrViewLocateInfo"/>
+            <type    name="XrTime"/>
+            <type    name="XrView"/>
+            <type    name="XrFovf"/>
         </require>
         <require comment="Semantic Paths">
             <command             name="xrStringToPath"/>
             <command             name="xrPathToString"/>
+
+            <type                name="XrPath"/>
 
             <interaction_profile name="/interaction_profiles/khr/simple_controller"/>
             <interaction_profile name="/interaction_profiles/google/daydream_controller"/>
@@ -13217,16 +13288,43 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <command name="xrSyncActions"/>
             <command name="xrEnumerateBoundSourcesForAction"/>
             <command name="xrGetInputSourceLocalizedName"/>
+
+            <type    name="XrActionSet"/>
+            <type    name="XrActionSetCreateInfo"/>
+            <type    name="XrAction"/>
+            <type    name="XrActionCreateInfo"/>
+            <type    name="XrActionType"/>
+            <type    name="XrInteractionProfileSuggestedBinding"/>
+            <type    name="XrActionSuggestedBinding"/>
+            <type    name="XrSessionActionSetsAttachInfo"/>
+            <type    name="XrInteractionProfileState"/>
+            <type    name="XrActionStateGetInfo"/>
+            <type    name="XrActionStateBoolean"/>
+            <type    name="XrActionStateFloat"/>
+            <type    name="XrActionStateVector2f"/>
+            <type    name="XrVector2f"/>
+            <type    name="XrActionStatePose"/>
+            <type    name="XrActionsSyncInfo"/>
+            <type    name="XrActiveActionSet"/>
+            <type    name="XrBoundSourcesForActionEnumerateInfo"/>
+            <type    name="XrInputSourceLocalizedNameGetInfo"/>
+            <type    name="XrInputSourceLocalizedNameFlags"/>
+            <type    name="XrInputSourceLocalizedNameFlagBits"/>
         </require>
         <require comment="Haptics">
             <command name="xrApplyHapticFeedback"/>
             <command name="xrStopHapticFeedback"/>
+
+            <type    name="XrHapticBaseHeader"/>
+            <type    name="XrHapticActionInfo"/>
         </require>
         <require comment="Types not directly used by the API">
             <!-- Include <type name="typename"/> here for e.g. structs that
                  are not parameter types of functions, but still need to be
                  defined in the API.
              -->
+            <type name="XrFlags64"/>
+            <type name="XrBool32"/>
 
             <!-- Utility types to handle polymorphism -->
             <type name="XrBaseInStructure"/>
@@ -13234,7 +13332,13 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
 
             <!-- Composition layer types used polymorphically by the core spec through XrCompositionLayerBaseHeader. -->
             <type name="XrCompositionLayerProjection"/>
+            <type name="XrCompositionLayerProjectionView"/>
             <type name="XrCompositionLayerQuad"/>
+
+            <type name="XrSwapchainSubImage"/>
+            <type name="XrRect2Di"/>
+            <type name="XrOffset2Di"/>
+            <type name="XrExtent2Di"/>
 
             <!-- Event data types used polymorphically by the core spec through XrEventDataBaseHeader -->
             <type name="XrEventDataBaseHeader"/>
@@ -13243,6 +13347,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XrEventDataSessionStateChanged"/>
             <type name="XrEventDataReferenceSpaceChangePending"/>
             <type name="XrEventDataInteractionProfileChanged"/>
+            <type name="XrSessionState"/>
 
             <!-- Haptic data type used polymorphically by the core spec via XrHapticBaseHeader -->
             <type name="XrHapticVibration"/>
@@ -13279,6 +13384,15 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <command name="xrCreateApiLayerInstance"/>
             <command name="xrNegotiateLoaderRuntimeInterface"/>
             <command name="xrNegotiateLoaderApiLayerInterface"/>
+
+            <type    name="PFN_xrGetInstanceProcAddr"/>
+            <type    name="PFN_xrCreateApiLayerInstance"/>
+            <type    name="XrLoaderInterfaceStructs"/>
+            <type    name="XrApiLayerCreateInfo"/>
+            <type    name="XrApiLayerNextInfo"/>
+            <type    name="XrNegotiateApiLayerRequest"/>
+            <type    name="XrNegotiateLoaderInfo"/>
+            <type    name="XrNegotiateRuntimeRequest"/>
         </require>
     </feature>
 
@@ -13891,8 +14005,13 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="PFN_xrDebugUtilsMessengerCallbackEXT"/>
             <type name="XrDebugUtilsObjectNameInfoEXT"/>
             <type name="XrDebugUtilsLabelEXT"/>
+            <type name="XrDebugUtilsMessengerEXT"/>
             <type name="XrDebugUtilsMessengerCallbackDataEXT"/>
             <type name="XrDebugUtilsMessengerCreateInfoEXT"/>
+            <type name="XrDebugUtilsMessageTypeFlagsEXT"/>
+            <type name="XrDebugUtilsMessageTypeFlagBitsEXT"/>
+            <type name="XrDebugUtilsMessageSeverityFlagsEXT"/>
+            <type name="XrDebugUtilsMessageSeverityFlagBitsEXT"/>
             <command name="xrSetDebugUtilsObjectNameEXT"/>
             <command name="xrCreateDebugUtilsMessengerEXT"/>
             <command name="xrDestroyDebugUtilsMessengerEXT"/>
@@ -14071,6 +14190,10 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum offset="3" extends="XrStructureType" name="XR_TYPE_EVENT_DATA_MAIN_SESSION_VISIBILITY_CHANGED_EXTX"/>
             <type name="XrSessionCreateInfoOverlayEXTX"/>
             <type name="XrEventDataMainSessionVisibilityChangedEXTX"/>
+            <type name="XrOverlayMainSessionFlagsEXTX"/>
+            <type name="XrOverlayMainSessionFlagBitsEXTX"/>
+            <type name="XrOverlaySessionCreateFlagsEXTX"/>
+            <type name="XrOverlaySessionCreateFlagBitsEXTX"/>
         </require>
     </extension>
 
@@ -14125,8 +14248,11 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="2"                                  name="XR_MSFT_spatial_anchor_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_spatial_anchor&quot;" name="XR_MSFT_SPATIAL_ANCHOR_EXTENSION_NAME"/>
 
-            <enum offset="0" extends="XrStructureType"       name="XR_TYPE_SPATIAL_ANCHOR_CREATE_INFO_MSFT"/>
-            <enum offset="1" extends="XrStructureType"       name="XR_TYPE_SPATIAL_ANCHOR_SPACE_CREATE_INFO_MSFT"/>
+            <type name="XrSpatialAnchorMSFT"/>
+            <type name="XrSpatialAnchorCreateInfoMSFT"/>
+            <type name="XrSpatialAnchorSpaceCreateInfoMSFT"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SPATIAL_ANCHOR_CREATE_INFO_MSFT"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_SPATIAL_ANCHOR_SPACE_CREATE_INFO_MSFT"/>
             <command name="xrCreateSpatialAnchorMSFT"/>
             <command name="xrCreateSpatialAnchorSpaceMSFT"/>
             <command name="xrDestroySpatialAnchorMSFT"/>
@@ -14140,6 +14266,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="1"                                                name="XR_FB_composition_layer_image_layout_SPEC_VERSION"/>
             <enum value="&quot;XR_FB_composition_layer_image_layout&quot;" name="XR_FB_COMPOSITION_LAYER_IMAGE_LAYOUT_EXTENSION_NAME"/>
             <type name="XrCompositionLayerImageLayoutFB"/>
+            <type name="XrCompositionLayerImageLayoutFlagsFB"/>
+            <type name="XrCompositionLayerImageLayoutFlagBitsFB"/>
             <enum offset="0" extends="XrStructureType" name="XR_TYPE_COMPOSITION_LAYER_IMAGE_LAYOUT_FB"/>
         </require>
     </extension>
@@ -14150,6 +14278,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="&quot;XR_FB_composition_layer_alpha_blend&quot;" name="XR_FB_COMPOSITION_LAYER_ALPHA_BLEND_EXTENSION_NAME"/>
             <type name="XrBlendFactorFB"/>
             <type name="XrCompositionLayerAlphaBlendFB"/>
+            <type name="XrCompositionLayerSecureContentFlagsFB"/>
+            <type name="XrCompositionLayerSecureContentFlagBitsFB"/>
             <enum offset="1" extends="XrStructureType" name="XR_TYPE_COMPOSITION_LAYER_ALPHA_BLEND_FB"/>
         </require>
     </extension>
@@ -14208,6 +14338,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="2"                              name="XR_MNDX_egl_enable_SPEC_VERSION"/>
             <enum value="&quot;XR_MNDX_egl_enable&quot;" name="XR_MNDX_EGL_ENABLE_EXTENSION_NAME"/>
             <enum offset="4" extends="XrStructureType"   name="XR_TYPE_GRAPHICS_BINDING_EGL_MNDX"/>
+            <type name="PFN_xrEglGetProcAddressMNDX"/>
             <type name="XrGraphicsBindingEGLMNDX"/>
         </require>
     </extension>
@@ -14216,6 +14347,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <require>
             <enum value="2"                                        name="XR_MSFT_spatial_graph_bridge_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_spatial_graph_bridge&quot;" name="XR_MSFT_SPATIAL_GRAPH_BRIDGE_EXTENSION_NAME"/>
+            <type name="XrSpatialGraphNodeBindingMSFT"/>
             <type name="XrSpatialGraphNodeTypeMSFT"/>
             <type name="XrSpatialGraphNodeSpaceCreateInfoMSFT"/>
             <type name="XrSpatialGraphStaticNodeBindingCreateInfoMSFT"/>
@@ -14268,6 +14400,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XrHandJointEXT"/>
             <type name="XrHandJointSetEXT"/>
 
+            <type name="XrHandTrackerEXT"/>
             <type name="XrSystemHandTrackingPropertiesEXT"/>
             <type name="XrHandTrackerCreateInfoEXT"/>
             <type name="XrHandJointsLocateInfoEXT"/>
@@ -14502,6 +14635,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="&quot;XR_FB_android_surface_swapchain_create&quot;" name="XR_FB_ANDROID_SURFACE_SWAPCHAIN_CREATE_EXTENSION_NAME"/>
 
             <type name="XrAndroidSurfaceSwapchainCreateInfoFB"/>
+            <type name="XrAndroidSurfaceSwapchainFlagsFB"/>
+            <type name="XrAndroidSurfaceSwapchainFlagBitsFB"/>
             <enum offset="0" extends="XrStructureType" name="XR_TYPE_ANDROID_SURFACE_SWAPCHAIN_CREATE_INFO_FB"/>
         </require>
     </extension>
@@ -14763,6 +14898,10 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XrVulkanInstanceCreateInfoKHR"/>
             <type name="XrVulkanDeviceCreateInfoKHR"/>
             <type name="XrGraphicsBindingVulkan2KHR"/>
+            <type name="XrVulkanInstanceCreateFlagsKHR"/>
+            <type name="XrVulkanInstanceCreateFlagBitsKHR"/>
+            <type name="XrVulkanDeviceCreateFlagsKHR"/>
+            <type name="XrVulkanDeviceCreateFlagBitsKHR"/>
             <type name="XrVulkanGraphicsDeviceGetInfoKHR"/>
             <type name="XrSwapchainImageVulkan2KHR"/>
             <type name="XrGraphicsRequirementsVulkan2KHR"/>
@@ -14871,6 +15010,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="2"                                       name="XR_MSFT_scene_understanding_SPEC_VERSION"/>
             <enum value="&quot;XR_MSFT_scene_understanding&quot;" name="XR_MSFT_SCENE_UNDERSTANDING_EXTENSION_NAME"/>
             <type name="XrUuidMSFT"/>
+            <type name="XrSceneMSFT"/>
+            <type name="XrSceneObserverMSFT"/>
             <type name="XrSceneObserverCreateInfoMSFT"/>
             <type name="XrSceneCreateInfoMSFT"/>
             <type name="XrNewSceneComputeInfoMSFT"/>
@@ -15047,6 +15188,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="3"                                  name="XR_HTC_facial_tracking_SPEC_VERSION"/>
             <enum value="&quot;XR_HTC_facial_tracking&quot;" name="XR_HTC_FACIAL_TRACKING_EXTENSION_NAME"/>
 
+            <type name="XrFacialTrackerHTC"/>
             <type name="XrSystemFacialTrackingPropertiesHTC"/>
             <type name="XrFacialExpressionsHTC"/>
             <type name="XrEyeExpressionHTC"/>
@@ -15070,7 +15212,6 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum extends="XrLipExpressionHTC" name="XR_LIP_EXPRESSION_MOUTH_SMILE_LEFT_HTC"  alias="XR_LIP_EXPRESSION_MOUTH_RAISER_LEFT_HTC"     comment="Backward-compatibility alias for deprecated name."/>
             <enum extends="XrLipExpressionHTC" name="XR_LIP_EXPRESSION_MOUTH_SAD_RIGHT_HTC"   alias="XR_LIP_EXPRESSION_MOUTH_STRETCHER_RIGHT_HTC" comment="Backward-compatibility alias for deprecated name."/>
             <enum extends="XrLipExpressionHTC" name="XR_LIP_EXPRESSION_MOUTH_SAD_LEFT_HTC"    alias="XR_LIP_EXPRESSION_MOUTH_STRETCHER_LEFT_HTC"  comment="Backward-compatibility alias for deprecated name."/>
-
         </require>
     </extension>
 
@@ -15173,6 +15314,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="&quot;XR_FB_hand_tracking_aim&quot;" name="XR_FB_HAND_TRACKING_AIM_EXTENSION_NAME"/>
 
             <type name="XrHandTrackingAimStateFB"/>
+            <type name="XrHandTrackingAimFlagsFB"/>
+            <type name="XrHandTrackingAimFlagBitsFB"/>
 
             <enum offset="1" extends="XrStructureType" name="XR_TYPE_HAND_TRACKING_AIM_STATE_FB"/>
         </require>
@@ -15245,9 +15388,14 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum offset="1" extends="XrStructureType" name="XR_TYPE_SWAPCHAIN_CREATE_INFO_FOVEATION_FB"/>
             <enum offset="2" extends="XrStructureType" name="XR_TYPE_SWAPCHAIN_STATE_FOVEATION_FB"/>
 
+            <type name="XrFoveationProfileFB"/>
             <type name="XrFoveationProfileCreateInfoFB"/>
             <type name="XrSwapchainCreateInfoFoveationFB"/>
+            <type name="XrSwapchainCreateFoveationFlagsFB"/>
+            <type name="XrSwapchainCreateFoveationFlagBitsFB"/>
             <type name="XrSwapchainStateFoveationFB"/>
+            <type name="XrSwapchainStateFoveationFlagsFB"/>
+            <type name="XrSwapchainStateFoveationFlagBitsFB"/>
 
             <command name="xrCreateFoveationProfileFB"/>
             <command name="xrDestroyFoveationProfileFB"/>
@@ -15276,6 +15424,10 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XrKeyboardTrackingDescriptionFB"/>
             <type name="XrKeyboardSpaceCreateInfoFB"/>
             <type name="XrKeyboardTrackingQueryFB"/>
+            <type name="XrKeyboardTrackingQueryFlagsFB"/>
+            <type name="XrKeyboardTrackingQueryFlagBitsFB"/>
+            <type name="XrKeyboardTrackingFlagsFB"/>
+            <type name="XrKeyboardTrackingFlagBitsFB"/>
 
             <enum value="128"                          name="XR_MAX_KEYBOARD_TRACKING_NAME_SIZE_FB"/>
 
@@ -15295,7 +15447,9 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
 
             <enum offset="1" extends="XrStructureType"    name="XR_TYPE_TRIANGLE_MESH_CREATE_INFO_FB"/>
 
+            <type name="XrTriangleMeshFB"/>
             <type name="XrTriangleMeshFlagsFB"/>
+            <type name="XrTriangleMeshFlagBitsFB"/>
             <type name="XrTriangleMeshCreateInfoFB"/>
             <type name="XrWindingOrderFB"/>
 
@@ -15356,6 +15510,17 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XrPassthroughBrightnessContrastSaturationFB"/>
             <type name="XrEventDataPassthroughStateChangedFB"/>
 
+            <type name="XrPassthroughFB"/>
+            <type name="XrPassthroughFlagsFB"/>
+            <type name="XrPassthroughFlagBitsFB"/>
+            <type name="XrPassthroughCapabilityFlagsFB"/>
+            <type name="XrPassthroughCapabilityFlagBitsFB"/>
+            <type name="XrGeometryInstanceFB"/>
+            <type name="XrPassthroughLayerFB"/>
+            <type name="XrPassthroughLayerPurposeFB"/>
+            <type name="XrPassthroughStateChangedFlagsFB"/>
+            <type name="XrPassthroughStateChangedFlagBitsFB"/>
+
             <command name="xrCreatePassthroughFB"/>
             <command name="xrDestroyPassthroughFB"/>
             <command name="xrPassthroughStartFB"/>
@@ -15383,6 +15548,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XrRenderModelKeyFB"/>
             <type name="XrSystemRenderModelPropertiesFB"/>
             <type name="XrRenderModelCapabilitiesRequestFB"/>
+            <type name="XrRenderModelFlagsFB"/>
+            <type name="XrRenderModelFlagBitsFB"/>
             <type name="XR_NULL_RENDER_MODEL_KEY_FB"/>
 
             <command name="xrEnumerateRenderModelPathsFB"/>
@@ -15587,6 +15754,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="1"                                name="XR_ML_frame_end_info_SPEC_VERSION"/>
             <enum value="&quot;XR_ML_frame_end_info&quot;" name="XR_ML_FRAME_END_INFO_EXTENSION_NAME"/>
             <type name="XrFrameEndInfoML"/>
+            <type name="XrFrameEndInfoFlagsML"/>
+            <type name="XrFrameEndInfoFlagBitsML"/>
             <enum offset="0" extends="XrStructureType" name="XR_TYPE_FRAME_END_INFO_ML"/>
         </require>
     </extension>
@@ -15596,6 +15765,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="1"                               name="XR_ML_global_dimmer_SPEC_VERSION"/>
             <enum value="&quot;XR_ML_global_dimmer&quot;" name="XR_ML_GLOBAL_DIMMER_EXTENSION_NAME"/>
             <type name="XrGlobalDimmerFrameEndInfoML"/>
+            <type name="XrGlobalDimmerFrameEndInfoFlagsML"/>
+            <type name="XrGlobalDimmerFrameEndInfoFlagBitsML"/>
             <enum offset="0" extends="XrStructureType" name="XR_TYPE_GLOBAL_DIMMER_FRAME_END_INFO_ML"/>
         </require>
     </extension>
@@ -15701,6 +15872,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XrLocalizationMapConfidenceML"/>
 
             <type name="XrLocalizationMapML"/>
+            <type name="XrExportedLocalizationMapML"/>
             <type name="XrEventDataLocalizationChangedML"/>
             <type name="XrLocalizationMapQueryInfoBaseHeaderML"/>
             <type name="XrMapLocalizationRequestInfoML"/>
@@ -15717,7 +15889,6 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <command name="xrCreateExportedLocalizationMapML"/>
             <command name="xrDestroyExportedLocalizationMapML"/>
             <command name="xrGetExportedLocalizationMapDataML"/>
-
         </require>
     </extension>
 
@@ -16169,6 +16340,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum offset="0" extends="XrStructureType" name="XR_TYPE_COMPOSITION_LAYER_SPACE_WARP_INFO_FB"/>
             <type name="XrSystemSpaceWarpPropertiesFB"/>
             <enum offset="1" extends="XrStructureType" name="XR_TYPE_SYSTEM_SPACE_WARP_PROPERTIES_FB"/>
+            <type name="XrCompositionLayerSpaceWarpInfoFlagsFB"/>
+            <type name="XrCompositionLayerSpaceWarpInfoFlagBitsFB"/>
         </require>
     </extension>
 
@@ -16398,6 +16571,10 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="1"                                             name="XR_ALMALENCE_digital_lens_control_SPEC_VERSION"/>
             <enum value="&quot;XR_ALMALENCE_digital_lens_control&quot;" name="XR_ALMALENCE_DIGITAL_LENS_CONTROL_EXTENSION_NAME"/>
 
+            <type name="XrDigitalLensControlALMALENCE"/>
+            <type name="XrDigitalLensControlFlagsALMALENCE"/>
+            <type name="XrDigitalLensControlFlagBitsALMALENCE"/>
+
             <command name="xrSetDigitalLensControlALMALENCE"/>
 
             <enum offset="0" extends="XrStructureType" name="XR_TYPE_DIGITAL_LENS_CONTROL_ALMALENCE"/>
@@ -16548,6 +16725,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
 
             <enum offset="0" extends="XrStructureType"                 name="XR_TYPE_COMPOSITION_LAYER_SETTINGS_FB"/>
             <type name="XrCompositionLayerSettingsFB"/>
+            <type name="XrCompositionLayerSettingsFlagsFB"/>
+            <type name="XrCompositionLayerSettingsFlagBitsFB"/>
         </require>
     </extension>
 
@@ -16590,6 +16769,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="&quot;XR_FB_haptic_pcm&quot;" name="XR_FB_HAPTIC_PCM_EXTENSION_NAME"/>
 
             <type name="XrHapticPcmVibrationFB"/>
+            <type name="XrDevicePcmSampleRateGetInfoFB"/>
             <type name="XrDevicePcmSampleRateStateFB"/>
             <type name="XR_MAX_HAPTIC_PCM_BUFFER_SIZE_FB"/>
 
@@ -16617,6 +16797,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum offset="1" extends="XrStructureType"       name="XR_TYPE_FRAME_SYNTHESIS_CONFIG_VIEW_EXT"/>
             <type name="XrFrameSynthesisInfoEXT"/>
             <type name="XrFrameSynthesisConfigViewEXT"/>
+            <type name="XrFrameSynthesisInfoFlagsEXT"/>
+            <type name="XrFrameSynthesisInfoFlagBitsEXT"/>
         </require>
     </extension>
 
@@ -16699,6 +16881,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XrVirtualKeyboardLocationTypeMETA"/>
             <type name="XrVirtualKeyboardInputSourceMETA"/>
 
+            <type name="XrVirtualKeyboardMETA"/>
             <type name="XrSystemVirtualKeyboardPropertiesMETA"/>
             <type name="XrVirtualKeyboardCreateInfoMETA"/>
             <type name="XrVirtualKeyboardSpaceCreateInfoMETA"/>
@@ -16708,6 +16891,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XrVirtualKeyboardModelAnimationStatesMETA"/>
             <type name="XrVirtualKeyboardTextureDataMETA"/>
             <type name="XrVirtualKeyboardInputInfoMETA"/>
+            <type name="XrVirtualKeyboardInputStateFlagsMETA"/>
+            <type name="XrVirtualKeyboardInputStateFlagBitsMETA"/>
             <type name="XrVirtualKeyboardTextContextChangeInfoMETA"/>
             <type name="XrEventDataVirtualKeyboardCommitTextMETA"/>
             <type name="XrEventDataVirtualKeyboardBackspaceMETA"/>
@@ -16801,6 +16986,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XrExternalCameraIntrinsicsOCULUS"/>
             <type name="XrExternalCameraExtrinsicsOCULUS"/>
             <type name="XrExternalCameraOCULUS"/>
+            <type name="XrExternalCameraStatusFlagsOCULUS"/>
+            <type name="XrExternalCameraStatusFlagBitsOCULUS"/>
 
             <command name="xrEnumerateExternalCamerasOCULUS"/>
         </require>
@@ -16855,6 +17042,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
 
             <type name="XrPerformanceMetricsStateMETA"/>
             <type name="XrPerformanceMetricsCounterMETA"/>
+            <type name="XrPerformanceMetricsCounterFlagsMETA"/>
+            <type name="XrPerformanceMetricsCounterFlagBitsMETA"/>
 
             <type name="XrPerformanceMetricsCounterUnitMETA"/>
 
@@ -16954,6 +17143,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum offset="1" extends="XrStructureType"          name="XR_TYPE_SPACE_USER_CREATE_INFO_FB"/>
             <enum offset="0" extends="XrObjectType"             name="XR_OBJECT_TYPE_SPACE_USER_FB"             comment="XrSpaceUserFB"/>
 
+            <type name="XrSpaceUserFB"/>
+            <type name="XrSpaceUserIdFB"/>
             <type name="XrSpaceUserCreateInfoFB"/>
 
             <command name="xrCreateSpaceUserFB"/>
@@ -17197,6 +17388,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="1"                                         name="XR_META_passthrough_color_lut_SPEC_VERSION"/>
             <enum value="&quot;XR_META_passthrough_color_lut&quot;" name="XR_META_PASSTHROUGH_COLOR_LUT_EXTENSION_NAME"/>
 
+            <type name="XrPassthroughColorLutMETA"/>
+            <type name="XrPassthroughColorLutChannelsMETA"/>
             <type name="XrPassthroughColorLutDataMETA"/>
             <type name="XrPassthroughColorLutCreateInfoMETA"/>
             <type name="XrPassthroughColorLutUpdateInfoMETA"/>
@@ -17878,6 +18071,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XrFoveationConfigurationHTC"/>
             <type name="XrFoveationDynamicModeInfoHTC"/>
             <type name="XrFoveationCustomModeInfoHTC"/>
+            <type name="XrFoveationDynamicFlagsHTC"/>
+            <type name="XrFoveationDynamicFlagBitsHTC"/>
 
             <command name="xrApplyFoveationHTC"/>
         </require>
@@ -17913,12 +18108,14 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XrBodyJointSetHTC"/>
             <type name="XrBodyJointConfidenceHTC"/>
 
+            <type name="XrBodyTrackerHTC"/>
             <type name="XrSystemBodyTrackingPropertiesHTC"/>
             <type name="XrBodyTrackerCreateInfoHTC"/>
             <type name="XrBodyJointsLocateInfoHTC"/>
             <type name="XrBodyJointLocationsHTC"/>
             <type name="XrBodyJointLocationHTC"/>
             <type name="XrBodySkeletonHTC"/>
+            <type name="XrBodySkeletonJointHTC"/>
 
             <type name="XR_BODY_JOINT_COUNT_HTC"/>
 
@@ -18742,7 +18939,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XrBodyJointVelocitiesBD"/>
             <enum offset="2" extends="XrStructureType" name="XR_TYPE_BODY_JOINT_VELOCITIES_BD"/>
 
-
+            <type name="XrSpaceAccelerationFlagsBD"/>
+            <type name="XrSpaceAccelerationFlagBitsBD"/>
             <type name="XrBodyJointAccelerationBD"/>
             <type name="XrBodyJointAccelerationsBD"/>
             <enum offset="3" extends="XrStructureType" name="XR_TYPE_BODY_JOINT_ACCELERATIONS_BD"/>
@@ -18755,7 +18953,6 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
 
             <command name="xrStartBodyTrackingCalibrationAppBD"/>
             <command name="xrGetBodyTrackingStateBD"/>
-
         </require>
     </extension>
 
@@ -18772,6 +18969,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum offset="0" extends="XrSpatialEntityComponentTypeBD" name="XR_SPATIAL_ENTITY_COMPONENT_TYPE_PLANE_ORIENTATION_BD"      comment="The plane orientation. Corresponds to component data structure slink:XrSpatialEntityComponentDataPlaneOrientationBD."/>
 
             <type name="XrSystemSpatialPlanePropertiesBD"/>
+            <type name="XrPlaneOrientationBD"/>
             <type name="XrSpatialEntityComponentDataPlaneOrientationBD"/>
             <type name="XrSenseDataFilterPlaneOrientationBD"/>
         </require>
@@ -18935,15 +19133,19 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XrSoundObstacleConfigBD"/>
             <type name="XrSoundObstacleMaterialConfigBD"/>
             <type name="XrAttenuationCurvePointBD"/>
+            <type name="XrAudioSampleRateBD"/>
             <type name="XrAudioBufferChannelLayoutBD"/>
             <type name="XrSoundObstacleMaterialTypeBD"/>
             <type name="XrSoundObjectDistanceAttenuationTypeBD"/>
             <type name="XrSoundObstacleFlagsBD"/>
+            <type name="XrSoundObstacleFlagBitsBD"/>
             <type name="XrSoundObjectFlagsBD"/>
+            <type name="XrSoundObjectFlagBitsBD"/>
             <type name="XrSoundFieldChannelMaskSurroundBD"/>
             <type name="XrSoundFieldChannelMaskAmbixBD"/>
             <type name="XrSoundFieldChannelMaskFumaBD"/>
             <type name="XrSoundFieldFlagsBD"/>
+            <type name="XrSoundFieldFlagBitsBD"/>
 
             <command name="xrEnumerateSupportedAudioSampleRateBD"/>
             <command name="xrQueryFramesPerBufferRangeBD"/>
@@ -19126,6 +19328,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
 
             <type name="XrSystemPlaneDetectionPropertiesEXT"/>
             <type name="XrPlaneDetectionCapabilityFlagsEXT"/>
+            <type name="XrPlaneDetectionCapabilityFlagBitsEXT"/>
             <type name="XrPlaneDetectorEXT"/>
             <type name="XrPlaneDetectorCreateInfoEXT"/>
             <type name="XrPlaneDetectorBeginInfoEXT"/>
@@ -19135,6 +19338,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XrPlaneDetectorLocationsEXT"/>
             <type name="XrPlaneDetectorPolygonBufferEXT"/>
             <type name="XrPlaneDetectorFlagsEXT"/>
+            <type name="XrPlaneDetectorFlagBitsEXT"/>
             <type name="XrPlaneDetectorSemanticTypeEXT"/>
             <type name="XrPlaneDetectorOrientationEXT"/>
             <type name="XrExtent3DfEXT"/>
@@ -19797,6 +20001,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <type name="XrFacialExpressionClientCreateInfoML"/>
             <type name="XrFacialExpressionBlendShapeGetInfoML"/>
             <type name="XrFacialExpressionBlendShapePropertiesML"/>
+            <type name="XrFacialExpressionBlendShapePropertiesFlagsML"/>
+            <type name="XrFacialExpressionBlendShapePropertiesFlagBitsML"/>
 
             <command name="xrCreateFacialExpressionClientML"/>
             <command name="xrDestroyFacialExpressionClientML"/>
@@ -23163,6 +23369,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="1"                                         name="XR_EXT_loader_init_properties_SPEC_VERSION"/>
             <enum value="&quot;XR_EXT_loader_init_properties&quot;" name="XR_EXT_LOADER_INIT_PROPERTIES_EXTENSION_NAME"/>
             <type name="XrLoaderInitInfoPropertiesEXT"/>
+            <type name="XrLoaderInitPropertyValueEXT"/>
             <enum offset="0" extends="XrStructureType" name="XR_TYPE_LOADER_INIT_INFO_PROPERTIES_EXT"/>
         </require>
     </extension>
