@@ -1,0 +1,5 @@
+---
+- mr.4406.gl
+- mr.4413.gl
+---
+- Improvement: Add explicit type includes for types that are implicitly included to improve generated documentation.
