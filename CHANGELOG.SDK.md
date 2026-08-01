@@ -21,6 +21,56 @@ along with any public pull requests that have been accepted.
 In this repository in particular, since it is primarily software,
 pull requests may be integrated as they are accepted even between periodic updates.
 
+## OpenXR SDK 1.1.62 (2026-07-31)
+
+This release includes a new vendor extension, an important fix to several vendor
+extension added in the previous release, a loader design doc clarification, and
+some software fixes and cleanup. For extension authors, there are workflow
+improvements: extensions may now be developed in their own "fragment" XML file
+and referenced from `xr.fragmented.xml`. Provided tooling processes this file to
+generate the all-inclusive `xr.xml` previously edited directly. This reduces the
+merge conflicts seen during extension development and makes review easier,
+without requiring changes to tools expecting the conventional combined XML file.
+
+- SDK
+  - Fix: Only include EGL headers in `xr_dependencies.h` when using EGL or GLES.
+    ([internal MR 4387](https://gitlab.khronos.org/openxr/openxr/merge_requests/4387))
+  - Improvement: Add `src/common/platform_exports.h` to de-duplicate platform
+    specific export flags.
+    ([internal MR 4323](https://gitlab.khronos.org/openxr/openxr/merge_requests/4323))
+  - Improvement: Add additional description of Android API layer support.
+    ([internal MR 4373](https://gitlab.khronos.org/openxr/openxr/merge_requests/4373))
+  - Improvement: Deduplicate `.def`, `.expsym`, and `.map` files used for API
+    layers in the SDK.
+    ([internal MR 4389](https://gitlab.khronos.org/openxr/openxr/merge_requests/4389),
+    [internal MR 3289](https://gitlab.khronos.org/openxr/openxr/merge_requests/3289))
+- Registry
+  - Change: XML registry `xr.xml` is now checked in after being constructed from
+    `xr.fragmented.xml` and multiple per-extension XML file fragments, for reduced
+    conflicts during development. The schema of `xr.xml` has not changed. Be sure
+    to run `specification/scripts/merge-registry.sh` after editing
+    `xr.fragmented.xml` or one of the fragments, as most tooling still uses the
+    merged XML registry.
+    ([internal MR 4161](https://gitlab.khronos.org/openxr/openxr/merge_requests/4161))
+  - Chore: Register `DXR` author ID for The DisplayXR Project.
+    ([OpenXR-Docs PR 201](https://github.com/KhronosGroup/OpenXR-Docs/pull/201))
+  - Fix: Resolve inconsistency between extension numbers for META vendor extensions
+    (`XR_META_hand_tracking_wide_motion_mode2`,
+    `XR_META_hand_tracking_frequency_hint`,
+    `XR_META_hand_tracking_unextrapolated_poses`).
+    ([internal MR 4380](https://gitlab.khronos.org/openxr/openxr/merge_requests/4380))
+  - Fix: Add `XR_ERROR_LIMIT_REACHED` as an valid return for
+    `xrAcquireEnvironmentDepthImageMETA` matching API description.
+    ([internal MR 4414](https://gitlab.khronos.org/openxr/openxr/merge_requests/4414))
+  - Improvement: Move `XR_ANDROID_trackables` to extension fragment XML file.
+    ([internal MR 4161](https://gitlab.khronos.org/openxr/openxr/merge_requests/4161))
+  - Improvement: Add explicit type includes for types that are implicitly included
+    to improve generated documentation.
+    ([internal MR 4406](https://gitlab.khronos.org/openxr/openxr/merge_requests/4406),
+    [internal MR 4413](https://gitlab.khronos.org/openxr/openxr/merge_requests/4413))
+  - New vendor extension: `XR_SONY_swapchain_color_space`
+    ([internal MR 4171](https://gitlab.khronos.org/openxr/openxr/merge_requests/4171))
+
 ## OpenXR SDK 1.1.61 (2026-07-02)
 
 This release marks the initial publication of the development tool API layers

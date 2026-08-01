@@ -386,9 +386,33 @@ openxr/__major_ver__/api_layers/implicit.d
 openxr/__major_ver__/api_layers/explicit.d
 ----
 
++
++In an Android Gradle project, these files are typically packaged from
++`src/main/assets/openxr/__major_ver__/api_layers/`.
++
+
+Where `__major_ver__` is the integer number for the OpenXR API's major
+version the API layers are associated with.
+
+The following example shows the paths used when inspecting an APK as a
+ZIP for OpenXR 1.x application API layers.
+
+[example]
+.OpenXR 1.x Android APK ZIP Paths
+====
+----
+assets/openxr/1/api_layers/implicit.d/*.json
+assets/openxr/1/api_layers/explicit.d/*.json
+----
+
 [Note]
 ====
 The loader accesses these using the Android AssetManager classes.
+For APK asset discovery to work, an Android application must initialize the
+loader by calling `xrInitializeLoaderKHR` with an
+`XrLoaderInitInfoAndroidKHR` before attempting to enumerate or create OpenXR
+instances. This initialization provides the Android context needed to access
+the application's assets and native library directory.
 ====
 
 The loader also looks for system installed API layers in a similar process
@@ -402,16 +426,25 @@ order for implicit and explicit API layers:
 1. `/product/etc/openxr/__major_ver__/api_layers/implicit.d`
 2. `/odm/etc/openxr/__major_ver__/api_layers/implicit.d`
 3. `/oem/etc/openxr/__major_ver__/api_layers/implicit.d`
-4. `/system/etc/openxr/__major_ver__/api_layers/implicit.d`
-5. `/vendor/etc/openxr/__major_ver__/api_layers/implicit.d`
+4. `/vendor/etc/openxr/__major_ver__/api_layers/implicit.d`
+5. `/system/etc/openxr/__major_ver__/api_layers/implicit.d`
 
 ===== Explicit API Layers
 
 1. `/product/etc/openxr/__major_ver__/api_layers/explicit.d`
-2. `/oem/etc/openxr/__major_ver__/api_layers/explicit.d`
-3. `/vendor/etc/openxr/__major_ver__/api_layers/explicit.d`
-4. `/system/etc/openxr/__major_ver__/api_layers/explicit.d`
-5. `/odm/etc/openxr/__major_ver__/api_layers/explicit.d`
+2. `/odm/etc/openxr/__major_ver__/api_layers/explicit.d`
+3. `/oem/etc/openxr/__major_ver__/api_layers/explicit.d`
+4. `/vendor/etc/openxr/__major_ver__/api_layers/explicit.d`
+5. `/system/etc/openxr/__major_ver__/api_layers/explicit.d`
+
+[NOTE]
+====
+The directories above define where the loader searches for system installed
+API layer manifest files. They do not define where an API layer shared
+library must be installed, nor whether an application process is permitted to
+load that library. On Android, shared library loading can also be affected by
+linker namespace policy, public library allowlists, filesystem permissions,
+and SELinux policy, which are device-image specific.
 
 [[api-layer-manifest-file-format]]
 ==== API Layer Manifest File Format

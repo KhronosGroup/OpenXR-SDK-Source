@@ -252,10 +252,8 @@ class DocOutputGenerator(OutputGenerator):
                                         key=orgLevelKey))
                 return f'// Provided by {provider}\n'
             else:
-                # TODO disabled in OpenXR, re-enable when we either explicitly require each entity
-                # or improve dependency tracking.
-                # if mustBeFound:
-                #     self.logMsg('warn', f'genRequirements: API {name} not found')
+                if mustBeFound:
+                    self.logMsg('warn', f'genRequirements: API {name} not found')
                 return ''
         else:
             # No API dictionary available, return nothing

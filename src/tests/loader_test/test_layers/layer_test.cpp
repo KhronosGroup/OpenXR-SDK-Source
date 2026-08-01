@@ -23,17 +23,10 @@
 #include <iostream>
 #include <map>
 
+#include "platform_exports.h"
 #include "xr_dependencies.h"
 #include <openxr/openxr.h>
 #include <openxr/openxr_loader_negotiation.h>
-
-#if defined(__GNUC__) && __GNUC__ >= 4
-#define LAYER_EXPORT __attribute__((visibility("default")))
-#elif defined(__SUNPRO_C) && (__SUNPRO_C >= 0x590)
-#define LAYER_EXPORT __attribute__((visibility("default")))
-#else
-#define LAYER_EXPORT __declspec(dllexport)
-#endif
 
 std::map<XrInstance, PFN_xrGetInstanceProcAddr> g_next_gipa_map;
 
@@ -106,25 +99,25 @@ static XRAPI_ATTR XrResult XRAPI_CALL LayerTestXrCreateApiLayerInstance(const Xr
 extern "C" {
 
 // forward decl
-LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoaderInfo *loaderInfo,
-                                                                               const char *layerName,
-                                                                               XrNegotiateApiLayerRequest *layerRequest);
-LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerAlwaysFailNegotiateLoaderApiLayerInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoaderInfo *loaderInfo,
+                                                                                  const char *layerName,
+                                                                                  XrNegotiateApiLayerRequest *layerRequest);
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerAlwaysFailNegotiateLoaderApiLayerInterface(
     const XrNegotiateLoaderInfo *loaderInfo, const char *layerName, XrNegotiateApiLayerRequest *layerRequest);
-LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerNullGipaNegotiateLoaderApiLayerInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerNullGipaNegotiateLoaderApiLayerInterface(
     const XrNegotiateLoaderInfo *loaderInfo, const char *layerName, XrNegotiateApiLayerRequest *layerRequest);
-LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerInvalidInterfaceNegotiateLoaderApiLayerInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerInvalidInterfaceNegotiateLoaderApiLayerInterface(
     const XrNegotiateLoaderInfo *loaderInfo, const char *layerName, XrNegotiateApiLayerRequest *layerRequest);
-LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerInvalidApiNegotiateLoaderApiLayerInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerInvalidApiNegotiateLoaderApiLayerInterface(
     const XrNegotiateLoaderInfo *loaderInfo, const char *layerName, XrNegotiateApiLayerRequest *layerRequest);
-LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerInvalidInterfaceNegotiateLoaderApiLayerInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerInvalidInterfaceNegotiateLoaderApiLayerInterface(
     const XrNegotiateLoaderInfo *loaderInfo, const char *layerName, XrNegotiateApiLayerRequest *layerRequest);
 
 // Function used to negotiate an interface betewen the loader and a layer.  Each library exposing one or
 // more layers needs to expose at least this function.
-LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoaderInfo *loaderInfo,
-                                                                               const char *layerName,
-                                                                               XrNegotiateApiLayerRequest *layerRequest) {
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(const XrNegotiateLoaderInfo *loaderInfo,
+                                                                                  const char *layerName,
+                                                                                  XrNegotiateApiLayerRequest *layerRequest) {
     if (nullptr == loaderInfo || nullptr == layerRequest || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
         loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo) ||
         layerRequest->structType != XR_LOADER_INTERFACE_STRUCT_API_LAYER_REQUEST ||
@@ -146,13 +139,13 @@ LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(c
 }
 
 // Always fail
-LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerAlwaysFailNegotiateLoaderApiLayerInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerAlwaysFailNegotiateLoaderApiLayerInterface(
     const XrNegotiateLoaderInfo * /* loaderInfo */, const char * /* layerName */, XrNegotiateApiLayerRequest * /* layerRequest */) {
     return XR_ERROR_INITIALIZATION_FAILED;
 }
 
 // Pass, but return NULL for the layer's xrGetInstanceProcAddr
-LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerNullGipaNegotiateLoaderApiLayerInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerNullGipaNegotiateLoaderApiLayerInterface(
     const XrNegotiateLoaderInfo *loaderInfo, const char *layerName, XrNegotiateApiLayerRequest *layerRequest) {
     if (nullptr == loaderInfo || nullptr == layerRequest || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
         loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo) ||
@@ -173,7 +166,7 @@ LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerNullGipaNegotiateLoaderApiL
 }
 
 // Pass, but return invalid interface version
-LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerInvalidInterfaceNegotiateLoaderApiLayerInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerInvalidInterfaceNegotiateLoaderApiLayerInterface(
     const XrNegotiateLoaderInfo *loaderInfo, const char *layerName, XrNegotiateApiLayerRequest *layerRequest) {
     if (nullptr == loaderInfo || nullptr == layerRequest || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
         loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo) ||
@@ -194,7 +187,7 @@ LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerInvalidInterfaceNegotiateLo
 }
 
 // Pass, but return invalid API version
-LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerInvalidApiNegotiateLoaderApiLayerInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestLayerInvalidApiNegotiateLoaderApiLayerInterface(
     const XrNegotiateLoaderInfo *loaderInfo, const char *layerName, XrNegotiateApiLayerRequest *layerRequest) {
     if (nullptr == loaderInfo || nullptr == layerRequest || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
         loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo) ||

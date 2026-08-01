@@ -22,6 +22,7 @@
 #include "api_layer_platform_defines.h"
 #include "extra_algorithms.h"
 #include "hex_and_handles.h"
+#include "platform_exports.h"
 #include "platform_utils.hpp"
 #include "validation_utils.h"
 #include "xr_generated_core_validation.hpp"
@@ -49,16 +50,6 @@
 
 #ifdef __ANDROID__
 #include "android/log.h"
-#endif
-
-#if defined(__GNUC__) && __GNUC__ >= 4
-#define LAYER_EXPORT __attribute__((visibility("default")))
-#elif defined(__SUNPRO_C) && (__SUNPRO_C >= 0x590)
-#define LAYER_EXPORT __attribute__((visibility("default")))
-#elif defined(_MSC_VER)
-#define LAYER_EXPORT __declspec(dllexport)
-#else
-#define LAYER_EXPORT
 #endif
 
 // Log recording information
@@ -907,7 +898,7 @@ XRAPI_ATTR XrResult XRAPI_CALL CoreValidationXrSessionInsertDebugUtilsLabelEXT(X
 
 // Function used to negotiate an interface betewen the loader and an API layer.  Each library exposing one or
 // more API layers needs to expose at least this function.
-extern "C" LAYER_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(
+extern "C" PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderApiLayerInterface(
     const XrNegotiateLoaderInfo *loaderInfo, const char * /*apiLayerName*/, XrNegotiateApiLayerRequest *apiLayerRequest) {
     if (loaderInfo == nullptr || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
         loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo)) {

@@ -35,6 +35,10 @@ INVALID_NORMATIVE_CHECKS: List[Tuple[str, str]] = [
         r"\bwill:",
         "'will:' is not a valid OpenXR normative - rephrase using must:/should:/may:/can:/cannot:",
     ),
+    (
+        r"\bmay: not",
+        "'may:' not uses a normative may: in an invalid way - rephrase using must: not",
+    ),
 ]
 
 

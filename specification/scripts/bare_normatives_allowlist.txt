@@ -1,6 +1,9 @@
 almalence_digital_lens_control.adoc|||* pname:next must be code:NULL.
+android_scene_meshing.adoc|||snapshots may: not be up to date or empty.
 api_initialization.adoc|||using one slink:XrInstance may not be valid when used with objects related
 bd_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
+bd_controller_interaction.adoc|||* subpathname:/input/system/click (may: not be available for application
+bd_controller_interaction.adoc|||* subpathname:/input/system/click (may: not be available for application
 bd_facial_simulation.adoc|||[open,refpage='XrFaceExpressionBD', desc='The name of blend shapes of face that can be tracked', type='enums', xrefs='XrFacialSimulationDataBD XrFacialSimulationModeBD']
 bd_facial_simulation.adoc|||[open,refpage='XrLipExpressionBD', desc='The name of blend shapes of lip that can be tracked', type='enums',xrefs='XrLipExpressionDataBD XrFacialSimulationModeBD']
 bd_facial_simulation.adoc|||array that can contain at least pname:faceExpressionWeightCount of
@@ -13,6 +16,8 @@ bd_spatial_audio_rendering.adoc|||// We should now be able to hear the echo and 
 bd_spatial_audio_rendering.adoc|||// We should now be able to hear the sound field being rotated in device audio output
 bd_spatial_audio_rendering.adoc|||// We should now be able to hear the sound object
 bd_spatial_audio_rendering.adoc|||familiar with audio middleware may know this concept under that name.
+bd_spatial_sensing.adoc|||this event, but the sense data provider may: not have acquired new data and
+bd_ultra_controller_interaction.adoc|||* subpathname:/input/system/click (may: not be available for application
 epic_view_configuration_fov.adoc|||* pname:maxMutableFov is the maximum field-of-view that the runtime can
 epic_view_configuration_fov.adoc|||These field-of-view parameters can be used during initialization of the
 epic_view_configuration_fov.adoc|||can be added to the next chain of slink:XrViewConfigurationView to retrieve
@@ -45,6 +50,7 @@ ext_debug_utils.adoc|||can display a more usable visualization of where actions 
 ext_debug_utils.adoc|||pname:messageId that may be a string identifying the message ID for the
 ext_debug_utils.adoc|||this can be done.
 ext_debug_utils.adoc|||tools or with validation layers that can print a friendly name when
+ext_debug_utils.adoc|||      Such cases may: not be immediately harmful, such as providing too many
 ext_dpad_binding.adoc|||   activate three adjacent directions, of which two must be opposite.
 ext_dpad_binding.adoc|||Another action set can also have a dpad active on each of those inputs, and
 ext_dpad_binding.adoc|||The behavior of this dpad-like mapping may be customized using
@@ -53,6 +59,7 @@ ext_dpad_binding.adoc|||can have a dpad on each of:
 ext_dpad_binding.adoc|||single logical dpad may be active simultaneously.
 ext_dpad_binding.adoc|||the active and inactive state that can occur when the amount of force
 ext_dpad_binding.adoc|||they can have different settings.
+ext_dpad_binding.adoc|||is treated as equal, their physical scale may: not be.
 ext_eye_gaze_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
 ext_eye_gaze_interaction.adoc|||An application can expect that a nominal eye gaze pose can be used for use
 ext_eye_gaze_interaction.adoc|||Applications should be very careful when using sub-nominal eye gaze pose,
@@ -71,6 +78,8 @@ ext_future.adoc|||    // all functions using futures must be synchronized.
 ext_future.adoc|||   future after completion, we cannot differentiate between a future that
 ext_future.adoc|||  // completion.fooObject is now valid and may be used!
 ext_future.adoc|||** Clarify what the runtime may do in a completion function.
+ext_hand_interaction.adoc|||Hence, the "aim" pose may: not always rigidly attach to the user's hand
+ext_hand_interaction.adoc|||may: not be mutually exclusive when the input is provided by a hand tracking
 ext_hand_joints_motion_range.adoc|||flink:xrLocateHandJointsEXT should return hand joint locations conforming to
 ext_hand_tracking.adoc|||        // The returned joint location array can be directly indexed with
 ext_hand_tracking.adoc|||  dlink:XR_HAND_JOINT_COUNT_EXT and can be indexed using
@@ -139,6 +148,7 @@ ext_performance_settings.adoc|||ename:XR_PERF_SETTINGS_LEVEL_SUSTAINED_HIGH_EXT)
 ext_performance_settings.adoc|||milliseconds - the runtime may have to ask the application via notifications
 ext_performance_settings.adoc|||the application should be encouraged.
 ext_performance_settings.adoc|||very short and carefully monitor the side effects, which may vary a lot
+ext_plane_detection.adoc|||This feature may: not be supported by all runtimes, check the
 ext_render_model.adoc|||     This cache can be kept locally but is not be distributed with an
 ext_render_model.adoc|||     can use this UUID as a key to cache the glTF, node names, and processed
 ext_render_model.adoc|||     should avoid doing the work in latency sensitive threads.
@@ -146,12 +156,16 @@ ext_render_model.adoc|||   * Reading and processing the glTF asset data can be a
 ext_render_model.adoc|||   Once this is complete, flink:xrDestroyRenderModelAssetEXT can be called.
 ext_render_model.adoc|||// End of non-normative note: normative macros may resume
 ext_render_model.adoc|||// Non-normative note: should not contain any normative macros
+ext_render_model.adoc|||   runtime may: not have any useful method to predict future states beyond
 ext_samsung_odyssey_controller.adoc|||// the path name must be vendor-suffixed in new extensions.
 ext_spatial_entity.adoc|||   An example of this could be that tables can be detected by both a plane
 ext_spatial_entity.adoc|||   What is important to note here is that a given spatial entity can have at
+ext_spatial_entity.adoc|||the runtime may: not return any new data and helps avoid the risk of
 ext_spatial_marker_tracking.adoc|||            // Qr Code data can be queried using
 ext_spatial_persistence.adoc|||// Note: Anchor capability is just used as an example here. Persistence can be
 ext_spatial_persistence.adoc|||// supported by other capabilities too. xrEnumerateSpatialCapabilityComponentTypesEXT() can
+ext_spatial_persistence.adoc|||Also, the order (sequence) of entities in the query result may: not match
+ext_spatial_persistence_operations.adoc|||may: not be ename:XR_SPATIAL_ENTITY_TRACKING_STATE_TRACKING_EXT immediately
 ext_stationary_reference_space.adoc|||2. Use a reference space that can regain its location in the physical world
 ext_stationary_reference_space.adoc|||* Applications can use the {local_floor_space} location in `STATIONARY`
 ext_stationary_reference_space.adoc|||* Applications can use the {view_space} location in `STATIONARY` reference
@@ -162,6 +176,7 @@ ext_stationary_reference_space.adoc|||reference spaces since how they are implem
 ext_stationary_reference_space.adoc|||Portable applications cannot assume a particular order for space change
 ext_stationary_reference_space.adoc|||should use the apiext:XR_EXT_spatial_persistence and
 ext_stationary_reference_space.adoc|||Because the generation ID of the `STATIONARY` reference space cannot be used
+ext_stationary_reference_space.adoc|||The runtime may: or may: not use the same pname:generationId for
 ext_thermal_query.adoc|||// Khronos may elect to exercise its Copyright  license to incorporate this submission into
 ext_user_presence.adoc|||A runtime may choose to correlate the two states or keep them independent.
 ext_user_presence.adoc|||For example, this may indicate that the user has put on the headset, or has
@@ -169,6 +184,7 @@ ext_user_presence.adoc|||For example, this may indicate that the user has remove
 ext_user_presence.adoc|||pname:isUserPresent, so that the application can be in sync on the state
 ext_user_presence.adoc|||relationships between session state and user presence, instead, they should
 ext_user_presence.adoc|||slink:XrEventDataUserPresenceChangedEXT event can not be observed without a
+ext_user_presence.adoc|||may: not consistently hold across various runtimes.
 ext_view_configuration_depth_range.adoc|||  content should be rendered for the view.
 ext_view_configuration_depth_range.adoc|||  meters that content should be rendered for the view to achieve the best
 ext_view_configuration_depth_range.adoc|||For XR systems there may exist a per view recommended min/max depth range at
@@ -179,6 +195,7 @@ ext_view_configuration_depth_range.adoc|||which content should be rendered into 
 ext_view_configuration_views_change.adoc|||  This may happen for example if the user has changed resolution settings in
 ext_view_configuration_views_change.adoc|||The updated recommendation can be found by calling
 ext_view_configuration_views_change.adoc|||this may result in undesired compositing.
+ext_view_configuration_views_change.adoc|||The runtime may: notify the application that the view configuration values
 ext_win32_appcontainer_compatible.adoc|||If the XR system cannot support an AppContainer execution environment, the
 extx_overlay.adoc|||An overlay application should not assume that the values returned to it by
 extx_overlay.adoc|||Application developers may desire to implement an OpenXR application that
@@ -287,6 +304,7 @@ fb_swapchain_update_state_vulkan.adoc|||dlink:XR_USE_GRAPHICS_API_VULKAN must be
 fb_touch_controller_pro.adoc|||  This tip can detect various pressure levels and could be used for writing
 fb_touch_controller_pro.adoc|||  that can be interchanged with the lanyard.
 fb_touch_controller_pro.adoc|||// the path name must be vendor-suffixed in new extensions.
+fb_touch_controller_pro.adoc|||** subpathname:/input/system/click (may: not be available for application
 fb_triangle_mesh.adoc|||  The actual number of triangles can vary and is defined when
 fb_triangle_mesh.adoc|||  The actual number of vertices can vary and is defined when
 fb_triangle_mesh.adoc|||  The size of the array must be pname:triangleCount elements.
@@ -313,6 +331,7 @@ fundamentals.adoc|||maximum positive value that can be represented by an basetyp
 fundamentals.adoc|||one runtime can be active at any given time.
 fundamentals.adoc|||storing such an offset, as this may cause time drift.
 htc_anchor.adoc|||The anchor is represented by an slink:XrSpace and its pose can be tracked
+htc_anchor.adoc|||The anchor tracks changes of the reality and may: not be affected by the
 htc_body_tracking.adoc|||  It indicates some of the body joints may not be tracked.
 htc_facial_tracking.adoc|||  describes which type of facial tracking should be used for this handle.
 htc_facial_tracking.adoc|||This handle can be used to retrieve corresponding facial expressions using
@@ -323,15 +342,19 @@ htc_facial_tracking.adoc|||that can contain at least pname:expressionCount of co
 htc_facial_tracking.adoc|||that the application can index elements using the corresponding facial
 htc_hand_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
 htc_vive_cosmos_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
+htc_vive_cosmos_controller_interaction.adoc|||** subpathname:/input/system/click (may: not be available for application
 htc_vive_focus3_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
+htc_vive_focus3_controller_interaction.adoc|||** subpathname:/input/system/click (may: not be available for application
 htc_vive_wrist_tracker_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
 htc_vive_wrist_tracker_interaction.adoc|||Besides this use case, user also can tie it to a physical object to track
+htc_vive_wrist_tracker_interaction.adoc|||** subpathname:/input/system/click (may: not be available for application
 htcx_vive_tracker_interaction.adoc|||  The format of this path string is unspecified and should be treated as an
 htcx_vive_tracker_interaction.adoc|||* Either the persistent path or the role path can be be passed as a
 htcx_vive_tracker_interaction.adoc|||For example, it can be attached to user's hands or feet to track the motion
 htcx_vive_tracker_interaction.adoc|||HTC VIVE Tracker is a generic tracked device which can be attached to
 htcx_vive_tracker_interaction.adoc|||It can also be attached to any other devices the user wants to track and
 htcx_vive_tracker_interaction.adoc|||The role path and persistent path of this tracker can be retrieved with this
+htcx_vive_tracker_interaction.adoc|||* subpathname:/input/system/click (may: not be available for application
 huawei_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
 input.adoc|||  If pname:subactionPaths is NULL, this parameter must be 0.
 input.adoc|||  The action can be passed to flink:xrApplyHapticFeedback to send a haptic
@@ -388,6 +411,7 @@ introduction.adoc|||another vendor may omit the same item.
 introduction.adoc|||can be inferred from context, though some sections are defined to address
 introduction.adoc|||full implications must be understood and carefully weighed before choosing a
 khr_android_create_instance.adoc|||The pname:applicationVM field should be populated with the `JavaVM`
+khr_android_surface_swapchain.adoc|||The width and height passed in slink:XrSwapchainCreateInfo may: not be
 khr_android_thread_settings.adoc|||of time, these threads must be identified to the system, which will adjust
 khr_binding_modification.adoc|||This extension adds an optional structure that can be included on the
 khr_composition_layer_color_scale_bias.adoc|||defines a transform that may be applied to the color derived from existing
@@ -405,9 +429,14 @@ khr_composition_layer_equirect2.adoc|||This extension adds an additional layer t
 khr_composition_layer_equirect2.adoc|||very common, and the highest quality you can get from them is by sampling
 khr_convert_timespec_time.adoc|||If the output pname:time cannot represent the input pname:timespecTime, the
 khr_convert_timespec_time.adoc|||If the output pname:timespecTime cannot represent the input pname:time, the
+khr_d3d11_enable.adoc|||Without this extension, an OpenXR application may: not be able to use any
+khr_d3d12_enable.adoc|||Without this extension, an OpenXR application may: not be able to use any
 khr_generic_controller.adoc|||** The data that is made available by the Generic Controller Profile can
 khr_loader_init.adoc|||** Explicitly state that the call to flink:xrInitializeLoaderKHR should be
 khr_loader_init.adoc|||On some platforms, before loading can occur the loader must be initialized
+khr_metal_enable.adoc|||Without this extension, an OpenXR application may: not be able to use any
+khr_opengl_enable.adoc|||Without this extension, an OpenXR application may: not be able to use any
+khr_opengl_es_enable.adoc|||Without this extension, an OpenXR application may: not be able to use any
 khr_swapchain_usage_input_attachment_bit.adoc|||should be created in a way so that they can be used as input attachments.
 khr_visibility_mask.adoc|||  When rendering the mask for use in a projection layer, these vertices must
 khr_visibility_mask.adoc|||As a result, it may be that there are parts of the display that are not
@@ -419,6 +448,7 @@ khr_vulkan_enable.adoc|||flink:xrGetVulkanGraphicsDeviceKHR returns should be pa
 khr_vulkan_enable.adoc|||runtime, so that the returned swapchain images used by the application may
 khr_vulkan_enable.adoc|||so that they can use that graphics device to generate XR images.
 khr_vulkan_enable.adoc|||the slink:XrGraphicsBindingVulkanKHR must also be externally synchronized.
+khr_vulkan_enable.adoc|||Without this extension, an OpenXR application may: not be able to use any
 khr_vulkan_enable2.adoc|||      If the application is interested in capturing this data it can set the
 khr_vulkan_enable2.adoc|||Some computer systems may have multiple graphics devices, each of which may
 khr_vulkan_enable2.adoc|||The runtime may schedule work on the sname:VkQueue specified in the binding,
@@ -426,11 +456,13 @@ khr_vulkan_enable2.adoc|||Therefore, OpenXR functions that may access the sname:
 khr_vulkan_enable2.adoc|||or it may schedule work on any hardware queue in a foreign logical device.
 khr_vulkan_enable2.adoc|||runtime, so that the returned swapchain images used by the application may
 khr_vulkan_enable2.adoc|||structures in a Vulkan-backed slink:XrSession, the application can interpret
+khr_vulkan_enable2.adoc|||Without this extension, an OpenXR application may: not be able to use any
 khr_vulkan_swapchain_format_list.adoc|||In the same way that a Vulkan-based application can pass a
 khr_vulkan_swapchain_format_list.adoc|||function, an OpenXR application can pass an identically configured
 khr_vulkan_swapchain_format_list.adoc|||must create OpenXR swapchains with the
 khr_win32_convert_performance_counter_time.adoc|||If the output pname:performanceCounter cannot represent the input
 khr_win32_convert_performance_counter_time.adoc|||If the output pname:time cannot represent the input
+logitech_mx_ink_stylus_interaction.adoc|||** subpathname:/input/system/click (may: not be available for application
 meta_body_tracking_calibration.adoc|||implement a UI to allow users to specify when it should be called.
 meta_body_tracking_fidelity.adoc|||[open,refpage='XrBodyTrackingFidelityMETA',type='enums',desc='Fidelity that may be requested or currently in use by the body tracker',xrefs='xrRequestBodyTrackingFidelityMETA XrBodyTrackingFidelityStatusMETA']
 meta_body_tracking_full_body.adoc|||ename:XR_BODY_JOINT_SET_FULL_BODY_META, which can be set as the joint set in
@@ -446,12 +478,14 @@ meta_environment_raycast.adoc|||When necessary, the application can instruct use
 meta_environment_raycast.adoc|||point, but it may not be accurate.
 meta_passthrough_preferences.adoc|||For more information on how applications can control the display of
 meta_performance_metrics.adoc|||flink:xrEnumeratePerformanceMetricsCounterPathsMETA, the runtime must return
+meta_recommended_layer_resolution.adoc|||The runtime may: not wish to make any recommendation, in which case it must:
 meta_simultaneous_hands_and_controllers.adoc|||input), but this may consume additional power and system resources.
 meta_spatial_entity_discovery.adoc|||apiext:XR_FB_spatial_entity_sharing, and applications should not try to
 meta_spatial_entity_discovery.adoc|||apiext:XR_META_spatial_entity_discovery, and should instead use
 meta_spatial_entity_group_sharing.adoc|||Any logged-in user using the same application may query for spatial entities
 meta_spatial_entity_persistence.adoc|||of them must contain at least one element.
 meta_tile_properties_hint.adoc|||therefore cannot get the tile properties without providing an API for the
+meta_touch_controller_plus.adoc|||** subpathname:/input/system/click (may: not be available for application
 meta_virtual_keyboard.adoc|||* pname:textContext is a pointer to a code:char buffer, should contain prior
 meta_virtual_keyboard.adoc|||Different input poses can be used to accommodate application specific
 meta_virtual_keyboard.adoc|||Note that new animations may be added after the runtime processes inputs
@@ -465,6 +499,7 @@ meta_virtual_keyboard.adoc|||weight should be applied to, or apply all weights i
 ml_facial_expression.adoc|||// User must explicitly request what facial expression blend shape to query
 ml_marker_understanding.adoc|||pname:session must be the same session that created the
 ml_ml2_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
+ml_ml2_controller_interaction.adoc|||* subpathname:/input/home/click (may: not be available for application use)
 ml_world_mesh_detection.adoc|||          // It may be advantageous to use memory allocated
 ml_world_mesh_detection.adoc|||          // memory may provide some performance benefits by avoiding
 ml_world_mesh_detection.adoc|||This buffer must be allocated by the application, the system provides
@@ -506,6 +541,7 @@ msft_hand_tracking_mesh.adoc|||The hand mesh space may be not locatable when the
 msft_hand_tracking_mesh.adoc|||This input can be used to render the hand shape together with the controller
 msft_hand_tracking_mesh.adoc|||ename:XR_TRUE, the data in slink:XrHandMeshMSFT must be valid to use.
 msft_hand_tracking_mesh.adoc|||using the same slink:XrHandTrackerEXT, so that the application can apply the
+msft_hand_tracking_mesh.adoc|||A runtime may: not maintain a full history of hand mesh data, therefore the
 msft_holographic_window_attachment.adoc|||Applications may use this extension to create and control the CoreWindow/App
 msft_holographic_window_attachment.adoc|||If the CoreWindow is for a secondary app view, the application must
 msft_holographic_window_attachment.adoc|||This extension is only valid to use where an application can create a
@@ -565,6 +601,9 @@ msft_spatial_anchor.adoc|||Multiple slink:XrSpace handles may exist for a given
 msft_spatial_anchor.adoc|||The slink:XrSpace handle must be eventually freed via the
 msft_spatial_anchor.adoc|||application can ensure that each piece of content stays at a fixed location
 msft_spatial_anchor.adoc|||viewer, but may cause content placed far from the viewer to drift in its
+msft_spatial_anchor.adoc|||Though, the created anchor handle may: not be ready immediately for certain
+msft_spatial_anchor.adoc|||For example, the corresponding anchor space may: not return valid location,
+msft_spatial_anchor.adoc|||or its location may: not be successfully saved in anchor store.
 msft_spatial_graph_bridge.adoc|||Applications can also try to get a spatial graph node from an slink:XrSpace
 msft_spatial_graph_bridge.adoc|||For example, a QR code tracking library can use a static node to represent
 msft_spatial_graph_bridge.adoc|||HMD so a web camera library can use a dynamic node to represent the camera
@@ -587,6 +626,7 @@ oculus_android_session_state_enable.adoc|||These two life cycles may interleave 
 oculus_audio_device_guid.adoc|||  If these commands were to be reimplemented, `Oculus` should be replaced by
 oculus_audio_device_guid.adoc|||  If these commands were to be reimplemented, they should also pass a
 oculus_audio_device_guid.adoc|||On Windows, there may be multiple audio devices available on the system.
+oppo_controller_interaction.adoc|||** subpathname:/input/home/click (may: not be available for application use)
 rendering.adoc|||  This is the typical mode for VR experiences, although this mode can also
 rendering.adoc|||  with an additive display, although this mode can also be supported on
 rendering.adoc|||Applications should discard frames for which flink:xrEndFrame returns a
@@ -605,6 +645,7 @@ rendering.adoc|||flink:xrWaitFrame, since a pipelined system may call flink:xrWa
 rendering.adoc|||frame-rate interpolation and distortion correction can be performed by the
 rendering.adoc|||passthrough, while an AR headset with an additive display may not support
 rendering.adoc|||should specify an slink:XrSpace in which to maximize stability of the layer
+rendering.adoc|||Repeatedly calling flink:xrLocateViews with the same time may: not
 semantic_paths.adoc|||    This position should be adjusted left or right to center the position
 semantic_paths.adoc|||  This may include, but is not limited to, face buttons, thumbstick, and
 semantic_paths.adoc|||* stylus - Tip that can be used for writing or drawing.
@@ -617,6 +658,26 @@ semantic_paths.adoc|||This can be useful if the calling application receives an 
 semantic_paths.adoc|||component part of the path can be determined automatically.
 semantic_paths.adoc|||identifier must use a location suffix as specified above.
 semantic_paths.adoc|||no more can be created.
+semantic_paths.adoc|||However, path names in the path tree model may: not all have the same level
+semantic_paths.adoc|||An basetype:XrPath that is received from one slink:XrInstance may: not be
+semantic_paths.adoc|||NOTE: A return value of ename:XR_SUCCESS from flink:xrStringToPath may: not
+semantic_paths.adoc|||  and may: not be available to applications.
+semantic_paths.adoc|||* subpathname:/input/system/click (may: not be available for application
+semantic_paths.adoc|||* subpathname:/input/system/click (may: not be available for application
+semantic_paths.adoc|||* subpathname:/input/system/click (may: not be available for application
+semantic_paths.adoc|||** subpathname:/input/system/click (may: not be available for application
+semantic_paths.adoc|||** subpathname:/input/system/click (may: not be available for application
+semantic_paths.adoc|||* subpathname:/input/system/click (may: not be available for application
+semantic_paths.adoc|||* subpathname:/input/home/click (may: not be available for application use)
+semantic_paths.adoc|||* subpathname:/input/system/click (may: not be available for application
+semantic_paths.adoc|||** subpathname:/input/system/click (may: not be available for application
+semantic_paths.adoc|||** subpathname:/input/system/click (may: not be available for application
+semantic_paths.adoc|||** subpathname:/input/system/click (may: not be available for application
+semantic_paths.adoc|||** subpathname:/input/system/click (may: not be available for application
+semantic_paths.adoc|||** subpathname:/input/system/click (may: not be available for application
+semantic_paths.adoc|||** subpathname:/input/system/click (may: not be available for application
+semantic_paths.adoc|||* subpathname:/input/system/click (may: not be available for application
+semantic_paths.adoc|||* subpathname:/input/system/touch (may: not be available for application
 session.adoc|||  The application should destroy the current session and can optionally
 session.adoc|||  The application should end its XR experience and not automatically restart
 session.adoc|||  The application should exit its frame loop and call flink:xrEndSession.
@@ -648,6 +709,7 @@ session.adoc|||submit frames at full frame rate, but may wish to change visually
 session.adoc|||submitting its composition layers, although it may wish to pause its
 session.adoc|||unfocused, and applications should react to an inactive input action by
 session.adoc|||with the ename:XR_SESSION_STATE_STOPPING state, the application should stop
+session.adoc|||session exit may: not interact with the platform-specific application
 spaces.adoc|||  that is empty and can be walked around on.
 spaces.adoc|||* pname:poseValid is true if the runtime can determine the
 spaces.adoc|||* pname:referenceSpaceType is the reference space type whose bounds should
@@ -669,6 +731,8 @@ spaces.adoc|||space are implicitly "head-locked", even if they may not be "displ
 spaces.adoc|||specifies which slink:XrSpace the runtime should use to interpret those
 spaces.adoc|||that is empty and can be walked around on.
 spaces.adoc|||the user can freely move while remaining tracked, if available for that
+spaces.adoc|||  The runtime may: not be able to locate spaces relative to the `STAGE`
+spaces.adoc|||The runtime may: not be able to locate spaces relative to the `STAGE`
 system.adoc|||  The user cannot touch the display itself.
 system.adoc|||Each system may include: a VR/AR display, various forms of input (gamepad,
 system.adoc|||The application uses the system to create a <<session,session>>, which can
@@ -708,6 +772,7 @@ varjo_foveated_rendering.adoc|||  runtime should return foveated view configurat
 varjo_foveated_rendering.adoc|||// Khronos may elect to exercise its Copyright  license to incorporate this submission into
 varjo_foveated_rendering.adoc|||generate the density that can be seen by the user, which is another big
 varjo_foveated_rendering.adoc|||reduction compared to the density that can be displayed, using dedicated eye
+varjo_foveated_rendering.adoc|||Using foveated textures may: not provide optimal visual quality when
 varjo_marker_tracking.adoc|||* pname:markerId is the unique identifier of the marker which should be
 varjo_marker_tracking.adoc|||// Khronos may elect to exercise its Copyright  license to incorporate this submission into
 varjo_marker_tracking.adoc|||The tracking may be lost if the marker went outside of the trackable field
@@ -724,6 +789,7 @@ varjo_view_offset.adoc|||While this can be observed as an apparent jump in the l
 varjo_view_offset.adoc|||You can use this to create a smooth, animated transition between the two
 varjo_view_offset.adoc|||user – for example, their hands may appear unnaturally large in the image.
 varjo_xr4_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
+varjo_xr4_controller_interaction.adoc|||* subpathname:/input/system/click (may: not be available for application
 versions.adoc|||// Unfortunately we cannot include titles in an open refpage block, so this
 versions.adoc|||Applications that can provide a head-relative interaction experience in the
 view_configurations.adoc|||* pname:fovMutable indicates if the view field of view can be modified by
@@ -732,3 +798,4 @@ view_configurations.adoc|||Applications can query more details of each view elem
 view_configurations.adoc|||Supporting more than one primary view configuration can be useful if a
 view_configurations.adoc|||configuration type can be demonstrated by looking at the rendered pixel
 view_configurations.adoc|||views for which an application can render images.
+yvr_controller_interaction.adoc|||** subpathname:/input/system/click (may: not be available for application

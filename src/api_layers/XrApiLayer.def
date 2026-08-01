@@ -23,6 +23,7 @@
 ;
 ;;;;  End Copyright Notice ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-LIBRARY XrApiLayer_best_practices_validation
+LIBRARY
 EXPORTS
 xrNegotiateLoaderApiLayerInterface
+

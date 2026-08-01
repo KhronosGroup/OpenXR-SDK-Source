@@ -32,21 +32,13 @@
 #include <math.h>
 #include <vector>
 
+#include "platform_exports.h"
 #include "xr_dependencies.h"
+#include "xr_linear.h"
 #include <openxr/openxr.h>
 #include <openxr/openxr_loader_negotiation.h>
 #include <openxr/openxr_platform.h>
 #include <openxr/openxr_reflection.h>
-
-#include "common/xr_linear.h"
-
-#if defined(__GNUC__) && __GNUC__ >= 4
-#define RUNTIME_EXPORT __attribute__((visibility("default")))
-#elif defined(__SUNPRO_C) && (__SUNPRO_C >= 0x590)
-#define RUNTIME_EXPORT __attribute__((visibility("default")))
-#else
-#define RUNTIME_EXPORT
-#endif
 
 namespace {
 
@@ -2188,15 +2180,15 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrEnumerateViewConfigurationViews(XrIn
         return viewConfigurationError(instance, viewConfigurationType);
     }
 
-    XrViewConfigurationView dummyVcv{XR_TYPE_VIEW_CONFIGURATION_VIEW};
-    dummyVcv.recommendedImageRectWidth = 1024;
-    dummyVcv.maxImageRectWidth = 1024;
-    dummyVcv.recommendedImageRectHeight = 1024;
-    dummyVcv.maxImageRectHeight = 1024;
-    dummyVcv.recommendedSwapchainSampleCount = 1;
-    dummyVcv.maxSwapchainSampleCount = 4;
+    XrViewConfigurationView tempVcv{XR_TYPE_VIEW_CONFIGURATION_VIEW};
+    tempVcv.recommendedImageRectWidth = 1024;
+    tempVcv.maxImageRectWidth = 1024;
+    tempVcv.recommendedImageRectHeight = 1024;
+    tempVcv.maxImageRectHeight = 1024;
+    tempVcv.recommendedSwapchainSampleCount = 1;
+    tempVcv.maxSwapchainSampleCount = 4;
 
-    const std::array<XrViewConfigurationView, 2> knownViews{{dummyVcv, dummyVcv}};
+    const std::array<XrViewConfigurationView, 2> knownViews{{tempVcv, tempVcv}};
     return XrElementCapacityWrite(viewCapacityInput, viewCountOutput, views, knownViews.data(), knownViews.size());
 }
 
@@ -2296,21 +2288,21 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetInstanceProcAddr(XrInstance insta
 extern "C" {
 
 // forward decl
-RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderRuntimeInterface(const XrNegotiateLoaderInfo* loaderInfo,
-                                                                                XrNegotiateRuntimeRequest* runtimeRequest);
-RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeAlwaysFailNegotiateLoaderRuntimeInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderRuntimeInterface(const XrNegotiateLoaderInfo* loaderInfo,
+                                                                                 XrNegotiateRuntimeRequest* runtimeRequest);
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeAlwaysFailNegotiateLoaderRuntimeInterface(
     const XrNegotiateLoaderInfo* loaderInfo, XrNegotiateRuntimeRequest* runtimeRequest);
-RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeNullGipaNegotiateLoaderRuntimeInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeNullGipaNegotiateLoaderRuntimeInterface(
     const XrNegotiateLoaderInfo* loaderInfo, XrNegotiateRuntimeRequest* runtimeRequest);
 
-RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeInvalidInterfaceNegotiateLoaderRuntimeInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeInvalidInterfaceNegotiateLoaderRuntimeInterface(
     const XrNegotiateLoaderInfo* loaderInfo, XrNegotiateRuntimeRequest* runtimeRequest);
-RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeInvalidApiNegotiateLoaderRuntimeInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeInvalidApiNegotiateLoaderRuntimeInterface(
     const XrNegotiateLoaderInfo* loaderInfo, XrNegotiateRuntimeRequest* runtimeRequest);
 
 // Function used to negotiate an interface betewen the loader and a runtime.
-RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderRuntimeInterface(const XrNegotiateLoaderInfo* loaderInfo,
-                                                                                XrNegotiateRuntimeRequest* runtimeRequest) {
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderRuntimeInterface(const XrNegotiateLoaderInfo* loaderInfo,
+                                                                                 XrNegotiateRuntimeRequest* runtimeRequest) {
     if (nullptr == loaderInfo || nullptr == runtimeRequest || loaderInfo->structType != XR_LOADER_INTERFACE_STRUCT_LOADER_INFO ||
         loaderInfo->structVersion != XR_LOADER_INFO_STRUCT_VERSION || loaderInfo->structSize != sizeof(XrNegotiateLoaderInfo) ||
         runtimeRequest->structType != XR_LOADER_INTERFACE_STRUCT_RUNTIME_REQUEST ||
@@ -2330,13 +2322,13 @@ RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL xrNegotiateLoaderRuntimeInterface(
 }
 
 // Always fail
-RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeAlwaysFailNegotiateLoaderRuntimeInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeAlwaysFailNegotiateLoaderRuntimeInterface(
     const XrNegotiateLoaderInfo* /* loaderInfo */, XrNegotiateRuntimeRequest* /* runtimeRequest */) {
     return XR_ERROR_INITIALIZATION_FAILED;
 }
 
 // Pass, but return NULL for the runtime's xrGetInstanceProcAddr
-RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeNullGipaNegotiateLoaderRuntimeInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeNullGipaNegotiateLoaderRuntimeInterface(
     const XrNegotiateLoaderInfo* loaderInfo, XrNegotiateRuntimeRequest* runtimeRequest) {
     auto result = xrNegotiateLoaderRuntimeInterface(loaderInfo, runtimeRequest);
     if (result == XR_SUCCESS) {
@@ -2347,7 +2339,7 @@ RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeNullGipaNegotiateLoader
 }
 
 // Pass, but return invalid interface version
-RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeInvalidInterfaceNegotiateLoaderRuntimeInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeInvalidInterfaceNegotiateLoaderRuntimeInterface(
     const XrNegotiateLoaderInfo* loaderInfo, XrNegotiateRuntimeRequest* runtimeRequest) {
     auto result = xrNegotiateLoaderRuntimeInterface(loaderInfo, runtimeRequest);
     if (result == XR_SUCCESS) {
@@ -2358,7 +2350,7 @@ RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeInvalidInterfaceNegotia
 }
 
 // Pass, but return invalid API version
-RUNTIME_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeInvalidApiNegotiateLoaderRuntimeInterface(
+PLATFORM_EXPORT XRAPI_ATTR XrResult XRAPI_CALL TestRuntimeInvalidApiNegotiateLoaderRuntimeInterface(
     const XrNegotiateLoaderInfo* loaderInfo, XrNegotiateRuntimeRequest* runtimeRequest) {
     auto result = xrNegotiateLoaderRuntimeInterface(loaderInfo, runtimeRequest);
     if (result == XR_SUCCESS) {

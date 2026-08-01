@@ -256,6 +256,9 @@ explicit is dependent on the operating system, as shown in the table below.
 | Linux
     | Implicit API Layers are located in the "api_layers/implicit.d" folder under any of the
     <<linux-manifest-search-paths, common API layer paths>>.
+| Android
+    | Implicit API Layers are located in the
+    <<android-api-layer-discovery, APK asset or system installed implicit layer directories>>.
 |====
 
 

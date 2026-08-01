@@ -1,1 +1,0 @@
-- Improvement: Move `XR_ANDROID_trackables` to extension fragment XML file.

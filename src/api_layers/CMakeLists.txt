@@ -262,13 +262,13 @@ if(WIN32)
     # XrApiLayer_api_dump
     target_sources(
         XrApiLayer_api_dump
-        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_api_dump.def"
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer.def"
     )
 
     # XrApiLayer_core_validation
     target_sources(
         XrApiLayer_core_validation
-        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_core_validation.def"
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer.def"
     )
 elseif(APPLE)
     # XrApiLayer_api_dump
@@ -276,11 +276,11 @@ elseif(APPLE)
         XrApiLayer_api_dump
         PROPERTIES
             LINK_FLAGS
-            "-Wl,-exported_symbols_list,\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_api_dump.expsym\""
+            "-Wl,-exported_symbols_list,\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer.expsym\""
     )
     target_sources(
         XrApiLayer_api_dump
-        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_api_dump.expsym"
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer.expsym"
     )
 
     # XrApiLayer_core_validation
@@ -288,11 +288,11 @@ elseif(APPLE)
         XrApiLayer_core_validation
         PROPERTIES
             LINK_FLAGS
-            "-Wl,-exported_symbols_list,\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_core_validation.expsym\""
+            "-Wl,-exported_symbols_list,\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer.expsym\""
     )
     target_sources(
         XrApiLayer_core_validation
-        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_core_validation.expsym"
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer.expsym"
     )
 else()
     # XrApiLayer_api_dump
@@ -300,11 +300,11 @@ else()
         XrApiLayer_api_dump
         PROPERTIES
             LINK_FLAGS
-            "-Wl,--version-script=\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_api_dump.map\""
+            "-Wl,--version-script=\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer.map\""
     )
     target_sources(
         XrApiLayer_api_dump
-        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_api_dump.map"
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer.map"
     )
 
     # XrApiLayer_core_validation
@@ -312,11 +312,11 @@ else()
         XrApiLayer_core_validation
         PROPERTIES
             LINK_FLAGS
-            "-Wl,--version-script=\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_core_validation.map\""
+            "-Wl,--version-script=\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer.map\""
     )
     target_sources(
         XrApiLayer_core_validation
-        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_core_validation.map"
+        PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer.map"
     )
 endif()
 

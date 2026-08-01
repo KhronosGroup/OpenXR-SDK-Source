@@ -674,6 +674,9 @@ class OutputGenerator:
                     comment = elem.get('comment')
                     if comment:
                         body += self.makeCComment(comment)
+                requirements = self.genRequirements(name, mustBeFound = False)
+                if requirements != '':
+                    body += f"  {requirements}"
                 body += f"static const {flagTypeName} {name} = {strVal};"
                 if alias_of is not None:
                     body += f"  // alias of {alias_of}"

@@ -37,6 +37,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <tag name="COLLABORA"  author="Collabora"             contact="Rylie Pavlik @rpavlik"/>
         <tag name="DANWILLM"   author="Daniel Willmott"       contact="Daniel Willmott @danwillm"/>
         <tag name="DEEPMIRROR" author="Deep Mirror"           contact="Yuhui Lun @lyh-dm"/>
+        <tag name="DXR"        author="The DisplayXR Project" contact="David Fattal @dfattal"/>
         <tag name="EPIC"       author="Epic"                  contact="Nick Whiting @whitingn"/>
         <tag name="EXT"        author="Multivendor"           contact="Rylie Pavlik @rpavlik"/>
         <tag name="FB"         author="Facebook"              contact="Cass Everitt @casseveritt, Jonathan Wright @Nelno"/>
@@ -138,7 +139,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         updates them automatically by processing a line at a time.
         -->
         <type category="define">// OpenXR current version number.
-#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(1, 1, 61)</type>
+#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(1, 1, 62)</type>
 
         <!--
         Defines for a fixed major.minor version of OpenXR preserving the shared patch version.
@@ -1006,6 +1007,8 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <type name="XrBodyTrackingStatusBD" category="enum"/>
         <type name="XrBodyTrackingMessageBD" category="enum"/>
 
+        <!-- XR_SONY_swapchain_color_space -->
+        <type name="XrColorSpaceSONY" category="enum"/>
 
         <!-- Struct types -->
         <type category="struct" name="XrVector2f">
@@ -6040,7 +6043,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member>const <type>void</type>* <name>next</name></member>
         </type>
 
-        <!-- XR_KHR_loader_init_properties -->
+        <!-- XR_EXT_loader_init_properties -->
         <type category="struct" name="XrLoaderInitInfoPropertiesEXT" parentstruct="XrLoaderInitInfoBaseHeaderKHR" structextends="XrLoaderInitInfoBaseHeaderKHR">
             <member values="XR_TYPE_LOADER_INIT_INFO_PROPERTIES_EXT"><type>XrStructureType</type> <name>type</name></member>
             <member>const <type>void</type>*                                                  <name>next</name></member>
@@ -6570,6 +6573,19 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member values="XR_TYPE_GOOGLE_CLOUD_AUTH_ERROR_RESULT_ANDROID"><type>XrStructureType</type> <name>type</name></member>
             <member><type>void</type>*                         <name>next</name></member>
             <member><type>XrGoogleCloudAuthErrorANDROID</type> <name>error</name></member>
+        </type>
+
+        <!-- XR_SONY_swapchain_color_space -->
+        <type category="struct" name="XrColorSpacesEnumerateInfoSONY">
+            <member values="XR_TYPE_COLOR_SPACES_ENUMERATE_INFO_SONY"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>int64_t</type>     <name>format</name></member>
+        </type>
+
+        <type category="struct" name="XrSwapchainCreateInfoColorSpaceSONY" structextends="XrSwapchainCreateInfo">
+            <member values="XR_TYPE_SWAPCHAIN_CREATE_INFO_COLOR_SPACE_SONY"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*      <name>next</name></member>
+            <member><type>XrColorSpaceSONY</type> <name>colorSpace</name></member>
         </type>
 
     </types>
@@ -8905,6 +8921,20 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="2"   name="XR_HAND_TRACKING_FREQUENCY_HINT_HIGH_META"/>
     </enums>
 
+    <!-- XR_SONY_swapchain_color_space -->
+    <enums name="XrColorSpaceSONY" type="enum">
+        <enum value="0"    name="XR_COLOR_SPACE_SRGB_NONLINEAR_SONY"       comment="sRGB color space, encoded according to the sRGB specification."/>
+        <enum value="1"    name="XR_COLOR_SPACE_DISPLAY_P3_LINEAR_SONY"    comment="Display-P3 color space, encoded using a linear transfer function."/>
+        <enum value="2"    name="XR_COLOR_SPACE_DISPLAY_P3_NONLINEAR_SONY" comment="Display-P3 color space, encoded according to the Display-P3 specification."/>
+        <enum value="3"    name="XR_COLOR_SPACE_DCI_P3_LINEAR_SONY"        comment="DCI-P3 color space, encoded using a linear transfer function."/>
+        <enum value="4"    name="XR_COLOR_SPACE_DCI_P3_NONLINEAR_SONY"     comment="DCI-P3 color space, encoded according to the DCI-P3 specification."/>
+        <enum value="5"    name="XR_COLOR_SPACE_EXTENDED_SRGB_LINEAR_SONY" comment="Extended sRGB color space, encoded using a linear transfer function."/>
+        <enum value="6"    name="XR_COLOR_SPACE_BT709_LINEAR_SONY"         comment="ITU-R BT.709 color space, encoded using a linear transfer function."/>
+        <enum value="7"    name="XR_COLOR_SPACE_BT709_NONLINEAR_SONY"      comment="ITU-R BT.709 color space, encoded according to the BT.709 specification."/>
+        <enum value="8"    name="XR_COLOR_SPACE_BT2020_LINEAR_SONY"        comment="ITU-R BT.2020 color space, encoded using a linear transfer function."/>
+        <enum value="9"    name="XR_COLOR_SPACE_BT2020_PQ_SONY"            comment="ITU-R BT.2020 color space, encoded according to the SMPTE ST 2084 Perceptual Quantizer (PQ) specification."/>
+        <enum value="10"   name="XR_COLOR_SPACE_BT2020_HLG_SONY"           comment="ITU-R BT.2020 color space, encoded according to the Hybrid Log Gamma (HLG) specification."/>
+    </enums>
 
     <!-- SECTION: OpenXR command definitions -->
     <commands>
@@ -11113,7 +11143,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrEnvironmentDepthSwapchainMETA</type> <name>swapchain</name></param>
             <param><type>XrEnvironmentDepthSwapchainStateMETA</type>* <name>state</name></param>
         </command>
-        <command successcodes="XR_SUCCESS,XR_ENVIRONMENT_DEPTH_NOT_AVAILABLE_META,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CALL_ORDER_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE">
+        <command successcodes="XR_SUCCESS,XR_ENVIRONMENT_DEPTH_NOT_AVAILABLE_META,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CALL_ORDER_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrAcquireEnvironmentDepthImageMETA</name></proto>
             <param><type>XrEnvironmentDepthProviderMETA</type> <name>environmentDepthProvider</name></param>
             <param>const <type>XrEnvironmentDepthImageAcquireInfoMETA</type>* <name>acquireInfo</name></param>
@@ -12208,6 +12238,16 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrHapticActionInfo</type>* <name>hapticActionInfo</name></param>
             <param><type>XrHapticParametricPropertiesEXT</type>* <name>parametricProperties</name></param>
+        </command>
+
+        <!-- XR_SONY_swapchain_color_space -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SWAPCHAIN_FORMAT_UNSUPPORTED,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateColorSpacesSONY</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrColorSpacesEnumerateInfoSONY</type>* <name>enumerateInfo</name></param>
+            <param optional="true"><type>uint32_t</type> <name>colorSpaceCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>colorSpaceCountOutput</name></param>
+            <param optional="true" len="colorSpaceCapacityInput"><type>XrColorSpaceSONY</type>* <name>colorSpaces</name></param>
         </command>
 
     </commands>
@@ -21572,16 +21612,10 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_META_hand_tracking_unextrapolated_poses" number="684" depends="XR_VERSION_1_0+XR_EXT_hand_tracking" type="instance" supported="openxr">
+    <extension name="XR_META_extension_684" number="684" type="instance" supported="disabled">
         <require>
-            <enum value="1"                                                      name="XR_META_hand_tracking_unextrapolated_poses_SPEC_VERSION"/>
-            <enum value="&quot;XR_META_hand_tracking_unextrapolated_poses&quot;" name="XR_META_HAND_TRACKING_UNEXTRAPOLATED_POSES_EXTENSION_NAME"/>
-
-            <enum offset="0" extends="XrStructureType"                           name="XR_TYPE_HAND_TRACKING_UNEXTRAPOLATED_POSES_REQUEST_META"/>
-            <enum offset="1" extends="XrStructureType"                           name="XR_TYPE_HAND_TRACKING_UNEXTRAPOLATED_POSES_META"/>
-
-            <type name="XrHandTrackingUnextrapolatedPosesRequestMETA"/>
-            <type name="XrHandTrackingUnextrapolatedPosesMETA"/>
+            <enum value="1"                                 name="XR_META_extension_684_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_684&quot;" name="XR_META_extension_684_EXTENSION_NAME"/>
         </require>
     </extension>
 
@@ -21592,22 +21626,17 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_META_hand_tracking_frequency_hint" number="686" depends="XR_VERSION_1_0+XR_EXT_hand_tracking" type="instance" supported="openxr">
+    <extension name="XR_META_extension_686" number="686" type="instance" supported="disabled">
         <require>
-            <enum value="1"                                                name="XR_META_hand_tracking_frequency_hint_SPEC_VERSION"/>
-            <enum value="&quot;XR_META_hand_tracking_frequency_hint&quot;" name="XR_META_HAND_TRACKING_FREQUENCY_HINT_EXTENSION_NAME"/>
-
-            <type name="XrHandTrackingFrequencyHintMETA"/>
-            <command name="xrSetHandTrackingFrequencyHintMETA"/>
+            <enum value="1"                                 name="XR_META_extension_686_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_686&quot;" name="XR_META_extension_686_EXTENSION_NAME"/>
         </require>
     </extension>
 
-    <extension name="XR_META_hand_tracking_wide_motion_mode2" number="687" depends="XR_VERSION_1_0+XR_EXT_hand_tracking+XR_EXT_hand_tracking_data_source" type="instance" supported="openxr">
+    <extension name="XR_META_extension_687" number="687" type="instance" supported="disabled">
         <require>
-            <enum value="1"                                                   name="XR_META_hand_tracking_wide_motion_mode2_SPEC_VERSION"/>
-            <enum value="&quot;XR_META_hand_tracking_wide_motion_mode2&quot;" name="XR_META_HAND_TRACKING_WIDE_MOTION_MODE2_EXTENSION_NAME"/>
-
-            <enum offset="0" extends="XrHandTrackingDataSourceEXT"            name="XR_HAND_TRACKING_DATA_SOURCE_UNOBSTRUCTED_WIDE_MOTION_META" comment="This data source value indicates that the hand tracking system should use wide motion mode inference to provide hand poses when the hands are not directly visible to the tracking cameras"/>
+            <enum value="1"                                 name="XR_META_extension_687_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_extension_687&quot;" name="XR_META_extension_687_EXTENSION_NAME"/>
         </require>
     </extension>
 
@@ -21653,24 +21682,35 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_META_extension_694" number="694" type="instance" supported="disabled">
+    <extension name="XR_META_hand_tracking_unextrapolated_poses" number="694" depends="XR_VERSION_1_0+XR_EXT_hand_tracking" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                 name="XR_META_extension_694_SPEC_VERSION"/>
-            <enum value="&quot;XR_META_extension_694&quot;" name="XR_META_extension_694_EXTENSION_NAME"/>
+            <enum value="1"                                                      name="XR_META_hand_tracking_unextrapolated_poses_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_hand_tracking_unextrapolated_poses&quot;" name="XR_META_HAND_TRACKING_UNEXTRAPOLATED_POSES_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrStructureType"                           name="XR_TYPE_HAND_TRACKING_UNEXTRAPOLATED_POSES_REQUEST_META"/>
+            <enum offset="1" extends="XrStructureType"                           name="XR_TYPE_HAND_TRACKING_UNEXTRAPOLATED_POSES_META"/>
+
+            <type name="XrHandTrackingUnextrapolatedPosesRequestMETA"/>
+            <type name="XrHandTrackingUnextrapolatedPosesMETA"/>
         </require>
     </extension>
 
-    <extension name="XR_META_extension_695" number="695" type="instance" supported="disabled">
+    <extension name="XR_META_hand_tracking_frequency_hint" number="695" depends="XR_VERSION_1_0+XR_EXT_hand_tracking" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                 name="XR_META_extension_695_SPEC_VERSION"/>
-            <enum value="&quot;XR_META_extension_695&quot;" name="XR_META_extension_695_EXTENSION_NAME"/>
+            <enum value="1"                                                name="XR_META_hand_tracking_frequency_hint_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_hand_tracking_frequency_hint&quot;" name="XR_META_HAND_TRACKING_FREQUENCY_HINT_EXTENSION_NAME"/>
+
+            <type name="XrHandTrackingFrequencyHintMETA"/>
+            <command name="xrSetHandTrackingFrequencyHintMETA"/>
         </require>
     </extension>
 
-    <extension name="XR_META_extension_696" number="696" type="instance" supported="disabled">
+    <extension name="XR_META_hand_tracking_wide_motion_mode2" number="696" depends="XR_VERSION_1_0+XR_EXT_hand_tracking+XR_EXT_hand_tracking_data_source" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                 name="XR_META_extension_696_SPEC_VERSION"/>
-            <enum value="&quot;XR_META_extension_696&quot;" name="XR_META_extension_696_EXTENSION_NAME"/>
+            <enum value="1"                                                   name="XR_META_hand_tracking_wide_motion_mode2_SPEC_VERSION"/>
+            <enum value="&quot;XR_META_hand_tracking_wide_motion_mode2&quot;" name="XR_META_HAND_TRACKING_WIDE_MOTION_MODE2_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrHandTrackingDataSourceEXT"            name="XR_HAND_TRACKING_DATA_SOURCE_UNOBSTRUCTED_WIDE_MOTION_META" comment="This data source value indicates that the hand tracking system should use wide motion mode inference to provide hand poses when the hands are not directly visible to the tracking cameras"/>
         </require>
     </extension>
 
@@ -22782,10 +22822,19 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_SONY_extension_777" number="777" type="instance" supported="disabled">
+    <extension name="XR_SONY_swapchain_color_space" number="777" type="instance" supported="openxr">
         <require>
-            <enum value="1"                                 name="XR_SONY_extension_777_SPEC_VERSION"/>
-            <enum value="&quot;XR_SONY_extension_777&quot;" name="XR_SONY_EXTENSION_777_EXTENSION_NAME"/>
+            <enum value="1"                                         name="XR_SONY_swapchain_color_space_SPEC_VERSION"/>
+            <enum value="&quot;XR_SONY_swapchain_color_space&quot;" name="XR_SONY_SWAPCHAIN_COLOR_SPACE_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrStructureType"              name="XR_TYPE_COLOR_SPACES_ENUMERATE_INFO_SONY"/>
+            <enum offset="1" extends="XrStructureType"              name="XR_TYPE_SWAPCHAIN_CREATE_INFO_COLOR_SPACE_SONY"/>
+
+            <type name="XrColorSpaceSONY"/>
+            <type name="XrColorSpacesEnumerateInfoSONY"/>
+            <type name="XrSwapchainCreateInfoColorSpaceSONY"/>
+
+            <command name="xrEnumerateColorSpacesSONY"/>
         </require>
     </extension>
 

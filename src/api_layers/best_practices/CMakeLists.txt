@@ -122,7 +122,7 @@ if(WIN32)
     target_sources(
         XrApiLayer_best_practices_validation
         PRIVATE
-            "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_best_practices_validation.def"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../XrApiLayer.def"
     )
 
 elseif(APPLE)
@@ -131,12 +131,12 @@ elseif(APPLE)
         XrApiLayer_best_practices_validation
         PROPERTIES
             LINK_FLAGS
-            "-Wl,-exported_symbols_list,\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_best_practices_validation.expsym\""
+            "-Wl,-exported_symbols_list,\"${CMAKE_CURRENT_SOURCE_DIR}/../XrApiLayer.expsym\""
     )
     target_sources(
         XrApiLayer_best_practices_validation
         PRIVATE
-            "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_best_practices_validation.expsym"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../XrApiLayer.expsym"
     )
 
 else()
@@ -145,12 +145,12 @@ else()
         XrApiLayer_best_practices_validation
         PROPERTIES
             LINK_FLAGS
-            "-Wl,--version-script=\"${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_best_practices_validation.map\""
+            "-Wl,--version-script=\"${CMAKE_CURRENT_SOURCE_DIR}/../XrApiLayer.map\""
     )
     target_sources(
         XrApiLayer_best_practices_validation
         PRIVATE
-            "${CMAKE_CURRENT_SOURCE_DIR}/XrApiLayer_best_practices_validation.map"
+            "${CMAKE_CURRENT_SOURCE_DIR}/../XrApiLayer.map"
     )
 
 endif()
