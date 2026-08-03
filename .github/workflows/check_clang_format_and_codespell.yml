@@ -6,16 +6,21 @@ name: Check code formatting and spelling
 on:
   workflow_call:
 
+permissions: {}
+
 jobs:
   clang-format:
     runs-on: ubuntu-latest
     container:
       image: khronosgroup/docker-images:openxr.20260415@sha256:800fd68bd1b16b426555158f4aa06b2ef1c150fba922d7a11361fc85f6ba0bcd
 
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # actions/checkout@v7
         with:
           lfs: true
+          persist-credentials: false
 
       - run: ./runClangFormat.sh
         name: Run clang-format
@@ -28,7 +33,7 @@ jobs:
         if: ${{ failure() }}
       - name: Publish diff
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v7
+        uses: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # actions/upload-artifact@v7
         with:
           path: ${{ runner.temp }}/clang-format.patch
           name: clang-format-changes

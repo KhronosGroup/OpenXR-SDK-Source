@@ -1,4 +1,4 @@
-# Copyright 2021-2025, Collabora, Ltd.
+# Copyright 2021-2026, Collabora, Ltd.
 # SPDX-License-Identifier: CC0-1.0
 
 name: Build release artifacts
@@ -6,6 +6,9 @@ on:
   release:
     types: [published]
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   # Currently Android artifacts are generated and signed internally before publication to GitHub.
