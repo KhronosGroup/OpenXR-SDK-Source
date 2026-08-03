@@ -456,8 +456,9 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         return ret;
     }
 
-    ID3D12PipelineState* GetOrCreatePipelineState(DXGI_FORMAT swapchainFormat) {
-        auto iter = m_pipelineStates.find(swapchainFormat);
+    ID3D12PipelineState* GetOrCreatePipelineState(DXGI_FORMAT colorSwapchainFormat, DXGI_FORMAT depthSwapchainFormat) {
+        auto swapchainFormats = std::make_pair(colorSwapchainFormat, depthSwapchainFormat);
+        auto iter = m_pipelineStates.find(swapchainFormats);
         if (iter != m_pipelineStates.end()) {
             return iter->second.Get();
         }
@@ -523,8 +524,8 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         pipelineStateDesc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF;
         pipelineStateDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         pipelineStateDesc.NumRenderTargets = 1;
-        pipelineStateDesc.RTVFormats[0] = swapchainFormat;
-        pipelineStateDesc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
+        pipelineStateDesc.RTVFormats[0] = colorSwapchainFormat;
+        pipelineStateDesc.DSVFormat = depthSwapchainFormat;
         pipelineStateDesc.SampleDesc = {1, 0};
         pipelineStateDesc.NodeMask = 0;
         pipelineStateDesc.CachedPSO = {nullptr, 0};
@@ -535,13 +536,13 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
                                                           reinterpret_cast<void**>(pipelineState.ReleaseAndGetAddressOf())));
         ID3D12PipelineState* pipelineStateRaw = pipelineState.Get();
 
-        m_pipelineStates.emplace(swapchainFormat, std::move(pipelineState));
+        m_pipelineStates.emplace(swapchainFormats, std::move(pipelineState));
 
         return pipelineStateRaw;
     }
 
     void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
-                    int64_t swapchainFormat, const std::vector<Cube>& cubes) override {
+                    int64_t colorSwapchainFormat, int64_t depthSwapchainFormat, const std::vector<Cube>& cubes) override {
         CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
 
         D3D12SwapchainImageData* swapchainData;
@@ -559,7 +560,8 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
             0, D3D12_COMMAND_LIST_TYPE_DIRECT, swapchainData->GetCommandAllocator(), nullptr, __uuidof(ID3D12GraphicsCommandList),
             reinterpret_cast<void**>(cmdList.ReleaseAndGetAddressOf())));
 
-        ID3D12PipelineState* pipelineState = GetOrCreatePipelineState((DXGI_FORMAT)swapchainFormat);
+        ID3D12PipelineState* pipelineState =
+            GetOrCreatePipelineState((DXGI_FORMAT)colorSwapchainFormat, (DXGI_FORMAT)depthSwapchainFormat);
         cmdList->SetPipelineState(pipelineState);
         cmdList->SetGraphicsRootSignature(m_rootSignature.Get());
 
@@ -582,7 +584,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         // Create RenderTargetView with original swapchain format (swapchain is typeless).
         D3D12_CPU_DESCRIPTOR_HANDLE renderTargetView = m_rtvHeap->GetCPUDescriptorHandleForHeapStart();
         D3D12_RENDER_TARGET_VIEW_DESC renderTargetViewDesc{};
-        renderTargetViewDesc.Format = (DXGI_FORMAT)swapchainFormat;
+        renderTargetViewDesc.Format = (DXGI_FORMAT)colorSwapchainFormat;
         if (colorTextureDesc.DepthOrArraySize > 1) {
             if (colorTextureDesc.SampleDesc.Count > 1) {
                 renderTargetViewDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2DMSARRAY;
@@ -604,7 +606,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
         const D3D12_RESOURCE_DESC depthStencilTextureDesc = depthStencilTexture->GetDesc();
         D3D12_CPU_DESCRIPTOR_HANDLE depthStencilView = m_dsvHeap->GetCPUDescriptorHandleForHeapStart();
         D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc{};
-        depthStencilViewDesc.Format = DXGI_FORMAT_D32_FLOAT;
+        depthStencilViewDesc.Format = (DXGI_FORMAT)depthSwapchainFormat;
         if (depthStencilTextureDesc.DepthOrArraySize > 1) {
             if (depthStencilTextureDesc.SampleDesc.Count > 1) {
                 depthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DMSARRAY;
@@ -728,7 +730,7 @@ struct D3D12GraphicsPlugin : public IGraphicsPlugin {
     SwapchainImageDataMap<D3D12SwapchainImageData> m_swapchainImageDataMap;
     XrGraphicsBindingD3D12KHR m_graphicsBinding{XR_TYPE_GRAPHICS_BINDING_D3D12_KHR};
     ComPtr<ID3D12RootSignature> m_rootSignature;
-    std::map<DXGI_FORMAT, ComPtr<ID3D12PipelineState>> m_pipelineStates;
+    std::map<std::pair<DXGI_FORMAT, DXGI_FORMAT>, ComPtr<ID3D12PipelineState>> m_pipelineStates;
     ComPtr<ID3D12Resource> m_cubeVertexBuffer;
     ComPtr<ID3D12Resource> m_cubeIndexBuffer;
     ComPtr<ID3D12DescriptorHeap> m_rtvHeap;
