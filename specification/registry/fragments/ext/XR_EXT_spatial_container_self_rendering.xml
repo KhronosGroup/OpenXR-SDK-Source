@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<fragment>
+    <comment>
+Copyright (c) 2026 The Khronos Group Inc.
+
+SPDX-License-Identifier: Apache-2.0 OR MIT
+    </comment>
+
+    <types>
+        <type category="struct" name="XrSpatialContainerBeginInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_BEGIN_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*             <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type>   <name>spatialContainer</name></member>
+            <member><type>XrViewConfigurationType</type> <name>primaryViewConfigurationType</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerEndInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_END_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*           <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerViewLocateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_VIEW_LOCATE_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*             <name>next</name></member>
+            <member><type>XrViewConfigurationType</type> <name>viewConfigurationType</name></member>
+            <member><type>XrSpace</type>                 <name>space</name></member>
+            <member><type>XrSpatialContainerEXT</type>   <name>spatialContainer</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerViewsLocateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_VIEWS_LOCATE_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                          <name>next</name></member>
+            <member><type>XrTime</type>                                                               <name>displayTime</name></member>
+            <member><type>uint32_t</type>                                                             <name>viewLocateInfoCount</name></member>
+            <member len="viewLocateInfoCount">const <type>XrSpatialContainerViewLocateInfoEXT</type>* <name>viewLocateInfos</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerViewStateEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_VIEW_STATE_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                   <name>next</name></member>
+            <member><type>XrViewStateFlags</type>        <name>viewStateFlags</name></member>
+            <member><type>XrViewConfigurationType</type> <name>viewConfigurationType</name></member>
+            <member><type>XrBool32</type>                <name>shouldSubmitLayers</name></member>
+            <member><type>XrExtent2Di</type>             <name>recommendedImageExtent</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerLayerEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_LAYER_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                                 <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type>                                                       <name>spatialContainer</name></member>
+            <member><type>XrBool32</type>                                                                    <name>retainPreviousSubmission</name></member>
+            <member optional="true"><type>uint32_t</type>                                                    <name>layerCount</name></member>
+            <member optional="true" len="layerCount">const <type>XrCompositionLayerBaseHeader</type>* const* <name>layers</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerLayerFrameEndInfoEXT" structextends="XrFrameEndInfo">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_LAYER_FRAME_END_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                 <name>next</name></member>
+            <member><type>uint32_t</type>                                                    <name>containerLayerCount</name></member>
+            <member len="containerLayerCount">const <type>XrSpatialContainerLayerEXT</type>* <name>containerLayers</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerCompositionLayerViewConfigurationEXT" structextends="XrCompositionLayerProjection">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_COMPOSITION_LAYER_VIEW_CONFIGURATION_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*             <name>next</name></member>
+            <member><type>XrViewConfigurationType</type> <name>viewConfigurationType</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerLayerVolumeClippingEXT" structextends="XrSpatialContainerLayerEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_LAYER_VOLUME_CLIPPING_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                         <name>next</name></member>
+            <member><type>XrSpatialContainerVolumeClippingEXT</type> <name>volumeClipping</name></member>
+        </type>
+    </types>
+
+    <commands>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINER_NOT_RENDERING_EXT,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED">
+            <proto><type>XrResult</type> <name>xrLocateSpatialContainerViewsEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrSpatialContainerViewsLocateInfoEXT</type>* <name>locateInfo</name></param>
+            <param><type>uint32_t</type> <name>viewStateCount</name></param>
+            <param len="viewStateCount"><type>XrSpatialContainerViewStateEXT</type>* <name>viewStates</name></param>
+            <param><type>uint32_t</type> <name>viewCount</name></param>
+            <param len="viewCount"><type>XrView</type>* <name>views</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CALL_ORDER_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINER_GRAPHICS_PRESENTATION_MISSING_EXT,XR_ERROR_SPATIAL_CONTAINER_IS_RENDERING_EXT,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED">
+            <proto><type>XrResult</type> <name>xrBeginSpatialContainerRenderingEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrSpatialContainerBeginInfoEXT</type>* <name>beginInfo</name></param>
+            <implicitexternsyncparams>
+                <param>the pname:session parameter by any other flink:xrBeginSpatialContainerRenderingEXT, flink:xrEndSpatialContainerRenderingEXT, or flink:xrEndFrame call</param>
+            </implicitexternsyncparams>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CALL_ORDER_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINER_NOT_RENDERING_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEndSpatialContainerRenderingEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrSpatialContainerEndInfoEXT</type>* <name>endInfo</name></param>
+            <implicitexternsyncparams>
+                <param>the pname:session parameter by any other flink:xrBeginSpatialContainerRenderingEXT, flink:xrEndSpatialContainerRenderingEXT, or flink:xrEndFrame call</param>
+            </implicitexternsyncparams>
+        </command>
+    </commands>
+
+    <extensions>
+    <extension name="XR_EXT_spatial_container_self_rendering" number="814" type="instance" supported="openxr" ratified="openxr" depends="XR_EXT_spatial_container">
+        <require>
+            <enum value="1"                                                   name="XR_EXT_spatial_container_self_rendering_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_spatial_container_self_rendering&quot;" name="XR_EXT_SPATIAL_CONTAINER_SELF_RENDERING_EXTENSION_NAME"/>
+
+            <type name="XrSpatialContainerViewLocateInfoEXT"/>
+            <type name="XrSpatialContainerViewsLocateInfoEXT"/>
+            <type name="XrSpatialContainerViewStateEXT"/>
+            <type name="XrSpatialContainerLayerEXT"/>
+            <type name="XrSpatialContainerLayerFrameEndInfoEXT"/>
+            <type name="XrSpatialContainerBeginInfoEXT"/>
+            <type name="XrSpatialContainerEndInfoEXT"/>
+            <type name="XrSpatialContainerCompositionLayerViewConfigurationEXT"/>
+            <type name="XrSpatialContainerLayerVolumeClippingEXT"/>
+
+            <enum offset="0"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_VIEW_LOCATE_INFO_EXT"/>
+            <enum offset="1"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_VIEWS_LOCATE_INFO_EXT"/>
+            <enum offset="2"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_VIEW_STATE_EXT"/>
+            <enum offset="3"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_LAYER_EXT"/>
+            <enum offset="4"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_LAYER_FRAME_END_INFO_EXT"/>
+            <enum offset="5"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_BEGIN_INFO_EXT"/>
+            <enum offset="6"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_COMPOSITION_LAYER_VIEW_CONFIGURATION_EXT"/>
+            <enum offset="7"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_END_INFO_EXT"/>
+            <enum offset="8"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_LAYER_VOLUME_CLIPPING_EXT"/>
+            <enum offset="0"         extends="XrSpatialContainerGraphicsPresentationEXT" name="XR_SPATIAL_CONTAINER_GRAPHICS_PRESENTATION_SELF_RENDERING_EXT"      comment="Spatial container uses OpenXR composition layers"/>
+            <enum offset="1" dir="-" extends="XrResult"                                  name="XR_ERROR_SPATIAL_CONTAINER_IS_RENDERING_EXT"                        comment="The spatial container is already in the active render set"/>
+            <enum offset="2" dir="-" extends="XrResult"                                  name="XR_ERROR_SPATIAL_CONTAINER_NOT_RENDERING_EXT"                       comment="The spatial container is not in the active render set"/>
+            <enum offset="3" dir="-" extends="XrResult"                                  name="XR_ERROR_SPATIAL_CONTAINER_MISSING_EXT"                             comment="A spatial container from the active render set is missing from the submission"/>
+            <enum offset="4" dir="-" extends="XrResult"                                  name="XR_ERROR_SPATIAL_CONTAINER_DUPLICATE_EXT"                           comment="A spatial container is duplicated in the submission"/>
+            <enum offset="5" dir="-" extends="XrResult"                                  name="XR_ERROR_SPATIAL_CONTAINER_GRAPHICS_PRESENTATION_MISSING_EXT"       comment="The spatial container does not have the required graphics presentation style"/>
+
+            <command name="xrBeginSpatialContainerRenderingEXT"/>
+            <command name="xrEndSpatialContainerRenderingEXT"/>
+            <command name="xrLocateSpatialContainerViewsEXT"/>
+
+            <extend type="command" name="xrEndFrame" errorcodes="XR_ERROR_SPATIAL_CONTAINER_DUPLICATE_EXT,XR_ERROR_SPATIAL_CONTAINER_MISSING_EXT,XR_ERROR_SPATIAL_CONTAINER_NOT_RENDERING_EXT"/>
+        </require>
+    </extension>
+    </extensions>
+</fragment>

@@ -71,6 +71,8 @@ XrResult ApiLayerInterface::GetApiLayerProperties(const std::string& openxr_comm
     // "Independent of elementCapacityInput or elements parameters, elementCountOutput must be a valid pointer,
     // and the function sets elementCountOutput." - 2.11
     if (nullptr == outgoing_count) {
+        LoaderLogger::LogErrorMessage(openxr_command,
+                                      "VUID-xrEnumerateApiLayerProperties-propertyCountOutput-parameter: null propertyCountOutput");
         return XR_ERROR_VALIDATION_FAILURE;
     }
 
@@ -93,11 +95,6 @@ XrResult ApiLayerInterface::GetApiLayerProperties(const std::string& openxr_comm
     }
 
     manifest_count = static_cast<uint32_t>(manifest_files.size());
-    if (nullptr == outgoing_count) {
-        LoaderLogger::LogErrorMessage("xrEnumerateInstanceExtensionProperties",
-                                      "VUID-xrEnumerateApiLayerProperties-propertyCountOutput-parameter: null propertyCountOutput");
-        return XR_ERROR_VALIDATION_FAILURE;
-    }
 
     *outgoing_count = manifest_count;
     if (0 == incoming_count) {
@@ -106,14 +103,13 @@ XrResult ApiLayerInterface::GetApiLayerProperties(const std::string& openxr_comm
     }
     if (nullptr == api_layer_properties) {
         // incoming_count is not 0 BUT the api_layer_properties is NULL
-        LoaderLogger::LogErrorMessage("xrEnumerateInstanceExtensionProperties",
+        LoaderLogger::LogErrorMessage(openxr_command,
                                       "VUID-xrEnumerateApiLayerProperties-properties-parameter: non-zero capacity but null array");
         return XR_ERROR_VALIDATION_FAILURE;
     }
     if (incoming_count < manifest_count) {
         LoaderLogger::LogErrorMessage(
-            "xrEnumerateInstanceExtensionProperties",
-            "VUID-xrEnumerateApiLayerProperties-propertyCapacityInput-parameter: insufficient space in array");
+            openxr_command, "VUID-xrEnumerateApiLayerProperties-propertyCapacityInput-parameter: insufficient space in array");
         return XR_ERROR_SIZE_INSUFFICIENT;
     }
 
@@ -457,9 +453,17 @@ ApiLayerInterface::ApiLayerInterface(const std::string& layer_name, LoaderPlatfo
       _supported_extensions(supported_extensions) {}
 
 ApiLayerInterface::~ApiLayerInterface() {
-    std::string info_message = "ApiLayerInterface being destroyed for layer ";
-    info_message += _layer_name;
-    LoaderLogger::LogInfoMessage("", info_message);
+    try {
+        std::string info_message = "ApiLayerInterface being destroyed for layer ";
+        info_message += _layer_name;
+        LoaderLogger::LogInfoMessage("", info_message);
+    }
+    // NOLINTNEXTLINE(bugprone-empty-catch)
+    catch (...) {
+        // Need a try catch here to avoid concerns about exceptions in a destructor
+        // If logging fails here there isn't much we can do so left intentionally empty
+    }
+
     LoaderPlatformLibraryClose(_layer_library);
 }
 

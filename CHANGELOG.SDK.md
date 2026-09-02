@@ -21,6 +21,53 @@ along with any public pull requests that have been accepted.
 In this repository in particular, since it is primarily software,
 pull requests may be integrated as they are accepted even between periodic updates.
 
+## OpenXR SDK 1.1.63 (2026-09-01)
+
+This release primarily contains a large number of new extensions, including
+four new ratified extensions, and support for those through the generated parts
+of API layers in the SDK. SDK-specific changes include updates to the
+`list_json` tool.
+
+- SDK
+  - Improvement: Loader: Remove duplicate null check for `outgoing_count` in
+    `GetApiLayerProperties`.
+    ([internal MR 4256](https://gitlab.khronos.org/openxr/openxr/merge_requests/4256))
+  - Improvement: Minor usability improvements to "list_json" tool.
+    ([internal MR 4410](https://gitlab.khronos.org/openxr/openxr/merge_requests/4410),
+    [internal MR 3289](https://gitlab.khronos.org/openxr/openxr/merge_requests/3289))
+  - Improvement: Allow `runClangTidy.sh` to run with clang-tidy 18.
+    ([internal MR 4433](https://gitlab.khronos.org/openxr/openxr/merge_requests/4433))
+  - Improvement: Allow `runClangTidy.sh` to run with `-modernize-use-scoped-lock`
+    enabled.
+    ([internal MR 4435](https://gitlab.khronos.org/openxr/openxr/merge_requests/4435))
+- Registry
+  - New ratified Khronos extension: `XR_KHR_extended_result_name_lengths`
+    ([internal MR 3964](https://gitlab.khronos.org/openxr/openxr/merge_requests/3964))
+  - New ratified multi-vendor extensions: `XR_EXT_spatial_container`,
+    `XR_EXT_spatial_container_self_rendering`
+    ([internal MR 3712](https://gitlab.khronos.org/openxr/openxr/merge_requests/3712),
+    [internal MR 4472](https://gitlab.khronos.org/openxr/openxr/merge_requests/4472))
+  - New ratified multi-vendor extension: `XR_EXT_spatial_image_tracking`
+    ([internal MR 3805](https://gitlab.khronos.org/openxr/openxr/merge_requests/3805))
+  - New vendor extension: `XR_BD_spatial_light_estimation`
+    ([internal MR 3814](https://gitlab.khronos.org/openxr/openxr/merge_requests/3814))
+  - New vendor extension: `XR_BD_camera_image`
+    ([internal MR 4089](https://gitlab.khronos.org/openxr/openxr/merge_requests/4089))
+  - New vendor extension: `XR_SONY_hdr_metadata`
+    ([internal MR 4172](https://gitlab.khronos.org/openxr/openxr/merge_requests/4172))
+  - Change: Add new semantic definitions including keyboard, mouse, and laptop in
+    `XrSemanticLabelBD`.
+    ([internal MR 4221](https://gitlab.khronos.org/openxr/openxr/merge_requests/4221))
+  - Chore: Reserve extension numbers.
+    ([internal MR 4420](https://gitlab.khronos.org/openxr/openxr/merge_requests/4420),
+    [internal MR 4421](https://gitlab.khronos.org/openxr/openxr/merge_requests/4421))
+  - Fix: Missing comments for `XrResult` error codes added by
+    `XR_ANDROID_google_cloud_auth`, `XR_ANDROID_geospatial`, and
+    `XR_ANDROID_geospatial_anchor`.
+    ([internal MR 4438](https://gitlab.khronos.org/openxr/openxr/merge_requests/4438))
+  - Fix: Always output forward slashes in relative paths when merging registry.
+    ([internal MR 4451](https://gitlab.khronos.org/openxr/openxr/merge_requests/4451))
+
 ## OpenXR SDK 1.1.62 (2026-07-31)
 
 This release includes a new vendor extension, an important fix to several vendor

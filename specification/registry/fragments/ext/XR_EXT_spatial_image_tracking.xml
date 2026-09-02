@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<fragment>
+    <comment>
+Copyright (c) 2017-2026 The Khronos Group Inc.
+
+SPDX-License-Identifier: Apache-2.0 OR MIT
+    </comment>
+    <types>
+        <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrSpatialImageTrackingDatabaseEXT</name>)</type>
+
+        <type name="XrSpatialReferenceImageFormatEXT" category="enum"/>
+
+        <type category="struct" name="XrSpatialReferenceImagePlaneEXT">
+            <member><type>uint32_t</type>                        <name>bufferSize</name></member>
+            <member len="bufferSize">const <type>uint8_t</type>* <name>buffer</name></member>
+            <member><type>uint32_t</type>                        <name>rowStride</name></member>
+            <member><type>uint32_t</type>                        <name>pixelStride</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialReferenceImageEXT">
+            <member values="XR_TYPE_SPATIAL_REFERENCE_IMAGE_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                             <name>next</name></member>
+            <member><type>uint32_t</type>                                                <name>width</name></member>
+            <member><type>uint32_t</type>                                                <name>height</name></member>
+            <member><type>XrSpatialReferenceImageFormatEXT</type>                        <name>format</name></member>
+            <member><type>uint32_t</type>                                                <name>planeCount</name></member>
+            <member len="planeCount">const <type>XrSpatialReferenceImagePlaneEXT</type>* <name>planes</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialImageStaticOptimizationEXT" structextends="XrSpatialReferenceImageEXT,XrSpatialImageTrackingDatabaseCreateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_IMAGE_STATIC_OPTIMIZATION_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrBool32</type>    <name>optimizeForStaticImage</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialImageSizeEXT" structextends="XrSpatialReferenceImageEXT,XrSpatialImageTrackingDatabaseCreateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_IMAGE_SIZE_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>float</type>       <name>physicalWidth</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialCapabilityConfigurationImageTrackingEXT" parentstruct="XrSpatialCapabilityConfigurationBaseHeaderEXT">
+            <member values="XR_TYPE_SPATIAL_CAPABILITY_CONFIGURATION_IMAGE_TRACKING_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                               <name>next</name></member>
+            <member><type>XrSpatialCapabilityEXT</type>                                                    <name>capability</name></member>
+            <member><type>uint32_t</type>                                                                  <name>enabledComponentCount</name></member>
+            <member len="enabledComponentCount">const <type>XrSpatialComponentTypeEXT</type>*              <name>enabledComponents</name></member>
+            <member><type>uint32_t</type>                                                                  <name>imageTrackingDatabaseCount</name></member>
+            <member len="imageTrackingDatabaseCount">const <type>XrSpatialImageTrackingDatabaseEXT</type>* <name>imageTrackingDatabases</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialImageTrackingDatabaseCreateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_IMAGE_TRACKING_DATABASE_CREATE_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                        <name>next</name></member>
+            <member><type>uint32_t</type>                                                           <name>spatialReferenceImageCount</name></member>
+            <member len="spatialReferenceImageCount">const <type>XrSpatialReferenceImageEXT</type>* <name>spatialReferenceImages</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialImage2DDataEXT">
+            <member><type>XrSpatialImageTrackingDatabaseEXT</type> <name>imageTrackingDatabase</name></member>
+            <member><type>uint32_t</type>                          <name>referenceImageIndex</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialComponentImage2DListEXT" structextends="XrSpatialComponentDataQueryResultEXT">
+            <member values="XR_TYPE_SPATIAL_COMPONENT_IMAGE_2D_LIST_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                               <name>next</name></member>
+            <member><type>uint32_t</type>                                  <name>imageCount</name></member>
+            <member len="imageCount"><type>XrSpatialImage2DDataEXT</type>* <name>images</name></member>
+        </type>
+
+        <type category="struct" name="XrCreateSpatialImageTrackingDatabaseCompletionEXT" parentstruct="XrFutureCompletionBaseHeaderEXT">
+            <member values="XR_TYPE_CREATE_SPATIAL_IMAGE_TRACKING_DATABASE_COMPLETION_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                             <name>next</name></member>
+            <member><type>XrResult</type>                          <name>futureResult</name></member>
+            <member><type>XrSpatialImageTrackingDatabaseEXT</type> <name>database</name></member>
+        </type>
+    </types>
+    <enums name="XrSpatialReferenceImageFormatEXT" type="enum">
+        <enum value="1"   name="XR_SPATIAL_REFERENCE_IMAGE_FORMAT_RGBA_8888_EXT"   comment="An RGBA buffer. The format makes no guarantees regarding the layout of the pixel data in memory. The pixels must: be accessed using the metadata provided by the corresponding slink:XrSpatialReferenceImagePlaneEXT structures. Each pixel color channel has an 8 bit size, making each pixel 32 bit in size."/>
+        <enum value="2"   name="XR_SPATIAL_REFERENCE_IMAGE_FORMAT_RGB_888_EXT"     comment="An RGB buffer. The format makes no guarantees regarding the layout of the pixel data in memory. The pixels must: be accessed using the metadata provided by the corresponding slink:XrSpatialReferenceImagePlaneEXT structures. Each pixel color channel has an 8 bit size, making each pixel 24 bit in size."/>
+        <enum value="3"   name="XR_SPATIAL_REFERENCE_IMAGE_FORMAT_YUV_420_888_EXT" comment="A YUV buffer that is 4:2:0 pattern chroma sub-sampled. The format makes no guarantees regarding the layout of the pixel data in memory. The pixels must: be accessed using the metadata provided by the corresponding slink:XrSpatialReferenceImagePlaneEXT structures. Each decoded RGB pixel color channel has an 8 bit size, making each pixel 24 bit in size."/>
+    </enums>
+    <commands>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SPATIAL_CAPABILITY_UNSUPPORTED_EXT,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateSpatialReferenceImageFormatsEXT</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param><type>XrSystemId</type> <name>systemId</name></param>
+            <param><type>XrSpatialCapabilityEXT</type> <name>capability</name></param>
+            <param optional="true"><type>uint32_t</type> <name>formatCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>formatCountOutput</name></param>
+            <param optional="true" len="formatCapacityInput"><type>XrSpatialReferenceImageFormatEXT</type>* <name>formats</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PERMISSION_INSUFFICIENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_IMAGE_FORMAT_UNSUPPORTED_EXT,XR_ERROR_SPATIAL_IMAGE_INVALID_EXT,XR_ERROR_SPATIAL_IMAGE_SIZE_MISSING_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSpatialImageTrackingDatabaseAsyncEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrSpatialImageTrackingDatabaseCreateInfoEXT</type>* <name>createInfo</name></param>
+            <param><type>XrFutureEXT</type>* <name>future</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroySpatialImageTrackingDatabaseEXT</name></proto>
+            <param externsync="true_with_children"><type>XrSpatialImageTrackingDatabaseEXT</type> <name>database</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_FUTURE_INVALID_EXT,XR_ERROR_FUTURE_PENDING_EXT,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSpatialImageTrackingDatabaseCompleteEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param><type>XrFutureEXT</type> <name>future</name></param>
+            <param><type>XrCreateSpatialImageTrackingDatabaseCompletionEXT</type>* <name>completion</name></param>
+        </command>
+
+    </commands>
+    <extensions>
+    <extension name="XR_EXT_spatial_image_tracking" number="783" type="instance" supported="openxr" ratified="openxr" depends="XR_EXT_spatial_entity+XR_EXT_future">
+        <require>
+            <enum value="1"                                         name="XR_EXT_spatial_image_tracking_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_spatial_image_tracking&quot;" name="XR_EXT_SPATIAL_IMAGE_TRACKING_EXTENSION_NAME"/>
+
+            <type name="XrSpatialImageTrackingDatabaseEXT"/>
+
+            <enum offset="0"         extends="XrObjectType" name="XR_OBJECT_TYPE_SPATIAL_IMAGE_TRACKING_DATABASE_EXT" comment="XrSpatialImageTrackingDatabaseEXT"/>
+
+            <enum offset="1" dir="-" extends="XrResult"     name="XR_ERROR_SPATIAL_IMAGE_FORMAT_UNSUPPORTED_EXT"      comment="A format has been passed that is not supported by the runtime."/>
+            <enum offset="2" dir="-" extends="XrResult"     name="XR_ERROR_SPATIAL_IMAGE_INVALID_EXT"                 comment="The data of an input image could not be evaluated successfully according to its input format and planes."/>
+            <enum offset="3" dir="-" extends="XrResult"     name="XR_ERROR_SPATIAL_IMAGE_SIZE_MISSING_EXT"            comment="An input image that requires a slink:XrSpatialImageSizeEXT structure has not been provided with one."/>
+
+            <type name="XrSpatialReferenceImageFormatEXT"/>
+
+            <type name="XrSpatialReferenceImagePlaneEXT"/>
+            <type name="XrSpatialReferenceImageEXT"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SPATIAL_REFERENCE_IMAGE_EXT"/>
+            <type name="XrSpatialImageStaticOptimizationEXT"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_SPATIAL_IMAGE_STATIC_OPTIMIZATION_EXT"/>
+            <type name="XrSpatialImageSizeEXT"/>
+            <enum offset="2" extends="XrStructureType" name="XR_TYPE_SPATIAL_IMAGE_SIZE_EXT"/>
+            <type name="XrSpatialCapabilityConfigurationImageTrackingEXT"/>
+            <enum offset="3" extends="XrStructureType" name="XR_TYPE_SPATIAL_CAPABILITY_CONFIGURATION_IMAGE_TRACKING_EXT"/>
+            <type name="XrSpatialImageTrackingDatabaseCreateInfoEXT"/>
+            <enum offset="4" extends="XrStructureType" name="XR_TYPE_SPATIAL_IMAGE_TRACKING_DATABASE_CREATE_INFO_EXT"/>
+            <type name="XrSpatialImage2DDataEXT"/>
+            <type name="XrSpatialComponentImage2DListEXT"/>
+            <enum offset="5" extends="XrStructureType" name="XR_TYPE_SPATIAL_COMPONENT_IMAGE_2D_LIST_EXT"/>
+            <type name="XrCreateSpatialImageTrackingDatabaseCompletionEXT"/>
+            <enum offset="6" extends="XrStructureType"               name="XR_TYPE_CREATE_SPATIAL_IMAGE_TRACKING_DATABASE_COMPLETION_EXT"/>
+
+            <enum offset="0" extends="XrSpatialCapabilityEXT"        name="XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT"                               comment="Capability to be able to detect and track planar reference images."/>
+
+            <enum offset="0" extends="XrSpatialComponentTypeEXT"     name="XR_SPATIAL_COMPONENT_TYPE_IMAGE_2D_EXT"                                 comment="A component describing the planar image type. Corresponding list structure is slink:XrSpatialComponentImage2DListEXT. Corresponding data structure is slink:XrSpatialImage2DDataEXT."/>
+
+            <enum offset="0" extends="XrSpatialCapabilityFeatureEXT" name="XR_SPATIAL_CAPABILITY_FEATURE_IMAGE_TRACKING_AUTOMATIC_SIZE_IMAGES_EXT" comment="The runtime supports automatically deducing the physical size of detected and tracked images. Corresponding config structure is slink:XrSpatialImageSizeEXT."/>
+            <enum offset="1" extends="XrSpatialCapabilityFeatureEXT" name="XR_SPATIAL_CAPABILITY_FEATURE_IMAGE_TRACKING_STATIC_IMAGES_EXT"         comment="The runtime supports static image optimization. Corresponding config structure is slink:XrSpatialImageStaticOptimizationEXT."/>
+            <enum offset="2" extends="XrSpatialCapabilityFeatureEXT" name="XR_SPATIAL_CAPABILITY_FEATURE_IMAGE_TRACKING_FIXED_SIZE_IMAGES_EXT"     comment="The runtime supports fixed size images. Corresponding config structure is slink:XrSpatialImageSizeEXT."/>
+
+            <command name="xrEnumerateSpatialReferenceImageFormatsEXT"/>
+            <command name="xrCreateSpatialImageTrackingDatabaseAsyncEXT"/>
+            <command name="xrCreateSpatialImageTrackingDatabaseCompleteEXT"/>
+            <command name="xrDestroySpatialImageTrackingDatabaseEXT"/>
+        </require>
+    </extension>
+
+    </extensions>
+</fragment>

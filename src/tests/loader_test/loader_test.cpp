@@ -161,10 +161,10 @@ static void InitLoader() {
     PFN_xrInitializeLoaderKHR xrInitializeLoaderKHR;
     if (XR_SUCCEEDED(
             xrGetInstanceProcAddr(XR_NULL_HANDLE, "xrInitializeLoaderKHR", (PFN_xrVoidFunction*)(&xrInitializeLoaderKHR))) &&
-        xrInitializeLoaderKHR != NULL) {
+        xrInitializeLoaderKHR != nullptr) {
         XrLoaderInitInfoPropertiesEXT loaderProperties{XR_TYPE_LOADER_INIT_INFO_PROPERTIES_EXT};
 
-        const XrLoaderInitInfoBaseHeaderKHR* loaderInitInfo = NULL;
+        const XrLoaderInitInfoBaseHeaderKHR* loaderInitInfo = nullptr;
 #if defined(XR_USE_PLATFORM_ANDROID)
         XrLoaderInitInfoAndroidKHR loaderInitializeInfoAndroid{XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR};
         loaderInitializeInfoAndroid.next = &loaderProperties;
@@ -799,7 +799,7 @@ TEST_CASE("TestLoaderInitialize") {
     std::vector<XrLoaderInitPropertyValueEXT> propertyList;
     XrLoaderInitInfoPropertiesEXT loaderProperties{XR_TYPE_LOADER_INIT_INFO_PROPERTIES_EXT};
 
-    const XrLoaderInitInfoBaseHeaderKHR* loaderInitInfo = NULL;
+    const XrLoaderInitInfoBaseHeaderKHR* loaderInitInfo = nullptr;
 #if defined(XR_USE_PLATFORM_ANDROID)
     XrLoaderInitInfoAndroidKHR loaderInitializeInfoAndroid{XR_TYPE_LOADER_INIT_INFO_ANDROID_KHR};
     loaderInitializeInfoAndroid.next = &loaderProperties;
@@ -899,7 +899,7 @@ void android_main(struct android_app* app) {
     JNIEnv* Env;
     app->activity->vm->AttachCurrentThread(&Env, nullptr);
 
-    app->userData = NULL;
+    app->userData = nullptr;
     app->onAppCmd = app_handle_cmd;
 
     InitLoader();

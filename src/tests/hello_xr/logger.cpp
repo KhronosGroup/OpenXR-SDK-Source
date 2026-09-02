@@ -47,7 +47,7 @@ void Write(Level severity, const std::string& msg) {
         << "." << std::setw(3) << milliseconds << "]"  // force code wrap
         << "[" << severityName[severity] << "] " << msg << std::endl;
 
-    std::lock_guard<std::mutex> lock(g_logLock);  // Ensure output is serialized
+    std::scoped_lock<std::mutex> lock(g_logLock);  // Ensure output is serialized
     ((severity == Level::Error) ? std::clog : std::cout) << out.str();
 #if defined(_WIN32)
     OutputDebugStringA(out.str().c_str());

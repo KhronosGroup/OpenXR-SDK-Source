@@ -64,6 +64,7 @@ struct Program {
 // possible, so users of C (and other languages) are not too
 // bogged down with C++ism. The cleanup code is hidden in
 // the struct so the example is lighter but still correct.
+// NOLINTNEXTLINE(bugprone-exception-escape)
 int main() {
     Program program = {};
 

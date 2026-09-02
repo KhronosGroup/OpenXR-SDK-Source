@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<fragment>
+    <comment>
+Copyright (c) 2026 The Khronos Group Inc.
+
+SPDX-License-Identifier: Apache-2.0 OR MIT
+    </comment>
+
+    <types>
+        <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrSpatialContainerEXT</name>)</type>
+
+        <type category="enum" name="XrSpatialContainerGraphicsPresentationEXT"/>
+        <type category="enum" name="XrSpatialContainerBoundsModeEXT"/>
+        <type category="enum" name="XrSpatialContainerVolumeClippingEXT"/>
+
+        <type category="struct" name="XrSpatialContainerCreateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_CREATE_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                               <name>next</name></member>
+            <member><type>XrSpatialContainerGraphicsPresentationEXT</type> <name>graphicsPresentation</name></member>
+            <member><type>XrExtent3Df</type>                               <name>suggestedBounds</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerSpaceCreateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_SPACE_CREATE_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*           <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></member>
+        </type>
+
+        <type category="struct" name="XrEventDataSpatialContainerClosedEXT" parentstruct="XrEventDataBaseHeader" returnedonly="true">
+            <member values="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_CLOSED_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*           <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></member>
+        </type>
+
+        <type category="struct" name="XrSystemSpatialContainerPropertiesEXT" structextends="XrSystemProperties" returnedonly="true">
+            <member values="XR_TYPE_SYSTEM_SPATIAL_CONTAINER_PROPERTIES_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*    <name>next</name></member>
+            <member><type>uint32_t</type> <name>maxSpatialContainerCount</name></member>
+            <member><type>XrBool32</type> <name>supportsBounded</name></member>
+            <member><type>XrBool32</type> <name>supportsImmersive</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerBoundsEXT" returnedonly="true">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_BOUNDS_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*       <name>next</name></member>
+            <member><type>XrExtent3Df</type> <name>bounds</name></member>
+            <member><type>XrBool32</type>    <name>infiniteBounds</name></member>
+        </type>
+
+        <type category="struct" name="XrEventDataSpatialContainerBoundsChangedEXT" parentstruct="XrEventDataBaseHeader" returnedonly="true">
+            <member values="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_BOUNDS_CHANGED_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                     <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type>           <name>spatialContainer</name></member>
+            <member><type>XrExtent3Df</type>                     <name>bounds</name></member>
+            <member><type>XrBool32</type>                        <name>infiniteBounds</name></member>
+            <member><type>XrSpatialContainerBoundsModeEXT</type> <name>boundsMode</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerBoundsGetInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_BOUNDS_GET_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerStateGetInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_STATE_GET_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerVisibleRequestInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_VISIBLE_REQUEST_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrBool32</type>    <name>visible</name></member>
+        </type>
+
+        <type category="struct" name="XrEventDataSpatialContainerVisibleChangedEXT" parentstruct="XrEventDataBaseHeader" returnedonly="true">
+            <member values="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_VISIBLE_CHANGED_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*           <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></member>
+            <member><type>XrBool32</type>              <name>visible</name></member>
+        </type>
+
+        <type category="struct" name="XrEventDataSpatialContainerVisibleRequestDeniedEXT" parentstruct="XrEventDataBaseHeader" returnedonly="true">
+            <member values="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_VISIBLE_REQUEST_DENIED_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*           <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></member>
+        </type>
+
+        <type category="struct" name="XrEventDataSpatialContainerInteractableChangedEXT" parentstruct="XrEventDataBaseHeader" returnedonly="true">
+            <member values="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_INTERACTABLE_CHANGED_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*           <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></member>
+            <member><type>XrBool32</type>              <name>interactable</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerBoundsModeRequestInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_BOUNDS_MODE_REQUEST_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                     <name>next</name></member>
+            <member><type>XrSpatialContainerBoundsModeEXT</type> <name>boundsMode</name></member>
+        </type>
+
+        <type category="struct" name="XrEventDataSpatialContainerBoundsModeRequestDeniedEXT" parentstruct="XrEventDataBaseHeader" returnedonly="true">
+            <member values="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_BOUNDS_MODE_REQUEST_DENIED_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*           <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerStateEXT" returnedonly="true">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_STATE_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                           <name>next</name></member>
+            <member><type>XrBool32</type>                        <name>visible</name></member>
+            <member><type>XrBool32</type>                        <name>interactable</name></member>
+            <member><type>XrSpatialContainerBoundsModeEXT</type> <name>boundsMode</name></member>
+        </type>
+
+        <type category="struct" name="XrSessionCreateInfoSpatialContainersEXT" structextends="XrSessionCreateInfo">
+            <member values="XR_TYPE_SESSION_CREATE_INFO_SPATIAL_CONTAINERS_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+    </types>
+
+    <enums name="XrSpatialContainerGraphicsPresentationEXT" type="enum">
+    </enums>
+
+    <enums name="XrSpatialContainerBoundsModeEXT" type="enum">
+        <enum value="1"   name="XR_SPATIAL_CONTAINER_BOUNDS_MODE_BOUNDED_EXT"   comment="Spatial container is bounded. The bounds are a finite box. The spatial container will only appear in this region."/>
+        <enum value="2"   name="XR_SPATIAL_CONTAINER_BOUNDS_MODE_IMMERSIVE_EXT" comment="Spatial container is immersive and has infinite bounds. The spatial container is displayed over the entire screen."/>
+    </enums>
+
+    <enums name="XrSpatialContainerVolumeClippingEXT" type="enum">
+        <enum value="0"   name="XR_SPATIAL_CONTAINER_VOLUME_CLIPPING_NONE_EXT"   comment="No content is clipped to the bounding volume of the spatial container.  Content can draw outside of the spatial container's bounds."/>
+        <enum value="1"   name="XR_SPATIAL_CONTAINER_VOLUME_CLIPPING_STRICT_EXT" comment="Content is strictly clipped to the bounding volume of the spatial container."/>
+    </enums>
+
+    <commands>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINERS_NOT_ENABLED_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSpatialContainerEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrSpatialContainerCreateInfoEXT</type>* <name>createInfo</name></param>
+            <param><type>XrSpatialContainerEXT</type>* <name>spatialContainer</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroySpatialContainerEXT</name></proto>
+            <param externsync="true_with_children"><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINER_CLOSED_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSpatialContainerSpaceEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrSpatialContainerSpaceCreateInfoEXT</type>* <name>createInfo</name></param>
+            <param><type>XrSpace</type>* <name>space</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINER_CLOSED_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrRequestSpatialContainerVisibleEXT</name></proto>
+            <param><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></param>
+            <param>const <type>XrSpatialContainerVisibleRequestInfoEXT</type>* <name>info</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINER_CLOSED_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrRequestSpatialContainerBoundsModeEXT</name></proto>
+            <param><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></param>
+            <param>const <type>XrSpatialContainerBoundsModeRequestInfoEXT</type>* <name>info</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINER_CLOSED_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetSpatialContainerBoundsEXT</name></proto>
+            <param><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></param>
+            <param optional="true">const <type>XrSpatialContainerBoundsGetInfoEXT</type>* <name>getInfo</name></param>
+            <param><type>XrSpatialContainerBoundsEXT</type>* <name>bounds</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINER_CLOSED_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetSpatialContainerStateEXT</name></proto>
+            <param><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></param>
+            <param optional="true">const <type>XrSpatialContainerStateGetInfoEXT</type>* <name>getInfo</name></param>
+            <param><type>XrSpatialContainerStateEXT</type>* <name>state</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateSupportedSpatialContainerGraphicsPresentationsEXT</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param><type>XrSystemId</type> <name>systemId</name></param>
+            <param optional="true"><type>uint32_t</type> <name>graphicsPresentationCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>graphicsPresentationCountOutput</name></param>
+            <param optional="true" len="graphicsPresentationCapacityInput"><type>XrSpatialContainerGraphicsPresentationEXT</type>* <name>graphicsPresentations</name></param>
+        </command>
+    </commands>
+
+    <extensions>
+    <extension name="XR_EXT_spatial_container" number="811" type="instance" supported="openxr" ratified="openxr">
+        <require>
+            <enum value="1"                                    name="XR_EXT_spatial_container_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_spatial_container&quot;" name="XR_EXT_SPATIAL_CONTAINER_EXTENSION_NAME"/>
+
+            <type name="XrSessionCreateInfoSpatialContainersEXT"/>
+            <type name="XrSpatialContainerEXT"/>
+            <type name="XrSpatialContainerCreateInfoEXT"/>
+            <type name="XrSpatialContainerSpaceCreateInfoEXT"/>
+            <type name="XrEventDataSpatialContainerClosedEXT"/>
+            <type name="XrSystemSpatialContainerPropertiesEXT"/>
+            <type name="XrSpatialContainerBoundsEXT"/>
+            <type name="XrEventDataSpatialContainerBoundsChangedEXT"/>
+            <type name="XrSpatialContainerBoundsGetInfoEXT"/>
+            <type name="XrSpatialContainerStateGetInfoEXT"/>
+            <type name="XrSpatialContainerGraphicsPresentationEXT"/>
+            <type name="XrSpatialContainerVisibleRequestInfoEXT"/>
+            <type name="XrEventDataSpatialContainerVisibleChangedEXT"/>
+            <type name="XrEventDataSpatialContainerVisibleRequestDeniedEXT"/>
+            <type name="XrEventDataSpatialContainerInteractableChangedEXT"/>
+            <type name="XrSpatialContainerBoundsModeEXT"/>
+            <type name="XrSpatialContainerBoundsModeRequestInfoEXT"/>
+            <type name="XrEventDataSpatialContainerBoundsModeRequestDeniedEXT"/>
+            <type name="XrSpatialContainerVolumeClippingEXT"/>
+            <type name="XrSpatialContainerStateEXT"/>
+
+            <enum offset="0"          extends="XrObjectType"    name="XR_OBJECT_TYPE_SPATIAL_CONTAINER_EXT"                                comment="XrSpatialContainerEXT"/>
+
+            <enum offset="0"          extends="XrStructureType" name="XR_TYPE_SPATIAL_CONTAINER_CREATE_INFO_EXT"/>
+            <enum offset="1"          extends="XrStructureType" name="XR_TYPE_SPATIAL_CONTAINER_SPACE_CREATE_INFO_EXT"/>
+            <enum offset="3"          extends="XrStructureType" name="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_CLOSED_EXT"/>
+            <enum offset="4"          extends="XrStructureType" name="XR_TYPE_SYSTEM_SPATIAL_CONTAINER_PROPERTIES_EXT"/>
+            <enum offset="5"          extends="XrStructureType" name="XR_TYPE_SPATIAL_CONTAINER_BOUNDS_EXT"/>
+            <enum offset="6"          extends="XrStructureType" name="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_BOUNDS_CHANGED_EXT"/>
+            <enum offset="7"          extends="XrStructureType" name="XR_TYPE_SPATIAL_CONTAINER_BOUNDS_GET_INFO_EXT"/>
+            <enum offset="8"          extends="XrStructureType" name="XR_TYPE_SPATIAL_CONTAINER_STATE_GET_INFO_EXT"/>
+            <enum offset="9"          extends="XrStructureType" name="XR_TYPE_SPATIAL_CONTAINER_VISIBLE_REQUEST_INFO_EXT"/>
+            <enum offset="10"         extends="XrStructureType" name="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_VISIBLE_CHANGED_EXT"/>
+            <enum offset="11"         extends="XrStructureType" name="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_VISIBLE_REQUEST_DENIED_EXT"/>
+            <enum offset="12"         extends="XrStructureType" name="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_INTERACTABLE_CHANGED_EXT"/>
+            <enum offset="13"         extends="XrStructureType" name="XR_TYPE_SPATIAL_CONTAINER_BOUNDS_MODE_REQUEST_INFO_EXT"/>
+            <enum offset="14"         extends="XrStructureType" name="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_BOUNDS_MODE_REQUEST_DENIED_EXT"/>
+            <enum offset="15"         extends="XrStructureType" name="XR_TYPE_SPATIAL_CONTAINER_STATE_EXT"/>
+            <enum offset="16"         extends="XrStructureType" name="XR_TYPE_SESSION_CREATE_INFO_SPATIAL_CONTAINERS_EXT"/>
+
+            <enum offset="0"  dir="-" extends="XrResult"        name="XR_ERROR_SPATIAL_CONTAINER_CLOSED_EXT"                               comment="The spatial container passed was closed by the runtime."/>
+            <enum offset="1"  dir="-" extends="XrResult"        name="XR_ERROR_SPATIAL_CONTAINERS_ENABLED_EXT"                             comment="The requested operation is not supported with spatial containers enabled."/>
+            <enum offset="2"  dir="-" extends="XrResult"        name="XR_ERROR_SPATIAL_CONTAINERS_NOT_ENABLED_EXT"                         comment="The requested operation requires spatial containers be enabled for this slink:XrSession."/>
+            <enum offset="3"  dir="-" extends="XrResult"        name="XR_ERROR_COMPATIBLE_SPATIAL_CONTAINER_MISSING_EXT"                   comment="A compatible spatial container was not passed to a function."/>
+
+            <command name="xrCreateSpatialContainerEXT"/>
+            <command name="xrDestroySpatialContainerEXT"/>
+            <command name="xrCreateSpatialContainerSpaceEXT"/>
+            <command name="xrRequestSpatialContainerVisibleEXT"/>
+            <command name="xrRequestSpatialContainerBoundsModeEXT"/>
+            <command name="xrGetSpatialContainerBoundsEXT"/>
+            <command name="xrGetSpatialContainerStateEXT"/>
+            <command name="xrEnumerateSupportedSpatialContainerGraphicsPresentationsEXT"/>
+
+            <extend type="command" name="xrBeginSession" errorcodes="XR_ERROR_SPATIAL_CONTAINERS_ENABLED_EXT"/>
+            <extend type="command" name="xrEndSession" errorcodes="XR_ERROR_SPATIAL_CONTAINERS_ENABLED_EXT"/>
+            <extend type="command" name="xrRequestExitSession" errorcodes="XR_ERROR_SPATIAL_CONTAINERS_ENABLED_EXT"/>
+            <extend type="command" name="xrLocateViews" errorcodes="XR_ERROR_SPATIAL_CONTAINERS_ENABLED_EXT"/>
+        </require>
+    </extension>
+    </extensions>
+</fragment>

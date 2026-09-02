@@ -7,6 +7,10 @@
       DO NOT EDIT DIRECTLY - generated from xr.fragmented.xml and the following fragments:
 
       - fragments/android/XR_ANDROID_trackables.xml
+      - fragments/ext/XR_EXT_spatial_container.xml
+      - fragments/ext/XR_EXT_spatial_container_self_rendering.xml
+      - fragments/ext/XR_EXT_spatial_image_tracking.xml
+      - fragments/khr/XR_KHR_extended_result_name_lengths.xml
 -->
     <comment>
 Copyright (c) 2017-2026 The Khronos Group Inc.
@@ -144,7 +148,7 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         updates them automatically by processing a line at a time.
         -->
         <type category="define">// OpenXR current version number.
-#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(1, 1, 62)</type>
+#define <name>XR_CURRENT_API_VERSION</name> <type>XR_MAKE_VERSION</type>(1, 1, 63)</type>
 
         <!--
         Defines for a fixed major.minor version of OpenXR preserving the shared patch version.
@@ -504,6 +508,10 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <!-- Bitmask types for XR_ANDROID_geospatial -->
         <type bitvalues="XrGeospatialPoseFlagBitsANDROID" category="bitmask">typedef <type>XrFlags64</type> <name>XrGeospatialPoseFlagsANDROID</name>;</type>
 
+        <!-- Bitmask types for XR_BD_spatial_light_estimation -->
+        <type bitvalues="XrLightEstimationCreateFlagBitsBD" category="bitmask">typedef <type>XrFlags64</type> <name>XrLightEstimationCreateFlagsBD</name>;</type>
+
+
         <!-- Handles referring to internally-maintained objects. -->
         <!-- These types which can be 64-bit integers or opaque pointers, selected at compile time based on pointer size -->
         <type category="handle"><type>XR_DEFINE_HANDLE</type>(<name>XrInstance</name>)</type>
@@ -644,6 +652,13 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
 
         <!-- XR_ANDROID_geospatial -->
         <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrGeospatialTrackerANDROID</name>)</type>
+
+        <!-- XR_BD_camera_image -->
+        <type category="basetype"><type>XR_DEFINE_ATOM</type>(<name>XrCameraIdBD</name>)</type>
+        <type category="basetype"><type>XR_DEFINE_ATOM</type>(<name>XrCameraImageIdBD</name>)</type>
+        <type category="handle" parent="XrInstance"><type>XR_DEFINE_HANDLE</type>(<name>XrCameraDeviceBD</name>)</type>
+        <type category="handle" parent="XrCameraDeviceBD"><type>XR_DEFINE_HANDLE</type>(<name>XrCameraCaptureSessionBD</name>)</type>
+
 
         <!-- Non-handle 64-bit opaque type from XR_EXT_future -->
         <type category="basetype"><type>XR_DEFINE_OPAQUE_64</type>(<name>XrFutureEXT</name>)</type>
@@ -983,6 +998,13 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
         <!-- enums for XR_BD_spatial_plane -->
         <type name="XrPlaneOrientationBD" category="enum"/>
 
+        <!-- enums for XR_BD_spatial_light_estimation -->
+        <type name="XrEnvironmentTextureResolutionBD" category="enum"/>
+        <type name="XrEnvironmentTextureTransferTypeBD" category="enum"/>
+        <type name="XrEnvironmentTexturePixelFormatBD" category="enum"/>
+        <type name="XrSphericalHarmonicsKindBD" category="enum"/>
+        <type name="XrLightEstimationCreateFlagBitsBD" category="enum"/>
+
         <!-- enums for XR_BD_dynamic_object_tracking -->
         <type name="XrDynamicObjectTypeBD" category="enum"/>
 
@@ -1014,6 +1036,16 @@ maintained in the default branch of the Khronos OpenXR GitHub project.
 
         <!-- XR_SONY_swapchain_color_space -->
         <type name="XrColorSpaceSONY" category="enum"/>
+
+        <!-- enums for XR_BD_camera_image -->
+        <type name="XrCameraPropertyTypeBD" category="enum"/>
+        <type name="XrCameraFacingBD" category="enum"/>
+        <type name="XrCameraPositionBD" category="enum"/>
+        <type name="XrCameraTypeBD" category="enum"/>
+        <type name="XrCameraCapabilityTypeBD" category="enum"/>
+        <type name="XrCameraDataTransferTypeBD" category="enum"/>
+        <type name="XrCameraImageFormatBD" category="enum"/>
+        <type name="XrCameraModelBD" category="enum"/>
 
         <!-- Struct types -->
         <type category="struct" name="XrVector2f">
@@ -5953,6 +5985,58 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member><type>XrSpatialMeshLodBD</type>                         <name>lod</name></member>
         </type>
 
+        <!-- XR_BD_spatial_light_estimation -->
+        <type category="struct" name="XrSystemLightEstimationPropertiesBD" returnedonly="true" structextends="XrSystemProperties">
+            <member values="XR_TYPE_SYSTEM_LIGHT_ESTIMATION_PROPERTIES_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*    <name>next</name></member>
+            <member><type>XrBool32</type> <name>supportsLightEstimation</name></member>
+            <member><type>XrBool32</type> <name>supportsEnvironmentTexture</name></member>
+            <member><type>XrBool32</type> <name>supportsSphericalHarmonics</name></member>
+        </type>
+
+        <type category="struct" name="XrSenseDataProviderCreateInfoLightEstimationBD" structextends="XrSenseDataProviderCreateInfoBD">
+            <member values="XR_TYPE_SENSE_DATA_PROVIDER_CREATE_INFO_LIGHT_ESTIMATION_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                    <name>next</name></member>
+            <member><type>XrLightEstimationCreateFlagsBD</type> <name>createFlags</name></member>
+        </type>
+
+        <type category="struct" name="XrEnvironmentTextureCreateConfigInfoBD" structextends="XrSenseDataProviderCreateInfoBD">
+            <member values="XR_TYPE_ENVIRONMENT_TEXTURE_CREATE_CONFIG_INFO_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                        <name>next</name></member>
+            <member><type>XrEnvironmentTexturePixelFormatBD</type>  <name>pixelFormat</name></member>
+            <member><type>XrEnvironmentTextureResolutionBD</type>   <name>resolution</name></member>
+            <member><type>XrEnvironmentTextureTransferTypeBD</type> <name>transferType</name></member>
+        </type>
+
+        <type category="struct" name="XrLightEstimationDataEnvironmentTextureRawBD" structextends="XrSpatialEntityComponentDataLightEstimationBD">
+            <member values="XR_TYPE_LIGHT_ESTIMATION_DATA_ENVIRONMENT_TEXTURE_RAW_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                          <name>next</name></member>
+            <member><type>XrEnvironmentTexturePixelFormatBD</type>    <name>pixelFormat</name></member>
+            <member><type>uint32_t</type>                             <name>cubemapFaceBufferSize</name></member>
+            <member len="cubemapFaceBufferSize"><type>uint8_t</type>* <name>rightCubemapFaceBuffer</name></member>
+            <member len="cubemapFaceBufferSize"><type>uint8_t</type>* <name>leftCubemapFaceBuffer</name></member>
+            <member len="cubemapFaceBufferSize"><type>uint8_t</type>* <name>topCubemapFaceBuffer</name></member>
+            <member len="cubemapFaceBufferSize"><type>uint8_t</type>* <name>bottomCubemapFaceBuffer</name></member>
+            <member len="cubemapFaceBufferSize"><type>uint8_t</type>* <name>frontCubemapFaceBuffer</name></member>
+            <member len="cubemapFaceBufferSize"><type>uint8_t</type>* <name>backCubemapFaceBuffer</name></member>
+        </type>
+
+        <type category="struct" name="XrLightEstimationDataSphericalHarmonicsBD" structextends="XrSpatialEntityComponentDataLightEstimationBD">
+            <member values="XR_TYPE_LIGHT_ESTIMATION_DATA_SPHERICAL_HARMONICS_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                            <name>next</name></member>
+            <member><type>XrSphericalHarmonicsKindBD</type>                             <name>kind</name></member>
+            <member optional="true"><type>uint32_t</type>                               <name>coefficientCapacityInput</name></member>
+            <member optional="true"><type>uint32_t</type>                               <name>coefficientCountOutput</name></member>
+            <member optional="true" len="coefficientCapacityInput"> <type>float</type>* <name>coefficients</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialEntityComponentDataLightEstimationBD" structextends="XrSpatialEntityComponentDataBaseHeaderBD">
+            <member values="XR_TYPE_SPATIAL_ENTITY_COMPONENT_DATA_LIGHT_ESTIMATION_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*    <name>next</name></member>
+            <member><type>XrBool32</type> <name>isValid</name></member>
+        </type>
+
+
         <!-- XR_BD_spatial_scene -->
         <type category="struct" name="XrSystemSpatialScenePropertiesBD" returnedonly="true" structextends="XrSystemProperties">
             <member values="XR_TYPE_SYSTEM_SPATIAL_SCENE_PROPERTIES_BD"><type>XrStructureType</type> <name>type</name></member>
@@ -6593,6 +6677,237 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member><type>XrColorSpaceSONY</type> <name>colorSpace</name></member>
         </type>
 
+        <!-- XR_BD_camera_image -->
+        <type category="struct" name="XrAvailableCamerasEnumerateInfoBD">
+            <member values="XR_TYPE_AVAILABLE_CAMERAS_ENUMERATE_INFO_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                   <name>next</name></member>
+            <member optional="true">const <type>XrCameraPropertiesBD</type>*   <name>properties</name></member>
+            <member optional="true">const <type>XrCameraCapabilitiesBD</type>* <name>capabilities</name></member>
+        </type>
+        <type category="struct" name="XrAvailableCameraBD" returnedonly="true">
+            <member values="XR_TYPE_AVAILABLE_CAMERA_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*        <name>next</name></member>
+            <member><type>XrCameraIdBD</type> <name>cameraId</name></member>
+        </type>
+        <type category="struct" name="XrCameraPropertiesGetInfoBD">
+            <member values="XR_TYPE_CAMERA_PROPERTIES_GET_INFO_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*  <name>next</name></member>
+            <member><type>XrCameraIdBD</type> <name>cameraId</name></member>
+        </type>
+        <type category="struct" name="XrCameraPropertyBaseHeaderBD">
+            <member><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*     <name>next</name></member>
+        </type>
+        <type category="struct" name="XrCameraPropertiesBD">
+            <member values="XR_TYPE_CAMERA_PROPERTIES_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                              <name>next</name></member>
+            <member><type>uint32_t</type>                                           <name>propertyCount</name></member>
+            <member len="propertyCount"><type>XrCameraPropertyBaseHeaderBD</type>** <name>properties</name></member>
+        </type>
+        <type category="struct" name="XrCameraPropertyFacingBD" parentstruct="XrCameraPropertyBaseHeaderBD">
+            <member values="XR_TYPE_CAMERA_PROPERTY_FACING_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*      <name>next</name></member>
+            <member><type>XrCameraFacingBD</type> <name>facing</name></member>
+        </type>
+        <type category="struct" name="XrCameraPropertyPositionBD" parentstruct="XrCameraPropertyBaseHeaderBD">
+            <member values="XR_TYPE_CAMERA_PROPERTY_POSITION_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*        <name>next</name></member>
+            <member><type>XrCameraPositionBD</type> <name>position</name></member>
+        </type>
+        <type category="struct" name="XrCameraPropertyCameraTypeBD" parentstruct="XrCameraPropertyBaseHeaderBD">
+            <member values="XR_TYPE_CAMERA_PROPERTY_CAMERA_TYPE_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*    <name>next</name></member>
+            <member><type>XrCameraTypeBD</type> <name>cameraType</name></member>
+        </type>
+        <type category="struct" name="XrCameraSupportedCapabilitiesGetInfoBD">
+            <member values="XR_TYPE_CAMERA_SUPPORTED_CAPABILITIES_GET_INFO_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*  <name>next</name></member>
+            <member><type>XrCameraIdBD</type> <name>id</name></member>
+        </type>
+        <type category="struct" name="XrCameraSupportedCapabilityBaseHeaderBD" returnedonly="true">
+            <member><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>* <name>next</name></member>
+        </type>
+        <type category="struct" name="XrCameraSupportedCapabilitiesBD">
+            <member values="XR_TYPE_CAMERA_SUPPORTED_CAPABILITIES_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                                           <name>next</name></member>
+            <member><type>uint32_t</type>                                                        <name>capabilityCount</name></member>
+            <member len="capabilityCount"><type>XrCameraSupportedCapabilityBaseHeaderBD</type>** <name>capabilities</name></member>
+        </type>
+        <type category="struct" name="XrCameraCapabilityBaseHeaderBD">
+            <member><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*     <name>next</name></member>
+        </type>
+        <type category="struct" name="XrCameraCapabilitiesBD">
+            <member values="XR_TYPE_CAMERA_CAPABILITIES_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                            <name>next</name></member>
+            <member><type>uint32_t</type>                                               <name>capabilityCount</name></member>
+            <member len="capabilityCount"><type>XrCameraCapabilityBaseHeaderBD</type>** <name>capabilities</name></member>
+        </type>
+        <type category="struct" name="XrCameraCapabilityTypesEnumerateInfoBD">
+            <member values="XR_TYPE_CAMERA_CAPABILITY_TYPES_ENUMERATE_INFO_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*  <name>next</name></member>
+            <member><type>XrCameraIdBD</type> <name>cameraId</name></member>
+        </type>
+        <type category="struct" name="XrCameraCapabilityTypesBD">
+            <member values="XR_TYPE_CAMERA_CAPABILITY_TYPES_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                                                       <name>next</name></member>
+            <member optional="true"><type>uint32_t</type>                                                    <name>capabilityTypeCapacityInput</name></member>
+            <member optional="true"><type>uint32_t</type>                                                    <name>capabilityTypeCountOutput</name></member>
+            <member optional="true" len="capabilityTypeCapacityInput"><type>XrCameraCapabilityTypeBD</type>* <name>capabilityTypes</name></member>
+        </type>
+        <type category="struct" name="XrCameraPropertyTypesEnumerateInfoBD">
+            <member values="XR_TYPE_CAMERA_PROPERTY_TYPES_ENUMERATE_INFO_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*  <name>next</name></member>
+            <member><type>XrCameraIdBD</type> <name>cameraId</name></member>
+        </type>
+        <type category="struct" name="XrCameraPropertyTypesBD">
+            <member values="XR_TYPE_CAMERA_PROPERTY_TYPES_BD"><type>XrStructureType</type>               <name>type</name></member>
+            <member><type>void</type>*                                                                   <name>next</name></member>
+            <member optional="true"><type>uint32_t</type>                                                <name>propertyTypeCapacityInput</name></member>
+            <member optional="true"><type>uint32_t</type>                                                <name>propertyTypeCountOutput</name></member>
+            <member optional="true" len="propertyTypeCapacityInput"><type>XrCameraPropertyTypeBD</type>* <name>propertyTypes</name></member>
+        </type>
+        <type category="struct" name="XrCameraImageResolutionAndFrameRateBD">
+            <member><type>XrExtent2Di</type> <name>resolution</name></member>
+            <member><type>uint32_t</type>    <name>frameRate</name></member>
+        </type>
+        <type category="struct" name="XrCameraSupportedCapabilityImageResolutionAndFrameRateBD" parentstruct="XrCameraSupportedCapabilityBaseHeaderBD" returnedonly="true">
+            <member values="XR_TYPE_CAMERA_SUPPORTED_CAPABILITY_IMAGE_RESOLUTION_AND_FRAME_RATE_BD"><type>XrStructureType</type>  <name>type</name></member>
+            <member><type>void</type>*                                                                                            <name>next</name></member>
+            <member optional="true"><type>uint32_t</type>                                                                         <name>resolutionAndFrameRateCapacityInput</name></member>
+            <member optional="true"><type>uint32_t</type>                                                                         <name>resolutionAndFrameRateCountOutput</name></member>
+            <member optional="true" len="resolutionAndFrameRateCapacityInput"><type>XrCameraImageResolutionAndFrameRateBD</type>* <name>resolutionAndFrameRates</name></member>
+        </type>
+        <type category="struct" name="XrCameraCapabilityImageResolutionAndFrameRateBD" parentstruct="XrCameraCapabilityBaseHeaderBD">
+            <member values="XR_TYPE_CAMERA_CAPABILITY_IMAGE_RESOLUTION_AND_FRAME_RATE_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrExtent2Di</type> <name>resolution</name></member>
+            <member><type>uint32_t</type>    <name>frameRate</name></member>
+        </type>
+        <type category="struct" name="XrCameraSupportedCapabilityDataTransferTypeBD" parentstruct="XrCameraSupportedCapabilityBaseHeaderBD" returnedonly="true">
+            <member values="XR_TYPE_CAMERA_SUPPORTED_CAPABILITY_DATA_TRANSFER_TYPE_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                                                       <name>next</name></member>
+            <member optional="true"><type>uint32_t</type>                                                    <name>transferTypeCapacityInput</name></member>
+            <member optional="true"><type>uint32_t</type>                                                    <name>transferTypeCountOutput</name></member>
+            <member optional="true" len="transferTypeCapacityInput"><type>XrCameraDataTransferTypeBD</type>* <name>transferTypes</name></member>
+        </type>
+        <type category="struct" name="XrCameraCapabilityDataTransferTypeBD" parentstruct="XrCameraCapabilityBaseHeaderBD">
+            <member values="XR_TYPE_CAMERA_CAPABILITY_DATA_TRANSFER_TYPE_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                <name>next</name></member>
+            <member><type>XrCameraDataTransferTypeBD</type> <name>transferType</name></member>
+        </type>
+        <type category="struct" name="XrCameraSupportedCapabilityImageFormatBD" parentstruct="XrCameraSupportedCapabilityBaseHeaderBD" returnedonly="true">
+            <member values="XR_TYPE_CAMERA_SUPPORTED_CAPABILITY_IMAGE_FORMAT_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                                            <name>next</name></member>
+            <member optional="true"><type>uint32_t</type>                                         <name>formatCapacityInput</name></member>
+            <member optional="true"><type>uint32_t</type>                                         <name>formatCountOutput</name></member>
+            <member optional="true" len="formatCapacityInput"><type>XrCameraImageFormatBD</type>* <name>formats</name></member>
+        </type>
+        <type category="struct" name="XrCameraCapabilityImageFormatBD" parentstruct="XrCameraCapabilityBaseHeaderBD">
+            <member values="XR_TYPE_CAMERA_CAPABILITY_IMAGE_FORMAT_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*           <name>next</name></member>
+            <member><type>XrCameraImageFormatBD</type> <name>format</name></member>
+        </type>
+        <type category="struct" name="XrCameraSupportedCapabilityCameraModelBD" parentstruct="XrCameraSupportedCapabilityBaseHeaderBD" returnedonly="true">
+            <member values="XR_TYPE_CAMERA_SUPPORTED_CAPABILITY_CAMERA_MODEL_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                                     <name>next</name></member>
+            <member optional="true"><type>uint32_t</type>                                  <name>modelCapacityInput</name></member>
+            <member optional="true"><type>uint32_t</type>                                  <name>modelCountOutput</name></member>
+            <member optional="true" len="modelCapacityInput"><type>XrCameraModelBD</type>* <name>models</name></member>
+        </type>
+        <type category="struct" name="XrCameraCapabilityCameraModelBD" parentstruct="XrCameraCapabilityBaseHeaderBD">
+            <member values="XR_TYPE_CAMERA_CAPABILITY_CAMERA_MODEL_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*     <name>next</name></member>
+            <member><type>XrCameraModelBD</type> <name>model</name></member>
+        </type>
+        <type category="struct" name="XrCameraDeviceCreateInfoBD">
+            <member values="XR_TYPE_CAMERA_DEVICE_CREATE_INFO_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*  <name>next</name></member>
+            <member><type>XrCameraIdBD</type> <name>cameraId</name></member>
+        </type>
+        <type category="struct" name="XrCreateCameraDeviceCompletionBD" parentstruct="XrFutureCompletionBaseHeaderEXT">
+            <member values="XR_TYPE_CREATE_CAMERA_DEVICE_COMPLETION_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*            <name>next</name></member>
+            <member><type>XrResult</type>         <name>futureResult</name></member>
+            <member><type>XrCameraDeviceBD</type> <name>device</name></member>
+        </type>
+        <type category="struct" name="XrCameraCaptureSessionCreateInfoBD">
+            <member values="XR_TYPE_CAMERA_CAPTURE_SESSION_CREATE_INFO_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                    <name>next</name></member>
+            <member><type>XrCameraDeviceBD</type>                                               <name>camera</name></member>
+            <member><type>uint32_t</type>                                                       <name>configCount</name></member>
+            <member len="configCount">const <type>XrCameraCapabilityBaseHeaderBD</type>* const* <name>configs</name></member>
+        </type>
+        <type category="struct" name="XrCreateCameraCaptureSessionCompletionBD" parentstruct="XrFutureCompletionBaseHeaderEXT">
+            <member values="XR_TYPE_CREATE_CAMERA_CAPTURE_SESSION_COMPLETION_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>* <name>next</name></member>
+            <member><type>XrResult</type> <name>futureResult</name></member>
+            <member><type>XrCameraCaptureSessionBD</type> <name>captureSession</name></member>
+        </type>
+        <type category="struct" name="XrCameraIntrinsicsBD" structextends="XrCameraImageDataBaseHeaderBD">
+            <member values="XR_TYPE_CAMERA_INTRINSICS_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*      <name>next</name></member>
+            <member><type>XrVector2f</type> <name>focalLength</name></member>
+            <member><type>XrVector2f</type> <name>principalPoint</name></member>
+            <member><type>XrVector2f</type> <name>fov</name></member>
+        </type>
+        <type category="struct" name="XrCameraExtrinsicsBD" structextends="XrCameraImageDataBaseHeaderBD">
+            <member values="XR_TYPE_CAMERA_EXTRINSICS_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*   <name>next</name></member>
+            <member><type>XrPosef</type> <name>pose</name></member>
+        </type>
+        <type category="struct" name="XrCameraCaptureBeginInfoBD">
+            <member values="XR_TYPE_CAMERA_CAPTURE_BEGIN_INFO_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+        <type category="struct" name="XrCameraImageAcquireInfoBD">
+            <member values="XR_TYPE_CAMERA_IMAGE_ACQUIRE_INFO_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrTime</type>      <name>lastCaptureTime</name></member>
+        </type>
+        <type category="struct" name="XrCameraImageBD">
+            <member values="XR_TYPE_CAMERA_IMAGE_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*       <name>next</name></member>
+            <member><type>XrBool32</type>          <name>available</name></member>
+            <member><type>XrTime</type>            <name>captureTime</name></member>
+            <member><type>XrCameraImageIdBD</type> <name>imageId</name></member>
+        </type>
+        <type category="struct" name="XrCameraImageDataBaseHeaderBD">
+            <member><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*           <name>next</name></member>
+        </type>
+        <type category="struct" name="XrCameraImageDataRawBufferBD" parentstruct="XrCameraImageDataBaseHeaderBD">
+            <member values="XR_TYPE_CAMERA_IMAGE_DATA_RAW_BUFFER_BD"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                     <name>next</name></member>
+            <member><type>uint32_t</type>                  <name>width</name></member>
+            <member><type>uint32_t</type>                  <name>height</name></member>
+            <member><type>uint32_t</type>                  <name>stride</name></member>
+            <member><type>uint32_t</type>                  <name>bytesPerPixel</name></member>
+            <member><type>uint32_t</type>                  <name>pixelStride</name></member>
+            <member><type>uint32_t</type>                  <name>bufferSize</name></member>
+            <member len="bufferSize"><type>uint8_t</type>* <name>buffer</name></member>
+        </type>
+
+        <!-- XR_SONY_hdr_metadata -->
+        <type category="struct" name="XrHdrMetadataSONY">
+            <member values="XR_TYPE_HDR_METADATA_SONY"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*   <name>next</name></member>
+            <member><type>XrXYColorSONY</type> <name>displayPrimaryRed</name></member>
+            <member><type>XrXYColorSONY</type> <name>displayPrimaryGreen</name></member>
+            <member><type>XrXYColorSONY</type> <name>displayPrimaryBlue</name></member>
+            <member><type>XrXYColorSONY</type> <name>whitePoint</name></member>
+            <member><type>float</type>         <name>maxLuminance</name></member>
+            <member><type>float</type>         <name>minLuminance</name></member>
+            <member><type>float</type>         <name>maxContentLightLevel</name></member>
+            <member><type>float</type>         <name>maxFrameAverageLightLevel</name></member>
+        </type>
+
+        <type category="struct" name="XrXYColorSONY">
+            <member><type>float</type> <name>x</name></member>
+            <member><type>float</type> <name>y</name></member>
+        </type>
+
         <!-- XR_ANDROID_trackables -->
         <type category="define">
 #define <name>XR_NULL_TRACKABLE_ANDROID</name> 0</type>
@@ -6645,6 +6960,254 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <member>const <type>void</type>* <name>next</name></member>
             <member><type>XrBool32</type>    <name>supportsAnchor</name></member>
             <member><type>uint32_t</type>    <name>maxAnchors</name></member>
+        </type>
+
+        <!-- XR_EXT_spatial_container -->
+        <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrSpatialContainerEXT</name>)</type>
+
+        <type category="enum" name="XrSpatialContainerGraphicsPresentationEXT"/>
+        <type category="enum" name="XrSpatialContainerBoundsModeEXT"/>
+        <type category="enum" name="XrSpatialContainerVolumeClippingEXT"/>
+
+        <type category="struct" name="XrSpatialContainerCreateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_CREATE_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                               <name>next</name></member>
+            <member><type>XrSpatialContainerGraphicsPresentationEXT</type> <name>graphicsPresentation</name></member>
+            <member><type>XrExtent3Df</type>                               <name>suggestedBounds</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerSpaceCreateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_SPACE_CREATE_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*           <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></member>
+        </type>
+
+        <type category="struct" name="XrEventDataSpatialContainerClosedEXT" parentstruct="XrEventDataBaseHeader" returnedonly="true">
+            <member values="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_CLOSED_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*           <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></member>
+        </type>
+
+        <type category="struct" name="XrSystemSpatialContainerPropertiesEXT" structextends="XrSystemProperties" returnedonly="true">
+            <member values="XR_TYPE_SYSTEM_SPATIAL_CONTAINER_PROPERTIES_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*    <name>next</name></member>
+            <member><type>uint32_t</type> <name>maxSpatialContainerCount</name></member>
+            <member><type>XrBool32</type> <name>supportsBounded</name></member>
+            <member><type>XrBool32</type> <name>supportsImmersive</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerBoundsEXT" returnedonly="true">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_BOUNDS_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*       <name>next</name></member>
+            <member><type>XrExtent3Df</type> <name>bounds</name></member>
+            <member><type>XrBool32</type>    <name>infiniteBounds</name></member>
+        </type>
+
+        <type category="struct" name="XrEventDataSpatialContainerBoundsChangedEXT" parentstruct="XrEventDataBaseHeader" returnedonly="true">
+            <member values="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_BOUNDS_CHANGED_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                     <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type>           <name>spatialContainer</name></member>
+            <member><type>XrExtent3Df</type>                     <name>bounds</name></member>
+            <member><type>XrBool32</type>                        <name>infiniteBounds</name></member>
+            <member><type>XrSpatialContainerBoundsModeEXT</type> <name>boundsMode</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerBoundsGetInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_BOUNDS_GET_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerStateGetInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_STATE_GET_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerVisibleRequestInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_VISIBLE_REQUEST_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrBool32</type>    <name>visible</name></member>
+        </type>
+
+        <type category="struct" name="XrEventDataSpatialContainerVisibleChangedEXT" parentstruct="XrEventDataBaseHeader" returnedonly="true">
+            <member values="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_VISIBLE_CHANGED_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*           <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></member>
+            <member><type>XrBool32</type>              <name>visible</name></member>
+        </type>
+
+        <type category="struct" name="XrEventDataSpatialContainerVisibleRequestDeniedEXT" parentstruct="XrEventDataBaseHeader" returnedonly="true">
+            <member values="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_VISIBLE_REQUEST_DENIED_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*           <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></member>
+        </type>
+
+        <type category="struct" name="XrEventDataSpatialContainerInteractableChangedEXT" parentstruct="XrEventDataBaseHeader" returnedonly="true">
+            <member values="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_INTERACTABLE_CHANGED_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*           <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></member>
+            <member><type>XrBool32</type>              <name>interactable</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerBoundsModeRequestInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_BOUNDS_MODE_REQUEST_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                     <name>next</name></member>
+            <member><type>XrSpatialContainerBoundsModeEXT</type> <name>boundsMode</name></member>
+        </type>
+
+        <type category="struct" name="XrEventDataSpatialContainerBoundsModeRequestDeniedEXT" parentstruct="XrEventDataBaseHeader" returnedonly="true">
+            <member values="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_BOUNDS_MODE_REQUEST_DENIED_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*           <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerStateEXT" returnedonly="true">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_STATE_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                           <name>next</name></member>
+            <member><type>XrBool32</type>                        <name>visible</name></member>
+            <member><type>XrBool32</type>                        <name>interactable</name></member>
+            <member><type>XrSpatialContainerBoundsModeEXT</type> <name>boundsMode</name></member>
+        </type>
+
+        <type category="struct" name="XrSessionCreateInfoSpatialContainersEXT" structextends="XrSessionCreateInfo">
+            <member values="XR_TYPE_SESSION_CREATE_INFO_SPATIAL_CONTAINERS_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+
+        <!-- XR_EXT_spatial_container_self_rendering -->
+        <type category="struct" name="XrSpatialContainerBeginInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_BEGIN_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*             <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type>   <name>spatialContainer</name></member>
+            <member><type>XrViewConfigurationType</type> <name>primaryViewConfigurationType</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerEndInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_END_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*           <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerViewLocateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_VIEW_LOCATE_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*             <name>next</name></member>
+            <member><type>XrViewConfigurationType</type> <name>viewConfigurationType</name></member>
+            <member><type>XrSpace</type>                 <name>space</name></member>
+            <member><type>XrSpatialContainerEXT</type>   <name>spatialContainer</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerViewsLocateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_VIEWS_LOCATE_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                          <name>next</name></member>
+            <member><type>XrTime</type>                                                               <name>displayTime</name></member>
+            <member><type>uint32_t</type>                                                             <name>viewLocateInfoCount</name></member>
+            <member len="viewLocateInfoCount">const <type>XrSpatialContainerViewLocateInfoEXT</type>* <name>viewLocateInfos</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerViewStateEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_VIEW_STATE_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                   <name>next</name></member>
+            <member><type>XrViewStateFlags</type>        <name>viewStateFlags</name></member>
+            <member><type>XrViewConfigurationType</type> <name>viewConfigurationType</name></member>
+            <member><type>XrBool32</type>                <name>shouldSubmitLayers</name></member>
+            <member><type>XrExtent2Di</type>             <name>recommendedImageExtent</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerLayerEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_LAYER_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                                 <name>next</name></member>
+            <member><type>XrSpatialContainerEXT</type>                                                       <name>spatialContainer</name></member>
+            <member><type>XrBool32</type>                                                                    <name>retainPreviousSubmission</name></member>
+            <member optional="true"><type>uint32_t</type>                                                    <name>layerCount</name></member>
+            <member optional="true" len="layerCount">const <type>XrCompositionLayerBaseHeader</type>* const* <name>layers</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerLayerFrameEndInfoEXT" structextends="XrFrameEndInfo">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_LAYER_FRAME_END_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                 <name>next</name></member>
+            <member><type>uint32_t</type>                                                    <name>containerLayerCount</name></member>
+            <member len="containerLayerCount">const <type>XrSpatialContainerLayerEXT</type>* <name>containerLayers</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerCompositionLayerViewConfigurationEXT" structextends="XrCompositionLayerProjection">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_COMPOSITION_LAYER_VIEW_CONFIGURATION_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*             <name>next</name></member>
+            <member><type>XrViewConfigurationType</type> <name>viewConfigurationType</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialContainerLayerVolumeClippingEXT" structextends="XrSpatialContainerLayerEXT">
+            <member values="XR_TYPE_SPATIAL_CONTAINER_LAYER_VOLUME_CLIPPING_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                         <name>next</name></member>
+            <member><type>XrSpatialContainerVolumeClippingEXT</type> <name>volumeClipping</name></member>
+        </type>
+
+        <!-- XR_EXT_spatial_image_tracking -->
+        <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrSpatialImageTrackingDatabaseEXT</name>)</type>
+
+        <type name="XrSpatialReferenceImageFormatEXT" category="enum"/>
+
+        <type category="struct" name="XrSpatialReferenceImagePlaneEXT">
+            <member><type>uint32_t</type>                        <name>bufferSize</name></member>
+            <member len="bufferSize">const <type>uint8_t</type>* <name>buffer</name></member>
+            <member><type>uint32_t</type>                        <name>rowStride</name></member>
+            <member><type>uint32_t</type>                        <name>pixelStride</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialReferenceImageEXT">
+            <member values="XR_TYPE_SPATIAL_REFERENCE_IMAGE_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                             <name>next</name></member>
+            <member><type>uint32_t</type>                                                <name>width</name></member>
+            <member><type>uint32_t</type>                                                <name>height</name></member>
+            <member><type>XrSpatialReferenceImageFormatEXT</type>                        <name>format</name></member>
+            <member><type>uint32_t</type>                                                <name>planeCount</name></member>
+            <member len="planeCount">const <type>XrSpatialReferenceImagePlaneEXT</type>* <name>planes</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialImageStaticOptimizationEXT" structextends="XrSpatialReferenceImageEXT,XrSpatialImageTrackingDatabaseCreateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_IMAGE_STATIC_OPTIMIZATION_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrBool32</type>    <name>optimizeForStaticImage</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialImageSizeEXT" structextends="XrSpatialReferenceImageEXT,XrSpatialImageTrackingDatabaseCreateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_IMAGE_SIZE_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>float</type>       <name>physicalWidth</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialCapabilityConfigurationImageTrackingEXT" parentstruct="XrSpatialCapabilityConfigurationBaseHeaderEXT">
+            <member values="XR_TYPE_SPATIAL_CAPABILITY_CONFIGURATION_IMAGE_TRACKING_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                               <name>next</name></member>
+            <member><type>XrSpatialCapabilityEXT</type>                                                    <name>capability</name></member>
+            <member><type>uint32_t</type>                                                                  <name>enabledComponentCount</name></member>
+            <member len="enabledComponentCount">const <type>XrSpatialComponentTypeEXT</type>*              <name>enabledComponents</name></member>
+            <member><type>uint32_t</type>                                                                  <name>imageTrackingDatabaseCount</name></member>
+            <member len="imageTrackingDatabaseCount">const <type>XrSpatialImageTrackingDatabaseEXT</type>* <name>imageTrackingDatabases</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialImageTrackingDatabaseCreateInfoEXT">
+            <member values="XR_TYPE_SPATIAL_IMAGE_TRACKING_DATABASE_CREATE_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                        <name>next</name></member>
+            <member><type>uint32_t</type>                                                           <name>spatialReferenceImageCount</name></member>
+            <member len="spatialReferenceImageCount">const <type>XrSpatialReferenceImageEXT</type>* <name>spatialReferenceImages</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialImage2DDataEXT">
+            <member><type>XrSpatialImageTrackingDatabaseEXT</type> <name>imageTrackingDatabase</name></member>
+            <member><type>uint32_t</type>                          <name>referenceImageIndex</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialComponentImage2DListEXT" structextends="XrSpatialComponentDataQueryResultEXT">
+            <member values="XR_TYPE_SPATIAL_COMPONENT_IMAGE_2D_LIST_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                               <name>next</name></member>
+            <member><type>uint32_t</type>                                  <name>imageCount</name></member>
+            <member len="imageCount"><type>XrSpatialImage2DDataEXT</type>* <name>images</name></member>
+        </type>
+
+        <type category="struct" name="XrCreateSpatialImageTrackingDatabaseCompletionEXT" parentstruct="XrFutureCompletionBaseHeaderEXT">
+            <member values="XR_TYPE_CREATE_SPATIAL_IMAGE_TRACKING_DATABASE_COMPLETION_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                             <name>next</name></member>
+            <member><type>XrResult</type>                          <name>futureResult</name></member>
+            <member><type>XrSpatialImageTrackingDatabaseEXT</type> <name>database</name></member>
         </type>
 
     </types>
@@ -6740,7 +7303,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="3"     name="XR_SESSION_LOSS_PENDING"                      comment="The session will be lost soon."/>
         <enum value="4"     name="XR_EVENT_UNAVAILABLE"                         comment="No event was available."/>
         <enum value="7"     name="XR_SPACE_BOUNDS_UNAVAILABLE"                  comment="The space's bounds are not known at the moment."/>
-        <enum value="8"     name="XR_SESSION_NOT_FOCUSED"                       comment="The session is not in the focused state."/>
+        <enum value="8"     name="XR_SESSION_NOT_FOCUSED"                       comment="The session is not in the focused state, and if spatial containers are enabled no spatial container exists that is interactable."/>
         <enum value="9"     name="XR_FRAME_DISCARDED"                           comment="A frame has been discarded from composition."/>
         <!-- Error codes (negative values) -->
         <enum value="-1"    name="XR_ERROR_VALIDATION_FAILURE"                  comment="The function usage was invalid in some way."/>
@@ -8629,6 +9192,9 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="22"   name="XR_SEMANTIC_LABEL_LAMP_BD"            comment="Semantic label of lamp."/>
         <enum value="23"   name="XR_SEMANTIC_LABEL_WALL_ART_BD"        comment="Semantic label of wall art, like a painting or a photo frame."/>
         <enum value="24"   name="XR_SEMANTIC_LABEL_STAIRWAY_BD"        comment="Semantic label of stairway."/>
+        <enum value="25"   name="XR_SEMANTIC_LABEL_KEYBOARD_BD"        comment="Semantic label of keyboard, added in extension revision 3."/>
+        <enum value="26"   name="XR_SEMANTIC_LABEL_MOUSE_BD"           comment="Semantic label of mouse, added in extension revision 3."/>
+        <enum value="27"   name="XR_SEMANTIC_LABEL_LAPTOP_BD"          comment="Semantic label of laptop, added in extension revision 3."/>
     </enums>
 
     <enums name="XrSpatialEntityComponentTypeBD" type="enum">
@@ -8762,6 +9328,33 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="4"   name="XR_SPATIAL_MARKER_APRIL_TAG_DICT_36H11_EXT" comment="6 by 6 bits, minimum Hamming distance between any two codes = 11, 587 codes."/>
     </enums>
 
+    <!-- enums for XR_BD_spatial_light_estimation -->
+    <enums name="XrLightEstimationCreateFlagBitsBD" type="bitmask">
+        <enum bitpos="0" name="XR_LIGHT_ESTIMATION_CREATE_SPHERICAL_HARMONICS_BIT_BD" comment="Enables spherical harmonics coefficients for light estimate provider"/>
+        <enum bitpos="1" name="XR_LIGHT_ESTIMATION_CREATE_ENVIRONMENT_TEXTURE_BIT_BD" comment="Enables environment textures for light estimate provider"/>
+    </enums>
+
+    <enums name="XrEnvironmentTextureResolutionBD" type="enum">
+        <enum value="0"   name="XR_ENVIRONMENT_TEXTURE_RESOLUTION_8_8_BD"     comment="Environment Texture resolution of 8x8 pixels for configuring the light estimation provider."/>
+        <enum value="1"   name="XR_ENVIRONMENT_TEXTURE_RESOLUTION_16_16_BD"   comment="Environment Texture resolution of 16x16 pixels for configuring the light estimation provider."/>
+        <enum value="2"   name="XR_ENVIRONMENT_TEXTURE_RESOLUTION_32_32_BD"   comment="Environment Texture resolution of 32x32 pixels for configuring the light estimation provider."/>
+        <enum value="3"   name="XR_ENVIRONMENT_TEXTURE_RESOLUTION_64_64_BD"   comment="Environment Texture resolution of 64x64 pixels for configuring the light estimation provider."/>
+        <enum value="4"   name="XR_ENVIRONMENT_TEXTURE_RESOLUTION_128_128_BD" comment="Environment Texture resolution of 128x128 pixels for configuring the light estimation provider."/>
+    </enums>
+
+    <enums name="XrEnvironmentTextureTransferTypeBD" type="enum">
+        <enum value="0"   name="XR_ENVIRONMENT_TEXTURE_TRANSFER_TYPE_RAW_BD" comment="Environment Texture data transferred as raw memory buffer."/>
+    </enums>
+
+    <enums name="XrEnvironmentTexturePixelFormatBD" type="enum">
+        <enum value="0"   name="XR_ENVIRONMENT_TEXTURE_PIXEL_FORMAT_RGB_16FLOAT_BD"  comment="RGB 16-bit floating-point format for environment texture data storage with linear encoding,  corresponding to GL_RGB16F in OpenGL ES."/>
+        <enum value="1"   name="XR_ENVIRONMENT_TEXTURE_PIXEL_FORMAT_RGBA_16FLOAT_BD" comment="RGBA 16-bit floating-point format for environment texture data storage with linear encoding, corresponding to GL_RGBA16F in OpenGL ES."/>
+    </enums>
+
+    <enums name="XrSphericalHarmonicsKindBD" type="enum">
+        <enum value="0"   name="XR_SPHERICAL_HARMONICS_KIND_TOTAL_BD" comment="The spherical harmonic coefficients represent the environment light radiance function, including the contribution from the main light."/>
+    </enums>
+
     <!-- XR_META_environment_raycast -->
     <enums name="XrEnvironmentRaycastHitStatusMETA" type="enum">
         <enum value="1"   name="XR_ENVIRONMENT_RAYCAST_HIT_STATUS_HIT_META"                      comment="The intersection with the environment is found."/>
@@ -8786,6 +9379,46 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="1"   name="XR_HAPTIC_PARAMETRIC_STREAM_FRAME_TYPE_FIRST_FRAME_EXT"/>
         <enum value="2"   name="XR_HAPTIC_PARAMETRIC_STREAM_FRAME_TYPE_INTERMEDIATE_FRAME_EXT"/>
         <enum value="3"   name="XR_HAPTIC_PARAMETRIC_STREAM_FRAME_TYPE_LAST_FRAME_EXT"/>
+    </enums>
+
+    <!-- XR_BD_camera_image -->
+    <enums name="XrCameraPropertyTypeBD" type="enum">
+        <enum value="1"   name="XR_CAMERA_PROPERTY_TYPE_FACING_BD"      comment="The camera's facing orientation."/>
+        <enum value="2"   name="XR_CAMERA_PROPERTY_TYPE_POSITION_BD"    comment="The camera's position."/>
+        <enum value="3"   name="XR_CAMERA_PROPERTY_TYPE_CAMERA_TYPE_BD" comment="The camera's type."/>
+    </enums>
+
+    <enums name="XrCameraFacingBD" type="enum">
+        <enum value="1"   name="XR_CAMERA_FACING_WORLD_BD" comment="The camera's facing orientation is the world."/>
+    </enums>
+
+    <enums name="XrCameraPositionBD" type="enum">
+        <enum value="1"   name="XR_CAMERA_POSITION_UNSPECIFIED_BD" comment="The camera's position is unspecified."/>
+        <enum value="2"   name="XR_CAMERA_POSITION_LEFT_BD"        comment="The camera's position is left."/>
+        <enum value="3"   name="XR_CAMERA_POSITION_RIGHT_BD"       comment="The camera's position is right."/>
+    </enums>
+
+    <enums name="XrCameraTypeBD" type="enum">
+        <enum value="1"   name="XR_CAMERA_TYPE_PASSTHROUGH_COLOR_BD" comment="The camera is a passthrough color camera."/>
+    </enums>
+
+    <enums name="XrCameraCapabilityTypeBD" type="enum">
+        <enum value="1"   name="XR_CAMERA_CAPABILITY_TYPE_IMAGE_RESOLUTION_AND_FRAME_RATE_BD" comment="The supported image resolutions and frame rates."/>
+        <enum value="2"   name="XR_CAMERA_CAPABILITY_TYPE_IMAGE_FORMAT_BD"                    comment="The supported image formats."/>
+        <enum value="3"   name="XR_CAMERA_CAPABILITY_TYPE_DATA_TRANSFER_TYPE_BD"              comment="The supported data transfer type."/>
+        <enum value="4"   name="XR_CAMERA_CAPABILITY_TYPE_CAMERA_MODEL_BD"                    comment="The supported camera models."/>
+    </enums>
+
+    <enums name="XrCameraDataTransferTypeBD" type="enum">
+        <enum value="1"   name="XR_CAMERA_DATA_TRANSFER_TYPE_RAW_BUFFER_BD" comment="The data transfer type is raw cpu buffer."/>
+    </enums>
+
+    <enums name="XrCameraImageFormatBD" type="enum">
+        <enum value="1"   name="XR_CAMERA_IMAGE_FORMAT_RGBA_8888_BD" comment="The image format is RGBA8888, and consecutive pixels are left to right and rows top to bottom."/>
+    </enums>
+
+    <enums name="XrCameraModelBD" type="enum">
+        <enum value="1"   name="XR_CAMERA_MODEL_PINHOLE_BD" comment="The camera model is pinhole."/>
     </enums>
 
     <!-- SECTION: OpenXR loader command definitions -->
@@ -9017,6 +9650,25 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <enum value="2"   name="XR_PLANE_LABEL_FLOOR_ANDROID"   comment="The plane is a floor."/>
         <enum value="3"   name="XR_PLANE_LABEL_CEILING_ANDROID" comment="The plane is a ceiling."/>
         <enum value="4"   name="XR_PLANE_LABEL_TABLE_ANDROID"   comment="The plane is a table."/>
+    </enums>
+
+    <!-- XR_EXT_spatial_container -->
+    <enums name="XrSpatialContainerGraphicsPresentationEXT" type="enum">
+    </enums>
+    <enums name="XrSpatialContainerBoundsModeEXT" type="enum">
+        <enum value="1"   name="XR_SPATIAL_CONTAINER_BOUNDS_MODE_BOUNDED_EXT"   comment="Spatial container is bounded. The bounds are a finite box. The spatial container will only appear in this region."/>
+        <enum value="2"   name="XR_SPATIAL_CONTAINER_BOUNDS_MODE_IMMERSIVE_EXT" comment="Spatial container is immersive and has infinite bounds. The spatial container is displayed over the entire screen."/>
+    </enums>
+    <enums name="XrSpatialContainerVolumeClippingEXT" type="enum">
+        <enum value="0"   name="XR_SPATIAL_CONTAINER_VOLUME_CLIPPING_NONE_EXT"   comment="No content is clipped to the bounding volume of the spatial container.  Content can draw outside of the spatial container's bounds."/>
+        <enum value="1"   name="XR_SPATIAL_CONTAINER_VOLUME_CLIPPING_STRICT_EXT" comment="Content is strictly clipped to the bounding volume of the spatial container."/>
+    </enums>
+
+    <!-- XR_EXT_spatial_image_tracking -->
+    <enums name="XrSpatialReferenceImageFormatEXT" type="enum">
+        <enum value="1"   name="XR_SPATIAL_REFERENCE_IMAGE_FORMAT_RGBA_8888_EXT"   comment="An RGBA buffer. The format makes no guarantees regarding the layout of the pixel data in memory. The pixels must: be accessed using the metadata provided by the corresponding slink:XrSpatialReferenceImagePlaneEXT structures. Each pixel color channel has an 8 bit size, making each pixel 32 bit in size."/>
+        <enum value="2"   name="XR_SPATIAL_REFERENCE_IMAGE_FORMAT_RGB_888_EXT"     comment="An RGB buffer. The format makes no guarantees regarding the layout of the pixel data in memory. The pixels must: be accessed using the metadata provided by the corresponding slink:XrSpatialReferenceImagePlaneEXT structures. Each pixel color channel has an 8 bit size, making each pixel 24 bit in size."/>
+        <enum value="3"   name="XR_SPATIAL_REFERENCE_IMAGE_FORMAT_YUV_420_888_EXT" comment="A YUV buffer that is 4:2:0 pattern chroma sub-sampled. The format makes no guarantees regarding the layout of the pixel data in memory. The pixels must: be accessed using the metadata provided by the corresponding slink:XrSpatialReferenceImagePlaneEXT structures. Each decoded RGB pixel color channel has an 8 bit size, making each pixel 24 bit in size."/>
     </enums>
 
     <!-- SECTION: OpenXR command definitions -->
@@ -12067,6 +12719,30 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrFutureCompletionEXT</type>* <name>completion</name></param>
         </command>
 
+        <!-- commands for XR_BD_spatial_light_estimation -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateEnvironmentTextureResolutionsBD</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param optional="true"><type>uint32_t</type> <name>resolutionCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>resolutionCountOutput</name></param>
+            <param optional="true" len="resolutionCapacityInput"><type>XrEnvironmentTextureResolutionBD</type>* <name>resolutions</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateEnvironmentTexturePixelFormatsBD</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param optional="true"><type>uint32_t</type> <name>pixelFormatCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>pixelFormatCountOutput</name></param>
+            <param optional="true" len="pixelFormatCapacityInput"><type>XrEnvironmentTexturePixelFormatBD</type>* <name>pixelFormats</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateEnvironmentTextureTransferTypesBD</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param optional="true"><type>uint32_t</type> <name>transferTypeCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>transferTypeCountOutput</name></param>
+            <param optional="true" len="transferTypeCapacityInput"><type>XrEnvironmentTextureTransferTypeBD</type>* <name>transferTypes</name></param>
+        </command>
 
         <!-- XR_META_simultaneous_hands_and_controllers commands -->
         <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
@@ -12333,6 +13009,105 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param optional="true" len="colorSpaceCapacityInput"><type>XrColorSpaceSONY</type>* <name>colorSpaces</name></param>
         </command>
 
+        <!-- XR_BD_camera_image commands -->
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateAvailableCamerasBD</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param>const <type>XrAvailableCamerasEnumerateInfoBD</type>* <name>enumerateInfo</name></param>
+            <param optional="true"><type>uint32_t</type> <name>cameraCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>cameraCountOutput</name></param>
+            <param len="cameraCapacityInput" optional="true"><type>XrAvailableCameraBD</type>* <name>cameras</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_CAMERA_ID_INVALID_BD,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateCameraPropertyTypesBD</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param>const <type>XrCameraPropertyTypesEnumerateInfoBD</type>* <name>enumerateInfo</name></param>
+            <param><type>XrCameraPropertyTypesBD</type>* <name>propertyTypes</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_CAMERA_ID_INVALID_BD,XR_ERROR_CAMERA_PROPERTY_TYPE_INVALID_BD,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetCameraPropertiesBD</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param>const <type>XrCameraPropertiesGetInfoBD</type>* <name>getInfo</name></param>
+            <param><type>XrCameraPropertiesBD</type>* <name>properties</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_CAMERA_ID_INVALID_BD,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateCameraCapabilityTypesBD</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param>const <type>XrCameraCapabilityTypesEnumerateInfoBD</type>* <name>enumerateInfo</name></param>
+            <param><type>XrCameraCapabilityTypesBD</type>* <name>capabilityTypes</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_CAMERA_CAPABILITY_TYPE_INVALID_BD,XR_ERROR_CAMERA_ID_INVALID_BD,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetCameraSupportedCapabilitiesBD</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param>const <type>XrCameraSupportedCapabilitiesGetInfoBD</type>* <name>getInfo</name></param>
+            <param><type>XrCameraSupportedCapabilitiesBD</type>* <name>capabilities</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_CAMERA_ID_INVALID_BD,XR_ERROR_CAMERA_OCCUPIED_BD,XR_ERROR_CAMERA_UNAVAILABLE_BD,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PERMISSION_INSUFFICIENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateCameraDeviceAsyncBD</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param>const <type>XrCameraDeviceCreateInfoBD</type>* <name>createInfo</name></param>
+            <param><type>XrFutureEXT</type>* <name>future</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_FUTURE_INVALID_EXT,XR_ERROR_FUTURE_PENDING_EXT,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PERMISSION_INSUFFICIENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateCameraDeviceCompleteBD</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param><type>XrFutureEXT</type> <name>future</name></param>
+            <param><type>XrCreateCameraDeviceCompletionBD</type>* <name>completion</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroyCameraDeviceBD</name></proto>
+            <param externsync="true_with_children"><type>XrCameraDeviceBD</type> <name>device</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CAMERA_ID_INVALID_BD,XR_ERROR_CAMERA_OCCUPIED_BD,XR_ERROR_CAMERA_UNAVAILABLE_BD,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PERMISSION_INSUFFICIENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateCameraCaptureSessionAsyncBD</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrCameraCaptureSessionCreateInfoBD</type>* <name>createInfo</name></param>
+            <param><type>XrFutureEXT</type>* <name>future</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CAMERA_OCCUPIED_BD,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_FUTURE_INVALID_EXT,XR_ERROR_FUTURE_PENDING_EXT,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PERMISSION_INSUFFICIENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateCameraCaptureSessionCompleteBD</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param><type>XrFutureEXT</type> <name>future</name></param>
+            <param><type>XrCreateCameraCaptureSessionCompletionBD</type>* <name>completion</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_PERMISSION_INSUFFICIENT,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroyCameraCaptureSessionBD</name></proto>
+            <param externsync="true_with_children"><type>XrCameraCaptureSessionBD</type> <name>captureSession</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_CAMERA_CAPTURE_SESSION_CAPTURING_BD,XR_ERROR_CAMERA_OCCUPIED_BD,XR_ERROR_CAMERA_UNAVAILABLE_BD,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_PERMISSION_INSUFFICIENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrBeginCameraCaptureBD</name></proto>
+            <param><type>XrCameraCaptureSessionBD</type> <name>captureSession</name></param>
+            <param>const <type>XrCameraCaptureBeginInfoBD</type>* <name>beginInfo</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_CAMERA_CAPTURE_SESSION_NOT_CAPTURING_BD,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_PERMISSION_INSUFFICIENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEndCameraCaptureBD</name></proto>
+            <param><type>XrCameraCaptureSessionBD</type> <name>captureSession</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_CAMERA_CAPTURE_SESSION_NOT_CAPTURING_BD,XR_ERROR_CAMERA_OCCUPIED_BD,XR_ERROR_CAMERA_UNAVAILABLE_BD,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_IMAGE_BUFFER_EXHAUSTED_BD,XR_ERROR_INSTANCE_LOST,XR_ERROR_PERMISSION_INSUFFICIENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrAcquireCameraImageBD</name></proto>
+            <param><type>XrCameraCaptureSessionBD</type> <name>captureSession</name></param>
+            <param>const <type>XrCameraImageAcquireInfoBD</type>* <name>acquireInfo</name></param>
+            <param><type>XrCameraImageBD</type>* <name>image</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_CAMERA_IMAGE_ID_INVALID_BD,XR_ERROR_CAMERA_UNAVAILABLE_BD,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_PERMISSION_INSUFFICIENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetCameraImageDataBD</name></proto>
+            <param><type>XrCameraCaptureSessionBD</type> <name>captureSession</name></param>
+            <param><type>XrCameraImageIdBD</type> <name>imageId</name></param>
+            <param><type>XrCameraImageDataBaseHeaderBD</type>* <name>imageData</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_CAMERA_IMAGE_ID_INVALID_BD,XR_ERROR_FEATURE_UNSUPPORTED,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_PERMISSION_INSUFFICIENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrReleaseCameraImageBD</name></proto>
+            <param><type>XrCameraCaptureSessionBD</type> <name>captureSession</name></param>
+            <param><type>XrCameraImageIdBD</type> <name>imageId</name></param>
+        </command>
+
+        <!-- XR_SONY_hdr_metadata -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrSetHdrMetadataSONY</name></proto>
+            <param><type>XrSwapchain</type> <name>swapchain</name></param>
+            <param>const <type>XrHdrMetadataSONY</type>* <name>hdrMetadata</name></param>
+        </command>
+
         <!-- XR_ANDROID_trackables -->
         <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE">
             <proto><type>XrResult</type> <name>xrEnumerateSupportedTrackableTypesANDROID</name></proto>
@@ -12378,6 +13153,119 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <param><type>XrSession</type> <name>session</name></param>
             <param>const <type>XrAnchorSpaceCreateInfoANDROID</type>* <name>createInfo</name></param>
             <param><type>XrSpace</type>* <name>anchorOutput</name></param>
+        </command>
+
+        <!-- XR_EXT_spatial_container -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINERS_NOT_ENABLED_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSpatialContainerEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrSpatialContainerCreateInfoEXT</type>* <name>createInfo</name></param>
+            <param><type>XrSpatialContainerEXT</type>* <name>spatialContainer</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroySpatialContainerEXT</name></proto>
+            <param externsync="true_with_children"><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINER_CLOSED_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSpatialContainerSpaceEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrSpatialContainerSpaceCreateInfoEXT</type>* <name>createInfo</name></param>
+            <param><type>XrSpace</type>* <name>space</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINER_CLOSED_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrRequestSpatialContainerVisibleEXT</name></proto>
+            <param><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></param>
+            <param>const <type>XrSpatialContainerVisibleRequestInfoEXT</type>* <name>info</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINER_CLOSED_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrRequestSpatialContainerBoundsModeEXT</name></proto>
+            <param><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></param>
+            <param>const <type>XrSpatialContainerBoundsModeRequestInfoEXT</type>* <name>info</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINER_CLOSED_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetSpatialContainerBoundsEXT</name></proto>
+            <param><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></param>
+            <param optional="true">const <type>XrSpatialContainerBoundsGetInfoEXT</type>* <name>getInfo</name></param>
+            <param><type>XrSpatialContainerBoundsEXT</type>* <name>bounds</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINER_CLOSED_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetSpatialContainerStateEXT</name></proto>
+            <param><type>XrSpatialContainerEXT</type> <name>spatialContainer</name></param>
+            <param optional="true">const <type>XrSpatialContainerStateGetInfoEXT</type>* <name>getInfo</name></param>
+            <param><type>XrSpatialContainerStateEXT</type>* <name>state</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateSupportedSpatialContainerGraphicsPresentationsEXT</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param><type>XrSystemId</type> <name>systemId</name></param>
+            <param optional="true"><type>uint32_t</type> <name>graphicsPresentationCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>graphicsPresentationCountOutput</name></param>
+            <param optional="true" len="graphicsPresentationCapacityInput"><type>XrSpatialContainerGraphicsPresentationEXT</type>* <name>graphicsPresentations</name></param>
+        </command>
+
+        <!-- XR_EXT_spatial_container_self_rendering -->
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINER_NOT_RENDERING_EXT,XR_ERROR_TIME_INVALID,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED">
+            <proto><type>XrResult</type> <name>xrLocateSpatialContainerViewsEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrSpatialContainerViewsLocateInfoEXT</type>* <name>locateInfo</name></param>
+            <param><type>uint32_t</type> <name>viewStateCount</name></param>
+            <param len="viewStateCount"><type>XrSpatialContainerViewStateEXT</type>* <name>viewStates</name></param>
+            <param><type>uint32_t</type> <name>viewCount</name></param>
+            <param len="viewCount"><type>XrView</type>* <name>views</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CALL_ORDER_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINER_GRAPHICS_PRESENTATION_MISSING_EXT,XR_ERROR_SPATIAL_CONTAINER_IS_RENDERING_EXT,XR_ERROR_VALIDATION_FAILURE,XR_ERROR_VIEW_CONFIGURATION_TYPE_UNSUPPORTED">
+            <proto><type>XrResult</type> <name>xrBeginSpatialContainerRenderingEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrSpatialContainerBeginInfoEXT</type>* <name>beginInfo</name></param>
+            <implicitexternsyncparams>
+                <param>the pname:session parameter by any other flink:xrBeginSpatialContainerRenderingEXT, flink:xrEndSpatialContainerRenderingEXT, or flink:xrEndFrame call</param>
+            </implicitexternsyncparams>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CALL_ORDER_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_CONTAINER_NOT_RENDERING_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEndSpatialContainerRenderingEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrSpatialContainerEndInfoEXT</type>* <name>endInfo</name></param>
+            <implicitexternsyncparams>
+                <param>the pname:session parameter by any other flink:xrBeginSpatialContainerRenderingEXT, flink:xrEndSpatialContainerRenderingEXT, or flink:xrEndFrame call</param>
+            </implicitexternsyncparams>
+        </command>
+
+        <!-- XR_EXT_spatial_image_tracking -->
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_SPATIAL_CAPABILITY_UNSUPPORTED_EXT,XR_ERROR_SYSTEM_INVALID,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateSpatialReferenceImageFormatsEXT</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param><type>XrSystemId</type> <name>systemId</name></param>
+            <param><type>XrSpatialCapabilityEXT</type> <name>capability</name></param>
+            <param optional="true"><type>uint32_t</type> <name>formatCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>formatCountOutput</name></param>
+            <param optional="true" len="formatCapacityInput"><type>XrSpatialReferenceImageFormatEXT</type>* <name>formats</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_PERMISSION_INSUFFICIENT,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SPATIAL_IMAGE_FORMAT_UNSUPPORTED_EXT,XR_ERROR_SPATIAL_IMAGE_INVALID_EXT,XR_ERROR_SPATIAL_IMAGE_SIZE_MISSING_EXT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSpatialImageTrackingDatabaseAsyncEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrSpatialImageTrackingDatabaseCreateInfoEXT</type>* <name>createInfo</name></param>
+            <param><type>XrFutureEXT</type>* <name>future</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroySpatialImageTrackingDatabaseEXT</name></proto>
+            <param externsync="true_with_children"><type>XrSpatialImageTrackingDatabaseEXT</type> <name>database</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_FUTURE_INVALID_EXT,XR_ERROR_FUTURE_PENDING_EXT,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateSpatialImageTrackingDatabaseCompleteEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param><type>XrFutureEXT</type> <name>future</name></param>
+            <param><type>XrCreateSpatialImageTrackingDatabaseCompletionEXT</type>* <name>completion</name></param>
+        </command>
+
+        <!-- XR_KHR_extended_result_name_lengths -->
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrResultToString2KHR</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param><type>XrResult</type> <name>value</name></param>
+            <param><type>char</type> <name>buffer</name>[<enum>XR_MAX_RESULT_STRING_SIZE_EXTENDED_KHR</enum>]</param>
         </command>
 
     </commands>
@@ -18889,7 +19777,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
 
     <extension name="XR_BD_spatial_sensing" number="390" depends="XR_VERSION_1_0+XR_EXT_future" type="instance" supported="openxr">
         <require>
-            <enum value="2"                                     name="XR_BD_spatial_sensing_SPEC_VERSION"/>
+            <enum value="3"                                     name="XR_BD_spatial_sensing_SPEC_VERSION"/>
             <enum value="&quot;XR_BD_spatial_sensing&quot;"     name="XR_BD_SPATIAL_SENSING_EXTENSION_NAME"/>
 
             <enum offset="0"  dir="-" extends="XrResult"        name="XR_ERROR_SPATIAL_ENTITY_ID_INVALID_BD"                    comment="The spatial entity id is invalid."/>
@@ -19145,10 +20033,36 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_BD_extension_398" number="398" type="instance" supported="disabled">
+    <extension name="XR_BD_spatial_light_estimation" number="398" depends="XR_BD_spatial_sensing" type="instance" supported="openxr">
         <require>
-            <enum value="1"                               name="XR_BD_extension_398_SPEC_VERSION"/>
-            <enum value="&quot;XR_BD_extension_398&quot;" name="XR_BD_extension_398_EXTENSION_NAME"/>
+            <enum value="1"                                           name="XR_BD_spatial_light_estimation_SPEC_VERSION"/>
+            <enum value="&quot;XR_BD_spatial_light_estimation&quot;"  name="XR_BD_SPATIAL_LIGHT_ESTIMATION_EXTENSION_NAME"/>
+            <enum offset="0" extends="XrStructureType"                name="XR_TYPE_SYSTEM_LIGHT_ESTIMATION_PROPERTIES_BD"/>
+            <enum offset="1" extends="XrStructureType"                name="XR_TYPE_SENSE_DATA_PROVIDER_CREATE_INFO_LIGHT_ESTIMATION_BD"/>
+            <enum offset="2" extends="XrStructureType"                name="XR_TYPE_ENVIRONMENT_TEXTURE_CREATE_CONFIG_INFO_BD"/>
+            <enum offset="3" extends="XrStructureType"                name="XR_TYPE_LIGHT_ESTIMATION_DATA_ENVIRONMENT_TEXTURE_RAW_BD"/>
+            <enum offset="5" extends="XrStructureType"                name="XR_TYPE_LIGHT_ESTIMATION_DATA_SPHERICAL_HARMONICS_BD"/>
+            <enum offset="6" extends="XrStructureType"                name="XR_TYPE_SPATIAL_ENTITY_COMPONENT_DATA_LIGHT_ESTIMATION_BD"/>
+            <enum offset="0" extends="XrSpatialEntityComponentTypeBD" name="XR_SPATIAL_ENTITY_COMPONENT_TYPE_LIGHT_ESTIMATION_BD"        comment="The light estimate data. Corresponds to component data structure slink:XrSpatialEntityComponentDataLightEstimationBD."/>
+            <enum offset="0" extends="XrSenseDataProviderTypeBD"      name="XR_SENSE_DATA_PROVIDER_TYPE_LIGHT_ESTIMATION_BD"             comment="Access spatial light estimate data."/>
+
+            <type name="XrSystemLightEstimationPropertiesBD"/>
+            <type name="XrLightEstimationCreateFlagsBD"/>
+            <type name="XrLightEstimationCreateFlagBitsBD"/>
+            <type name="XrSenseDataProviderCreateInfoLightEstimationBD"/>
+            <type name="XrEnvironmentTextureCreateConfigInfoBD"/>
+            <type name="XrLightEstimationDataEnvironmentTextureRawBD"/>
+            <type name="XrLightEstimationDataSphericalHarmonicsBD"/>
+            <type name="XrSpatialEntityComponentDataLightEstimationBD"/>
+
+            <type name="XrEnvironmentTexturePixelFormatBD"/>
+            <type name="XrEnvironmentTextureResolutionBD"/>
+            <type name="XrEnvironmentTextureTransferTypeBD"/>
+            <type name="XrSphericalHarmonicsKindBD"/>
+
+            <command name="xrEnumerateEnvironmentTextureResolutionsBD"/>
+            <command name="xrEnumerateEnvironmentTexturePixelFormatsBD"/>
+            <command name="xrEnumerateEnvironmentTextureTransferTypesBD"/>
         </require>
     </extension>
 
@@ -22770,10 +23684,124 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_BD_extension_756" number="756" type="instance" supported="disabled">
+    <extension name="XR_BD_camera_image" number="756" depends="XR_EXT_future" type="instance" supported="openxr">
         <require>
-            <enum value="1"                               name="XR_BD_extension_756_SPEC_VERSION"/>
-            <enum value="&quot;XR_BD_extension_756&quot;" name="XR_BD_EXTENSION_756_EXTENSION_NAME"/>
+            <enum value="1"                                     name="XR_BD_camera_image_SPEC_VERSION"/>
+            <enum value="&quot;XR_BD_camera_image&quot;"        name="XR_BD_CAMERA_IMAGE_EXTENSION_NAME"/>
+
+            <enum offset="0"  dir="-" extends="XrResult"        name="XR_ERROR_CAMERA_UNAVAILABLE_BD"                                         comment="The camera is not available."/>
+            <enum offset="1"  dir="-" extends="XrResult"        name="XR_ERROR_CAMERA_OCCUPIED_BD"                                            comment="The camera is occupied by other process."/>
+            <enum offset="2"  dir="-" extends="XrResult"        name="XR_ERROR_CAMERA_CAPTURE_SESSION_CAPTURING_BD"                           comment="The camera capture session is capturing."/>
+            <enum offset="3"  dir="-" extends="XrResult"        name="XR_ERROR_CAMERA_CAPTURE_SESSION_NOT_CAPTURING_BD"                       comment="The camera capture session is not capturing."/>
+            <enum offset="4"  dir="-" extends="XrResult"        name="XR_ERROR_CAMERA_ID_INVALID_BD"                                          comment="The camera ID is not valid."/>
+            <enum offset="5"  dir="-" extends="XrResult"        name="XR_ERROR_CAMERA_IMAGE_ID_INVALID_BD"                                    comment="The camera image ID is not valid."/>
+            <enum offset="6"  dir="-" extends="XrResult"        name="XR_ERROR_CAMERA_PROPERTY_TYPE_INVALID_BD"                               comment="The camera property type is not valid."/>
+            <enum offset="7"  dir="-" extends="XrResult"        name="XR_ERROR_CAMERA_CAPABILITY_TYPE_INVALID_BD"                             comment="The camera capability type is not valid."/>
+            <enum offset="8"  dir="-" extends="XrResult"        name="XR_ERROR_IMAGE_BUFFER_EXHAUSTED_BD"                                     comment="The image buffer is exhausted."/>
+
+            <enum offset="0"          extends="XrStructureType" name="XR_TYPE_AVAILABLE_CAMERAS_ENUMERATE_INFO_BD"/>
+            <enum offset="1"          extends="XrStructureType" name="XR_TYPE_CAMERA_PROPERTIES_GET_INFO_BD"/>
+            <enum offset="2"          extends="XrStructureType" name="XR_TYPE_CAMERA_PROPERTIES_BD"/>
+            <enum offset="3"          extends="XrStructureType" name="XR_TYPE_CAMERA_PROPERTY_FACING_BD"/>
+            <enum offset="4"          extends="XrStructureType" name="XR_TYPE_CAMERA_PROPERTY_POSITION_BD"/>
+            <enum offset="5"          extends="XrStructureType" name="XR_TYPE_CAMERA_PROPERTY_CAMERA_TYPE_BD"/>
+            <enum offset="6"          extends="XrStructureType" name="XR_TYPE_CAMERA_SUPPORTED_CAPABILITIES_GET_INFO_BD"/>
+            <enum offset="7"          extends="XrStructureType" name="XR_TYPE_CAMERA_SUPPORTED_CAPABILITIES_BD"/>
+            <enum offset="8"          extends="XrStructureType" name="XR_TYPE_CAMERA_SUPPORTED_CAPABILITY_IMAGE_RESOLUTION_AND_FRAME_RATE_BD"/>
+            <enum offset="9"          extends="XrStructureType" name="XR_TYPE_CAMERA_CAPABILITY_IMAGE_RESOLUTION_AND_FRAME_RATE_BD"/>
+            <enum offset="10"         extends="XrStructureType" name="XR_TYPE_CAMERA_SUPPORTED_CAPABILITY_DATA_TRANSFER_TYPE_BD"/>
+            <enum offset="11"         extends="XrStructureType" name="XR_TYPE_CAMERA_CAPABILITY_DATA_TRANSFER_TYPE_BD"/>
+            <enum offset="12"         extends="XrStructureType" name="XR_TYPE_CAMERA_SUPPORTED_CAPABILITY_IMAGE_FORMAT_BD"/>
+            <enum offset="13"         extends="XrStructureType" name="XR_TYPE_CAMERA_CAPABILITY_IMAGE_FORMAT_BD"/>
+            <enum offset="14"         extends="XrStructureType" name="XR_TYPE_CAMERA_SUPPORTED_CAPABILITY_CAMERA_MODEL_BD"/>
+            <enum offset="15"         extends="XrStructureType" name="XR_TYPE_CAMERA_CAPABILITY_CAMERA_MODEL_BD"/>
+            <enum offset="16"         extends="XrStructureType" name="XR_TYPE_CAMERA_DEVICE_CREATE_INFO_BD"/>
+            <enum offset="17"         extends="XrStructureType" name="XR_TYPE_CREATE_CAMERA_DEVICE_COMPLETION_BD"/>
+            <enum offset="18"         extends="XrStructureType" name="XR_TYPE_CAMERA_CAPTURE_SESSION_CREATE_INFO_BD"/>
+            <enum offset="19"         extends="XrStructureType" name="XR_TYPE_CREATE_CAMERA_CAPTURE_SESSION_COMPLETION_BD"/>
+            <enum offset="20"         extends="XrStructureType" name="XR_TYPE_CAMERA_INTRINSICS_BD"/>
+            <enum offset="21"         extends="XrStructureType" name="XR_TYPE_CAMERA_EXTRINSICS_BD"/>
+            <enum offset="22"         extends="XrStructureType" name="XR_TYPE_CAMERA_CAPTURE_BEGIN_INFO_BD"/>
+            <enum offset="23"         extends="XrStructureType" name="XR_TYPE_CAMERA_IMAGE_ACQUIRE_INFO_BD"/>
+            <enum offset="24"         extends="XrStructureType" name="XR_TYPE_CAMERA_IMAGE_BD"/>
+            <enum offset="25"         extends="XrStructureType" name="XR_TYPE_CAMERA_IMAGE_DATA_RAW_BUFFER_BD"/>
+            <enum offset="26"         extends="XrStructureType" name="XR_TYPE_CAMERA_CAPABILITIES_BD"/>
+            <enum offset="27"         extends="XrStructureType" name="XR_TYPE_CAMERA_CAPABILITY_TYPES_ENUMERATE_INFO_BD"/>
+            <enum offset="28"         extends="XrStructureType" name="XR_TYPE_CAMERA_CAPABILITY_TYPES_BD"/>
+            <enum offset="29"         extends="XrStructureType" name="XR_TYPE_CAMERA_PROPERTY_TYPES_ENUMERATE_INFO_BD"/>
+            <enum offset="30"         extends="XrStructureType" name="XR_TYPE_CAMERA_PROPERTY_TYPES_BD"/>
+            <enum offset="31"         extends="XrStructureType" name="XR_TYPE_AVAILABLE_CAMERA_BD"/>
+
+            <enum offset="0"          extends="XrObjectType"    name="XR_OBJECT_TYPE_CAMERA_DEVICE_BD"                                        comment="XrCameraDeviceBD"/>
+            <enum offset="1"          extends="XrObjectType"    name="XR_OBJECT_TYPE_CAMERA_CAPTURE_SESSION_BD"                               comment="XrCameraCaptureSessionBD"/>
+
+            <type name="XrCameraIdBD"/>
+            <type name="XrCameraDeviceBD"/>
+            <type name="XrCameraCaptureSessionBD"/>
+            <type name="XrAvailableCamerasEnumerateInfoBD"/>
+            <type name="XrAvailableCameraBD"/>
+            <type name="XrCameraPropertyTypeBD"/>
+            <type name="XrCameraPropertyTypesEnumerateInfoBD"/>
+            <type name="XrCameraPropertyTypesBD"/>
+            <type name="XrCameraPropertiesGetInfoBD"/>
+            <type name="XrCameraPropertiesBD"/>
+            <type name="XrCameraPropertyBaseHeaderBD"/>
+            <type name="XrCameraFacingBD"/>
+            <type name="XrCameraPropertyFacingBD"/>
+            <type name="XrCameraPositionBD"/>
+            <type name="XrCameraPropertyPositionBD"/>
+            <type name="XrCameraTypeBD"/>
+            <type name="XrCameraPropertyCameraTypeBD"/>
+            <type name="XrCameraCapabilityTypeBD"/>
+            <type name="XrCameraCapabilityTypesEnumerateInfoBD"/>
+            <type name="XrCameraCapabilityTypesBD"/>
+            <type name="XrCameraSupportedCapabilitiesGetInfoBD"/>
+            <type name="XrCameraSupportedCapabilityBaseHeaderBD"/>
+            <type name="XrCameraSupportedCapabilitiesBD"/>
+            <type name="XrCameraCapabilityBaseHeaderBD"/>
+            <type name="XrCameraCapabilitiesBD"/>
+            <type name="XrCameraImageResolutionAndFrameRateBD"/>
+            <type name="XrCameraSupportedCapabilityImageResolutionAndFrameRateBD"/>
+            <type name="XrCameraCapabilityImageResolutionAndFrameRateBD"/>
+            <type name="XrCameraDataTransferTypeBD"/>
+            <type name="XrCameraSupportedCapabilityDataTransferTypeBD"/>
+            <type name="XrCameraCapabilityDataTransferTypeBD"/>
+            <type name="XrCameraImageFormatBD"/>
+            <type name="XrCameraSupportedCapabilityImageFormatBD"/>
+            <type name="XrCameraCapabilityImageFormatBD"/>
+            <type name="XrCameraModelBD"/>
+            <type name="XrCameraSupportedCapabilityCameraModelBD"/>
+            <type name="XrCameraCapabilityCameraModelBD"/>
+            <type name="XrCameraDeviceCreateInfoBD"/>
+            <type name="XrCreateCameraDeviceCompletionBD"/>
+            <type name="XrCameraCaptureSessionCreateInfoBD"/>
+            <type name="XrCreateCameraCaptureSessionCompletionBD"/>
+            <type name="XrCameraIntrinsicsBD"/>
+            <type name="XrCameraExtrinsicsBD"/>
+            <type name="XrCameraCaptureBeginInfoBD"/>
+            <type name="XrCameraImageAcquireInfoBD"/>
+            <type name="XrCameraImageIdBD"/>
+            <type name="XrCameraImageBD"/>
+            <type name="XrCameraImageDataBaseHeaderBD"/>
+            <type name="XrCameraImageDataRawBufferBD"/>
+
+            <command name="xrEnumerateAvailableCamerasBD"/>
+            <command name="xrEnumerateCameraPropertyTypesBD"/>
+
+            <command name="xrGetCameraPropertiesBD"/>
+            <command name="xrEnumerateCameraCapabilityTypesBD"/>
+            <command name="xrGetCameraSupportedCapabilitiesBD"/>
+            <command name="xrCreateCameraDeviceAsyncBD"/>
+            <command name="xrCreateCameraDeviceCompleteBD"/>
+            <command name="xrDestroyCameraDeviceBD"/>
+            <command name="xrCreateCameraCaptureSessionAsyncBD"/>
+            <command name="xrCreateCameraCaptureSessionCompleteBD"/>
+            <command name="xrDestroyCameraCaptureSessionBD"/>
+            <command name="xrBeginCameraCaptureBD"/>
+            <command name="xrEndCameraCaptureBD"/>
+            <command name="xrAcquireCameraImageBD"/>
+            <command name="xrGetCameraImageDataBD"/>
+            <command name="xrReleaseCameraImageBD"/>
         </require>
     </extension>
 
@@ -23005,10 +24033,17 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_SONY_extension_778" number="778" type="instance" supported="disabled">
+    <extension name="XR_SONY_hdr_metadata" number="778" type="instance" supported="openxr" depends="XR_SONY_swapchain_color_space">
         <require>
-            <enum value="1"                                 name="XR_SONY_extension_778_SPEC_VERSION"/>
-            <enum value="&quot;XR_SONY_extension_778&quot;" name="XR_SONY_EXTENSION_778_EXTENSION_NAME"/>
+            <enum value="1"                                name="XR_SONY_hdr_metadata_SPEC_VERSION"/>
+            <enum value="&quot;XR_SONY_hdr_metadata&quot;" name="XR_SONY_HDR_METADATA_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrStructureType"     name="XR_TYPE_HDR_METADATA_SONY"/>
+
+            <type name="XrHdrMetadataSONY"/>
+            <type name="XrXYColorSONY"/>
+
+            <command name="xrSetHdrMetadataSONY"/>
         </require>
     </extension>
 
@@ -23061,10 +24096,50 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_EXT_extension_783" number="783" type="instance" supported="disabled">
+    <extension name="XR_EXT_spatial_image_tracking" number="783" type="instance" supported="openxr" ratified="openxr" depends="XR_EXT_spatial_entity+XR_EXT_future">
         <require>
-            <enum value="1"                                name="XR_EXT_extension_783_SPEC_VERSION"/>
-            <enum value="&quot;XR_EXT_extension_783&quot;" name="XR_EXT_EXTENSION_783_EXTENSION_NAME"/>
+            <enum value="1"                                         name="XR_EXT_spatial_image_tracking_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_spatial_image_tracking&quot;" name="XR_EXT_SPATIAL_IMAGE_TRACKING_EXTENSION_NAME"/>
+
+            <type name="XrSpatialImageTrackingDatabaseEXT"/>
+
+            <enum offset="0"         extends="XrObjectType" name="XR_OBJECT_TYPE_SPATIAL_IMAGE_TRACKING_DATABASE_EXT" comment="XrSpatialImageTrackingDatabaseEXT"/>
+
+            <enum offset="1" dir="-" extends="XrResult"     name="XR_ERROR_SPATIAL_IMAGE_FORMAT_UNSUPPORTED_EXT"      comment="A format has been passed that is not supported by the runtime."/>
+            <enum offset="2" dir="-" extends="XrResult"     name="XR_ERROR_SPATIAL_IMAGE_INVALID_EXT"                 comment="The data of an input image could not be evaluated successfully according to its input format and planes."/>
+            <enum offset="3" dir="-" extends="XrResult"     name="XR_ERROR_SPATIAL_IMAGE_SIZE_MISSING_EXT"            comment="An input image that requires a slink:XrSpatialImageSizeEXT structure has not been provided with one."/>
+
+            <type name="XrSpatialReferenceImageFormatEXT"/>
+
+            <type name="XrSpatialReferenceImagePlaneEXT"/>
+            <type name="XrSpatialReferenceImageEXT"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SPATIAL_REFERENCE_IMAGE_EXT"/>
+            <type name="XrSpatialImageStaticOptimizationEXT"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_SPATIAL_IMAGE_STATIC_OPTIMIZATION_EXT"/>
+            <type name="XrSpatialImageSizeEXT"/>
+            <enum offset="2" extends="XrStructureType" name="XR_TYPE_SPATIAL_IMAGE_SIZE_EXT"/>
+            <type name="XrSpatialCapabilityConfigurationImageTrackingEXT"/>
+            <enum offset="3" extends="XrStructureType" name="XR_TYPE_SPATIAL_CAPABILITY_CONFIGURATION_IMAGE_TRACKING_EXT"/>
+            <type name="XrSpatialImageTrackingDatabaseCreateInfoEXT"/>
+            <enum offset="4" extends="XrStructureType" name="XR_TYPE_SPATIAL_IMAGE_TRACKING_DATABASE_CREATE_INFO_EXT"/>
+            <type name="XrSpatialImage2DDataEXT"/>
+            <type name="XrSpatialComponentImage2DListEXT"/>
+            <enum offset="5" extends="XrStructureType" name="XR_TYPE_SPATIAL_COMPONENT_IMAGE_2D_LIST_EXT"/>
+            <type name="XrCreateSpatialImageTrackingDatabaseCompletionEXT"/>
+            <enum offset="6" extends="XrStructureType"               name="XR_TYPE_CREATE_SPATIAL_IMAGE_TRACKING_DATABASE_COMPLETION_EXT"/>
+
+            <enum offset="0" extends="XrSpatialCapabilityEXT"        name="XR_SPATIAL_CAPABILITY_IMAGE_TRACKING_EXT"                               comment="Capability to be able to detect and track planar reference images."/>
+
+            <enum offset="0" extends="XrSpatialComponentTypeEXT"     name="XR_SPATIAL_COMPONENT_TYPE_IMAGE_2D_EXT"                                 comment="A component describing the planar image type. Corresponding list structure is slink:XrSpatialComponentImage2DListEXT. Corresponding data structure is slink:XrSpatialImage2DDataEXT."/>
+
+            <enum offset="0" extends="XrSpatialCapabilityFeatureEXT" name="XR_SPATIAL_CAPABILITY_FEATURE_IMAGE_TRACKING_AUTOMATIC_SIZE_IMAGES_EXT" comment="The runtime supports automatically deducing the physical size of detected and tracked images. Corresponding config structure is slink:XrSpatialImageSizeEXT."/>
+            <enum offset="1" extends="XrSpatialCapabilityFeatureEXT" name="XR_SPATIAL_CAPABILITY_FEATURE_IMAGE_TRACKING_STATIC_IMAGES_EXT"         comment="The runtime supports static image optimization. Corresponding config structure is slink:XrSpatialImageStaticOptimizationEXT."/>
+            <enum offset="2" extends="XrSpatialCapabilityFeatureEXT" name="XR_SPATIAL_CAPABILITY_FEATURE_IMAGE_TRACKING_FIXED_SIZE_IMAGES_EXT"     comment="The runtime supports fixed size images. Corresponding config structure is slink:XrSpatialImageSizeEXT."/>
+
+            <command name="xrEnumerateSpatialReferenceImageFormatsEXT"/>
+            <command name="xrCreateSpatialImageTrackingDatabaseAsyncEXT"/>
+            <command name="xrCreateSpatialImageTrackingDatabaseCompleteEXT"/>
+            <command name="xrDestroySpatialImageTrackingDatabaseEXT"/>
         </require>
     </extension>
 
@@ -23127,8 +24202,8 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum value="1"                                        name="XR_ANDROID_google_cloud_auth_SPEC_VERSION"/>
             <enum value="&quot;XR_ANDROID_google_cloud_auth&quot;" name="XR_ANDROID_GOOGLE_CLOUD_AUTH_EXTENSION_NAME"/>
 
-            <enum offset="0" dir="-" extends="XrResult"            name="XR_ERROR_KEYLESS_AUTH_NOT_SETUP_ANDROID"/>
-            <enum offset="1" dir="-" extends="XrResult"            name="XR_ERROR_KEYLESS_AUTH_FAILED_ANDROID"/>
+            <enum offset="0" dir="-" extends="XrResult"            name="XR_ERROR_KEYLESS_AUTH_NOT_SETUP_ANDROID"     comment="Keyless auth is not setup properly."/>
+            <enum offset="1" dir="-" extends="XrResult"            name="XR_ERROR_KEYLESS_AUTH_FAILED_ANDROID"        comment="Keyless auth failed. The application can: try again later. The application or developer may: also check certain preconditions for success (e.g. on Android, the device must: have an up-to-date installation of Google Play Services and these services must: be functioning properly)."/>
 
             <type name="XrGoogleCloudAuthInfoBaseHeaderANDROID"/>
             <type name="XrGoogleCloudAuthInfoApiKeyANDROID"/>
@@ -23169,9 +24244,9 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
 
             <enum offset="0"         extends="XrObjectType"    name="XR_OBJECT_TYPE_GEOSPATIAL_TRACKER_ANDROID"                   comment="XrGeospatialTrackerANDROID"/>
 
-            <enum offset="0" dir="-" extends="XrResult"        name="XR_ERROR_GEOSPATIAL_TRACKER_NOT_RUNNING_ANDROID"/>
-            <enum offset="1" dir="-" extends="XrResult"        name="XR_ERROR_GEOSPATIAL_COORDINATES_INVALID_ANDROID"/>
-            <enum offset="2" dir="-" extends="XrResult"        name="XR_ERROR_GEOSPATIAL_CLOUD_AUTH_FAILED_ANDROID"/>
+            <enum offset="0" dir="-" extends="XrResult"        name="XR_ERROR_GEOSPATIAL_TRACKER_NOT_RUNNING_ANDROID"             comment="An slink:XrGeospatialTrackerANDROID which is not in ename:XR_GEOSPATIAL_TRACKER_STATE_RUNNING_ANDROID was passed to a function."/>
+            <enum offset="1" dir="-" extends="XrResult"        name="XR_ERROR_GEOSPATIAL_COORDINATES_INVALID_ANDROID"             comment="The supplied geospatial coordinates were invalid."/>
+            <enum offset="2" dir="-" extends="XrResult"        name="XR_ERROR_GEOSPATIAL_CLOUD_AUTH_FAILED_ANDROID"               comment="Cloud auth failed. A structure like slink:XrGoogleCloudAuthErrorResultANDROID in the next chain may: provide more information about the failure."/>
 
             <type name="XrGeospatialPoseANDROID"/>
             <type name="XrSystemGeospatialPropertiesANDROID"/>
@@ -23279,7 +24354,7 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
             <enum offset="3"         extends="XrStructureType"     name="XR_TYPE_SYSTEM_GEOSPATIAL_ANCHOR_PROPERTIES_ANDROID"/>
             <enum offset="4"         extends="XrStructureType"     name="XR_TYPE_GEOSPATIAL_TRACKER_ANCHOR_TRACKING_INFO_ANDROID"/>
 
-            <enum offset="0" dir="-" extends="XrResult"            name="XR_ERROR_SURFACE_ANCHOR_LOCATION_UNSUPPORTED_ANDROID"/>
+            <enum offset="0" dir="-" extends="XrResult"            name="XR_ERROR_SURFACE_ANCHOR_LOCATION_UNSUPPORTED_ANDROID"    comment="There is no surface data for the given location."/>
 
             <type name="XrSystemGeospatialAnchorPropertiesANDROID"/>
             <type name="XrGeospatialTrackerAnchorTrackingInfoANDROID"/>
@@ -23378,10 +24453,69 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_extension_811" number="811" type="instance" supported="disabled">
+    <extension name="XR_EXT_spatial_container" number="811" type="instance" supported="openxr" ratified="openxr">
         <require>
-            <enum value="1"                                    name="XR_ANDROID_extension_811_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_extension_811&quot;" name="XR_ANDROID_EXTENSION_811_EXTENSION_NAME"/>
+            <enum value="1"                                    name="XR_EXT_spatial_container_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_spatial_container&quot;" name="XR_EXT_SPATIAL_CONTAINER_EXTENSION_NAME"/>
+
+            <type name="XrSessionCreateInfoSpatialContainersEXT"/>
+            <type name="XrSpatialContainerEXT"/>
+            <type name="XrSpatialContainerCreateInfoEXT"/>
+            <type name="XrSpatialContainerSpaceCreateInfoEXT"/>
+            <type name="XrEventDataSpatialContainerClosedEXT"/>
+            <type name="XrSystemSpatialContainerPropertiesEXT"/>
+            <type name="XrSpatialContainerBoundsEXT"/>
+            <type name="XrEventDataSpatialContainerBoundsChangedEXT"/>
+            <type name="XrSpatialContainerBoundsGetInfoEXT"/>
+            <type name="XrSpatialContainerStateGetInfoEXT"/>
+            <type name="XrSpatialContainerGraphicsPresentationEXT"/>
+            <type name="XrSpatialContainerVisibleRequestInfoEXT"/>
+            <type name="XrEventDataSpatialContainerVisibleChangedEXT"/>
+            <type name="XrEventDataSpatialContainerVisibleRequestDeniedEXT"/>
+            <type name="XrEventDataSpatialContainerInteractableChangedEXT"/>
+            <type name="XrSpatialContainerBoundsModeEXT"/>
+            <type name="XrSpatialContainerBoundsModeRequestInfoEXT"/>
+            <type name="XrEventDataSpatialContainerBoundsModeRequestDeniedEXT"/>
+            <type name="XrSpatialContainerVolumeClippingEXT"/>
+            <type name="XrSpatialContainerStateEXT"/>
+
+            <enum offset="0"          extends="XrObjectType"    name="XR_OBJECT_TYPE_SPATIAL_CONTAINER_EXT"                                comment="XrSpatialContainerEXT"/>
+
+            <enum offset="0"          extends="XrStructureType" name="XR_TYPE_SPATIAL_CONTAINER_CREATE_INFO_EXT"/>
+            <enum offset="1"          extends="XrStructureType" name="XR_TYPE_SPATIAL_CONTAINER_SPACE_CREATE_INFO_EXT"/>
+            <enum offset="3"          extends="XrStructureType" name="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_CLOSED_EXT"/>
+            <enum offset="4"          extends="XrStructureType" name="XR_TYPE_SYSTEM_SPATIAL_CONTAINER_PROPERTIES_EXT"/>
+            <enum offset="5"          extends="XrStructureType" name="XR_TYPE_SPATIAL_CONTAINER_BOUNDS_EXT"/>
+            <enum offset="6"          extends="XrStructureType" name="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_BOUNDS_CHANGED_EXT"/>
+            <enum offset="7"          extends="XrStructureType" name="XR_TYPE_SPATIAL_CONTAINER_BOUNDS_GET_INFO_EXT"/>
+            <enum offset="8"          extends="XrStructureType" name="XR_TYPE_SPATIAL_CONTAINER_STATE_GET_INFO_EXT"/>
+            <enum offset="9"          extends="XrStructureType" name="XR_TYPE_SPATIAL_CONTAINER_VISIBLE_REQUEST_INFO_EXT"/>
+            <enum offset="10"         extends="XrStructureType" name="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_VISIBLE_CHANGED_EXT"/>
+            <enum offset="11"         extends="XrStructureType" name="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_VISIBLE_REQUEST_DENIED_EXT"/>
+            <enum offset="12"         extends="XrStructureType" name="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_INTERACTABLE_CHANGED_EXT"/>
+            <enum offset="13"         extends="XrStructureType" name="XR_TYPE_SPATIAL_CONTAINER_BOUNDS_MODE_REQUEST_INFO_EXT"/>
+            <enum offset="14"         extends="XrStructureType" name="XR_TYPE_EVENT_DATA_SPATIAL_CONTAINER_BOUNDS_MODE_REQUEST_DENIED_EXT"/>
+            <enum offset="15"         extends="XrStructureType" name="XR_TYPE_SPATIAL_CONTAINER_STATE_EXT"/>
+            <enum offset="16"         extends="XrStructureType" name="XR_TYPE_SESSION_CREATE_INFO_SPATIAL_CONTAINERS_EXT"/>
+
+            <enum offset="0"  dir="-" extends="XrResult"        name="XR_ERROR_SPATIAL_CONTAINER_CLOSED_EXT"                               comment="The spatial container passed was closed by the runtime."/>
+            <enum offset="1"  dir="-" extends="XrResult"        name="XR_ERROR_SPATIAL_CONTAINERS_ENABLED_EXT"                             comment="The requested operation is not supported with spatial containers enabled."/>
+            <enum offset="2"  dir="-" extends="XrResult"        name="XR_ERROR_SPATIAL_CONTAINERS_NOT_ENABLED_EXT"                         comment="The requested operation requires spatial containers be enabled for this slink:XrSession."/>
+            <enum offset="3"  dir="-" extends="XrResult"        name="XR_ERROR_COMPATIBLE_SPATIAL_CONTAINER_MISSING_EXT"                   comment="A compatible spatial container was not passed to a function."/>
+
+            <command name="xrCreateSpatialContainerEXT"/>
+            <command name="xrDestroySpatialContainerEXT"/>
+            <command name="xrCreateSpatialContainerSpaceEXT"/>
+            <command name="xrRequestSpatialContainerVisibleEXT"/>
+            <command name="xrRequestSpatialContainerBoundsModeEXT"/>
+            <command name="xrGetSpatialContainerBoundsEXT"/>
+            <command name="xrGetSpatialContainerStateEXT"/>
+            <command name="xrEnumerateSupportedSpatialContainerGraphicsPresentationsEXT"/>
+
+            <extend type="command" name="xrBeginSession" errorcodes="XR_ERROR_SPATIAL_CONTAINERS_ENABLED_EXT"/>
+            <extend type="command" name="xrEndSession" errorcodes="XR_ERROR_SPATIAL_CONTAINERS_ENABLED_EXT"/>
+            <extend type="command" name="xrRequestExitSession" errorcodes="XR_ERROR_SPATIAL_CONTAINERS_ENABLED_EXT"/>
+            <extend type="command" name="xrLocateViews" errorcodes="XR_ERROR_SPATIAL_CONTAINERS_ENABLED_EXT"/>
         </require>
     </extension>
 
@@ -23399,10 +24533,42 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_ANDROID_extension_814" number="814" type="instance" supported="disabled">
+    <extension name="XR_EXT_spatial_container_self_rendering" number="814" type="instance" supported="openxr" ratified="openxr" depends="XR_EXT_spatial_container">
         <require>
-            <enum value="1"                                    name="XR_ANDROID_extension_814_SPEC_VERSION"/>
-            <enum value="&quot;XR_ANDROID_extension_814&quot;" name="XR_ANDROID_EXTENSION_814_EXTENSION_NAME"/>
+            <enum value="1"                                                   name="XR_EXT_spatial_container_self_rendering_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_spatial_container_self_rendering&quot;" name="XR_EXT_SPATIAL_CONTAINER_SELF_RENDERING_EXTENSION_NAME"/>
+
+            <type name="XrSpatialContainerViewLocateInfoEXT"/>
+            <type name="XrSpatialContainerViewsLocateInfoEXT"/>
+            <type name="XrSpatialContainerViewStateEXT"/>
+            <type name="XrSpatialContainerLayerEXT"/>
+            <type name="XrSpatialContainerLayerFrameEndInfoEXT"/>
+            <type name="XrSpatialContainerBeginInfoEXT"/>
+            <type name="XrSpatialContainerEndInfoEXT"/>
+            <type name="XrSpatialContainerCompositionLayerViewConfigurationEXT"/>
+            <type name="XrSpatialContainerLayerVolumeClippingEXT"/>
+
+            <enum offset="0"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_VIEW_LOCATE_INFO_EXT"/>
+            <enum offset="1"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_VIEWS_LOCATE_INFO_EXT"/>
+            <enum offset="2"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_VIEW_STATE_EXT"/>
+            <enum offset="3"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_LAYER_EXT"/>
+            <enum offset="4"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_LAYER_FRAME_END_INFO_EXT"/>
+            <enum offset="5"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_BEGIN_INFO_EXT"/>
+            <enum offset="6"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_COMPOSITION_LAYER_VIEW_CONFIGURATION_EXT"/>
+            <enum offset="7"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_END_INFO_EXT"/>
+            <enum offset="8"         extends="XrStructureType"                           name="XR_TYPE_SPATIAL_CONTAINER_LAYER_VOLUME_CLIPPING_EXT"/>
+            <enum offset="0"         extends="XrSpatialContainerGraphicsPresentationEXT" name="XR_SPATIAL_CONTAINER_GRAPHICS_PRESENTATION_SELF_RENDERING_EXT"      comment="Spatial container uses OpenXR composition layers"/>
+            <enum offset="1" dir="-" extends="XrResult"                                  name="XR_ERROR_SPATIAL_CONTAINER_IS_RENDERING_EXT"                        comment="The spatial container is already in the active render set"/>
+            <enum offset="2" dir="-" extends="XrResult"                                  name="XR_ERROR_SPATIAL_CONTAINER_NOT_RENDERING_EXT"                       comment="The spatial container is not in the active render set"/>
+            <enum offset="3" dir="-" extends="XrResult"                                  name="XR_ERROR_SPATIAL_CONTAINER_MISSING_EXT"                             comment="A spatial container from the active render set is missing from the submission"/>
+            <enum offset="4" dir="-" extends="XrResult"                                  name="XR_ERROR_SPATIAL_CONTAINER_DUPLICATE_EXT"                           comment="A spatial container is duplicated in the submission"/>
+            <enum offset="5" dir="-" extends="XrResult"                                  name="XR_ERROR_SPATIAL_CONTAINER_GRAPHICS_PRESENTATION_MISSING_EXT"       comment="The spatial container does not have the required graphics presentation style"/>
+
+            <command name="xrBeginSpatialContainerRenderingEXT"/>
+            <command name="xrEndSpatialContainerRenderingEXT"/>
+            <command name="xrLocateSpatialContainerViewsEXT"/>
+
+            <extend type="command" name="xrEndFrame" errorcodes="XR_ERROR_SPATIAL_CONTAINER_DUPLICATE_EXT,XR_ERROR_SPATIAL_CONTAINER_MISSING_EXT,XR_ERROR_SPATIAL_CONTAINER_NOT_RENDERING_EXT"/>
         </require>
     </extension>
 
@@ -23839,10 +25005,12 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         </require>
     </extension>
 
-    <extension name="XR_KHR_extension_875" number="875" type="instance" supported="disabled">
+    <extension name="XR_KHR_extended_result_name_lengths" number="875" type="instance" supported="openxr" ratified="openxr">
         <require>
-            <enum value="1"                                name="XR_KHR_extension_875_SPEC_VERSION"/>
-            <enum value="&quot;XR_KHR_extension_875&quot;" name="XR_KHR_EXTENSION_875_EXTENSION_NAME"/>
+            <enum value="1"                                               name="XR_KHR_extended_result_name_lengths_SPEC_VERSION"/>
+            <enum value="&quot;XR_KHR_extended_result_name_lengths&quot;" name="XR_KHR_EXTENDED_RESULT_NAME_LENGTHS_EXTENSION_NAME"/>
+            <command name="xrResultToString2KHR"/>
+            <enum value="256" name="XR_MAX_RESULT_STRING_SIZE_EXTENDED_KHR"/>
         </require>
     </extension>
 
@@ -24564,6 +25732,230 @@ typedef XrResult (XRAPI_PTR *<name>PFN_xrCreateApiLayerInstance</name>)(
         <require>
             <enum value="1"                                 name="XR_META_extension_978_SPEC_VERSION"/>
             <enum value="&quot;XR_META_extension_978&quot;" name="XR_META_EXTENSION_978_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_EXT_extension_979" number="979" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                name="XR_EXT_extension_979_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_extension_979&quot;" name="XR_EXT_EXTENSION_979_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_980" number="980" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_980_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_980&quot;" name="XR_ANDROID_EXTENSION_980_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_981" number="981" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_981_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_981&quot;" name="XR_ANDROID_EXTENSION_981_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_982" number="982" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_982_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_982&quot;" name="XR_ANDROID_EXTENSION_982_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_983" number="983" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_983_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_983&quot;" name="XR_ANDROID_EXTENSION_983_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_984" number="984" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_984_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_984&quot;" name="XR_ANDROID_EXTENSION_984_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_985" number="985" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_985_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_985&quot;" name="XR_ANDROID_EXTENSION_985_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_986" number="986" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_986_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_986&quot;" name="XR_ANDROID_EXTENSION_986_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_987" number="987" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_987_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_987&quot;" name="XR_ANDROID_EXTENSION_987_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_988" number="988" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_988_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_988&quot;" name="XR_ANDROID_EXTENSION_988_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_989" number="989" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_989_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_989&quot;" name="XR_ANDROID_EXTENSION_989_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_990" number="990" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_990_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_990&quot;" name="XR_ANDROID_EXTENSION_990_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_991" number="991" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_991_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_991&quot;" name="XR_ANDROID_EXTENSION_991_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_992" number="992" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_992_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_992&quot;" name="XR_ANDROID_EXTENSION_992_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_993" number="993" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_993_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_993&quot;" name="XR_ANDROID_EXTENSION_993_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_994" number="994" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_994_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_994&quot;" name="XR_ANDROID_EXTENSION_994_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_995" number="995" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_995_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_995&quot;" name="XR_ANDROID_EXTENSION_995_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_996" number="996" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_996_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_996&quot;" name="XR_ANDROID_EXTENSION_996_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_997" number="997" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_997_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_997&quot;" name="XR_ANDROID_EXTENSION_997_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_998" number="998" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_998_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_998&quot;" name="XR_ANDROID_EXTENSION_998_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_999" number="999" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                    name="XR_ANDROID_extension_999_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_999&quot;" name="XR_ANDROID_EXTENSION_999_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_1000" number="1000" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                     name="XR_ANDROID_extension_1000_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_1000&quot;" name="XR_ANDROID_EXTENSION_1000_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_1001" number="1001" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                     name="XR_ANDROID_extension_1001_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_1001&quot;" name="XR_ANDROID_EXTENSION_1001_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_1002" number="1002" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                     name="XR_ANDROID_extension_1002_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_1002&quot;" name="XR_ANDROID_EXTENSION_1002_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_1003" number="1003" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                     name="XR_ANDROID_extension_1003_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_1003&quot;" name="XR_ANDROID_EXTENSION_1003_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_1004" number="1004" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                     name="XR_ANDROID_extension_1004_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_1004&quot;" name="XR_ANDROID_EXTENSION_1004_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_1005" number="1005" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                     name="XR_ANDROID_extension_1005_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_1005&quot;" name="XR_ANDROID_EXTENSION_1005_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_1006" number="1006" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                     name="XR_ANDROID_extension_1006_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_1006&quot;" name="XR_ANDROID_EXTENSION_1006_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_1007" number="1007" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                     name="XR_ANDROID_extension_1007_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_1007&quot;" name="XR_ANDROID_EXTENSION_1007_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_1008" number="1008" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                     name="XR_ANDROID_extension_1008_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_1008&quot;" name="XR_ANDROID_EXTENSION_1008_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_1009" number="1009" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                     name="XR_ANDROID_extension_1009_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_1009&quot;" name="XR_ANDROID_EXTENSION_1009_EXTENSION_NAME"/>
+        </require>
+    </extension>
+
+    <extension name="XR_ANDROID_extension_1010" number="1010" type="instance" supported="disabled">
+        <require>
+            <enum value="1"                                     name="XR_ANDROID_extension_1010_SPEC_VERSION"/>
+            <enum value="&quot;XR_ANDROID_extension_1010&quot;" name="XR_ANDROID_EXTENSION_1010_EXTENSION_NAME"/>
         </require>
     </extension>
 

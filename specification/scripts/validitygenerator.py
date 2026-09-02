@@ -1551,6 +1551,28 @@ class ValidityOutputGenerator(OutputGenerator):
             self.states.add_command(name, current_state, relationship)
         return state_names
 
+    def findOwningExtension(self, entityName):
+        """Find the extension whose <require> block directly requires
+        the named type or command, if exactly one such extension exists.
+
+        Because extensions are processed in extension-number order, and
+        a type may be pulled in as a dependency of a lower-numbered
+        extension that merely uses it (e.g. as a struct member) before
+        the higher-numbered extension that actually introduces it is
+        processed, self.currentExtension does not always reflect the
+        entity's true owning extension. This looks that up directly
+        instead of trusting the processing-order-dependent state.
+        """
+        owners = [
+            extname
+            for extname, ei in self.registry.extdict.items()
+            if ei.elem.find(f"./require/type[@name='{entityName}']") is not None
+            or ei.elem.find(f"./require/command[@name='{entityName}']") is not None
+        ]
+        if len(owners) == 1:
+            return owners[0]
+        return self.currentExtension
+
     def genCmd(self, cmdinfo, name, alias):
         """Command generation."""
         OutputGenerator.genCmd(self, cmdinfo, name, alias)
@@ -1560,7 +1582,7 @@ class ValidityOutputGenerator(OutputGenerator):
         validity = self.makeValidityCollection(name)
 
         # OpenXR-only: make sure extension is enabled
-        validity.possiblyAddExtensionRequirement(self.currentExtension, 'calling flink:')
+        validity.possiblyAddExtensionRequirement(self.findOwningExtension(name), 'calling flink:')
 
         validity += self.makeStructOrCommandValidity(
             cmdinfo.elem, name, cmdinfo.getParams())
@@ -1606,7 +1628,7 @@ class ValidityOutputGenerator(OutputGenerator):
         threadsafety = []
 
         # OpenXR-only: make sure extension is enabled
-        validity.possiblyAddExtensionRequirement(self.currentExtension, 'using slink:')
+        validity.possiblyAddExtensionRequirement(self.findOwningExtension(typeName), 'using slink:')
 
         self.genStructInternals(typeinfo, typeName, validity, threadsafety)
 

@@ -134,7 +134,7 @@ def merge_registry(input_registry_path: str, fragment_files: Iterable[Path]) -> 
         with filepath.open("r", encoding="utf-8") as f:
             fragment_tree = ET.parse(f, xml_parser)
             _merge_fragment(tree, fragment_tree, filepath)
-        relative_path = filepath.resolve().relative_to(registry_dir)
+        relative_path = filepath.resolve().relative_to(registry_dir).as_posix()
         comment_text.append(f"      - {relative_path}")
 
     comment_text.append("")

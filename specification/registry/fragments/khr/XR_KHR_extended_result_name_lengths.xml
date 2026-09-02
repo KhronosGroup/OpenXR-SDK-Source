@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<fragment>
+    <comment>
+Copyright (c) 2017-2026 The Khronos Group Inc.
+
+SPDX-License-Identifier: Apache-2.0 OR MIT
+    </comment>
+
+    <commands>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrResultToString2KHR</name></proto>
+            <param><type>XrInstance</type> <name>instance</name></param>
+            <param><type>XrResult</type> <name>value</name></param>
+            <param><type>char</type> <name>buffer</name>[<enum>XR_MAX_RESULT_STRING_SIZE_EXTENDED_KHR</enum>]</param>
+        </command>
+    </commands>
+
+    <extensions>
+    <extension name="XR_KHR_extended_result_name_lengths" number="875" type="instance" supported="openxr" ratified="openxr">
+        <require>
+            <enum value="1"                                               name="XR_KHR_extended_result_name_lengths_SPEC_VERSION"/>
+            <enum value="&quot;XR_KHR_extended_result_name_lengths&quot;" name="XR_KHR_EXTENDED_RESULT_NAME_LENGTHS_EXTENSION_NAME"/>
+            <command name="xrResultToString2KHR"/>
+            <enum value="256" name="XR_MAX_RESULT_STRING_SIZE_EXTENDED_KHR"/>
+        </require>
+    </extension>
+    </extensions>
+</fragment>

@@ -14,14 +14,14 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Set, Tuple, Union
 
+from apiconventions import APIConventions
 from check_spec_links import XREntityDatabase as OrigEntityDatabase
+from parse_dependency import dependencyNames
 from reg import Registry
 from spec_tools.algo import longest_common_token_prefix
 from spec_tools.attributes import LengthEntry
 from spec_tools.consistency_tools import XMLChecker
 from spec_tools.util import findNamedElem, getElemName, getElemType
-from apiconventions import APIConventions
-from parse_dependency import dependencyNames
 
 INVALID_HANDLE = "XR_ERROR_HANDLE_INVALID"
 RUNTIME_FAILURE = "XR_ERROR_RUNTIME_FAILURE"
@@ -258,7 +258,42 @@ class Checker(XMLChecker):
             if name not in ENUM_NAMING_EXCEPTIONS:
                 self.set_error_context(entity=name, elem=self.db.registry.groupdict[name].elem)
                 self.check_enum_naming(name)
+        self.check_types_and_commands_are_required()
         super().check()
+
+    def check_types_and_commands_are_required(self):
+        # Check types
+        root = self.db.registry.tree.getroot()
+        for name in self.db.registry.typedict:
+            if "FlagBits" in name:
+                # use flag name for check instead
+                flag_elem = root.find(f".//type[@bitvalues='{name}']//name")
+                if flag_elem is not None:
+                    name = flag_elem.text
+                else:
+                    self.set_error_context(entity=name, elem=self.db.registry.typedict[name].elem)
+                    self.record_error(f"{name} is not used for a 'Flags' type")
+                    continue
+            if "requires" in self.db.registry.typedict[name].elem.attrib:
+                # Ignore types included from other headers
+                continue
+            explicit_require = root.find(f".//require/type[@name='{name}']")
+            if explicit_require is None:
+                # Check for implicit require
+                # Check if referenced by another type or command
+                type_reference = root.find(f".//type//type[.='{name}']")
+                command_reference = root.find(f".//command//type[.='{name}']")
+                extend_reference = root.find(f".//type[@parentstruct='{name}']")
+                if (
+                    type_reference is None
+                    and command_reference is None
+                    and extend_reference is None
+                ):
+                    self.set_error_context(entity=name, elem=self.db.registry.typedict[name].elem)
+                    self.record_error(
+                        f"Type '{name}' is not required explicitly by any feature or extension, "
+                        "nor is it referenced by any other types or commands."
+                    )
 
     def check_enum_naming(self, enum_type):
         stripped_enum_type, enum_tag = self.strip_extension_tag(enum_type)

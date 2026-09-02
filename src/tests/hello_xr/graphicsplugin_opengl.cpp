@@ -354,7 +354,7 @@ struct OpenGLGraphicsPlugin : public IGraphicsPlugin {
 
        private:
         uint32_t m_texture{0};
-        XrSwapchainImageOpenGLKHR m_image{XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR, NULL, 0};
+        XrSwapchainImageOpenGLKHR m_image{XR_TYPE_SWAPCHAIN_IMAGE_OPENGL_KHR};
     };
     class OpenGLSwapchainImageData : public SwapchainImageDataBase<XrSwapchainImageOpenGLKHR> {
        public:

@@ -61,6 +61,7 @@ static std::string vendorNameFromRuntimeName(const char* runtimeName) {
         {"HTC", "HTC America, Inc."},
         {"Windows Mixed Reality", "Microsoft Corporation"},
         {"Oculus", "Meta Platforms"},
+        {"Meta XR", "Meta Platforms"},
         {"SteamVR", "Valve Corporation"},
         {"Varjo", "Varjo Technologies Oy"},
         // Monado needs to appear last in this last as other vendors may be using
@@ -169,25 +170,51 @@ static int main_body() {
         return 1;
     }
 
-    // TODO: might be a bit neater to use jsoncpp here.
+#define AS_LIST(name, val) {name, #name},
+    static constexpr std::pair<XrFormFactor, const char*> KnownFormFactors[] = {XR_LIST_ENUM_XrFormFactor(AS_LIST)};
+#undef AS_LIST
+
+    // Iterate over known form factors and get the systemName from the list valid one.
+    char systemName[XR_MAX_SYSTEM_NAME_SIZE] = "Unknown system";
+    for (auto formFactor : KnownFormFactors) {
+        XrSystemGetInfo systemGetInfo = {XR_TYPE_SYSTEM_GET_INFO};
+        systemGetInfo.formFactor = formFactor.first;
+
+        XrSystemId systemId;
+        if (xrGetSystem(instance, &systemGetInfo, &systemId) != XR_SUCCESS) {
+            continue;
+        }
+
+        XrSystemProperties systemProperties = {XR_TYPE_SYSTEM_PROPERTIES};
+        if (xrGetSystemProperties(instance, systemId, &systemProperties) != XR_SUCCESS) {
+            continue;
+        }
+
+        strncpy(systemName, systemProperties.systemName, XR_MAX_SYSTEM_NAME_SIZE);
+        break;
+    }
 
     LOGI("{\n");
     std::string versionStr = stringFromXrVersion(instanceProperties.runtimeVersion);
     LOGI("    \"notes\": \"Generated using list_json: '%s' (%s)\",\n", instanceProperties.runtimeName, versionStr.c_str());
-    LOGI("    \"$schema\": \"../schema.json\",\n");
-    LOGI("    \"name\": \"TODO\",\n");
+    LOGI("    \"$schema\": \"../runtime_schema.json\",\n");
+    LOGI("    \"name\": \"%s\",\n", systemName);
     LOGI("    \"conformance_submission\": 0,\n");
 
 #if defined(WIN32)
     LOGI("    \"platform\": \"Windows (Desktop)\",\n");
+#elif defined(__APPLE__)
+    LOGI("    \"platform\": \"MacOS (Desktop)\",\n");
 #elif defined(__ANDROID__)
     LOGI("    \"platform\": \"Android (All-in-one)\",\n");
+#elif defined(__linux__)
+    LOGI("    \"platform\": \"Linux (Desktop)\",\n");
 #endif
 
     std::string vendorName = vendorNameFromRuntimeName(instanceProperties.runtimeName);
     LOGI("    \"vendor\": \"%s\",\n", vendorName.c_str());
 
-    uint32_t size;
+    uint32_t size = 0;
     xrEnumerateInstanceExtensionProperties(nullptr, 0, &size, nullptr);
     std::vector<XrExtensionProperties> extensions(size, {XR_TYPE_EXTENSION_PROPERTIES});
     xrEnumerateInstanceExtensionProperties(nullptr, size, &size, extensions.data());
@@ -201,9 +228,28 @@ static int main_body() {
         extensions.erase(debugUtilsIt);
     }
 
-    // case insensitive sort first
-    // then we will print KHR, EXT and others in order after
-    std::sort(extensions.begin(), extensions.end(), [](auto const& a, auto const& b) {
+    // sort KHR, EXT and then vendor; case insensitive sort after
+    std::sort(extensions.begin(), extensions.end(), [](XrExtensionProperties const& a, XrExtensionProperties const& b) {
+        auto hasPrefix = [](XrExtensionProperties const& props, const char* prefix) -> bool {
+            return strncmp(prefix, props.extensionName, strlen(prefix)) == 0;
+        };
+
+        if (hasPrefix(a, "XR_KHR") && !hasPrefix(b, "XR_KHR")) {
+            return true;
+        } else if (hasPrefix(b, "XR_KHR") && !hasPrefix(a, "XR_KHR")) {
+            return false;
+        } else {
+            // fall through to lexicographical sort
+        }
+
+        if (hasPrefix(a, "XR_EXT") && !hasPrefix(b, "XR_EXT")) {
+            return true;
+        } else if (hasPrefix(b, "XR_EXT") && !hasPrefix(a, "XR_EXT")) {
+            return false;
+        } else {
+            // fall through to lexicographical sort
+        }
+
         return std::lexicographical_compare(a.extensionName, a.extensionName + strlen(a.extensionName), b.extensionName,
                                             b.extensionName + strlen(b.extensionName),
                                             [](char a, char b) { return tolower(a) < tolower(b); });
@@ -225,23 +271,11 @@ static int main_body() {
     std::copy_if(extensions.begin(), extensions.end(), std::back_inserter(runtimeNonPublicExtensions),
                  [isPublicExtension](const XrExtensionProperties& extension) { return !isPublicExtension(extension); });
 
-    auto hasPrefix = [](XrExtensionProperties const& props, const char* prefix) -> bool {
-        return strncmp(prefix, props.extensionName, strlen(prefix)) == 0;
-    };
-
     LOGI("    \"extensions\": [\n");
-    for (XrExtensionProperties extension : runtimePublicExtensions) {
-        if (hasPrefix(extension, "XR_KHR")) {
-            LOGI("        \"%s\",\n", extension.extensionName);
-        }
-    }
-    for (XrExtensionProperties extension : runtimePublicExtensions) {
-        if (hasPrefix(extension, "XR_EXT")) {
-            LOGI("        \"%s\",\n", extension.extensionName);
-        }
-    }
-    for (XrExtensionProperties extension : runtimePublicExtensions) {
-        if (!hasPrefix(extension, "XR_KHR") && !hasPrefix(extension, "XR_EXT")) {
+    for (const XrExtensionProperties& extension : runtimePublicExtensions) {
+        if (&extension == &runtimePublicExtensions.back()) {
+            LOGI("        \"%s\"\n", extension.extensionName);
+        } else {
             LOGI("        \"%s\",\n", extension.extensionName);
         }
     }
@@ -251,18 +285,18 @@ static int main_body() {
     if (writeNonPublicExtensions) {
         if (!runtimeNonPublicExtensions.empty()) {
             LOGI("    \"private_extensions\": [\n");
-            for (XrExtensionProperties extension : runtimeNonPublicExtensions) {
-                LOGI("        \"%s\",\n", extension.extensionName);
+            for (const XrExtensionProperties& extension : runtimeNonPublicExtensions) {
+                if (&extension == &runtimeNonPublicExtensions.back()) {
+                    LOGI("        \"%s\"\n", extension.extensionName);
+                } else {
+                    LOGI("        \"%s\",\n", extension.extensionName);
+                }
             }
             LOGI("    ],\n");
         }
     }
 
     LOGI("    \"form_factors\": [\n");
-
-#define AS_LIST(name, val) {name, #name},
-    static constexpr std::pair<XrFormFactor, const char*> KnownFormFactors[] = {XR_LIST_ENUM_XrFormFactor(AS_LIST)};
-#undef AS_LIST
 
     // Iterate over known form factors and list any form factors that are supported
     for (auto formFactor : KnownFormFactors) {
@@ -299,7 +333,11 @@ static int main_body() {
             LOGI("                    \"environment_blend_modes\": [\n");
             for (auto const& blendMode : blendModes) {
                 std::string blendModeName = envBlendModeTypeName(blendMode);
-                LOGI("                        \"%s\",\n", blendModeName.c_str());
+                if (&blendMode == &blendModes.back()) {
+                    LOGI("                        \"%s\"\n", blendModeName.c_str());
+                } else {
+                    LOGI("                        \"%s\",\n", blendModeName.c_str());
+                }
             }
             LOGI("                    ]\n");
 
@@ -347,6 +385,7 @@ void android_main(struct android_app* app) {
 
 #else  // !defined(XR_USE_PLATFORM_ANDROID)
 
+// NOLINTNEXTLINE(bugprone-exception-escape)
 int main() { return main_body(); }
 
 #endif  // defined(XR_USE_PLATFORM_ANDROID)
