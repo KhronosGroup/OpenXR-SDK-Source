@@ -1,5 +1,7 @@
-# Copyright 2021-2025, Collabora, Ltd.
+# Copyright 2021-2026, Collabora, Ltd.
 # SPDX-License-Identifier: CC0-1.0
+
+name: "MSVC Build Preset"
 
 on:
   workflow_call:
@@ -22,24 +24,29 @@ on:
         type: string
         default: install
 
+permissions: {}
+
 jobs:
   msvc-build:
+    permissions:
+      contents: read
     runs-on: windows-latest
     env:
       VULKAN_SDK_VERSION: "1.1.114.0"
       INSTALL_DIR: "${{ github.workspace }}/install"
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # actions/checkout@v7
         with:
           lfs: true
           fetch-tags: "${{ !github.event.release }}"
           fetch-depth: "${{ github.event.release && '0' || '1'}}"
+          persist-credentials: false
 
       - name: Get modern CMake and Ninja
-        uses: lukka/get-cmake@v4.2.3
+        uses: "lukka/get-cmake@f176ccd3f28bda569c43aae4894f06b2435a3375" # lukka/get-cmake@v4.2.3
 
       - name: Add msbuild to PATH
-        uses: microsoft/setup-msbuild@v3
+        uses: "microsoft/setup-msbuild@30375c66a4eea26614e0d39710365f22f8b0af57" # microsoft/setup-msbuild@v3
 
       - name: Install Vulkan SDK
         run: ./.github/scripts/install_vulkan.ps1
@@ -51,15 +58,22 @@ jobs:
         shell: pwsh
         run: |
           Copy-Item .github/scripts/CMakePresets.json .
-          cmake --fresh --preset ${{ inputs.preset }} -S . -B $env:RUNNER_TEMP
+          cmake --fresh --preset $env:INPUTS_PRESET -S . -B $env:RUNNER_TEMP
+        env:
+          INPUTS_PRESET: ${{ inputs.preset }}
+
       - name: Build
-        run: "cmake --build $env:RUNNER_TEMP --parallel --clean-first --config ${{ inputs.buildType }}"
+        run: "cmake --build $env:RUNNER_TEMP --parallel --clean-first --config $env:INPUTS_BUILDTYPE"
+        env:
+          INPUTS_BUILDTYPE: ${{ inputs.buildType }}
 
       - name: Install
-        run: "cmake --build $env:RUNNER_TEMP --parallel --config ${{ inputs.buildType }} --target install"
+        run: "cmake --build $env:RUNNER_TEMP --parallel --config $env:INPUTS_BUILDTYPE --target install"
+        env:
+          INPUTS_BUILDTYPE: ${{ inputs.buildType }}
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v7
+        uses: "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" # actions/upload-artifact@v7
         if: inputs.artifactName
         with:
           name: "${{ inputs.artifactName }}"
