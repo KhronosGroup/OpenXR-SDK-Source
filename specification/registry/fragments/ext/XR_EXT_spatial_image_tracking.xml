@@ -124,7 +124,7 @@ SPDX-License-Identifier: Apache-2.0 OR MIT
 
             <enum offset="1" dir="-" extends="XrResult"     name="XR_ERROR_SPATIAL_IMAGE_FORMAT_UNSUPPORTED_EXT"      comment="A format has been passed that is not supported by the runtime."/>
             <enum offset="2" dir="-" extends="XrResult"     name="XR_ERROR_SPATIAL_IMAGE_INVALID_EXT"                 comment="The data of an input image could not be evaluated successfully according to its input format and planes."/>
-            <enum offset="3" dir="-" extends="XrResult"     name="XR_ERROR_SPATIAL_IMAGE_SIZE_MISSING_EXT"            comment="An input image that requires a slink:XrSpatialImageSizeEXT structure has not been provided with one."/>
+            <enum offset="3" dir="-" extends="XrResult"     name="XR_ERROR_SPATIAL_IMAGE_SIZE_MISSING_EXT"            comment="An input image that requires an slink:XrSpatialImageSizeEXT structure has not been provided with one."/>
 
             <type name="XrSpatialReferenceImageFormatEXT"/>
 

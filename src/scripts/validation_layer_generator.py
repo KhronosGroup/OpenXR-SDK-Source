@@ -895,6 +895,8 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
             else:
                 handle_info = f'{self.makeInfoName(handle)}.get(TreatIntegerAsHandle<{handle.name}>(inhandle))'
 
+                if handle.protect_value:
+                    verify_parent += f'#if {handle.protect_string}\n'
                 verify_parent += self.writeIndent(indent)
                 verify_parent += 'if (inhandle_type == %s) {\n' % self.genXrObjectType(
                     handle.name)
@@ -912,6 +914,8 @@ class ValidationSourceOutputGenerator(AutomaticSourceOutputGenerator):
                 indent -= 1
                 verify_parent += self.writeIndent(indent)
                 verify_parent += '}\n'
+                if handle.protect_value:
+                    verify_parent += f'#endif // {handle.protect_string}\n'
         verify_parent += '    return false;\n'
         verify_parent += '}\n\n'
         verify_parent += '// Implementation of VerifyXrParent function\n'

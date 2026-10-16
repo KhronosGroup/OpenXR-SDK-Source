@@ -1,9 +1,6 @@
 almalence_digital_lens_control.adoc|||* pname:next must be code:NULL.
 android_scene_meshing.adoc|||snapshots may: not be up to date or empty.
 api_initialization.adoc|||using one slink:XrInstance may not be valid when used with objects related
-bd_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
-bd_controller_interaction.adoc|||* subpathname:/input/system/click (may: not be available for application
-bd_controller_interaction.adoc|||* subpathname:/input/system/click (may: not be available for application
 bd_facial_simulation.adoc|||[open,refpage='XrFaceExpressionBD', desc='The name of blend shapes of face that can be tracked', type='enums', xrefs='XrFacialSimulationDataBD XrFacialSimulationModeBD']
 bd_facial_simulation.adoc|||[open,refpage='XrLipExpressionBD', desc='The name of blend shapes of lip that can be tracked', type='enums',xrefs='XrLipExpressionDataBD XrFacialSimulationModeBD']
 bd_facial_simulation.adoc|||array that can contain at least pname:faceExpressionWeightCount of
@@ -17,7 +14,6 @@ bd_spatial_audio_rendering.adoc|||// We should now be able to hear the sound fie
 bd_spatial_audio_rendering.adoc|||// We should now be able to hear the sound object
 bd_spatial_audio_rendering.adoc|||familiar with audio middleware may know this concept under that name.
 bd_spatial_sensing.adoc|||this event, but the sense data provider may: not have acquired new data and
-bd_ultra_controller_interaction.adoc|||* subpathname:/input/system/click (may: not be available for application
 epic_view_configuration_fov.adoc|||* pname:maxMutableFov is the maximum field-of-view that the runtime can
 epic_view_configuration_fov.adoc|||These field-of-view parameters can be used during initialization of the
 epic_view_configuration_fov.adoc|||can be added to the next chain of slink:XrViewConfigurationView to retrieve
@@ -60,7 +56,6 @@ ext_dpad_binding.adoc|||single logical dpad may be active simultaneously.
 ext_dpad_binding.adoc|||the active and inactive state that can occur when the amount of force
 ext_dpad_binding.adoc|||they can have different settings.
 ext_dpad_binding.adoc|||is treated as equal, their physical scale may: not be.
-ext_eye_gaze_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
 ext_eye_gaze_interaction.adoc|||An application can expect that a nominal eye gaze pose can be used for use
 ext_eye_gaze_interaction.adoc|||Applications should be very careful when using sub-nominal eye gaze pose,
 ext_eye_gaze_interaction.adoc|||Eye tracking data can be sensitive personal information and is closely
@@ -101,7 +96,6 @@ ext_hand_tracking.adoc|||velocity__ is observed or can be calculated by the runt
 ext_hand_tracking_data_source.adoc|||. Should slink:XrHandTrackingDataSourceInfoEXT include an pname:isActive member or can it use pname:isActive from slink:XrHandJointLocationsEXT?
 ext_hand_tracking_data_source.adoc|||It should not be required.
 ext_hand_tracking_data_source.adoc|||pname:isActive member and cannot use the pname:isActive from
-ext_hp_mixed_reality_controller.adoc|||// the path name must be vendor-suffixed in new extensions.
 ext_interaction_profile_battery_state_display.adoc|||   interaction profile active, then the runtime can return battery level for
 ext_interaction_render_model.adoc|||   Option A (only devices for the currently active action sets) may mean
 ext_interaction_render_model.adoc|||   We cannot test automatically whether the hardware looks like the model,
@@ -157,7 +151,6 @@ ext_render_model.adoc|||   Once this is complete, flink:xrDestroyRenderModelAsse
 ext_render_model.adoc|||// End of non-normative note: normative macros may resume
 ext_render_model.adoc|||// Non-normative note: should not contain any normative macros
 ext_render_model.adoc|||   runtime may: not have any useful method to predict future states beyond
-ext_samsung_odyssey_controller.adoc|||// the path name must be vendor-suffixed in new extensions.
 ext_spatial_entity.adoc|||   An example of this could be that tables can be detected by both a plane
 ext_spatial_entity.adoc|||   What is important to note here is that a given spatial entity can have at
 ext_spatial_entity.adoc|||the runtime may: not return any new data and helps avoid the risk of
@@ -303,8 +296,6 @@ fb_swapchain_update_state_vulkan.adoc|||  but the texture state may not; and, an
 fb_swapchain_update_state_vulkan.adoc|||dlink:XR_USE_GRAPHICS_API_VULKAN must be defined before including
 fb_touch_controller_pro.adoc|||  This tip can detect various pressure levels and could be used for writing
 fb_touch_controller_pro.adoc|||  that can be interchanged with the lanyard.
-fb_touch_controller_pro.adoc|||// the path name must be vendor-suffixed in new extensions.
-fb_touch_controller_pro.adoc|||** subpathname:/input/system/click (may: not be available for application
 fb_triangle_mesh.adoc|||  The actual number of triangles can vary and is defined when
 fb_triangle_mesh.adoc|||  The actual number of vertices can vary and is defined when
 fb_triangle_mesh.adoc|||  The size of the array must be pname:triangleCount elements.
@@ -340,28 +331,19 @@ htc_facial_tracking.adoc|||facial expression can be animated with the player's e
 htc_facial_tracking.adoc|||facial expression can be animated with the player's lip movement.
 htc_facial_tracking.adoc|||that can contain at least pname:expressionCount of code:float.
 htc_facial_tracking.adoc|||that the application can index elements using the corresponding facial
-htc_hand_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
-htc_vive_cosmos_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
-htc_vive_cosmos_controller_interaction.adoc|||** subpathname:/input/system/click (may: not be available for application
-htc_vive_focus3_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
-htc_vive_focus3_controller_interaction.adoc|||** subpathname:/input/system/click (may: not be available for application
-htc_vive_wrist_tracker_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
 htc_vive_wrist_tracker_interaction.adoc|||Besides this use case, user also can tie it to a physical object to track
-htc_vive_wrist_tracker_interaction.adoc|||** subpathname:/input/system/click (may: not be available for application
 htcx_vive_tracker_interaction.adoc|||  The format of this path string is unspecified and should be treated as an
 htcx_vive_tracker_interaction.adoc|||* Either the persistent path or the role path can be be passed as a
 htcx_vive_tracker_interaction.adoc|||For example, it can be attached to user's hands or feet to track the motion
 htcx_vive_tracker_interaction.adoc|||HTC VIVE Tracker is a generic tracked device which can be attached to
 htcx_vive_tracker_interaction.adoc|||It can also be attached to any other devices the user wants to track and
 htcx_vive_tracker_interaction.adoc|||The role path and persistent path of this tracker can be retrieved with this
-htcx_vive_tracker_interaction.adoc|||* subpathname:/input/system/click (may: not be available for application
-huawei_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
 input.adoc|||  If pname:subactionPaths is NULL, this parameter must be 0.
 input.adoc|||  The action can be passed to flink:xrApplyHapticFeedback to send a haptic
 input.adoc|||  The action can be passed to flink:xrGetActionStateBoolean to retrieve a
 input.adoc|||  The action can be passed to flink:xrGetActionStateFloat to retrieve a
 input.adoc|||  The action can be passed to flink:xrGetActionStateVector2f to retrieve a
-input.adoc|||  The action can can be passed to flink:xrCreateActionSpace to create a
+input.adoc|||  The action can be passed to flink:xrCreateActionSpace to create a space.
 input.adoc|||  This parameter can be combined with pname:currentState to detect rising
 input.adoc|||  This string should be in the system's current active locale.
 input.adoc|||  This string should be presented in the system's current active locale.
@@ -371,7 +353,7 @@ input.adoc|||A given action can either be used for either input or output, but n
 input.adoc|||Applications can query action state using subaction paths that differentiate
 input.adoc|||Furthermore, the runtime should stop all in-progress haptic events when a
 input.adoc|||Haptic feedback may be immediately halted for a haptic action using the
-input.adoc|||If an input value cannot be converted to the type of the action, the value
+input.adoc|||If an input value cannot be converted to the type of the action, that input
 input.adoc|||If the runtime is unable to provide input because it cannot emulate any of
 input.adoc|||The current state of an input action can be obtained by calling the
 input.adoc|||This abstraction ensures that applications can run on a wide variety of
@@ -462,7 +444,6 @@ khr_vulkan_swapchain_format_list.adoc|||function, an OpenXR application can pass
 khr_vulkan_swapchain_format_list.adoc|||must create OpenXR swapchains with the
 khr_win32_convert_performance_counter_time.adoc|||If the output pname:performanceCounter cannot represent the input
 khr_win32_convert_performance_counter_time.adoc|||If the output pname:time cannot represent the input
-logitech_mx_ink_stylus_interaction.adoc|||** subpathname:/input/system/click (may: not be available for application
 meta_body_tracking_calibration.adoc|||implement a UI to allow users to specify when it should be called.
 meta_body_tracking_fidelity.adoc|||[open,refpage='XrBodyTrackingFidelityMETA',type='enums',desc='Fidelity that may be requested or currently in use by the body tracker',xrefs='xrRequestBodyTrackingFidelityMETA XrBodyTrackingFidelityStatusMETA']
 meta_body_tracking_full_body.adoc|||ename:XR_BODY_JOINT_SET_FULL_BODY_META, which can be set as the joint set in
@@ -485,7 +466,6 @@ meta_spatial_entity_discovery.adoc|||apiext:XR_META_spatial_entity_discovery, an
 meta_spatial_entity_group_sharing.adoc|||Any logged-in user using the same application may query for spatial entities
 meta_spatial_entity_persistence.adoc|||of them must contain at least one element.
 meta_tile_properties_hint.adoc|||therefore cannot get the tile properties without providing an API for the
-meta_touch_controller_plus.adoc|||** subpathname:/input/system/click (may: not be available for application
 meta_virtual_keyboard.adoc|||* pname:textContext is a pointer to a code:char buffer, should contain prior
 meta_virtual_keyboard.adoc|||Different input poses can be used to accommodate application specific
 meta_virtual_keyboard.adoc|||Note that new animations may be added after the runtime processes inputs
@@ -498,8 +478,6 @@ meta_virtual_keyboard.adoc|||that can be used by the application's choice of phy
 meta_virtual_keyboard.adoc|||weight should be applied to, or apply all weights if the value is -1.
 ml_facial_expression.adoc|||// User must explicitly request what facial expression blend shape to query
 ml_marker_understanding.adoc|||pname:session must be the same session that created the
-ml_ml2_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
-ml_ml2_controller_interaction.adoc|||* subpathname:/input/home/click (may: not be available for application use)
 ml_world_mesh_detection.adoc|||          // It may be advantageous to use memory allocated
 ml_world_mesh_detection.adoc|||          // memory may provide some performance benefits by avoiding
 ml_world_mesh_detection.adoc|||This buffer must be allocated by the application, the system provides
@@ -521,7 +499,6 @@ msft_controller_model.adoc|||model that can be retrieved from flink:xrLoadContro
 msft_first_person_observer.adoc|||The application should render with assets and shaders that produce output
 msft_first_person_observer.adoc|||display may support alpha-blending when composing the first-person observer
 msft_first_person_observer.adoc|||perspective as the primary views, and so the application should render its
-msft_hand_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
 msft_hand_tracking_mesh.adoc|||An application can chain an slink:XrHandPoseTypeInfoMSFT structure to the
 msft_hand_tracking_mesh.adoc|||An application can choose different pname:handPoseType values to query the
 msft_hand_tracking_mesh.adoc|||An application should create separate hand mesh space handles for each hand
@@ -626,7 +603,6 @@ oculus_android_session_state_enable.adoc|||These two life cycles may interleave 
 oculus_audio_device_guid.adoc|||  If these commands were to be reimplemented, `Oculus` should be replaced by
 oculus_audio_device_guid.adoc|||  If these commands were to be reimplemented, they should also pass a
 oculus_audio_device_guid.adoc|||On Windows, there may be multiple audio devices available on the system.
-oppo_controller_interaction.adoc|||** subpathname:/input/home/click (may: not be available for application use)
 rendering.adoc|||  This is the typical mode for VR experiences, although this mode can also
 rendering.adoc|||  with an additive display, although this mode can also be supported on
 rendering.adoc|||Applications should discard frames for which flink:xrEndFrame returns a
@@ -661,23 +637,6 @@ semantic_paths.adoc|||no more can be created.
 semantic_paths.adoc|||However, path names in the path tree model may: not all have the same level
 semantic_paths.adoc|||An basetype:XrPath that is received from one slink:XrInstance may: not be
 semantic_paths.adoc|||NOTE: A return value of ename:XR_SUCCESS from flink:xrStringToPath may: not
-semantic_paths.adoc|||  and may: not be available to applications.
-semantic_paths.adoc|||* subpathname:/input/system/click (may: not be available for application
-semantic_paths.adoc|||* subpathname:/input/system/click (may: not be available for application
-semantic_paths.adoc|||* subpathname:/input/system/click (may: not be available for application
-semantic_paths.adoc|||** subpathname:/input/system/click (may: not be available for application
-semantic_paths.adoc|||** subpathname:/input/system/click (may: not be available for application
-semantic_paths.adoc|||* subpathname:/input/system/click (may: not be available for application
-semantic_paths.adoc|||* subpathname:/input/home/click (may: not be available for application use)
-semantic_paths.adoc|||* subpathname:/input/system/click (may: not be available for application
-semantic_paths.adoc|||** subpathname:/input/system/click (may: not be available for application
-semantic_paths.adoc|||** subpathname:/input/system/click (may: not be available for application
-semantic_paths.adoc|||** subpathname:/input/system/click (may: not be available for application
-semantic_paths.adoc|||** subpathname:/input/system/click (may: not be available for application
-semantic_paths.adoc|||** subpathname:/input/system/click (may: not be available for application
-semantic_paths.adoc|||** subpathname:/input/system/click (may: not be available for application
-semantic_paths.adoc|||* subpathname:/input/system/click (may: not be available for application
-semantic_paths.adoc|||* subpathname:/input/system/touch (may: not be available for application
 session.adoc|||  The application should destroy the current session and can optionally
 session.adoc|||  The application should end its XR experience and not automatically restart
 session.adoc|||  The application should exit its frame loop and call flink:xrEndSession.
@@ -788,8 +747,6 @@ varjo_view_offset.adoc|||Note that while the objects' sizes may differ, their ge
 varjo_view_offset.adoc|||While this can be observed as an apparent jump in the location of virtual
 varjo_view_offset.adoc|||You can use this to create a smooth, animated transition between the two
 varjo_view_offset.adoc|||user – for example, their hands may appear unnaturally large in the image.
-varjo_xr4_controller_interaction.adoc|||// the path name must be vendor-suffixed in new extensions.
-varjo_xr4_controller_interaction.adoc|||* subpathname:/input/system/click (may: not be available for application
 versions.adoc|||// Unfortunately we cannot include titles in an open refpage block, so this
 versions.adoc|||Applications that can provide a head-relative interaction experience in the
 view_configurations.adoc|||* pname:fovMutable indicates if the view field of view can be modified by
@@ -798,4 +755,53 @@ view_configurations.adoc|||Applications can query more details of each view elem
 view_configurations.adoc|||Supporting more than one primary view configuration can be useful if a
 view_configurations.adoc|||configuration type can be demonstrated by looking at the rendered pixel
 view_configurations.adoc|||views for which an application can render images.
-yvr_controller_interaction.adoc|||** subpathname:/input/system/click (may: not be available for application
+XR_ANDROID_trackables.xml|||Indicates that the trackable or anchor tracking is paused but may be resumed in the future.
+XR_EXT_spatial_container.xml|||No content is clipped to the bounding volume of the spatial container.  Content can draw outside of the spatial container's bounds.
+XR_QCOM_hand_tracking_gesture.xml|||Indicates that no gesture can be detected.
+xr.fragmented.xml|||A recoverable error has occurred. The runtime will attempt to recover, but some functionality may be temporarily unavailable.
+xr.fragmented.xml|||ANchor cannot be persisted because it is not tracking.
+xr.fragmented.xml|||At the time of the call the runtime was unable to locate the space and cannot fulfill your request.
+xr.fragmented.xml|||Custom Tracker Profile. The application can define a custom tracker profile. See slink:XrMarkerDetectorCustomProfileInfoML for more details.
+xr.fragmented.xml|||Explicitly create the swapchain with fragment density map foveation support. The application must ensure that the swapchain is using the Vulkan graphics API and that the VK_EXT_fragment_density_map extension is supported and enabled.
+xr.fragmented.xml|||Explicitly create the swapchain with scaled bin foveation support. The application must ensure that the swapchain is using the OpenGL graphics API and that the QCOM_texture_foveated extension is supported and enabled.
+xr.fragmented.xml|||Indicates that a soft fade to transparent should be added to the frame in the compositor to blend any hard edges at the FOV limits.
+xr.fragmented.xml|||Indicates that face tracking is paused but may be resumed in the future.
+xr.fragmented.xml|||Indicates that the content for this frame is protected and should not be recorded or captured outside the graphics system.
+xr.fragmented.xml|||Indicates that the created slink:XrBodyTrackerFB tracks the set of body joints described by elink:XrBodyJointFB enum, i.e. the flink:xrLocateBodyJointsFB function returns an array of joint locations with the count of ename:XR_BODY_JOINT_COUNT_FB and can be indexed using elink:XrBodyJointFB. This includes the upper body, both hands, and torso.
+xr.fragmented.xml|||Indicates that the created slink:XrBodyTrackerFB tracks the set of body joints described by elink:XrFullBodyJointMETA enum, i.e. the flink:xrLocateBodyJointsFB function returns an array of joint locations with the count of ename:XR_FULL_BODY_JOINT_COUNT_META and can be indexed using elink:XrFullBodyJointMETA. This extends the joints of ename:XR_BODY_JOINT_SET_DEFAULT_FB by also including the lower body.
+xr.fragmented.xml|||Indicates the item may be the cause of issues.
+xr.fragmented.xml|||Indicates whether or not foveation data is valid. This can happen if the eye tracker is obscured, the camera has dirt, or eye lid is closed, etc.
+xr.fragmented.xml|||Insufficient permissions. This error is included for use by vendor extensions. The precise definition of `XR_ERROR_PERMISSION_INSUFFICIENT` and actions possible by the developer or user to resolve it can vary by platform, extension or function. The developer should refer to the documentation of the function that returned the error code and extension it was defined.
+xr.fragmented.xml|||Low quality, this anchor can be expected to move significantly.
+xr.fragmented.xml|||Medium quality, this anchor may move slightly.
+xr.fragmented.xml|||Non-recoverable error has occurred. A device reboot or a firmware update may be required.
+xr.fragmented.xml|||Notifies that the sub-domain has reached a critical level with significant performance degradation. The application should take drastic mitigation action
+xr.fragmented.xml|||Notifies that the sub-domain has reached an early warning level where the application should start proactive mitigation actions with the goal to return to the ename:XR_PERF_SETTINGS_NOTIF_LEVEL_NORMAL_EXT level
+xr.fragmented.xml|||Operation failed because the space referenced cannot be located.
+xr.fragmented.xml|||Optimized for accuracy. Use this profile to optimize for accurate marker poses. This can cause increased load on the compute.
+xr.fragmented.xml|||Optimized for speed. Use this profile to reduce the compute load and increase detection/tracker speed. This can result in low accuracy poses.
+xr.fragmented.xml|||Provides the application with read-only access (i.e. application cannot modify the store associated with this scope) to spatial entities persisted and managed by the system. The application can: use the UUID in the persistence component for this scope to correlate entities across spatial contexts and device reboots.
+xr.fragmented.xml|||Results in the same output as the `Default` mode, furthermore, runtime can provide a precise result by using the audio input.
+xr.fragmented.xml|||Semantic label of opening, usually refers to a space that something or someone can pass through.
+xr.fragmented.xml|||Semantic label of sofa, usually refers to a seat that multiple people can sit on.
+xr.fragmented.xml|||The confidence is fair, current environmental conditions may adversely affect localization.
+xr.fragmented.xml|||The confidence is high, persistent content should be stable.
+xr.fragmented.xml|||The coordinate origin of the swapchain image must be considered to be flipped vertically.
+xr.fragmented.xml|||The hit point cannot be determined because it lies outside of the field of view.
+xr.fragmented.xml|||The intersection with the environment is found, but the hit orientation cannot be determined.
+xr.fragmented.xml|||The map localization service cannot export cloud based maps.
+xr.fragmented.xml|||The system can show passthrough with realistic colors. ename:XR_PASSTHROUGH_CAPABILITY_BIT_FB must: be set if ename:XR_PASSTHROUGH_CAPABILITY_COLOR_BIT_FB is set.
+xr.fragmented.xml|||The triangle mesh is mutable (can be modified after it is created).
+xr.fragmented.xml|||The user of the tracker may have been changed.
+xr.fragmented.xml|||This data source value indicates that the hand tracking system should use wide motion mode inference to provide hand poses when the hands are not directly visible to the tracking cameras
+xr.fragmented.xml|||This mode should be used for images that are known to be static or semi-static. This mode leads to less power consumption in comparison to the dynamic mode. If a static image is being moved, it will be updated with a much higher latency than using the dynamic mode.
+xr.fragmented.xml|||This value indicates that the body tracking runtime uses a simpler algorithm or less input to estimate the body pose in a way that trades off pose quality for system performance. For example, low fidelity may not accurately track a user's elbows.
+xr.fragmented.xml|||This value indicates that the body tracking runtime uses more advanced algorithms or more inputs to estimate the body pose. For example high fidelity may track a user's elbows.
+xr.fragmented.xml|||Winding order is unknown and the runtime cannot make any assumptions on the triangle orientation
+xr.fragmented.xml|||exclusive mesh; indicates that which the viewer cannot see.
+xr.fragmented.xml|||face tracking uses visual data to estimate expressions. Face tracking may use audio to further improve the quality of face tracking.
+xr.fragmented.xml|||inclusive mesh; indicates strictly that which the viewer can see.
+xr.fragmented.xml|||indicates that the system has a physically tracked keyboard to report.  If not set then no other bits should be considered to be valid or meaningful.  If set either ename:XR_KEYBOARD_TRACKING_LOCAL_BIT_FB or ename:XR_KEYBOARD_TRACKING_REMOTE_BIT_FB must also be set.
+xr.fragmented.xml|||indicates the query is for the physically tracked keyboard that may be connected to a separate remote computing device. Mutually exclusive with ename:XR_KEYBOARD_TRACKING_QUERY_LOCAL_BIT_FB.
+xr.fragmented.xml|||line loop; traces the outline of the area the viewer can see.
+xr.fragmented.xml|||polygon buffers for holes in planes can be generated

@@ -59,6 +59,9 @@ def load_allowlist(path: str) -> dict:
     return entries
 
 
+COMMENT_ATTR_RE = re.compile(r'comment="(?P<comment>[^"]+)"')
+
+
 def grep_sources(
     description: str,
     pattern: str,
@@ -72,17 +75,26 @@ def grep_sources(
     matches = []
     for source in sources:
         basename = Path(source).name
+        is_xml = basename.endswith(".xml")
         allowed_lines = (
             allowlist.get(basename, set()) if allowlist is not None else None
         )
         try:
             with open(source, encoding="utf-8") as f:
                 for lineno, line in enumerate(f, start=1):
-                    if regex.search(line):
-                        stripped = line.rstrip()
+                    if is_xml:
+                        m = COMMENT_ATTR_RE.search(line)
+                        if not m:
+                            continue
+                        text = m.group("comment")
+                    else:
+                        text = line
+
+                    if regex.search(text):
+                        stripped = text.rstrip()
                         if allowed_lines is not None and stripped in allowed_lines:
                             continue
-                        matches.append(f"{source}:{lineno}:{stripped}")
+                        matches.append(f"{source}:{lineno}:{line.rstrip()}")
         except FileNotFoundError:
             output(f"Warning: file not found: {source}")
     if matches:
@@ -116,11 +128,23 @@ def _list_default_sources() -> List[str]:
     script_dir = Path(__file__).resolve().parent
     spec_dir = script_dir.parent
     chapters_dir = spec_dir / "sources" / "chapters"
-    return sorted(
+    sources = sorted(
         str(p.relative_to(spec_dir))
         for p in chapters_dir.rglob("*.adoc")
         if "appendix" not in str(p)
     )
+    registry_fragmented = spec_dir / "registry" / "xr.fragmented.xml"
+    if registry_fragmented.is_file():
+        sources.append(str(registry_fragmented.relative_to(spec_dir)))
+    fragments_dir = spec_dir / "registry" / "fragments"
+    if fragments_dir.is_dir():
+        sources.extend(
+            sorted(
+                str(p.relative_to(spec_dir))
+                for p in fragments_dir.rglob("[!.]*.xml")
+            )
+        )
+    return sources
 
 
 def main() -> None:

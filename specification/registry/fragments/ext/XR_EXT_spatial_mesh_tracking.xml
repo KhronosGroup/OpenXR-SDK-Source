@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<fragment>
+    <comment>
+Copyright (c) 2017-2026 The Khronos Group Inc.
+
+SPDX-License-Identifier: Apache-2.0 OR MIT
+    </comment>
+
+    <types>
+        <type name="XrSpatialMeshSemanticLabelEXT" category="enum"/>
+
+        <type category="struct" name="XrSpatialCapabilityConfigurationMeshTrackingEXT" parentstruct="XrSpatialCapabilityConfigurationBaseHeaderEXT">
+            <member values="XR_TYPE_SPATIAL_CAPABILITY_CONFIGURATION_MESH_TRACKING_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                  <name>next</name></member>
+            <member><type>XrSpatialCapabilityEXT</type>                                       <name>capability</name></member>
+            <member><type>uint32_t</type>                                                     <name>enabledComponentCount</name></member>
+            <member len="enabledComponentCount">const <type>XrSpatialComponentTypeEXT</type>* <name>enabledComponents</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialFeatureTrackWatertightMeshEXT" structextends="XrSpatialCapabilityConfigurationMeshTrackingEXT">
+            <member values="XR_TYPE_SPATIAL_FEATURE_TRACK_WATERTIGHT_MESH_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+            <member><type>XrBool32</type>    <name>enableWatertightMeshTracking</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialComponentMesh3DNormalsListEXT" structextends="XrSpatialComponentDataQueryResultEXT">
+            <member values="XR_TYPE_SPATIAL_COMPONENT_MESH_3D_NORMALS_LIST_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                      <name>next</name></member>
+            <member><type>uint32_t</type>                                   <name>meshNormalsCount</name></member>
+            <member len="meshNormalsCount"><type>XrSpatialBufferEXT</type>* <name>meshNormals</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialComponentMesh3DVertexSemanticLabelsListEXT" structextends="XrSpatialComponentDataQueryResultEXT">
+            <member values="XR_TYPE_SPATIAL_COMPONENT_MESH_3D_VERTEX_SEMANTIC_LABELS_LIST_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                             <name>next</name></member>
+            <member><type>uint32_t</type>                                          <name>meshSemanticLabelsCount</name></member>
+            <member len="meshSemanticLabelsCount"><type>XrSpatialBufferEXT</type>* <name>meshSemanticLabels</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialComponentMesh3DTriangleSemanticLabelsListEXT" structextends="XrSpatialComponentDataQueryResultEXT">
+            <member values="XR_TYPE_SPATIAL_COMPONENT_MESH_3D_TRIANGLE_SEMANTIC_LABELS_LIST_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                             <name>next</name></member>
+            <member><type>uint32_t</type>                                          <name>meshSemanticLabelsCount</name></member>
+            <member len="meshSemanticLabelsCount"><type>XrSpatialBufferEXT</type>* <name>meshSemanticLabels</name></member>
+        </type>
+    </types>
+
+    <enums name="XrSpatialMeshSemanticLabelEXT" type="enum">
+        <enum value="1"   name="XR_SPATIAL_MESH_SEMANTIC_LABEL_UNCATEGORIZED_EXT" comment="The runtime was unable to classify the vertex or triangle."/>
+        <enum value="2"   name="XR_SPATIAL_MESH_SEMANTIC_LABEL_FLOOR_EXT"         comment="The vertex or triangle maps to a floor."/>
+        <enum value="3"   name="XR_SPATIAL_MESH_SEMANTIC_LABEL_WALL_EXT"          comment="The vertex or triangle maps to a wall."/>
+        <enum value="4"   name="XR_SPATIAL_MESH_SEMANTIC_LABEL_CEILING_EXT"       comment="The vertex or triangle maps to a ceiling."/>
+        <enum value="5"   name="XR_SPATIAL_MESH_SEMANTIC_LABEL_TABLE_EXT"         comment="The vertex or triangle maps to a table."/>
+        <enum value="6"   name="XR_SPATIAL_MESH_SEMANTIC_LABEL_CHAIR_EXT"         comment="The vertex or triangle maps to a chair."/>
+        <enum value="7"   name="XR_SPATIAL_MESH_SEMANTIC_LABEL_SOFA_EXT"          comment="The vertex or triangle maps to a sofa."/>
+        <enum value="8"   name="XR_SPATIAL_MESH_SEMANTIC_LABEL_BED_EXT"           comment="The vertex or triangle maps to a bed."/>
+    </enums>
+
+    <extensions>
+    <extension name="XR_EXT_spatial_mesh_tracking" number="784" type="instance" supported="openxr" ratified="openxr" depends="XR_EXT_spatial_entity">
+        <require>
+            <enum value="1"                                          name="XR_EXT_spatial_mesh_tracking_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_spatial_mesh_tracking&quot;"   name="XR_EXT_SPATIAL_MESH_TRACKING_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrSpatialCapabilityEXT"        name="XR_SPATIAL_CAPABILITY_MESH_TRACKING_EXT"                        comment="Capability to track the mesh of an environment."/>
+
+            <enum offset="0" extends="XrSpatialCapabilityFeatureEXT" name="XR_SPATIAL_CAPABILITY_FEATURE_TRACK_WATERTIGHT_MESH_EXT"        comment="Capability feature to track a watertight mesh of the environment. Corresponding config structure is slink:XrSpatialFeatureTrackWatertightMeshEXT."/>
+
+            <enum offset="0" extends="XrSpatialComponentTypeEXT"     name="XR_SPATIAL_COMPONENT_TYPE_MESH_3D_NORMALS_EXT"                  comment="Component that provides the normals for the 3D mesh of a spatial entity. Corresponding list structure is slink:XrSpatialComponentMesh3DNormalsListEXT; Corresponding data structure is slink:XrSpatialBufferEXT"/>
+            <enum offset="1" extends="XrSpatialComponentTypeEXT"     name="XR_SPATIAL_COMPONENT_TYPE_MESH_3D_VERTEX_SEMANTIC_LABELS_EXT"   comment="Component that provides the per-vertex semantic labels for the 3D mesh of a spatial entity. Corresponding list structure is slink:XrSpatialComponentMesh3DVertexSemanticLabelsListEXT; Corresponding data structure is slink:XrSpatialBufferEXT; Data within the buffer maps to elink:XrSpatialMeshSemanticLabelEXT"/>
+            <enum offset="2" extends="XrSpatialComponentTypeEXT"     name="XR_SPATIAL_COMPONENT_TYPE_MESH_3D_TRIANGLE_SEMANTIC_LABELS_EXT" comment="Component that provides the per-triangle-face semantic labels for the 3D mesh of a spatial entity. Corresponding list structure is slink:XrSpatialComponentMesh3DTriangleSemanticLabelsListEXT; Corresponding data structure is slink:XrSpatialBufferEXT; Data within the buffer maps to elink:XrSpatialMeshSemanticLabelEXT"/>
+
+            <type name="XrSpatialMeshSemanticLabelEXT"/>
+
+            <type name="XrSpatialCapabilityConfigurationMeshTrackingEXT"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SPATIAL_CAPABILITY_CONFIGURATION_MESH_TRACKING_EXT"/>
+            <type name="XrSpatialFeatureTrackWatertightMeshEXT"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_SPATIAL_FEATURE_TRACK_WATERTIGHT_MESH_EXT"/>
+            <type name="XrSpatialComponentMesh3DNormalsListEXT"/>
+            <enum offset="2" extends="XrStructureType" name="XR_TYPE_SPATIAL_COMPONENT_MESH_3D_NORMALS_LIST_EXT"/>
+            <type name="XrSpatialComponentMesh3DVertexSemanticLabelsListEXT"/>
+            <enum offset="3" extends="XrStructureType" name="XR_TYPE_SPATIAL_COMPONENT_MESH_3D_VERTEX_SEMANTIC_LABELS_LIST_EXT"/>
+            <type name="XrSpatialComponentMesh3DTriangleSemanticLabelsListEXT"/>
+            <enum offset="4" extends="XrStructureType" name="XR_TYPE_SPATIAL_COMPONENT_MESH_3D_TRIANGLE_SEMANTIC_LABELS_LIST_EXT"/>
+        </require>
+    </extension>
+    </extensions>
+</fragment>

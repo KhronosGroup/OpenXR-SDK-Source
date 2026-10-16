@@ -29,7 +29,7 @@
 namespace {
 
 // The version statement has come on first line.
-static const char* VertexShaderGlsl = R"_(#version 320 es
+static const char* VertexShaderGlsl = R"_(#version 310 es
 
     in vec3 VertexPos;
     in vec3 VertexColor;
@@ -45,7 +45,7 @@ static const char* VertexShaderGlsl = R"_(#version 320 es
     )_";
 
 // The version statement has come on first line.
-static const char* FragmentShaderGlsl = R"_(#version 320 es
+static const char* FragmentShaderGlsl = R"_(#version 310 es
 
     in lowp vec3 PSVertexColor;
     out lowp vec4 FragColor;

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<fragment>
+    <comment>
+Copyright (c) 2017-2026 The Khronos Group Inc.
+
+SPDX-License-Identifier: Apache-2.0 OR MIT
+    </comment>
+
+    <types>
+        <type name="XrTrackingOptimizationSettingsDomainQCOM" category="enum"/>
+        <type name="XrTrackingOptimizationSettingsHintQCOM" category="enum"/>
+    </types>
+
+    <enums name="XrTrackingOptimizationSettingsHintQCOM" type="enum">
+        <enum value="0"   name="XR_TRACKING_OPTIMIZATION_SETTINGS_HINT_NONE_QCOM"                       comment="Used by the application to indicate that it does not have a preference to optimize for. The run-time is understood to choose a balanced approach."/>
+        <enum value="1"   name="XR_TRACKING_OPTIMIZATION_SETTINGS_HINT_LONG_RANGE_PRIORITIZATION_QCOM"  comment="Used by the application to indicate that it prefers tracking to be optimized for long range, possibly at the expense of competing interests."/>
+        <enum value="2"   name="XR_TRACKING_OPTIMIZATION_SETTINGS_HINT_CLOSE_RANGE_PRIORITIZATION_QCOM" comment="Used by the application to indicate that it prefers tracking to be optimized for close range, possibly at the expense of competing interests."/>
+        <enum value="3"   name="XR_TRACKING_OPTIMIZATION_SETTINGS_HINT_LOW_POWER_PRIORITIZATION_QCOM"   comment="Used by the application to indicate that it prefers tracking to be optimized for low power consumption, possibly at the expense of competing interests."/>
+        <enum value="4"   name="XR_TRACKING_OPTIMIZATION_SETTINGS_HINT_HIGH_POWER_PRIORITIZATION_QCOM"  comment="Used by the application to indicate that it prefers tracking to be optimized for increased tracking performance, possibly at the cost of increased power consumption."/>
+    </enums>
+    <enums name="XrTrackingOptimizationSettingsDomainQCOM" type="enum">
+        <enum value="1"   name="XR_TRACKING_OPTIMIZATION_SETTINGS_DOMAIN_ALL_QCOM" comment="Setting applies to all QCOM tracking extensions."/>
+    </enums>
+
+    <commands>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_HINT_ALREADY_SET_QCOM,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrSetTrackingOptimizationSettingsHintQCOM</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param><type>XrTrackingOptimizationSettingsDomainQCOM</type> <name>domain</name></param>
+            <param><type>XrTrackingOptimizationSettingsHintQCOM</type> <name>hint</name></param>
+        </command>
+    </commands>
+
+    <extensions>
+    <extension name="XR_QCOM_tracking_optimization_settings" number="307" type="instance" supported="openxr">
+        <require>
+            <enum value="2"                                                  name="XR_QCOM_tracking_optimization_settings_SPEC_VERSION"/>
+            <enum value="&quot;XR_QCOM_tracking_optimization_settings&quot;" name="XR_QCOM_TRACKING_OPTIMIZATION_SETTINGS_EXTENSION_NAME"/>
+            <enum offset="0" dir="-" extends="XrResult"                      name="XR_ERROR_HINT_ALREADY_SET_QCOM"                        comment="Tracking optimization hint is already set for the domain."/>
+
+            <type name="XrTrackingOptimizationSettingsDomainQCOM"/>
+            <type name="XrTrackingOptimizationSettingsHintQCOM"/>
+
+            <enum extends="XrTrackingOptimizationSettingsHintQCOM" name="XR_TRACKING_OPTIMIZATION_SETTINGS_HINT_LONG_RANGE_PRIORIZATION_QCOM"  alias="XR_TRACKING_OPTIMIZATION_SETTINGS_HINT_LONG_RANGE_PRIORITIZATION_QCOM"  comment="Backward-compatibility alias containing typo."/>
+            <enum extends="XrTrackingOptimizationSettingsHintQCOM" name="XR_TRACKING_OPTIMIZATION_SETTINGS_HINT_CLOSE_RANGE_PRIORIZATION_QCOM" alias="XR_TRACKING_OPTIMIZATION_SETTINGS_HINT_CLOSE_RANGE_PRIORITIZATION_QCOM" comment="Backward-compatibility alias containing typo."/>
+            <enum extends="XrTrackingOptimizationSettingsHintQCOM" name="XR_TRACKING_OPTIMIZATION_SETTINGS_HINT_LOW_POWER_PRIORIZATION_QCOM"   alias="XR_TRACKING_OPTIMIZATION_SETTINGS_HINT_LOW_POWER_PRIORITIZATION_QCOM"   comment="Backward-compatibility alias containing typo."/>
+            <enum extends="XrTrackingOptimizationSettingsHintQCOM" name="XR_TRACKING_OPTIMIZATION_SETTINGS_HINT_HIGH_POWER_PRIORIZATION_QCOM"  alias="XR_TRACKING_OPTIMIZATION_SETTINGS_HINT_HIGH_POWER_PRIORITIZATION_QCOM"  comment="Backward-compatibility alias containing typo."/>
+
+            <command name="xrSetTrackingOptimizationSettingsHintQCOM"/>
+        </require>
+    </extension>
+    </extensions>
+</fragment>

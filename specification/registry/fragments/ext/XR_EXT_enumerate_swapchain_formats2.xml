@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<fragment>
+    <comment>
+Copyright (c) 2017-2026 The Khronos Group Inc.
+
+SPDX-License-Identifier: Apache-2.0 OR MIT
+    </comment>
+
+    <types>
+        <type category="struct" name="XrSwapchainFormatsEnumerateInfoEXT">
+            <member values="XR_TYPE_SWAPCHAIN_FORMATS_ENUMERATE_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+    </types>
+
+    <commands>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateSwapchainFormats2EXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param><type>XrSwapchainFormatsEnumerateInfoEXT</type>* <name>enumerateInfo</name></param>
+            <param optional="true"><type>uint32_t</type> <name>formatCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>formatCountOutput</name></param>
+            <param optional="true" len="formatCapacityInput"><type>int64_t</type>* <name>formats</name></param>
+        </command>
+    </commands>
+
+    <extensions>
+    <extension name="XR_EXT_enumerate_swapchain_formats2" number="877" type="instance" supported="openxr" ratified="openxr">
+        <require>
+            <enum value="1"                                               name="XR_EXT_enumerate_swapchain_formats2_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_enumerate_swapchain_formats2&quot;" name="XR_EXT_ENUMERATE_SWAPCHAIN_FORMATS2_EXTENSION_NAME"/>
+            <enum offset="0" extends="XrStructureType"                    name="XR_TYPE_SWAPCHAIN_FORMATS_ENUMERATE_INFO_EXT"/>
+            <type name="XrSwapchainFormatsEnumerateInfoEXT"/>
+            <command name="xrEnumerateSwapchainFormats2EXT"/>
+        </require>
+    </extension>
+    </extensions>
+</fragment>

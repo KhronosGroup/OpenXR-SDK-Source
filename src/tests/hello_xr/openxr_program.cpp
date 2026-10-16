@@ -671,13 +671,13 @@ struct OpenXrProgram : IOpenXrProgram {
                 std::string swapchainFormatsString;
                 for (int64_t format : swapchainFormats) {
                     const bool selected = (format == m_colorSwapchainFormat || format == m_depthSwapchainFormat);
-                    swapchainFormatsString += " ";
+                    swapchainFormatsString += ' ';
                     if (selected) {
-                        swapchainFormatsString += "[";
+                        swapchainFormatsString += '[';
                     }
                     swapchainFormatsString += std::to_string(format);
                     if (selected) {
-                        swapchainFormatsString += "]";
+                        swapchainFormatsString += ']';
                     }
                 }
                 Log::Write(Log::Level::Verbose, Fmt("Swapchain Formats: %s", swapchainFormatsString.c_str()));
@@ -885,9 +885,9 @@ struct OpenXrProgram : IOpenXrProgram {
             if (!sourceName.empty()) {
                 sourceName += " and ";
             }
-            sourceName += "'";
+            sourceName += '\'';
             sourceName += std::string(grabSource.data(), size - 1);
-            sourceName += "'";
+            sourceName += '\'';
         }
 
         Log::Write(Log::Level::Info,

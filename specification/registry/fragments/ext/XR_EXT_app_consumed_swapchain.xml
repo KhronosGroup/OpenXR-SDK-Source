@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<fragment>
+    <comment>
+Copyright (c) 2017-2026 The Khronos Group Inc.
+
+SPDX-License-Identifier: Apache-2.0 OR MIT
+    </comment>
+
+    <types>
+        <type category="handle" parent="XrSession"><type>XR_DEFINE_HANDLE</type>(<name>XrAppConsumedSwapchainEXT</name>)</type>
+
+        <type name="XrAppConsumedSwapchainKindEXT" category="enum"/>
+
+        <type category="struct" name="XrAppConsumedSwapchainCreateInfoEXT">
+            <member values="XR_TYPE_APP_CONSUMED_SWAPCHAIN_CREATE_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                           <name>next</name></member>
+            <member><type>XrAppConsumedSwapchainKindEXT</type>         <name>kind</name></member>
+            <member optional="true"><type>XrSwapchainUsageFlags</type> <name>usageFlags</name></member>
+            <member><type>int64_t</type>                               <name>format</name></member>
+        </type>
+        <type category="struct" name="XrAppConsumedSwapchainPropertiesEXT" returnedonly="true">
+            <member values="XR_TYPE_APP_CONSUMED_SWAPCHAIN_PROPERTIES_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                 <name>next</name></member>
+            <member><type>XrSwapchainUsageFlags</type> <name>usageFlags</name></member>
+            <member><type>int64_t</type>               <name>format</name></member>
+            <member><type>uint32_t</type>              <name>sampleCount</name></member>
+            <member><type>uint32_t</type>              <name>width</name></member>
+            <member><type>uint32_t</type>              <name>height</name></member>
+            <member><type>uint32_t</type>              <name>faceCount</name></member>
+            <member><type>uint32_t</type>              <name>arraySize</name></member>
+            <member><type>uint32_t</type>              <name>mipCount</name></member>
+        </type>
+        <type category="struct" name="XrAppConsumedSwapchainImageAcquireInfoEXT">
+            <member values="XR_TYPE_APP_CONSUMED_SWAPCHAIN_IMAGE_ACQUIRE_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+        <type category="struct" name="XrAppConsumedSwapchainImageStateEXT" returnedonly="true">
+            <member values="XR_TYPE_APP_CONSUMED_SWAPCHAIN_IMAGE_STATE_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*    <name>next</name></member>
+            <member><type>XrBool32</type> <name>ready</name></member>
+            <member><type>XrBool32</type> <name>unchanged</name></member>
+            <member><type>uint32_t</type> <name>imageIndex</name></member>
+        </type>
+        <type category="struct" name="XrAppConsumedSwapchainImageReleaseInfoEXT">
+            <member values="XR_TYPE_APP_CONSUMED_SWAPCHAIN_IMAGE_RELEASE_INFO_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>* <name>next</name></member>
+        </type>
+    </types>
+
+    <enums name="XrAppConsumedSwapchainKindEXT" type="enum">
+        <!-- all values defined by associated extensions -->
+    </enums>
+
+    <commands>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_OUT_OF_MEMORY,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrCreateAppConsumedSwapchainEXT</name></proto>
+            <param><type>XrSession</type> <name>session</name></param>
+            <param>const <type>XrAppConsumedSwapchainCreateInfoEXT</type>* <name>createInfo</name></param>
+            <param><type>XrAppConsumedSwapchainEXT</type>* <name>appConsumedSwapchain</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_RUNTIME_FAILURE">
+            <proto><type>XrResult</type> <name>xrDestroyAppConsumedSwapchainEXT</name></proto>
+            <param externsync="true_with_children"><type>XrAppConsumedSwapchainEXT</type> <name>appConsumedSwapchain</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateAppConsumedSwapchainImagesEXT</name></proto>
+            <param><type>XrAppConsumedSwapchainEXT</type> <name>appConsumedSwapchain</name></param>
+            <param optional="true"><type>uint32_t</type> <name>imageCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>imageCountOutput</name></param>
+            <param optional="true" len="imageCapacityInput"><type>XrSwapchainImageBaseHeader</type>* <name>images</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrGetAppConsumedSwapchainPropertiesEXT</name></proto>
+            <param><type>XrAppConsumedSwapchainEXT</type> <name>appConsumedSwapchain</name></param>
+            <param><type>XrAppConsumedSwapchainPropertiesEXT</type>* <name>properties</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CALL_ORDER_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_LIMIT_REACHED,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrAcquireAppConsumedSwapchainImageEXT</name></proto>
+            <param><type>XrAppConsumedSwapchainEXT</type> <name>appConsumedSwapchain</name></param>
+            <param>const <type>XrAppConsumedSwapchainImageAcquireInfoEXT</type>* <name>acquireInfo</name></param>
+            <param><type>XrAppConsumedSwapchainImageStateEXT</type>* <name>image</name></param>
+        </command>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_CALL_ORDER_INVALID,XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrReleaseAppConsumedSwapchainImageEXT</name></proto>
+            <param><type>XrAppConsumedSwapchainEXT</type> <name>appConsumedSwapchain</name></param>
+            <param optional="true">const <type>XrAppConsumedSwapchainImageReleaseInfoEXT</type>* <name>releaseInfo</name></param>
+        </command>
+    </commands>
+
+    <extensions>
+    <extension name="XR_EXT_app_consumed_swapchain" number="878" type="instance" supported="openxr" depends="XR_EXT_enumerate_swapchain_formats2" ratified="openxr">
+        <require>
+            <enum value="1"                                         name="XR_EXT_app_consumed_swapchain_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_app_consumed_swapchain&quot;" name="XR_EXT_APP_CONSUMED_SWAPCHAIN_EXTENSION_NAME"/>
+
+            <type name="XrAppConsumedSwapchainEXT"/>
+            <enum offset="0" extends="XrObjectType" name="XR_OBJECT_TYPE_APP_CONSUMED_SWAPCHAIN_EXT" comment="XrAppConsumedSwapchainEXT"/>
+
+            <type name="XrAppConsumedSwapchainCreateInfoEXT"/>
+            <type name="XrAppConsumedSwapchainPropertiesEXT"/>
+            <type name="XrAppConsumedSwapchainImageAcquireInfoEXT"/>
+            <type name="XrAppConsumedSwapchainImageStateEXT"/>
+            <type name="XrAppConsumedSwapchainImageReleaseInfoEXT"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_APP_CONSUMED_SWAPCHAIN_CREATE_INFO_EXT"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_APP_CONSUMED_SWAPCHAIN_PROPERTIES_EXT"/>
+            <enum offset="2" extends="XrStructureType" name="XR_TYPE_APP_CONSUMED_SWAPCHAIN_IMAGE_ACQUIRE_INFO_EXT"/>
+            <enum offset="3" extends="XrStructureType" name="XR_TYPE_APP_CONSUMED_SWAPCHAIN_IMAGE_STATE_EXT"/>
+            <enum offset="4" extends="XrStructureType" name="XR_TYPE_APP_CONSUMED_SWAPCHAIN_IMAGE_RELEASE_INFO_EXT"/>
+
+            <type name="XrAppConsumedSwapchainKindEXT"/>
+
+            <command name="xrCreateAppConsumedSwapchainEXT"/>
+            <command name="xrDestroyAppConsumedSwapchainEXT"/>
+            <command name="xrGetAppConsumedSwapchainPropertiesEXT"/>
+            <command name="xrEnumerateAppConsumedSwapchainImagesEXT"/>
+            <command name="xrAcquireAppConsumedSwapchainImageEXT"/>
+            <command name="xrReleaseAppConsumedSwapchainImageEXT"/>
+
+        </require>
+    </extension>
+    </extensions>
+</fragment>

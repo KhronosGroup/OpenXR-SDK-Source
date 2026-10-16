@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<fragment>
+    <comment>
+Copyright (c) 2017-2026 The Khronos Group Inc.
+
+SPDX-License-Identifier: Apache-2.0 OR MIT
+    </comment>
+
+    <types>
+        <type name="XrSpatialPlaneSemanticLabel2EXT" category="enum"/>
+
+        <type category="struct" name="XrSpatialComponentPlaneSemanticLabel2ListEXT" structextends="XrSpatialComponentDataQueryResultEXT">
+            <member values="XR_TYPE_SPATIAL_COMPONENT_PLANE_SEMANTIC_LABEL2_LIST_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                                     <name>next</name></member>
+            <member><type>uint32_t</type>                                                  <name>semanticLabelCount</name></member>
+            <member len="semanticLabelCount"><type>XrSpatialPlaneSemanticLabel2EXT</type>* <name>semanticLabels</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialFeaturePlaneSemanticLabel2SubsetEXT" structextends="XrSpatialCapabilityConfigurationPlaneTrackingEXT">
+            <member values="XR_TYPE_SPATIAL_FEATURE_PLANE_SEMANTIC_LABEL2_SUBSET_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                     <name>next</name></member>
+            <member><type>uint32_t</type>                                                        <name>semanticLabelCount</name></member>
+            <member len="semanticLabelCount">const <type>XrSpatialPlaneSemanticLabel2EXT</type>* <name>semanticLabels</name></member>
+        </type>
+    </types>
+
+    <enums name="XrSpatialPlaneSemanticLabel2EXT" type="enum">
+        <enum value="1"   name="XR_SPATIAL_PLANE_SEMANTIC_LABEL2_UNCATEGORIZED_EXT" comment="The runtime was unable to classify this entity."/>
+        <enum value="2"   name="XR_SPATIAL_PLANE_SEMANTIC_LABEL2_FLOOR_EXT"         comment="The entity is a floor."/>
+        <enum value="3"   name="XR_SPATIAL_PLANE_SEMANTIC_LABEL2_WALL_EXT"          comment="The entity is a wall."/>
+        <enum value="4"   name="XR_SPATIAL_PLANE_SEMANTIC_LABEL2_CEILING_EXT"       comment="The entity is a ceiling."/>
+        <enum value="5"   name="XR_SPATIAL_PLANE_SEMANTIC_LABEL2_TABLE_EXT"         comment="The entity is a table."/>
+        <enum value="6"   name="XR_SPATIAL_PLANE_SEMANTIC_LABEL2_DOOR_EXT"          comment="The entity is a door."/>
+        <enum value="7"   name="XR_SPATIAL_PLANE_SEMANTIC_LABEL2_WINDOW_EXT"        comment="The entity is a window."/>
+    </enums>
+
+    <extensions>
+    <extension name="XR_EXT_spatial_plane_semantic_label2" number="870" type="instance" supported="openxr" ratified="openxr" depends="XR_EXT_spatial_entity">
+        <require>
+            <enum value="1"                                                name="XR_EXT_spatial_plane_semantic_label2_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_spatial_plane_semantic_label2&quot;" name="XR_EXT_SPATIAL_PLANE_SEMANTIC_LABEL2_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrSpatialComponentTypeEXT"           name="XR_SPATIAL_COMPONENT_TYPE_PLANE_SEMANTIC_LABEL2_EXT"            comment="Component that provides a semantic label for a plane. Corresponding list structure is slink:XrSpatialComponentPlaneSemanticLabel2ListEXT; Corresponding data structure is elink:XrSpatialPlaneSemanticLabel2EXT"/>
+            <enum offset="0" extends="XrSpatialCapabilityFeatureEXT"       name="XR_SPATIAL_CAPABILITY_FEATURE_PLANE_SEMANTIC_LABEL2_SUBSET_EXT" comment="Spatial feature allowing applications to specify a subset of labels from elink:XrSpatialPlaneSemanticLabel2EXT for the runtime to track. Corresponding config structure is slink:XrSpatialFeaturePlaneSemanticLabel2SubsetEXT"/>
+
+            <type name="XrSpatialPlaneSemanticLabel2EXT"/>
+
+            <type name="XrSpatialComponentPlaneSemanticLabel2ListEXT"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SPATIAL_COMPONENT_PLANE_SEMANTIC_LABEL2_LIST_EXT"/>
+            <type name="XrSpatialFeaturePlaneSemanticLabel2SubsetEXT"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_SPATIAL_FEATURE_PLANE_SEMANTIC_LABEL2_SUBSET_EXT"/>
+        </require>
+    </extension>
+    </extensions>
+</fragment>

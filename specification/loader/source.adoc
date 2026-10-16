@@ -106,7 +106,7 @@ whenever possible.
 ==== Language Selection
 
 Internally, the loader is implemented using the pass:[C++] language, taking
-advantage of pass:[C++]11 standard features.
+advantage of pass:[C++]17 standard features.
 Since the OpenXR API is exposed using C, all exported commands must: be
 properly wrapped using `extern "C" {` and `}`.
 
@@ -154,7 +154,7 @@ Some examples are as follows:
 ----
 std::string my_string;
 std::cout << std::to_string(5);
-std::experimental::filesystem::path search_path;
+std::chrono::nanoseconds duration;
 ----
 ====
 
@@ -187,34 +187,32 @@ The only two reasons you may define this are:
   uncaught to trigger a debugger.
 
 
-.Experimental Filesystem Usage
+.Filesystem Usage
 
 In order to simplify the file management, especially with regards to loading
-JSON manifest files or finding dynamic library files, the
-experimental/filesystem is used.
-This is a set of features which are part of the upcoming pass:[C++]17
-feature set designed to make file management easier.
+JSON manifest files or finding dynamic library files, the pass:[C++]17
+`<filesystem>` library is used.
 
-Since no compiler currently supports pass:[C++]17, most have enabled a chunk
-of functionality using the "experimental" namespace.
-When used, you can find elements of this functionality with the prefix
-`std::experimental::filesystem`.
+Direct use of it is confined to `filesystem_utils.cpp`, which wraps it in the
+`FileSysUtils*` functions declared in `filesystem_utils.hpp`.
+Code elsewhere in the loader should: call those functions rather than using
+`std::filesystem` directly.
 
 [example]
-.Experimental Filesystem Usage
+.Filesystem Usage
 ====
-Using the experimental filesystem in the source:
+Using the filesystem in the source:
 
 [source,cpp]
 ----
-#include <experimental/filesystem>
+#include <filesystem>
 
 static void checkAllFilesInThePath(const std::string &search_path) {
     try {
         // If the file exists, try to add it
-        if (std::experimental::filesystem::is_regular_file(search_path)) {
-            std::experimental::filesystem::path absolute_path =
-                std::experimental::filesystem::absolute(search_path);
+        if (std::filesystem::is_regular_file(search_path)) {
+            std::filesystem::path absolute_path =
+                std::filesystem::absolute(search_path);
         }
     } catch (...) {
     }

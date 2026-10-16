@@ -25,10 +25,14 @@ if(ANDROID)
     )
     target_include_directories(loader_test PRIVATE ${ANDROID_NATIVE_APP_GLUE})
 else()
-    add_executable(loader_test loader_test_utils.cpp loader_test.cpp)
+    add_executable(loader_test
+                   loader_test_utils.cpp
+                   loader_test.cpp
+                   "${PROJECT_SOURCE_DIR}/src/common/filesystem_utils.hpp"
+                   "${PROJECT_SOURCE_DIR}/src/common/filesystem_utils.cpp"
+    )
 endif()
 
-openxr_add_filesystem_utils(loader_test)
 add_sanitizers(loader_test)
 set_target_properties(loader_test PROPERTIES FOLDER ${LOADER_TESTS_FOLDER})
 target_link_libraries(
@@ -76,8 +80,10 @@ add_test(
 )
 
 file(
-    MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/resources/layers"
-    "${CMAKE_CURRENT_BINARY_DIR}/resources/runtimes"
+    MAKE_DIRECTORY
+        "${CMAKE_CURRENT_BINARY_DIR}/resources/layers"
+        "${CMAKE_CURRENT_BINARY_DIR}/resources/runtimes"
+        "${CMAKE_CURRENT_BINARY_DIR}/openxr/1"
 )
 
 gen_xr_layer_json(

@@ -675,8 +675,7 @@ class OutputGenerator:
                     if comment:
                         body += self.makeCComment(comment)
                 requirements = self.genRequirements(name, mustBeFound = False)
-                if requirements != '':
-                    body += f"  {requirements}"
+                body += requirements
                 body += f"static const {flagTypeName} {name} = {strVal};"
                 if alias_of is not None:
                     body += f"  // alias of {alias_of}"
@@ -763,10 +762,11 @@ class OutputGenerator:
                     if protect is not None:
                         decl += f'#ifdef {protect}\n'
 
-                    # Indent requirements comment, if there is one
+                    # Indent requirements comment, if there is one -- match
+                    # the 4-space indent of the enumerant line below it.
                     requirements = self.genRequirements(name, mustBeFound = False)
                     if requirements != '':
-                        requirements = f"  {requirements}"
+                        requirements = f"    {requirements}"
                     decl += requirements
                     decl += f'    {name} = {strVal},'
 

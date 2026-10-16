@@ -255,14 +255,14 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
             param_name_prefix = param_name[:period_pos + 1]
         return param_name_prefix
 
-    # We don't know what to do with external graphics handles, so we need
+    # We don't know what to do with external handles, so we need
     # to detect them here.
     #   self            the ApiDumpOutputGenerator object
     #   name            the name of the type to check
-    def isExternalGraphicsApiHandle(self, name):
+    def isExternalApiHandle(self, name):
         if (name.startswith('Vk') or name.startswith('GLX') or name.startswith('ID3D') or
             name.startswith('wl_') or name.startswith('Mir') or name.startswith('xcb_') or
-                name.startswith('EGL') or name == 'HGLRC' or name == 'HDC'):
+                name.startswith('EGL') or name in ('HGLRC', 'HDC', 'jobject')):
             return True
         return False
 
@@ -284,7 +284,7 @@ class ApiDumpOutputGenerator(AutomaticSourceOutputGenerator):
         use_stream = False
         pointer_count = member_param.pointer_count
         is_array = member_param.is_array
-        is_external = self.isExternalGraphicsApiHandle(base_type)
+        is_external = self.isExternalApiHandle(base_type)
 
         # If this is an array defined by a pointer, we need to drop the pointer count for it
         if is_array and not member_param.is_static_array and member_param.pointer_count_var:

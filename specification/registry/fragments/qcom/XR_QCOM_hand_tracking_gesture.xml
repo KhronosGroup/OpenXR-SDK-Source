@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<fragment>
+    <comment>
+Copyright (c) 2017-2026 The Khronos Group Inc.
+
+SPDX-License-Identifier: Apache-2.0 OR MIT
+    </comment>
+
+    <types>
+        <type name="XrHandGestureTypeQCOM" category="enum"/>
+        <type category="struct" name="XrHandGestureQCOM">
+            <member><type>XrHandGestureTypeQCOM</type> <name>gesture</name></member>
+            <member><type>float</type>                 <name>gestureRatio</name></member>
+            <member><type>float</type>                 <name>flipRatio</name></member>
+        </type>
+    </types>
+
+    <enums name="XrHandGestureTypeQCOM" type="enum">
+        <enum value="-1"   name="XR_HAND_GESTURE_TYPE_UNKNOWN_QCOM"   comment="Indicates that no gesture can be detected."/>
+        <enum value="0"    name="XR_HAND_GESTURE_TYPE_OPEN_HAND_QCOM" comment="The open hand gesture is a neutral position. It is performed by extending the hand with the fingers opened and the palm away from the user."/>
+        <enum value="2"    name="XR_HAND_GESTURE_TYPE_GRAB_QCOM"      comment="The grab gesture is performed by placing the hand in front of the user and closing the hand into a fist."/>
+        <enum value="7"    name="XR_HAND_GESTURE_TYPE_PINCH_QCOM"     comment="The pinch gesture is performed by touching the tip of the thumb to the tip of the index finger while extending the remaining fingers."/>
+    </enums>
+
+    <commands>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_TIME_INVALID">
+            <proto><type>XrResult</type> <name>xrGetHandGestureQCOM</name></proto>
+            <param><type>XrHandTrackerEXT</type> <name>handTracker</name></param>
+            <param><type>XrTime</type> <name>time</name></param>
+            <param><type>XrHandGestureQCOM</type>* <name>handGesture</name></param>
+        </command>
+    </commands>
+
+    <extensions>
+    <extension name="XR_QCOM_hand_tracking_gesture" number="311" type="instance" supported="openxr" depends="XR_VERSION_1_0+XR_EXT_hand_tracking" deprecatedby="XR_EXT_hand_interaction">
+        <require>
+            <enum value="1"                                         name="XR_QCOM_hand_tracking_gesture_SPEC_VERSION"/>
+            <enum value="&quot;XR_QCOM_hand_tracking_gesture&quot;" name="XR_QCOM_HAND_TRACKING_GESTURE_EXTENSION_NAME"/>
+
+            <type name="XrHandGestureTypeQCOM"/>
+            <type name="XrHandGestureQCOM"/>
+
+            <command name="xrGetHandGestureQCOM"/>
+        </require>
+    </extension>
+    </extensions>
+</fragment>

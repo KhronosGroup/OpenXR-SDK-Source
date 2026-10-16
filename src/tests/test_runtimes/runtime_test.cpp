@@ -1326,22 +1326,33 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrCreateReferenceSpace(XrSession sessi
     XrSession_T* sessionPtr = demoteFromHandle<XrSession, XrSession_T>(session);
     XrInstance_T* instancePtr = demoteFromHandle<XrInstance, XrInstance_T>(sessionPtr->instance);
 
+#define AS_LIST(name, val) name,
+    constexpr XrReferenceSpaceType knownReferenceSpaces[] = {XR_LIST_ENUM_XrReferenceSpaceType(AS_LIST)};
+#undef AS_LIST
+
+    if (std::find(std::begin(knownReferenceSpaces), std::end(knownReferenceSpaces), createInfo->referenceSpaceType) ==
+        std::end(knownReferenceSpaces)) {
+        // Did not find this reference space type in a list of all those in the spec, meaning it is invalid.
+        // Return XR_ERROR_VALIDATION_FAILURE to provide additional debugging information
+        return XR_ERROR_VALIDATION_FAILURE;
+    }
+
     if (instancePtr->apiVersion < XR_MAKE_VERSION(1, 1, 0)) {
-        std::array<XrReferenceSpaceType, 3> knownReferenceSpaces{
+        std::array<XrReferenceSpaceType, 3> supportedReferenceSpaces{
             {XR_REFERENCE_SPACE_TYPE_VIEW, XR_REFERENCE_SPACE_TYPE_LOCAL, XR_REFERENCE_SPACE_TYPE_STAGE}};
 
-        if (std::find(knownReferenceSpaces.begin(), knownReferenceSpaces.end(), createInfo->referenceSpaceType) ==
-            knownReferenceSpaces.end()) {
+        if (std::find(supportedReferenceSpaces.begin(), supportedReferenceSpaces.end(), createInfo->referenceSpaceType) ==
+            supportedReferenceSpaces.end()) {
             return XR_ERROR_REFERENCE_SPACE_UNSUPPORTED;
         }
     } else {
         // OpenXR 1.1 introduced local floor
-        std::array<XrReferenceSpaceType, 4> knownReferenceSpaces{{XR_REFERENCE_SPACE_TYPE_VIEW, XR_REFERENCE_SPACE_TYPE_LOCAL,
-                                                                  XR_REFERENCE_SPACE_TYPE_STAGE,
-                                                                  XR_REFERENCE_SPACE_TYPE_LOCAL_FLOOR}};
+        std::array<XrReferenceSpaceType, 4> supportedReferenceSpaces{{XR_REFERENCE_SPACE_TYPE_VIEW, XR_REFERENCE_SPACE_TYPE_LOCAL,
+                                                                      XR_REFERENCE_SPACE_TYPE_STAGE,
+                                                                      XR_REFERENCE_SPACE_TYPE_LOCAL_FLOOR}};
 
-        if (std::find(knownReferenceSpaces.begin(), knownReferenceSpaces.end(), createInfo->referenceSpaceType) ==
-            knownReferenceSpaces.end()) {
+        if (std::find(supportedReferenceSpaces.begin(), supportedReferenceSpaces.end(), createInfo->referenceSpaceType) ==
+            supportedReferenceSpaces.end()) {
             return XR_ERROR_REFERENCE_SPACE_UNSUPPORTED;
         }
     }
@@ -1365,6 +1376,17 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetReferenceSpaceBoundsRect(XrSessio
                                                                         XrExtent2Df* bounds) {
     XrSession_T* sessionPtr = demoteFromHandle<XrSession, XrSession_T>(session);
     XrInstance_T* instancePtr = demoteFromHandle<XrInstance, XrInstance_T>(sessionPtr->instance);
+
+#define AS_LIST(name, val) name,
+    constexpr XrReferenceSpaceType knownReferenceSpaces[] = {XR_LIST_ENUM_XrReferenceSpaceType(AS_LIST)};
+#undef AS_LIST
+
+    if (std::find(std::begin(knownReferenceSpaces), std::end(knownReferenceSpaces), referenceSpaceType) ==
+        std::end(knownReferenceSpaces)) {
+        // Did not find this reference space type in a list of all those in the spec, meaning it is invalid.
+        return XR_ERROR_VALIDATION_FAILURE;
+    }
+
     if (instancePtr->apiVersion > XR_MAKE_VERSION(1, 1, 0)) {
         //  OpenXR 1.1 and later support LOCAL_FLOOR; Bounds of LOCAL FLOOR
         //  are the same as LOCAL.
@@ -1381,9 +1403,8 @@ XRAPI_ATTR XrResult XRAPI_CALL RuntimeTestXrGetReferenceSpaceBoundsRect(XrSessio
             bounds->width = 0;
             bounds->height = 0;
             return XR_SPACE_BOUNDS_UNAVAILABLE;
-        case XR_REFERENCE_SPACE_TYPE_MAX_ENUM:
-            return XR_ERROR_VALIDATION_FAILURE;
         default:
+            // A valid but unsupported reference space.
             return XR_ERROR_REFERENCE_SPACE_UNSUPPORTED;
     }
 }

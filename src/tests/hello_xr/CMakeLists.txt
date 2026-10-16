@@ -21,7 +21,6 @@ set(LOCAL_HEADERS
     d3d_common.h
     d3d12_utils.h
     geometry.h
-    graphicsapi.h
     graphicsplugin.h
     logger.h
     openxr_program.h
@@ -45,6 +44,7 @@ set(LOCAL_SOURCE
     logger.cpp
     main.cpp
     openxr_program.cpp
+    openxr_program_spatial_containers.cpp
     pch.cpp
     platformplugin_android.cpp
     platformplugin_factory.cpp

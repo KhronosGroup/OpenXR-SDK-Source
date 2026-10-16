@@ -9,6 +9,7 @@
 #include "platformplugin.h"
 #include "graphicsplugin.h"
 #include "openxr_program.h"
+#include "openxr_program_spatial_containers.h"
 
 #if defined(_WIN32)
 // Favor the high performance NVIDIA or AMD GPUs
@@ -28,6 +29,7 @@ void ShowHelp() {
     Log::Write(Log::Level::Info, "adb shell setprop debug.xr.formFactor Hmd|Handheld");
     Log::Write(Log::Level::Info, "adb shell setprop debug.xr.viewConfiguration Stereo|Mono");
     Log::Write(Log::Level::Info, "adb shell setprop debug.xr.blendMode Opaque|Additive|AlphaBlend");
+    Log::Write(Log::Level::Info, "adb shell setprop debug.xr.program Default|SpatialContainers");
 }
 
 bool UpdateOptionsFromSystemProperties(Options& options) {
@@ -54,6 +56,10 @@ bool UpdateOptionsFromSystemProperties(Options& options) {
         options.EnvironmentBlendMode = value;
     }
 
+    if (__system_property_get("debug.xr.program", value) != 0) {
+        options.OpenXrProgram = value;
+    }
+
     try {
         options.ParseStrings();
     } catch (std::invalid_argument& ia) {
@@ -68,12 +74,13 @@ void ShowHelp() {
     // TODO: Improve/update when things are more settled.
     Log::Write(Log::Level::Info,
                "HelloXr --graphics|-g <Graphics API> [--formfactor|-ff <Form factor>] [--viewconfig|-vc <View config>] "
-               "[--blendmode|-bm <Blend mode>] [--space|-s <Space>] [--verbose|-v]");
+               "[--blendmode|-bm <Blend mode>] [--space|-s <Space>] [--program|-p <Program>] [--verbose|-v]");
     Log::Write(Log::Level::Info, "Graphics APIs:            D3D11, D3D12, OpenGLES, OpenGL, Vulkan2, Vulkan, Metal");
     Log::Write(Log::Level::Info, "Form factors:             Hmd, Handheld");
     Log::Write(Log::Level::Info, "View configurations:      Mono, Stereo");
     Log::Write(Log::Level::Info, "Environment blend modes:  Opaque, Additive, AlphaBlend");
     Log::Write(Log::Level::Info, "Spaces:                   View, Local, Stage");
+    Log::Write(Log::Level::Info, "Programs:                 Default, SpatialContainers");
 }
 
 bool UpdateOptionsFromCommandLine(Options& options, int argc, char* argv[]) {
@@ -99,6 +106,8 @@ bool UpdateOptionsFromCommandLine(Options& options, int argc, char* argv[]) {
             options.EnvironmentBlendMode = getNextArg();
         } else if (EqualsIgnoreCase(arg, "--space") || EqualsIgnoreCase(arg, "-s")) {
             options.AppSpace = getNextArg();
+        } else if (EqualsIgnoreCase(arg, "--program") || EqualsIgnoreCase(arg, "-p")) {
+            options.OpenXrProgram = getNextArg();
         } else if (EqualsIgnoreCase(arg, "--verbose") || EqualsIgnoreCase(arg, "-v")) {
             Log::SetLevel(Log::Level::Verbose);
         } else if (EqualsIgnoreCase(arg, "--help") || EqualsIgnoreCase(arg, "-h")) {
@@ -221,7 +230,14 @@ void android_main(struct android_app* app) {
         std::shared_ptr<IGraphicsPlugin> graphicsPlugin = CreateGraphicsPlugin(options->GraphicsPlugin);
 
         // Initialize the OpenXR program.
-        std::shared_ptr<IOpenXrProgram> program = CreateOpenXrProgram(platformPlugin, graphicsPlugin);
+        std::shared_ptr<IOpenXrProgram> program;
+        if (EqualsIgnoreCase(options->OpenXrProgram, "SpatialContainers")) {
+            Log::Write(Log::Level::Info, "Creating OpenXR Program: SpatialContainers");
+            program = CreateOpenXrProgram_SpatialContainers(platformPlugin, graphicsPlugin);
+        } else {
+            Log::Write(Log::Level::Info, "Creating OpenXR Program: Default");
+            program = CreateOpenXrProgram(platformPlugin, graphicsPlugin);
+        }
 
         // Initialize the loader for this platform
         PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
@@ -314,7 +330,14 @@ int main(int argc, char* argv[]) {
             std::shared_ptr<IGraphicsPlugin> graphicsPlugin = CreateGraphicsPlugin(options->GraphicsPlugin);
 
             // Initialize the OpenXR program.
-            std::shared_ptr<IOpenXrProgram> program = CreateOpenXrProgram(platformPlugin, graphicsPlugin);
+            std::shared_ptr<IOpenXrProgram> program;
+            if (EqualsIgnoreCase(options->OpenXrProgram, "SpatialContainers")) {
+                Log::Write(Log::Level::Info, "Creating OpenXR Program: SpatialContainers");
+                program = CreateOpenXrProgram_SpatialContainers(platformPlugin, graphicsPlugin);
+            } else {
+                Log::Write(Log::Level::Info, "Creating OpenXR Program: Default");
+                program = CreateOpenXrProgram(platformPlugin, graphicsPlugin);
+            }
 
             program->CreateInstance();
             program->InitializeSystem(options->Parsed.FormFactor, options->Parsed.ViewConfigType,

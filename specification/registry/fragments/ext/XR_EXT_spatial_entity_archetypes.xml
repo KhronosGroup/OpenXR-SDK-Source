@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<fragment>
+    <comment>
+Copyright (c) 2017-2026 The Khronos Group Inc.
+
+SPDX-License-Identifier: Apache-2.0 OR MIT
+    </comment>
+
+    <types>
+        <type category="define">
+#define <name>XR_NULL_SPATIAL_ARCHETYPE_ID_EXT</name> 0</type>
+
+        <type category="basetype"><type>XR_DEFINE_ATOM</type>(<name>XrSpatialArchetypeIdEXT</name>)</type>
+
+        <type category="struct" name="XrSpatialFilterArchetypeEXT" structextends="XrSpatialComponentDataQueryConditionEXT">
+            <member values="XR_TYPE_SPATIAL_FILTER_ARCHETYPE_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*             <name>next</name></member>
+            <member><type>XrSpatialArchetypeIdEXT</type> <name>archetype</name></member>
+        </type>
+    </types>
+
+    <commands>
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateSpatialArchetypesEXT</name></proto>
+            <param><type>XrSpatialSnapshotEXT</type> <name>snapshot</name></param>
+            <param optional="true"><type>uint32_t</type> <name>archetypeCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>archetypeCountOutput</name></param>
+            <param optional="true" len="archetypeCapacityInput"><type>XrSpatialArchetypeIdEXT</type>* <name>archetypes</name></param>
+        </command>
+
+        <command successcodes="XR_SUCCESS,XR_SESSION_LOSS_PENDING" errorcodes="XR_ERROR_FUNCTION_UNSUPPORTED,XR_ERROR_HANDLE_INVALID,XR_ERROR_INSTANCE_LOST,XR_ERROR_RUNTIME_FAILURE,XR_ERROR_SESSION_LOST,XR_ERROR_SIZE_INSUFFICIENT,XR_ERROR_VALIDATION_FAILURE">
+            <proto><type>XrResult</type> <name>xrEnumerateSpatialArchetypeComponentTypesEXT</name></proto>
+            <param><type>XrSpatialSnapshotEXT</type> <name>snapshot</name></param>
+            <param><type>XrSpatialArchetypeIdEXT</type> <name>archetype</name></param>
+            <param optional="true"><type>uint32_t</type> <name>componentTypeCapacityInput</name></param>
+            <param><type>uint32_t</type>* <name>componentTypeCountOutput</name></param>
+            <param optional="true" len="componentTypeCapacityInput"><type>XrSpatialComponentTypeEXT</type>* <name>componentTypes</name></param>
+        </command>
+    </commands>
+
+    <extensions>
+    <extension name="XR_EXT_spatial_entity_archetypes" number="843" type="instance" supported="openxr" ratified="openxr" depends="XR_EXT_spatial_entity">
+        <require>
+            <enum value="1"                                            name="XR_EXT_spatial_entity_archetypes_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_spatial_entity_archetypes&quot;" name="XR_EXT_SPATIAL_ENTITY_ARCHETYPES_EXTENSION_NAME"/>
+
+            <type name="XR_NULL_SPATIAL_ARCHETYPE_ID_EXT"/>
+            <type name="XrSpatialArchetypeIdEXT"/>
+
+            <type name="XrSpatialFilterArchetypeEXT"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SPATIAL_FILTER_ARCHETYPE_EXT"/>
+
+            <command name="xrEnumerateSpatialArchetypesEXT"/>
+            <command name="xrEnumerateSpatialArchetypeComponentTypesEXT"/>
+        </require>
+    </extension>
+    </extensions>
+</fragment>

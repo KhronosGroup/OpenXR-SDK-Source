@@ -243,6 +243,26 @@ static bool DetectInstalledRuntime() {
     // Successful enumeration implies an active runtime is installed (regardless of ext count)
     runtime_found = XR_SUCCEEDED(ret);
 
+#ifdef XR_OS_LINUX
+    // Linux CMake build places a json at openxr/1/active_runtime.json relative to loader_test.
+
+    // Fallback to the local test_runtime if found
+    if (!runtime_found) {
+        const std::filesystem::path test_runtime = std::filesystem::current_path();
+
+        // We can't use XR_RUNTIME_JSON because the tests are purging the envvar. Instead we use
+        // XDG_CONFIG_HOME configure the path to the active runtime json file.
+        LoaderTestSetEnvironmentVariable("XDG_CONFIG_HOME", test_runtime);
+
+        ret = xrEnumerateInstanceExtensionProperties(nullptr, 0, &ext_count, nullptr);
+        runtime_found = XR_SUCCEEDED(ret);
+
+        if (runtime_found) {
+            TESTLOG("Using XDG_CONFIG_HOME to override runtime location as installed runtime cannot be found\n");
+        }
+    }
+#endif
+
     return runtime_found;
 }
 
@@ -455,25 +475,28 @@ TEST_CASE("TestEnumInstanceExtensions", "") {
 #if !defined(XR_USE_PLATFORM_ANDROID)
         // Test various bad runtime json files
         std::vector<std::string> files;
-        std::string test_path;
-        FileSysUtilsGetCurrentPath(test_path);
+        std::string test_path = std::filesystem::current_path().string();
         test_path = test_path + TEST_DIRECTORY_SYMBOL + "resources" + TEST_DIRECTORY_SYMBOL + "runtimes";
         if (FileSysUtilsFindFilesInPath(test_path, files)) {
+            // generate_runtime_manifest.py --bad generates 16 .json files
+            REQUIRE(files.size() == 16);
             for (std::string& cur_file : files) {
-                std::string full_name = test_path + TEST_DIRECTORY_SYMBOL + cur_file;
+                std::string full_runtime_path = test_path + TEST_DIRECTORY_SYMBOL + cur_file;
+                LoaderTestSetEnvironmentVariable("XR_RUNTIME_JSON", full_runtime_path);
+
+                ForceLoaderUnloadRuntime();
+
+                in_extension_value = 0;
+                out_extension_value = 0;
+                test_result = xrEnumerateInstanceExtensionProperties(nullptr, in_extension_value, &out_extension_value, nullptr);
+
+                INFO(std::string("JSON ") + cur_file + " extension enum count query (" + subtest_name + ")");
                 if (std::string::npos != cur_file.find("_badjson_") || std::string::npos != cur_file.find("_badnegotiate_")) {
                     // This is a "bad" runtime path.
-                    FileSysUtilsGetCurrentPath(full_name);
-                    LoaderTestSetEnvironmentVariable("XR_RUNTIME_JSON", full_name);
-
-                    ForceLoaderUnloadRuntime();
-
-                    in_extension_value = 0;
-                    out_extension_value = 0;
-                    test_result =
-                        xrEnumerateInstanceExtensionProperties(nullptr, in_extension_value, &out_extension_value, nullptr);
-                    TEST_EQUAL(test_result, XR_ERROR_RUNTIME_UNAVAILABLE,
-                               (std::string("JSON ") + cur_file + " extension enum count query (" + subtest_name + ")").c_str());
+                    REQUIRE(test_result == XR_ERROR_RUNTIME_UNAVAILABLE);
+                } else {
+                    // This is a "good" runtime path.
+                    REQUIRE(test_result == XR_SUCCESS);
                 }
             }
         }
@@ -548,7 +571,11 @@ TEST_CASE("TestEnumInstanceExtensions", "") {
 // Test creating and destroying an OpenXR instance through the loader.
 TEST_CASE("TestCreateDestroyInstance", "") {
     if (!g_has_installed_runtime) {
+#if defined(XR_OS_LINUX)
+        FAIL("Should always see an installed runtime on Linux");
+#else
         SKIP("Skipped - no runtime installed");
+#endif
     }
 
     const char invalid_layer_to_enable[] = "XrApiLayer_invalid_layer_test";
@@ -583,7 +610,7 @@ TEST_CASE("TestCreateDestroyInstance", "") {
 
 #if !defined(XR_USE_PLATFORM_ANDROID)
     // Convert relative test layer path to absolute, set envvar
-    FileSysUtilsGetCurrentPath(layer_path);
+    layer_path = std::filesystem::current_path().string();
     layer_path = layer_path + TEST_DIRECTORY_SYMBOL + "resources" + TEST_DIRECTORY_SYMBOL + "layers";
 
     LoaderTestSetEnvironmentVariable("XR_API_LAYER_PATH", layer_path);
@@ -674,7 +701,11 @@ TEST_CASE("TestCreateDestroyInstance", "") {
 // This is to make sure that the automatic instance functions work.
 TEST_CASE("TestGetSystem", "") {
     if (!g_has_installed_runtime) {
+#if defined(XR_OS_LINUX)
+        FAIL("Should always see an installed runtime on Linux");
+#else
         SKIP("Skipped - no runtime installed");
+#endif
     }
 
     XrInstance instance = XR_NULL_HANDLE;
@@ -710,7 +741,11 @@ TEST_CASE("TestGetSystem", "") {
 // Test at least one non-XrInstance function to make sure that the automatic non-instance functions work.
 TEST_CASE("TestCreateDestroyAction", "") {
     if (!g_has_installed_runtime) {
+#if defined(XR_OS_LINUX)
+        FAIL("Should always see an installed runtime on Linux");
+#else
         SKIP("Skipped - no runtime installed");
+#endif
     }
 
     XrInstance instance = XR_NULL_HANDLE;
@@ -756,8 +791,13 @@ TEST_CASE("TestCreateDestroyAction", "") {
 
 TEST_CASE("TestLoaderInitialize") {
     if (!g_has_installed_runtime) {
+#if defined(XR_OS_LINUX)
+        FAIL("Should always see an installed runtime on Linux");
+#else
         SKIP("Skipped - no runtime installed");
+#endif
     }
+
     XrApplicationInfo application_info = {};
     strcpy(application_info.applicationName, "Loader Test");
     application_info.applicationVersion = 688;
@@ -781,8 +821,7 @@ TEST_CASE("TestLoaderInitialize") {
     LoaderTestUnsetEnvironmentVariable("XR_API_LAYER_PATH");
 
     // Convert relative test layer path to absolute, set envar
-    std::string layer_path;
-    FileSysUtilsGetCurrentPath(layer_path);
+    std::string layer_path = std::filesystem::current_path().string();
     layer_path = layer_path + TEST_DIRECTORY_SYMBOL + "resources" + TEST_DIRECTORY_SYMBOL + "layers";
 
     PFN_xrInitializeLoaderKHR initializeLoader = nullptr;
@@ -922,20 +961,6 @@ int main(int /*argc*/, char* /*argv*/[]) {
 #endif
 
     g_has_installed_runtime = DetectInstalledRuntime();
-
-#ifdef XR_OS_LINUX
-    // Fallback to the local test_runtime if found
-    if (!g_has_installed_runtime) {
-        const std::filesystem::path test_runtime = std::filesystem::current_path().parent_path() / "test_runtimes";
-
-        // We can't use XR_RUNTIME_JSON because the tests are purging the envvar. Instead we use
-        // XDG_CONFIG_HOME configure the path to the active runtime json file.
-        LoaderTestSetEnvironmentVariable("XDG_CONFIG_HOME", test_runtime);
-        uint32_t ext_count = 0;
-        const XrResult ret = xrEnumerateInstanceExtensionProperties(nullptr, 0, &ext_count, nullptr);
-        g_has_installed_runtime = XR_SUCCEEDED(ret);
-    }
-#endif
 
     int result = Catch::Session().run();
 

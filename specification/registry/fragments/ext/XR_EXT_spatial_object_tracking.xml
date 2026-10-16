@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<fragment>
+    <comment>
+Copyright (c) 2017-2026 The Khronos Group Inc.
+
+SPDX-License-Identifier: Apache-2.0 OR MIT
+    </comment>
+
+    <types>
+        <type name="XrSpatialObjectSemanticLabelEXT" category="enum"/>
+        <type name="XrSpatialKeyboardSemanticLabelEXT" category="enum"/>
+        <type name="XrSpatialMouseSemanticLabelEXT" category="enum"/>
+
+        <type category="struct" name="XrSpatialCapabilityConfigurationObjectTrackingEXT" parentstruct="XrSpatialCapabilityConfigurationBaseHeaderEXT">
+            <member values="XR_TYPE_SPATIAL_CAPABILITY_CONFIGURATION_OBJECT_TRACKING_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                  <name>next</name></member>
+            <member><type>XrSpatialCapabilityEXT</type>                                       <name>capability</name></member>
+            <member><type>uint32_t</type>                                                     <name>enabledComponentCount</name></member>
+            <member len="enabledComponentCount">const <type>XrSpatialComponentTypeEXT</type>* <name>enabledComponents</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialComponentObjectSemanticLabelListEXT" structextends="XrSpatialComponentDataQueryResultEXT">
+            <member values="XR_TYPE_SPATIAL_COMPONENT_OBJECT_SEMANTIC_LABEL_LIST_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                                     <name>next</name></member>
+            <member><type>uint32_t</type>                                                  <name>semanticLabelCount</name></member>
+            <member len="semanticLabelCount"><type>XrSpatialObjectSemanticLabelEXT</type>* <name>semanticLabels</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialComponentKeyboardSemanticLabelListEXT" structextends="XrSpatialComponentDataQueryResultEXT">
+            <member values="XR_TYPE_SPATIAL_COMPONENT_KEYBOARD_SEMANTIC_LABEL_LIST_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                                       <name>next</name></member>
+            <member><type>uint32_t</type>                                                    <name>semanticLabelCount</name></member>
+            <member len="semanticLabelCount"><type>XrSpatialKeyboardSemanticLabelEXT</type>* <name>semanticLabels</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialComponentMouseSemanticLabelListEXT" structextends="XrSpatialComponentDataQueryResultEXT">
+            <member values="XR_TYPE_SPATIAL_COMPONENT_MOUSE_SEMANTIC_LABEL_LIST_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member><type>void</type>*                                                    <name>next</name></member>
+            <member><type>uint32_t</type>                                                 <name>semanticLabelCount</name></member>
+            <member len="semanticLabelCount"><type>XrSpatialMouseSemanticLabelEXT</type>* <name>semanticLabels</name></member>
+        </type>
+
+        <type category="struct" name="XrSpatialFeatureObjectSemanticLabelSubsetEXT" structextends="XrSpatialCapabilityConfigurationObjectTrackingEXT">
+            <member values="XR_TYPE_SPATIAL_FEATURE_OBJECT_SEMANTIC_LABEL_SUBSET_EXT"><type>XrStructureType</type> <name>type</name></member>
+            <member>const <type>void</type>*                                                     <name>next</name></member>
+            <member><type>uint32_t</type>                                                        <name>semanticLabelCount</name></member>
+            <member len="semanticLabelCount">const <type>XrSpatialObjectSemanticLabelEXT</type>* <name>semanticLabels</name></member>
+        </type>
+    </types>
+
+    <enums name="XrSpatialObjectSemanticLabelEXT" type="enum">
+        <enum value="1"    name="XR_SPATIAL_OBJECT_SEMANTIC_LABEL_UNCATEGORIZED_EXT"  comment="The runtime was unable to classify this entity."/>
+        <enum value="2"    name="XR_SPATIAL_OBJECT_SEMANTIC_LABEL_SOFA_EXT"           comment="The entity is a sofa."/>
+        <enum value="3"    name="XR_SPATIAL_OBJECT_SEMANTIC_LABEL_BED_EXT"            comment="The entity is a bed."/>
+        <enum value="4"    name="XR_SPATIAL_OBJECT_SEMANTIC_LABEL_CHAIR_EXT"          comment="The entity is a chair."/>
+        <enum value="5"    name="XR_SPATIAL_OBJECT_SEMANTIC_LABEL_TABLE_EXT"          comment="The entity is a table."/>
+        <enum value="6"    name="XR_SPATIAL_OBJECT_SEMANTIC_LABEL_LAMP_EXT"           comment="The entity is a lamp."/>
+        <enum value="7"    name="XR_SPATIAL_OBJECT_SEMANTIC_LABEL_PLANT_EXT"          comment="The entity is a plant."/>
+        <enum value="8"    name="XR_SPATIAL_OBJECT_SEMANTIC_LABEL_DISPLAY_SCREEN_EXT" comment="The entity is a display screen, like a monitor or TV."/>
+        <enum value="9"    name="XR_SPATIAL_OBJECT_SEMANTIC_LABEL_WALL_ART_EXT"       comment="The entity is a wall art."/>
+        <enum value="10"   name="XR_SPATIAL_OBJECT_SEMANTIC_LABEL_CABINET_EXT"        comment="The entity is a cabinet."/>
+    </enums>
+
+    <enums name="XrSpatialKeyboardSemanticLabelEXT" type="enum">
+        <enum value="1"   name="XR_SPATIAL_KEYBOARD_SEMANTIC_LABEL_UNCATEGORIZED_EXT" comment="The runtime was unable to classify this entity."/>
+        <enum value="2"   name="XR_SPATIAL_KEYBOARD_SEMANTIC_LABEL_KEYBOARD_EXT"      comment="The entity is a keyboard."/>
+    </enums>
+
+    <enums name="XrSpatialMouseSemanticLabelEXT" type="enum">
+        <enum value="1"   name="XR_SPATIAL_MOUSE_SEMANTIC_LABEL_UNCATEGORIZED_EXT" comment="The runtime was unable to classify this entity."/>
+        <enum value="2"   name="XR_SPATIAL_MOUSE_SEMANTIC_LABEL_MOUSE_EXT"         comment="The entity is a mouse."/>
+    </enums>
+
+    <extensions>
+    <extension name="XR_EXT_spatial_object_tracking" number="745" type="instance" supported="openxr" ratified="openxr" depends="XR_EXT_spatial_entity">
+        <require>
+            <enum value="1"                                          name="XR_EXT_spatial_object_tracking_SPEC_VERSION"/>
+            <enum value="&quot;XR_EXT_spatial_object_tracking&quot;" name="XR_EXT_SPATIAL_OBJECT_TRACKING_EXTENSION_NAME"/>
+
+            <enum offset="0" extends="XrSpatialCapabilityEXT"        name="XR_SPATIAL_CAPABILITY_OBJECT_TRACKING_EXT"                      comment="Object tracking"/>
+
+            <enum offset="0" extends="XrSpatialComponentTypeEXT"     name="XR_SPATIAL_COMPONENT_TYPE_OBJECT_SEMANTIC_LABEL_EXT"            comment="Component that provides a semantic label for a scene; Corresponding list structure is slink:XrSpatialComponentObjectSemanticLabelListEXT; Corresponding data structure is elink:XrSpatialObjectSemanticLabelEXT"/>
+            <enum offset="1" extends="XrSpatialComponentTypeEXT"     name="XR_SPATIAL_COMPONENT_TYPE_KEYBOARD_SEMANTIC_LABEL_EXT"          comment="Component that provides a semantic label for a keyboard; Corresponding list structure is slink:XrSpatialComponentKeyboardSemanticLabelListEXT; Corresponding data structure is elink:XrSpatialKeyboardSemanticLabelEXT"/>
+            <enum offset="2" extends="XrSpatialComponentTypeEXT"     name="XR_SPATIAL_COMPONENT_TYPE_MOUSE_SEMANTIC_LABEL_EXT"             comment="Component that provides a semantic label for a mouse; Corresponding list structure is slink:XrSpatialComponentMouseSemanticLabelListEXT; Corresponding data structure is elink:XrSpatialMouseSemanticLabelEXT"/>
+
+            <enum offset="0" extends="XrSpatialCapabilityFeatureEXT" name="XR_SPATIAL_CAPABILITY_FEATURE_OBJECT_SEMANTIC_LABEL_SUBSET_EXT" comment="Spatial feature allowing applications to specify a subset of labels from elink:XrSpatialObjectSemanticLabelEXT for the runtime to track; Corresponding config structure is slink:XrSpatialFeatureObjectSemanticLabelSubsetEXT."/>
+
+            <type name="XrSpatialObjectSemanticLabelEXT"/>
+            <type name="XrSpatialKeyboardSemanticLabelEXT"/>
+            <type name="XrSpatialMouseSemanticLabelEXT"/>
+
+            <type name="XrSpatialCapabilityConfigurationObjectTrackingEXT"/>
+            <enum offset="0" extends="XrStructureType" name="XR_TYPE_SPATIAL_CAPABILITY_CONFIGURATION_OBJECT_TRACKING_EXT"/>
+            <type name="XrSpatialComponentObjectSemanticLabelListEXT"/>
+            <enum offset="1" extends="XrStructureType" name="XR_TYPE_SPATIAL_COMPONENT_OBJECT_SEMANTIC_LABEL_LIST_EXT"/>
+            <type name="XrSpatialFeatureObjectSemanticLabelSubsetEXT"/>
+            <enum offset="2" extends="XrStructureType" name="XR_TYPE_SPATIAL_FEATURE_OBJECT_SEMANTIC_LABEL_SUBSET_EXT"/>
+            <type name="XrSpatialComponentKeyboardSemanticLabelListEXT"/>
+            <enum offset="3" extends="XrStructureType" name="XR_TYPE_SPATIAL_COMPONENT_KEYBOARD_SEMANTIC_LABEL_LIST_EXT"/>
+            <type name="XrSpatialComponentMouseSemanticLabelListEXT"/>
+            <enum offset="4" extends="XrStructureType" name="XR_TYPE_SPATIAL_COMPONENT_MOUSE_SEMANTIC_LABEL_LIST_EXT"/>
+        </require>
+    </extension>
+    </extensions>
+</fragment>

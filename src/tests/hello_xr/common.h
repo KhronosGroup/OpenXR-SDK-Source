@@ -46,30 +46,6 @@ struct IgnoreCaseStringLess {
     }
 };
 
-template <typename T>
-struct ScopeGuard {
-    // Needs C++17: static_assert(std::is_invocable_v<T>, "Type must be invocable function.");
-
-    ScopeGuard(T&& guard) noexcept : m_guard(std::move(guard)) {}
-
-    ScopeGuard(ScopeGuard&&) noexcept = default;
-    ScopeGuard& operator=(ScopeGuard&&) noexcept = default;
-
-    ScopeGuard(ScopeGuard&) = delete;
-    ScopeGuard& operator=(ScopeGuard&) = delete;
-
-    ~ScopeGuard() { m_guard(); }
-
-   private:
-    T m_guard;
-};
-
-// Usage: auto guard = MakeScopeGuard([&] { foobar; });
-template <typename T>
-ScopeGuard<T> MakeScopeGuard(T&& guard) {
-    return ScopeGuard<T>(std::forward<T>(guard));
-}
-
 inline std::string Fmt(const char* fmt, ...) {
     va_list vl;
     va_start(vl, fmt);

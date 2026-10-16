@@ -64,12 +64,22 @@
       <meta-data
         android:name="android.app.lib_name"
         android:value="hello_xr" />
-      <!-- This filter lets the apk show up as a launchable icon. -->
       <intent-filter>
+        <!-- The MAIN action with LAUNCHER category lets the apk show up as a launchable icon. -->
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
+
+        <!-- The IMMERSIVE_HMD category tells non-spatial container supporting runtimes that this
+             activity displaying in OpenXR. -->
         <category android:name="org.khronos.openxr.intent.category.IMMERSIVE_HMD" />
       </intent-filter>
+
+      <!-- The USED_BOUNDS_MODES and INITIAL_BOUNDS_MODES properties only applies to spatial
+           container supporting runtimes, overriding the presence of IMMERSIVE_HMD. -->
+      <property android:name="org.khronos.openxr.PROPERTY_ACTIVITY_HINT_XR_SPATIAL_CONTAINER_USED_BOUND_MODES"
+                android:value="bounded|immersive"/>
+      <property android:name="org.khronos.openxr.PROPERTY_ACTIVITY_HINT_XR_SPATIAL_CONTAINER_INITIAL_BOUNDS_MODE"
+                android:value="XR_SPATIAL_CONTAINER_INITIAL_BOUNDS_MODE_BOUNDED"/>
     </activity>
   </application>
 </manifest>

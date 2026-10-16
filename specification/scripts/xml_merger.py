@@ -25,6 +25,67 @@ from typing import List, Optional
 from lxml import etree as ET
 
 
+def _build_stub_extension(extension: ET.Element) -> ET.Element:
+    """Expand a stubs=\"true\" placeholder into a reserved extension element."""
+    if extension.get("fragment") == "true":
+        msg = (f"Extension '{extension.get('name')}' (num {extension.get('number')}) "
+               "cannot have both stubs='true' and fragment='true'.")
+        raise ValueError(msg)
+
+    if len(extension) > 0:
+        msg = (f"Extension '{extension.get('name')}' (num {extension.get('number')}) "
+               "with stubs='true' must not have child elements.")
+        raise ValueError(msg)
+
+    ext_name = extension.get("name")
+    if not ext_name:
+        msg = "Extension with stubs='true' must have a name."
+        raise ValueError(msg)
+
+    ext_num = extension.get("number")
+    ext_type = extension.get("type")
+    if not ext_num or not ext_type:
+        msg = (f"Extension '{ext_name}' with stubs='true' must have number and type.")
+        raise ValueError(msg)
+
+    stub = ET.Element("extension")
+    stub.set("name", ext_name)
+    stub.set("number", ext_num)
+    stub.set("type", ext_type)
+    stub.set("supported", "disabled")
+    stub.text = "\n        "
+
+    require = ET.SubElement(stub, "require")
+    require.text = "\n            "
+    require.tail = "\n    "
+
+    spec_version = ET.SubElement(require, "enum")
+    spec_version.set("value", "1")
+    spec_version.set("name", f"{ext_name}_SPEC_VERSION")
+    spec_version.tail = "\n            "
+
+    ext_name_define = ET.SubElement(require, "enum")
+    ext_name_define.set("value", f'"{ext_name}"')
+    ext_name_define.set("name", f"{ext_name.upper()}_EXTENSION_NAME")
+    ext_name_define.tail = "\n        "
+
+    return stub
+
+
+def _expand_stub_extensions(main_root: ET.Element) -> None:
+    """Replace stubs=\"true\" placeholders with generated reserved extensions."""
+    extensions_anchor = main_root.find("extensions")
+    if extensions_anchor is None:
+        return
+
+    for i, extension in enumerate(extensions_anchor):
+        if extension.get("stubs") != "true":
+            continue
+        tail = extension.tail
+        extensions_anchor[i] = _build_stub_extension(extension)
+        extensions_anchor[i].tail = tail
+
+
 def _merge_fragment(tree: ET.ElementTree, fragment_tree: ET.ElementTree, fragment_filepath: Path) -> None:
     """Merge a fragment tree into the main tree."""
     main_root: ET.Element = tree.getroot()
@@ -137,6 +198,8 @@ def merge_registry(input_registry_path: str, fragment_files: Iterable[Path]) -> 
         relative_path = filepath.resolve().relative_to(registry_dir).as_posix()
         comment_text.append(f"      - {relative_path}")
 
+    _expand_stub_extensions(tree.getroot())
+
     comment_text.append("")
 
     # Insert the comment about being generated
@@ -156,7 +219,7 @@ def main() -> None:
                         help="Output file path for merged xr.xml.")
     args = parser.parse_args()
 
-    merged_tree = merge_registry(str(args.input), sorted(args.fragment_dir.rglob("*.xml")))
+    merged_tree = merge_registry(str(args.input), sorted(args.fragment_dir.rglob("[!.]*.xml")))
     args.output.parent.mkdir(parents=True, exist_ok=True)
 
     # lxml handles the doc level comment serialization in a funny way, so do that manually.

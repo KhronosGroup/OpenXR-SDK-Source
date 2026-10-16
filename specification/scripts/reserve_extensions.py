@@ -6,8 +6,8 @@
 """
 Simple script to generate XML to reserve extensions.
 
-The generated XML still needs to be added to xr.xml and have
-PrettyRegistryXML.OpenXR run on it.
+The generated XML still needs to be added to xr.fragmented.xml and have
+PrettyRegistryXML.OpenXR run on it after merging fragments into xr.xml.
 """
 
 import click
@@ -22,12 +22,7 @@ def generate_reserved_extensions(vendor: str, first_extension: int, extensions: 
     vendor = vendor.upper()
     for num in range(first_extension, first_extension + extensions):
         print("    " + f"""
-    <extension name="XR_{vendor}_extension_{num}" number="{num}" type="instance" supported="disabled">
-        <require>
-            <enum value="1"                                 name="XR_{vendor}_extension_{num}_SPEC_VERSION"/>
-            <enum value="&quot;XR_{vendor}_extension_{num}&quot;" name="XR_{vendor}_EXTENSION_{num}_EXTENSION_NAME"/>
-        </require>
-    </extension>
+    <extension name="XR_{vendor}_extension_{num}" number="{num}" type="instance" stubs="true"/>
         """.strip())
         print()
 

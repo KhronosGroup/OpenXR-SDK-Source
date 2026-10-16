@@ -11,6 +11,7 @@
 #               used in the AsciiDoctor source for the spec, especially
 #               related to the validity of the entities linked-to.
 
+import re
 from pathlib import Path
 
 from reg import Registry
@@ -39,7 +40,8 @@ EXTRA_DEFINES = (
 
 # TODO move permissions into XML eventually
 EXTRA_REFPAGES = (
-    'org.khronos.openxr.permission.ext.HAND_TRACKING',
+    'org.khronos.openxr.permission.ACCESS_DETAILED_HAND_DATA',
+    'org.khronos.openxr.detailed_hand_data',
 
     # Used by multiple XR_BD_spatial_* extensions
     'com.picovr.permission.SPATIAL_DATA',
@@ -109,8 +111,35 @@ class XREntityDatabase(EntityDatabase):
             super().handleType(name, info, requires)
 
 
+COMMENT_ATTR_RE = re.compile(r"""comment=(?P<quote>["\x27])(?P<val>.*?)(?P=quote)""")
+EXCLUDED_COMMENT_GROUPS = {
+    'XrStructureType', 'XR_TYPE_',
+    'XrObjectType', 'XR_OBJECT_TYPE_',
+    'XrLoaderInterfaceStructs', 'XR_LOADER_INTERFACE_STRUCT_',
+}
+
+
 class XRMacroCheckerFile(MacroCheckerFile):
     """OpenXR-specific subclass of MacroCheckerFile."""
+
+    def process(self):
+        if not self.filename.endswith('.xml'):
+            super().process()
+            return
+
+        with self.stream_maker.make_stream() as f:
+            for line_num, line in enumerate(f, start=1):
+                self.lines.append(line.rstrip())
+                if 'comment=' not in line or '<require' in line or any(ex in line for ex in EXCLUDED_COMMENT_GROUPS):
+                    continue
+
+                m = COMMENT_ATTR_RE.search(line)
+                if m and m.group('val'):
+                    self.processLine(line_num, m.group('val'))
+
+        if self.numDiagnostics():
+            print(f'\nFor file {self.filename}:')
+            self.printMessageCounts()
 
     def processBlockOpen(self, block_type, context=None, delimiter=None):
         """Do any block-type-specific processing and push the new block.
@@ -176,6 +205,12 @@ if __name__ == '__main__':
     all_docs = sorted((str(fn)
                        for fn in (ROOT / 'specification/sources/').glob('**/*.adoc')
                        if "styleguide" not in str(fn)))
+    registry_fragmented = ROOT / 'specification/registry/xr.fragmented.xml'
+    if registry_fragmented.is_file():
+        all_docs.append(str(registry_fragmented))
+    fragments_dir = ROOT / 'specification/registry/fragments'
+    if fragments_dir.is_dir():
+        all_docs.extend(sorted(str(fn) for fn in fragments_dir.rglob('[!.]*.xml')))
 
     checkerMain(default_enabled_messages, makeMacroChecker,
                 all_docs, available_messages=available_messages)

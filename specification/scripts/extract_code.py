@@ -19,7 +19,7 @@ from pathlib import Path
 from spec_tools.file_process import LinewiseFileProcessor
 
 ROOT = Path(__file__).resolve().parent.parent.parent
-ALL_DOCS = sorted((ROOT / 'specification/sources/').glob('**/*.adoc'))
+ALL_DOCS = sorted((ROOT / 'specification/sources/').glob('**/[!.]*.adoc'))
 
 CODEDIR = ROOT / 'specification/example-builds'
 GENCODEDIR = CODEDIR / 'generated'

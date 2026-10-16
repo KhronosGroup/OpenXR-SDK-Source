@@ -361,7 +361,7 @@ class InteractionProfile:
             action_type=action_type,
             system=system,
             integral=integral,
-            availability=avail)
+            availability=deepcopy(avail))
 
         self.components[subpath] = ret
         return ret

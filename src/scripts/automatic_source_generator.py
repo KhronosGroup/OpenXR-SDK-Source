@@ -814,10 +814,6 @@ class AutomaticSourceOutputGenerator(OutputGenerator):
                             self.printCodeGenErrorMessage('XrResult %s in XML (for extension %s) does'
                                                           ' not end with the expected vendor tag \"%s\"' % (
                                                               item_name, self.currentExtension, self.current_vendor_tag))
-                        if len(item_name) + 1 > self.max_result_length:
-                            self.printCodeGenErrorMessage('XrResult %s length %d in XML is greater'
-                                                          ' than allowable space of %d when null-terminator is added' % (
-                                                              item_name, len(item_name), self.max_result_length))
                         alias = elem.get('alias')
                         self.api_result_types.append(
                             TypeData(
