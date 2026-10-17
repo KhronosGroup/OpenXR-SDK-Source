@@ -21,10 +21,14 @@ on:
         description: "Subdir of the workspace to upload as an artifact."
         type: string
         default: install
+      runsOn:
+        description: "Runner image to build on."
+        type: string
+        default: windows-latest
 
 jobs:
   msvc-build:
-    runs-on: windows-latest
+    runs-on: "${{ inputs.runsOn }}"
     env:
       VULKAN_SDK_VERSION: "1.1.114.0"
       INSTALL_DIR: "${{ github.workspace }}/install"

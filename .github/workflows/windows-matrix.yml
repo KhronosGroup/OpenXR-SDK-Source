@@ -30,6 +30,7 @@ jobs:
         preset:
           - win32
           - x64
+          - arm64
           - win32_uwp
           - x64_uwp
           - arm64_uwp
@@ -40,6 +41,7 @@ jobs:
       preset: "${{ matrix.preset }}"
       artifactName: "loader_${{ matrix.preset }}"
       buildType: "RelWithDebInfo"
+      runsOn: "${{ matrix.preset == 'arm64' && 'windows-11-vs2026-arm' || 'windows-latest' }}"
 
   organize-and-release-artifacts:
     if: inputs.organizeAndRelease

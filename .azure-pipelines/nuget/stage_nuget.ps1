@@ -68,9 +68,10 @@ function CopyLoader($Platform) {
     }
 }
 
-# Currently there are no non-UWP ARM/ARM64 binaries available from the SDK release.
+# Currently there are no non-UWP ARM binaries available from the SDK release.
 CopyLoader "x64"
 CopyLoader "Win32"
+CopyLoader "ARM64"
 CopyLoader "x64_uwp"
 CopyLoader "Win32_uwp"
 CopyLoader "arm64_uwp"
