@@ -468,6 +468,60 @@ class VulkanSwapchainImageData : public SwapchainImageDataBase<XrSwapchainImageV
 struct VulkanGraphicsPlugin : public IGraphicsPlugin {
     VulkanGraphicsPlugin() { m_graphicsBinding.type = GetGraphicsBindingType(); };
 
+    ~VulkanGraphicsPlugin() override {
+        if (m_vkDevice != VK_NULL_HANDLE) {
+            vkDeviceWaitIdle(m_vkDevice);
+        }
+
+        m_swapchainImageDataMap.Reset();
+
+#if defined(USE_MIRROR_WINDOW)
+        m_swapchain.Release();
+#endif
+
+        m_drawBuffer.Reset();
+        m_pipelineLayout.Reset();
+        m_computePipelineLayout.Reset();
+        m_cmdBuffer.Reset();
+        m_shaderProgram.Reset();
+        m_computeShaderProgram.Reset();
+
+        if (m_vkDevice != VK_NULL_HANDLE && m_vkDrawDone != VK_NULL_HANDLE) {
+            vkDestroySemaphore(m_vkDevice, m_vkDrawDone, nullptr);
+            m_vkDrawDone = VK_NULL_HANDLE;
+        }
+
+        m_memAllocator.Reset();
+
+        if (m_vkDevice != VK_NULL_HANDLE) {
+            vkDestroyDevice(m_vkDevice, nullptr);
+            m_vkDevice = VK_NULL_HANDLE;
+        }
+
+        if (m_vkInstance != VK_NULL_HANDLE && m_vkDebugUtilsMessenger != VK_NULL_HANDLE) {
+            auto destroyDebugUtilsMessenger = reinterpret_cast<PFN_vkDestroyDebugUtilsMessengerEXT>(
+                vkGetInstanceProcAddr(m_vkInstance, "vkDestroyDebugUtilsMessengerEXT"));
+
+            if (destroyDebugUtilsMessenger != nullptr) {
+                destroyDebugUtilsMessenger(m_vkInstance, m_vkDebugUtilsMessenger, nullptr);
+            }
+
+            m_vkDebugUtilsMessenger = VK_NULL_HANDLE;
+        }
+
+        if (m_vkInstance != VK_NULL_HANDLE) {
+            vkDestroyInstance(m_vkInstance, nullptr);
+            m_vkInstance = VK_NULL_HANDLE;
+        }
+
+        m_vkPhysicalDevice = VK_NULL_HANDLE;
+        m_vkQueue = VK_NULL_HANDLE;
+
+        m_graphicsBinding.instance = VK_NULL_HANDLE;
+        m_graphicsBinding.physicalDevice = VK_NULL_HANDLE;
+        m_graphicsBinding.device = VK_NULL_HANDLE;
+    }
+
     std::vector<std::string> GetInstanceExtensions() const override { return {XR_KHR_VULKAN_ENABLE2_EXTENSION_NAME}; }
 
     // Note: The output must not outlive the input - this modifies the input and returns a collection of views into that modified
