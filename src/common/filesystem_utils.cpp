@@ -14,7 +14,14 @@
 
 bool FileSysUtilsIsRegularFile(const std::string& path) { return std::filesystem::is_regular_file(path); }
 
-bool FileSysUtilsPathExists(const std::string& path) { return std::filesystem::exists(path); }
+bool FileSysUtilsPathExists(const std::string& path) {
+    try {
+        return std::filesystem::exists(path);
+    } catch (const std::filesystem::filesystem_error& e) {
+        if (e.code() == std::errc::permission_denied) return false;
+        throw;
+    }
+}
 
 bool FileSysUtilsIsAbsolutePath(const std::string& path) {
     std::filesystem::path file_path(path);
