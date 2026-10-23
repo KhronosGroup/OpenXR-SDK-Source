@@ -372,6 +372,11 @@ architectures and ABIs is used.
   | `riscv64`
   | 64-bit RISC-V architecture, little endian
 
+|`riscv32`
+  |
+  |
+  | 32-bit RISC-V architecture, little endian
+
 |`sparc64`
   |
   | `sparc64`
