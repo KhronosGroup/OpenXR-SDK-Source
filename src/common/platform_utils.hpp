@@ -69,6 +69,8 @@
 #define XR_ARCH_ABI "m68k"
 #elif defined(__riscv_xlen) && (__riscv_xlen == 64)
 #define XR_ARCH_ABI "riscv64"
+#elif defined(__riscv_xlen) && (__riscv_xlen == 32)
+#define XR_ARCH_ABI "riscv32"
 #elif defined(__sparc__) && defined(__arch64__)
 #define XR_ARCH_ABI "sparc64"
 #elif defined(__loongarch64)
