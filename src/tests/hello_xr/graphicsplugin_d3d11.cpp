@@ -271,7 +271,8 @@ struct D3D11GraphicsPlugin : public IGraphicsPlugin {
     }
 
     void RenderView(const XrCompositionLayerProjectionView& layerView, const XrSwapchainImageBaseHeader* swapchainImage,
-                    int64_t /* swapchainFormat */, const std::vector<Cube>& cubes) override {
+                    int64_t /* colorSwapchainFormat */, int64_t /* depthSwapchainFormat */,
+                    const std::vector<Cube>& cubes) override {
         CHECK(layerView.subImage.imageArrayIndex == 0);  // Texture arrays not supported.
 
         D3D11SwapchainImageData* swapchainData;
