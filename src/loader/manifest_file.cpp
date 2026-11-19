@@ -252,7 +252,7 @@ static void ReadDataFilesInSearchPaths(const std::string &override_env_var, cons
     AddFilesInPath(search_path, true, manifest_files);
 }
 
-#ifdef XR_OS_LINUX
+#if defined(XR_OS_LINUX) || defined(XR_OS_APPLE)
 
 // Get an XDG environment variable with a $HOME-relative default
 static std::string GetXDGEnvHome(const char *name, const char *fallback_path) {
@@ -716,15 +716,25 @@ XrResult RuntimeManifestFile::FindManifestFiles(const std::string &openxr_comman
         }
 #endif  // defined(XR_USE_PLATFORM_ANDROID) && defined(XR_HAS_REQUIRED_PLATFORM_LOADER_INIT_STRUCT)
 
-        if (!PlatformGetGlobalRuntimeFileName(XR_VERSION_MAJOR(XR_CURRENT_API_VERSION), filename)) {
-            LoaderLogger::LogErrorMessage(
-                openxr_command,
-                "RuntimeManifestFile::FindManifestFiles - failed to determine active runtime file path for this environment");
-            return XR_ERROR_RUNTIME_UNAVAILABLE;
+#if defined(XR_OS_APPLE)
+        // As on Linux, a per-user or system configuration file takes precedence over the global runtime file.
+        if (FindXDGConfigFile("openxr/", XR_VERSION_MAJOR(XR_CURRENT_API_VERSION), filename)) {
+            result = XR_SUCCESS;
+            LoaderLogger::LogInfoMessage(openxr_command,
+                                         "RuntimeManifestFile::FindManifestFiles - using XDG config runtime file " + filename);
+        } else
+#endif  // defined(XR_OS_APPLE)
+        {
+            if (!PlatformGetGlobalRuntimeFileName(XR_VERSION_MAJOR(XR_CURRENT_API_VERSION), filename)) {
+                LoaderLogger::LogErrorMessage(
+                    openxr_command,
+                    "RuntimeManifestFile::FindManifestFiles - failed to determine active runtime file path for this environment");
+                return XR_ERROR_RUNTIME_UNAVAILABLE;
+            }
+            result = XR_SUCCESS;
+            LoaderLogger::LogInfoMessage(openxr_command,
+                                         "RuntimeManifestFile::FindManifestFiles - using global runtime file " + filename);
         }
-        result = XR_SUCCESS;
-        LoaderLogger::LogInfoMessage(openxr_command,
-                                     "RuntimeManifestFile::FindManifestFiles - using global runtime file " + filename);
 #endif  // !defined(XR_OS_WINDOWS) && !defined(XR_OS_LINUX)
     }
     RuntimeManifestFile::CreateIfValid(filename, manifest_files);

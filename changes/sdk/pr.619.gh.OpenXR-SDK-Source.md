@@ -1,0 +1,1 @@
+Loader: On macOS, find the active runtime file in the XDG config directories (e.g. `~/.config/openxr/1/active_runtime.json`) as on Linux, before the global `/usr/local/share/openxr/1/active_runtime.json`, so a runtime can be selected per user without administrator rights.
