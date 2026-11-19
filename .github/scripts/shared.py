@@ -20,8 +20,8 @@ class BuildConfig:
     uwp: bool
 
     def should_skip(self) -> bool:
-        # ARM/ARM64 is only built for the UWP platform.
-        return "ARM" in self.arch and not self.uwp
+        # 32-bit ARM is only built for the UWP platform.
+        return self.arch == "ARM" and not self.uwp
 
         # can switch to just doing x64 for speed of testing
         # return self.arch != "x64"

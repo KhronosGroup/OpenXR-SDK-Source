@@ -49,6 +49,11 @@
             }
         },
         {
+            "name": "arm64",
+            "inherits": ".base-msvc",
+            "architecture": "ARM64"
+        },
+        {
             "name": "arm_uwp",
             "inherits": ".base-msvc",
             "architecture": "ARM",
